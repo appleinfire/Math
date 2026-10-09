@@ -558,6 +558,7 @@ body[data-track="k"] { --paper: #eef2fb; }
 .choices.ct { grid-template-columns: 1fr; gap: 8px; }
 .choices.ct .choice { display: flex; align-items: center; gap: 12px; text-align: left; min-height: 54px; font-size: 1.2rem; padding: 8px 14px; }
 .choices.ct.pics { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+.choices.ct.pics.n4 { grid-template-columns: 1fr 1fr; }
 .choices.ct.pics .choice { flex-direction: column; justify-content: center; min-height: 110px; }
 .choices.ct .letter { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #eef1f6; font-family: var(--display); font-weight: 600; font-size: 1rem; color: var(--ink-soft); }
 .choices.ct .choice.sel .letter { background: #5b63c9; color: #ffffff; }
@@ -571,6 +572,37 @@ body[data-track="k"] { --paper: #eef2fb; }
 @media (max-width: 480px) {
   .ctnav { grid-template-columns: repeat(8, 1fr); }
   .sumgrid.three { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ===== CogAT-style pictures ===== */
+.matrix2, .analogy { display: grid; grid-template-columns: auto auto auto; grid-template-rows: auto auto; align-items: center; justify-items: center; gap: 6px 10px; margin: 10px auto; width: max-content; max-width: 100%; }
+.matrix2 b, .analogy b { font-family: var(--display); font-size: 1.4rem; color: var(--ink-soft); }
+.matrix2 svg.vis { width: 76px; height: 76px; }
+.matrix2 .mq, .analogy .mq { width: 76px; height: 76px; display: grid; place-items: center; border: 3px dashed #b9c4d0; border-radius: 10px; font-family: var(--display); font-size: 2rem; color: #ff6b5b; background: #fbfcfe; }
+.analogy .abox { min-width: 76px; min-height: 76px; display: grid; place-items: center; background: #ffffff; border: 2px solid #d6e0e6; border-radius: 10px; padding: 4px; }
+.analogy.emo .abox { font-size: 2.6rem; line-height: 1; }
+.analogy.emo:not(:has(b)) { grid-template-columns: repeat(3, auto); grid-template-rows: auto; }
+.cluster { display: inline-grid; grid-template-columns: repeat(3, 1fr); gap: 1px; font-size: 1.15rem; line-height: 1.1; font-style: normal; }
+.cluster i { font-style: normal; }
+.cluster.c1 { grid-template-columns: 1fr; font-size: 1.8rem; }
+.cluster.c2, .cluster.c4 { grid-template-columns: repeat(2, 1fr); }
+.figrow { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0; }
+.figrow svg.vis { width: 70px; height: 70px; }
+.foldsteps { display: flex; align-items: flex-start; justify-content: center; gap: 6px; margin: 10px 0; }
+.foldsteps > div { display: grid; justify-items: center; gap: 4px; max-width: 110px; text-align: center; }
+.foldsteps svg.vis { width: 88px; height: 88px; }
+.foldsteps small { font-size: 0.72rem; color: var(--ink-soft); line-height: 1.2; }
+.foldsteps b { align-self: center; margin-top: -18px; font-size: 1.2rem; color: var(--ink-soft); }
+svg.vis.abacus { max-height: 160px; }
+.choices.pics .choice svg.abacus, .choices.ct .copt svg.abacus { width: auto; height: 96px; }
+.choices.pics .choice svg.sheet { width: 80px; height: 80px; }
+.cemo { font-size: 2.4rem; line-height: 1; }
+.choices .choice .cluster { font-size: 1.05rem; }
+.stat.timer.soft { color: var(--ink-soft); }
+@media (max-width: 380px) {
+  .matrix2 svg.vis, .matrix2 .mq, .analogy .mq, .analogy .abox { width: 62px; height: 62px; min-width: 62px; min-height: 62px; }
+  .analogy.emo .abox { font-size: 2.1rem; }
+  .foldsteps svg.vis { width: 74px; height: 74px; }
 }
 </style>
 <div id="app"><p style="padding:40px;text-align:center">Loading Math Expedition…</p></div>
@@ -1055,6 +1087,75 @@ body[data-track="k"] { --paper: #eef2fb; }
     if (front.length) row(front, 0, '#9fd3ef');
     return svg(W, H, s, 'towers', 'towers of cubes');
   };
+
+  // ================= CogAT-style pictures =================
+  // A figure described by attributes: { shape, color, big, count, rot, dot }.
+  const FIG_COLORS = { blue: '#5b63c9', red: '#ff6b5b', green: '#2bb3a3', yellow: '#ffb547', white: '#ffffff' };
+  V.FIG_COLORS = FIG_COLORS;
+  function figShape(shape, cx, cy, r, fill, rot) {
+    const pts = (n, start) => U_range(n).map((i) => { const a = rad(start + (360 / n) * i + rot); return `${r1(cx + r * Math.sin(a))},${r1(cy - r * Math.cos(a))}`; }).join(' ');
+    const st = `fill="${fill}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"`;
+    switch (shape) {
+      case 'circle': return `<circle cx="${cx}" cy="${cy}" r="${r}" ${st}/>`;
+      case 'square': return `<polygon points="${pts(4, 45)}" ${st}/>`;
+      case 'diamond': return `<polygon points="${pts(4, 0)}" ${st}/>`;
+      case 'triangle': return `<polygon points="${pts(3, 0)}" ${st}/>`;
+      case 'hexagon': return `<polygon points="${pts(6, 0)}" ${st}/>`;
+      case 'star': return `<polygon points="${U_range(10).map((i) => { const a = rad(36 * i + rot), rr = i % 2 ? r * 0.45 : r; return `${r1(cx + rr * Math.sin(a))},${r1(cy - rr * Math.cos(a))}`; }).join(' ')}" ${st}/>`;
+      case 'arrow': { // points up when rot = 0
+        const P = [[0, -1], [0.7, -0.1], [0.28, -0.1], [0.28, 1], [-0.28, 1], [-0.28, -0.1], [-0.7, -0.1]].map(([x, y]) => {
+          const a = rad(rot), X = x * r, Y = y * r;
+          return `${r1(cx + X * Math.cos(a) - Y * Math.sin(a))},${r1(cy + X * Math.sin(a) + Y * Math.cos(a))}`;
+        });
+        return `<polygon points="${P.join(' ')}" ${st}/>`;
+      }
+      default: return `<circle cx="${cx}" cy="${cy}" r="${r}" ${st}/>`;
+    }
+  }
+  const U_range = (n) => Array.from({ length: n }, (_, i) => i);
+  V.fig = (f, size = 76) => {
+    const n = f.count || 1, r = (f.big === false ? 0.17 : 0.3) * size * (n > 1 ? 0.62 : 1);
+    const spots = { 1: [[0.5, 0.5]], 2: [[0.3, 0.5], [0.7, 0.5]], 3: [[0.5, 0.27], [0.27, 0.72], [0.73, 0.72]], 4: [[0.3, 0.3], [0.7, 0.3], [0.3, 0.7], [0.7, 0.7]] }[n];
+    let s = `<rect x="1.5" y="1.5" width="${size - 3}" height="${size - 3}" rx="8" fill="#ffffff" stroke="#d6e0e6" stroke-width="2"/>`;
+    for (const [px, py] of spots) {
+      s += figShape(f.shape, r1(px * size), r1(py * size), r, FIG_COLORS[f.color] || f.color, f.rot || 0);
+      if (f.dot) s += `<circle cx="${r1(px * size)}" cy="${r1(py * size)}" r="${Math.max(3, r * 0.22)}" fill="${INK}"/>`;
+    }
+    return svg(size, size, s, 'fig', 'figure');
+  };
+  // 2×2 matrix: A → B, C → ?
+  V.matrix2 = (a, b, c) =>
+    `<div class="vis matrix2"><span>${V.fig(a)}</span><b>→</b><span>${V.fig(b)}</span><span>${V.fig(c)}</span><b>→</b><span class="mq">?</span></div>`;
+  V.figRow = (figs) => `<div class="vis figrow">${figs.map((f) => V.fig(f, 70)).join('')}</div>`;
+  // Abacus rods with beads; null = an empty rod with a question mark.
+  V.abacus = (counts, h = 9) => {
+    const w = 34, H = h * 13 + 30;
+    let s = `<rect x="4" y="${H - 14}" width="${counts.length * w + 8}" height="10" rx="4" fill="#8a5a2b"/>`;
+    counts.forEach((n, i) => {
+      const x = 8 + i * w + w / 2;
+      s += `<line x1="${x}" y1="10" x2="${x}" y2="${H - 14}" stroke="#8a5a2b" stroke-width="4"/>`;
+      if (n === null) s += text(x, H / 2, '?', 22, 'fill="#ff6b5b"');
+      else for (let k = 0; k < n; k++) s += `<ellipse cx="${x}" cy="${H - 22 - k * 13}" rx="13" ry="6.5" fill="${FILLS[(i % 5) + 1]}" stroke="${INK}" stroke-width="1.8"/>`;
+    });
+    return svg(counts.length * w + 16, H, s, 'abacus', 'abacus');
+  };
+  // Paper folding: a 4×4 sheet. holes = [[r, c]], fold = 'v' (left half over right) / 'h' (top over bottom) / 'q' (both).
+  V.sheet = (holes, { size = 96, visible = null } = {}) => {
+    const u = size / 4;
+    const show = (r, c) => !visible || visible(r, c);
+    let s = `<rect x="2" y="2" width="${size}" height="${size}" fill="#ffffff" stroke="${INK}" stroke-width="2.5"/>`;
+    for (let i = 1; i < 4; i++) s += `<line x1="${2 + i * u}" y1="2" x2="${2 + i * u}" y2="${2 + size}" stroke="#e3e8ef" stroke-width="1"/><line x1="2" y1="${2 + i * u}" x2="${2 + size}" y2="${2 + i * u}" stroke="#e3e8ef" stroke-width="1"/>`;
+    if (visible) for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) if (!show(r, c)) s += `<rect x="${2 + c * u}" y="${2 + r * u}" width="${u}" height="${u}" fill="#c9d3df"/>`;
+    for (const [r, c] of holes) s += `<circle cx="${2 + c * u + u / 2}" cy="${2 + r * u + u / 2}" r="${u * 0.26}" fill="${INK}"/>`;
+    return svg(size + 4, size + 4, s, 'sheet', 'sheet of paper');
+  };
+  V.foldSteps = (fold, holes) => {
+    const vis = fold === 'v' ? (r, c) => c >= 2 : fold === 'h' ? (r, c) => r >= 2 : (r, c) => r >= 2 && c >= 2;
+    const lines = fold === 'v' ? 'folded in half from left to right' : fold === 'h' ? 'folded in half from top to bottom' : 'folded in half twice';
+    return `<div class="vis foldsteps"><div>${V.sheet([], { visible: null })}<small>paper</small></div><b>→</b><div>${V.sheet([], { visible: vis })}<small>${lines}</small></div><b>→</b><div>${V.sheet(holes, { visible: vis })}<small>hole punched</small></div></div>`;
+  };
+  // Little groups of emoji (for picture number analogies).
+  V.cluster = (emoji, n) => `<span class="cluster c${Math.min(n, 9)}">${Array(n).fill(`<i>${emoji}</i>`).join('')}</span>`;
 
   // ================= Kindergarten pictures =================
   // A neat grid of emoji, in rows of `cols`. The last `gone` items are crossed out (take-away problems).
@@ -2739,6 +2840,272 @@ body[data-track="k"] { --paper: #eef2fb; }
 })();
 </script>
   <script>
+// CogAT-style practice (the screening Eureka Union gives every 2nd grader for GATE).
+// For 2nd grade the real test is picture-based with spoken directions, in three batteries:
+//   Verbal: Picture Analogies, Sentence Completion, Picture Classification
+//   Quantitative: Number Analogies, Number Puzzles, Number Series
+//   Nonverbal: Figure Matrices, Figure Classification, Paper Folding
+// Every item has 4 answer choices and a `say` line for read-aloud. All items are original.
+(function () {
+  const MQ = (globalThis.MQ = globalThis.MQ || {});
+  const U = MQ.U, V = MQ.V;
+  const { C } = MQ.G;
+  const { rnd, pick, chance, shuffle } = U;
+
+  // Picture choices: values are "picture 1…4", the pictures are drawn by choiceHtml.
+  function pics(text, correctHtml, wrongHtmls, o = {}) {
+    const all = shuffle([correctHtml, ...wrongHtmls.slice(0, 3)]);
+    const values = all.map((_, i) => 'picture ' + (i + 1));
+    return C(text, values[all.indexOf(correctHtml)], values, Object.assign({ choiceHtml: all }, o));
+  }
+  // Emoji choices are drawn big.
+  const EC = (text, ans, choices, o = {}) => C(text, ans, choices, Object.assign({ choiceHtml: choices.map((e) => `<span class="cemo">${e}</span>`) }, o));
+  const uniqueBy = (arr, key) => arr.filter((x, i) => arr.findIndex((y) => key(y) === key(x)) === i);
+
+  // ===================== Quantitative =====================
+  const OBJ = ['🍎', '🐟', '⭐', '🌸', '🍪', '🐞', '🥕', '🎈'];
+  const RULES = {
+    1: [['+1', (n) => n + 1], ['+2', (n) => n + 2]],
+    2: [['−1', (n) => n - 1], ['−2', (n) => n - 2], ['+2', (n) => n + 2]],
+    3: [['×2', (n) => n * 2], ['+3', (n) => n + 3]],
+    4: [['half', (n) => n / 2], ['−3', (n) => n - 3], ['×2', (n) => n * 2]],
+    5: [['×2 − 1', (n) => n * 2 - 1], ['×2 + 1', (n) => n * 2 + 1], ['half + 1', (n) => n / 2 + 1]],
+  };
+  function cg_numanalogy(d) {
+    for (let t = 0; t < 100; t++) {
+      const [name, f] = pick(RULES[d]);
+      const [e1, e2] = U.sample(OBJ, 2);
+      const a = rnd(1, 5), c = rnd(1, 5);
+      const b = f(a), ans = f(c);
+      if (a === c || !Number.isInteger(b) || !Number.isInteger(ans) || b < 1 || ans < 1 || b > 9 || ans > 9 || b === a) continue;
+      const wrong = uniqueBy([c, ans + 1, ans - 1, c + (b - a), ans + 2].filter((n) => n !== ans && n >= 1 && n <= 9), (n) => n).slice(0, 3);
+      if (wrong.length < 3) continue;
+      const opts = shuffle([ans, ...wrong]);
+      const values = opts.map((_, i) => 'picture ' + (i + 1));
+      return C(`The first two boxes go together. Which picture goes with the third box in the same way?<div class="vis analogy"><span class="abox">${V.cluster(e1, a)}</span><b>→</b><span class="abox">${V.cluster(e1, b)}</span><span class="abox">${V.cluster(e2, c)}</span><b>→</b><span class="abox mq">?</span></div>`,
+        values[opts.indexOf(ans)], values, { choiceHtml: opts.map((n) => V.cluster(e2, n)), say: 'The first two boxes go together. Which picture goes with the third box in the same way?', hint: `Count both boxes in the top pair. What happened to the number?`, explain: `${a} became ${b} (${name}), so ${c} becomes ${ans}.` });
+    }
+    return cg_numanalogy(1);
+  }
+  const PUZ = ['🐸', '🐢', '🦊', '🐼', '🦉', '🐙'];
+  function cg_numpuzzle(d) {
+    const [A, B] = U.sample(PUZ, 2);
+    let text, ans, say, explain;
+    if (d === 1) { const x = rnd(1, 6), y = rnd(1, 4); ans = x + y; text = `${A} = ${x} + ${y}`; say = `The animal equals ${x} plus ${y}. What number is the animal?`; explain = `${x} + ${y} = ${ans}`; }
+    else if (d === 2) { ans = rnd(2, 8); const y = rnd(1, 5); text = `${A} + ${y} = ${ans + y}`; say = `The animal plus ${y} equals ${ans + y}. What number is the animal?`; explain = `${ans + y} − ${y} = ${ans}`; }
+    else if (d === 3) { ans = rnd(2, 7); text = `${A} + ${A} = ${2 * ans}`; say = `Two of the same animal make ${2 * ans}. What number is one animal?`; explain = `${ans} + ${ans} = ${2 * ans}`; }
+    else if (d === 4) { const b = rnd(6, 12); ans = rnd(1, b - 2); text = `${B} = ${b}<br>${A} + ${b - ans} = ${B}`; say = `The second animal is ${b}. The first animal plus ${b - ans} equals the second animal. What number is the first animal?`; explain = `${A} + ${b - ans} = ${b}, so ${A} = ${ans}`; }
+    else { ans = rnd(2, 6); const y = rnd(1, 5); text = `${A} + ${A} + ${y} = ${2 * ans + y}`; say = `Two of the same animal plus ${y} make ${2 * ans + y}. What number is one animal?`; explain = `${2 * ans + y} − ${y} = ${2 * ans}, half of that is ${ans}`; }
+    const opts = U.numChoices(ans, [ans + 1, ans - 1, ans + 2, ans * 2], 4).sort((a, b) => a - b);
+    return C(`<div class="emojieq">${text}</div>What number is ${A}?`, ans, opts, { say, explain, hint: 'Make both sides equal.' });
+  }
+  function cg_numseries(d) {
+    let seq;
+    for (let t = 0; t < 100; t++) {
+      if (d === 1) { const s = rnd(1, 5); seq = chance(0.7) ? [s, s + 1, s + 2, s + 3, s + 4] : [s + 3, s + 2, s + 1, s]; }
+      else if (d === 2) { if (chance(0.5)) { const s = rnd(6, 9); seq = [s, s - 1, s - 2, s - 3, s - 4]; } else { const s = rnd(1, 2); seq = [s, s + 2, s + 4, s + 6, s + 8]; } }
+      else if (d === 3) { const a = rnd(1, 4), b = rnd(a + 2, 8); seq = chance(0.5) ? [a, b, a, b, a, b] : [a, a + 1, a + 2, a, a + 1, a + 2]; }
+      else if (d === 4) {
+        const s = rnd(1, 3);
+        seq = pick([[s, s + 1, s + 3, s + 6], [1, 2, 4, 8], [9, 8, 6, 3], [s, s + 2, s + 3, s + 5, s + 6], [s + 6, s + 4, s + 3, s + 1, s]]);
+      }
+      else { const a = rnd(1, 3), b = rnd(5, 6); seq = [a, b, a + 1, b + 1, a + 2, b + 2]; }
+      if (Math.max(...seq) <= 9 && Math.min(...seq) >= 1) break;
+    }
+    const ans = seq[seq.length - 1], shown = seq.slice(0, -1);
+    const wrong = uniqueBy([ans + 1, ans - 1, ans + 2, ans - 2, shown[shown.length - 1], ans + 3, ans - 3].filter((n) => n !== ans && n >= 0 && n <= 9), (n) => n).slice(0, 3);
+    const opts = shuffle([ans, ...wrong]);
+    const values = opts.map((_, i) => 'picture ' + (i + 1));
+    return C('Look at the beads on each rod. Which rod comes next?', values[opts.indexOf(ans)], values, { visual: V.abacus([...shown, null]), choiceHtml: opts.map((n) => V.abacus([n])), say: 'Look at the beads on each rod. Which rod comes next?', hint: 'Count the beads on every rod and look for the pattern.', explain: `The rods go ${shown.join(', ')}, so next is ${ans}.` });
+  }
+
+  // ===================== Nonverbal =====================
+  const SHAPES = ['circle', 'square', 'triangle', 'diamond', 'hexagon', 'star'];
+  const COLORS = ['blue', 'red', 'green', 'yellow'];
+  const key = (f) => [f.shape, f.color, f.big === false ? 's' : 'b', f.count || 1, f.rot || 0, f.dot ? 1 : 0].join('|');
+  const randFig = (o = {}) => Object.assign({ shape: pick(SHAPES), color: pick(COLORS), big: true, count: 1, rot: 0, dot: false }, o);
+  function cg_matrix(d) {
+    for (let t = 0; t < 100; t++) {
+      // Each rule changes one thing about a figure; harder levels combine two rules.
+      const rules = {
+        color: () => { const [c1, c2] = U.sample(COLORS, 2); return { from: { color: c1 }, to: { color: c2 }, say: 'the color changes' }; },
+        size: () => (chance(0.5) ? { from: { big: true }, to: { big: false }, say: 'it gets smaller' } : { from: { big: false }, to: { big: true }, say: 'it gets bigger' }),
+        count: () => { const [n1, n2] = U.sample([1, 2, 3, 4], 2); return { from: { count: n1 }, to: { count: n2 }, say: `${n1} becomes ${n2}` }; },
+        shape: () => { const [s1, s2] = U.sample(['circle', 'square', 'triangle', 'diamond', 'hexagon'], 2); return { from: { shape: s1 }, to: { shape: s2 }, say: `the ${s1} becomes a ${s2}` }; },
+        rotate: () => { const r = pick([90, 180, 270]); return { from: { shape: 'arrow', rot: 0 }, to: { shape: 'arrow', rot: r }, turn: r, say: 'the arrow turns' }; },
+        dot: () => ({ from: { dot: false }, to: { dot: true }, say: 'a dot appears inside' }),
+      };
+      const names = { 1: ['color'], 2: [pick(['size', 'count'])], 3: [pick(['shape', 'rotate', 'dot'])], 4: U.sample(['color', 'size', 'count', 'dot'], 2), 5: [pick(['rotate', 'shape']), pick(['color', 'count'])] }[d];
+      const rs = names.map((n) => rules[n]());
+      const free = (o) => { const f = randFig(); for (const r of rs) Object.assign(f, r.from); return Object.assign(f, o); };
+      // A and C share the "before" state of every rule but differ in something else.
+      const A = free({});
+      let Cf = free({});
+      if (key(A) === key(Cf)) {
+        const other = names.includes('color') ? (names.includes('shape') || names.includes('rotate') ? { count: (A.count % 4) + 1 } : { shape: pick(SHAPES.filter((s) => s !== A.shape)) }) : { color: pick(COLORS.filter((c) => c !== A.color)) };
+        Cf = Object.assign({}, Cf, other);
+      }
+      if (key(A) === key(Cf)) continue;
+      const apply = (f) => { const g = Object.assign({}, f); for (const r of rs) { Object.assign(g, r.to); if (r.turn !== undefined) g.rot = ((f.rot || 0) + r.turn) % 360; } return g; };
+      const B = apply(A), D = apply(Cf);
+      // Wrong answers: the rule only half applied, the picture unchanged, the top answer copied, a random change.
+      const wrongs = uniqueBy([
+        Cf,
+        B,
+        ...rs.map((r) => { const g = Object.assign({}, D); Object.assign(g, r.from); return g; }),
+        Object.assign({}, D, { color: pick(COLORS.filter((c) => c !== D.color)) }),
+        Object.assign({}, D, { big: !D.big }),
+        Object.assign({}, D, { count: (D.count % 4) + 1 }),
+      ].filter((f) => key(f) !== key(D)), key);
+      if (wrongs.length < 3) continue;
+      const w3 = shuffle(wrongs).slice(0, 3);
+      return pics(`The top two pictures go together. Which picture goes with the bottom one in the same way?${V.matrix2(A, B, Cf)}`, V.fig(D), w3.map((f) => V.fig(f)), { say: 'The first two pictures go together. Which picture goes with the third picture in the same way?', hint: 'What changed from the first picture to the second? Make the same change.', explain: `In the top pair ${rs.map((r) => r.say).join(' and ')}. Do the same to the bottom picture.` });
+    }
+    return cg_matrix(1);
+  }
+  function cg_classify(d) {
+    for (let t = 0; t < 100; t++) {
+      // The rule the three pictures share, and the attribute each picture is free to vary.
+      const rule = { 1: pick(['shape']), 2: pick(['color', 'shape']), 3: pick(['count', 'color']), 4: pick(['dot', 'small', 'count']), 5: 'two' }[d];
+      let fits, three, correct, wrongs, says;
+      if (rule === 'shape') { const s = pick(SHAPES); fits = (f) => f.shape === s; three = [0, 1, 2].map(() => randFig({ shape: s, big: chance(0.7) })); correct = randFig({ shape: s }); wrongs = [0, 1, 2].map(() => randFig({ shape: pick(SHAPES.filter((x) => x !== s)), color: pick([three[0].color, pick(COLORS)]) })); says = `they are all ${s}s`; }
+      else if (rule === 'color') { const c = pick(COLORS); fits = (f) => f.color === c; three = [0, 1, 2].map(() => randFig({ color: c })); correct = randFig({ color: c }); wrongs = [0, 1, 2].map(() => randFig({ color: pick(COLORS.filter((x) => x !== c)), shape: pick([three[0].shape, three[1].shape]) })); says = `they are all ${c}`; }
+      else if (rule === 'count') { const n = rnd(2, 4); fits = (f) => f.count === n; three = [0, 1, 2].map(() => randFig({ count: n })); correct = randFig({ count: n }); wrongs = [0, 1, 2].map(() => randFig({ count: pick([1, 2, 3, 4].filter((x) => x !== n)), shape: three[0].shape })); says = `they all have ${n} shapes`; }
+      else if (rule === 'dot') { fits = (f) => f.dot; three = [0, 1, 2].map(() => randFig({ dot: true })); correct = randFig({ dot: true }); wrongs = [0, 1, 2].map(() => randFig({ dot: false, shape: three[0].shape, color: three[1].color })); says = 'they all have a dot in the middle'; }
+      else if (rule === 'small') { fits = (f) => f.big === false; three = [0, 1, 2].map(() => randFig({ big: false })); correct = randFig({ big: false }); wrongs = [0, 1, 2].map(() => randFig({ big: true, shape: three[0].shape })); says = 'they are all small'; }
+      else { const s = pick(SHAPES), c = pick(COLORS); fits = (f) => f.shape === s && f.color === c; three = [0, 1, 2].map((i) => randFig({ shape: s, color: c, big: i !== 1, count: i === 2 ? 2 : 1 })); correct = randFig({ shape: s, color: c, big: chance(0.5), count: pick([1, 2, 3]) }); wrongs = [randFig({ shape: s, color: pick(COLORS.filter((x) => x !== c)) }), randFig({ shape: pick(SHAPES.filter((x) => x !== s)), color: c }), randFig({ shape: pick(SHAPES.filter((x) => x !== s)), color: c, count: 2 })]; says = `they are all ${c} ${s}s`; }
+      const allKeys = [...three, correct, ...wrongs].map(key);
+      if (new Set(allKeys).size !== 7 || !three.every(fits) || !fits(correct) || wrongs.some(fits)) continue;
+      return pics(`These three pictures are alike in some way:${V.figRow(three)}Which picture goes with them?`, V.fig(correct), wrongs.map((f) => V.fig(f)), { say: 'These three pictures are alike in some way. Which picture goes with them?', hint: 'Look at shape, color, size, how many, and what is inside.', explain: `They belong together because ${says}.` });
+    }
+    return cg_classify(1);
+  }
+  function cg_folding(d) {
+    for (let t = 0; t < 100; t++) {
+      const fold = d <= 3 ? pick(['v', 'h']) : d === 4 ? pick(['q', 'q', 'v', 'h']) : 'q';
+      const nHoles = d === 3 || d === 5 || (d === 4 && fold !== 'q') ? 2 : 1;
+      const cellsOk = (r, c) => (fold === 'v' ? c >= 2 : fold === 'h' ? r >= 2 : r >= 2 && c >= 2);
+      const open = [];
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) if (cellsOk(r, c)) open.push([r, c]);
+      const holes = U.sample(open, nHoles);
+      const mirrorV = ([r, c]) => [r, 3 - c], mirrorH = ([r, c]) => [3 - r, c];
+      const unfold = (hs, how) => { let out = hs.slice(); if (how === 'v' || how === 'q') out = out.concat(out.map(mirrorV)); if (how === 'h' || how === 'q') out = out.concat(out.map(mirrorH)); return uniqueBy(out, (x) => x.join()); };
+      const right = unfold(holes, fold);
+      const k = (hs) => hs.map((x) => x.join()).sort().join(';');
+      const wrongSets = uniqueBy([
+        holes,
+        unfold(holes, fold === 'v' ? 'h' : 'v'),
+        fold === 'q' ? unfold(holes, 'v') : unfold(holes, 'q'),
+        right.map(([r, c]) => [r, (c + 1) % 4]),
+        right.map(([r, c]) => [(r + 1) % 4, c]),
+      ].filter((hs) => k(hs) !== k(right)), k);
+      if (wrongSets.length < 3) continue;
+      const how = fold === 'v' ? 'folded in half from left to right' : fold === 'h' ? 'folded in half from top to bottom' : 'folded in half two times';
+      return pics(`A sheet of paper is ${how}, then a hole is punched through it. What does the paper look like when it is opened?${V.foldSteps(fold, holes)}`, V.sheet(right, { size: 72 }), shuffle(wrongSets).slice(0, 3).map((hs) => V.sheet(hs, { size: 72 })), { say: `A sheet of paper is ${how}. Then a hole is punched. What does it look like when it is opened?`, hint: 'Every layer gets a hole. Unfolding makes a mirror copy across the fold.', explain: `The folded paper has ${fold === 'q' ? 4 : 2} layers, so each punch makes ${fold === 'q' ? 4 : 2} holes: ${right.length} holes in all, mirrored across the fold${fold === 'q' ? 's' : ''}.` });
+    }
+    return cg_folding(1);
+  }
+
+  // ===================== Verbal (pictures) =====================
+  // Relation groups for picture analogies: every pair in a group is linked the same way.
+  const ANALOGY = {
+    1: [['eats', [['🐇', '🥕'], ['🐒', '🍌'], ['🐶', '🦴'], ['🐭', '🧀'], ['🐼', '🎋']]], ['gives us', [['🐄', '🥛'], ['🐔', '🥚'], ['🐝', '🍯'], ['🐑', '🧶']]]],
+    2: [['grows into', [['🐛', '🦋'], ['🥚', '🐣'], ['🌱', '🌳']]], ['is worn on', [['🦶', '👟'], ['✋', '🧤'], ['🙂', '🧢']]]],
+    3: [['is used with', [['🔑', '🔒'], ['✏️', '📄'], ['⚽', '🥅'], ['🏹', '🎯']]], ['eats', [['🐇', '🥕'], ['🐒', '🍌'], ['🐶', '🦴'], ['🐭', '🧀']]]],
+    4: [['works with', [['👩‍🍳', '🍳'], ['👨‍🚒', '🚒'], ['👩‍⚕️', '🩺'], ['👨‍🌾', '🚜'], ['👩‍🎨', '🎨']]], ['grows into', [['🐛', '🦋'], ['🥚', '🐣'], ['🌱', '🌳']]]],
+    5: [['is the opposite of', [['☀️', '🌙'], ['🔥', '🧊'], ['⬆️', '⬇️'], ['➕', '➖']]], ['works with', [['👩‍🍳', '🍳'], ['👨‍🚒', '🚒'], ['👩‍⚕️', '🩺'], ['👨‍🌾', '🚜']]]],
+  };
+  const ALL_ANALOGY_ITEMS = [...new Set(Object.values(ANALOGY).flatMap((g) => g.flatMap(([, ps]) => ps.flat())))];
+  function cg_picanalogy(d) {
+    const [rel, pairs] = pick(ANALOGY[d]);
+    const [[a, b], [c, ans]] = U.sample(pairs, 2);
+    const wrong = U.sample(ALL_ANALOGY_ITEMS.filter((x) => ![a, b, c, ans].includes(x) && !pairs.some((p) => p[1] === x)), 2).concat([c]);
+    return EC(`The first two pictures go together. Which picture goes with the third one in the same way?<div class="vis analogy emo"><span class="abox">${a}</span><b>→</b><span class="abox">${b}</span><span class="abox">${c}</span><b>→</b><span class="abox mq">?</span></div>`, ans, shuffle([ans, ...wrong]), { say: 'The first two pictures go together. Which picture goes with the third one in the same way?', hint: 'Say how the first two go together, then use the same words for the third.', explain: `${a} ${rel} ${b}, and ${c} ${rel} ${ans}.` });
+  }
+  const CATS = {
+    fruit: ['🍎', '🍌', '🍇', '🍓', '🍐', '🍒', '🍑', '🍍'],
+    vehicles: ['🚗', '🚌', '🚲', '🚂', '🚜', '🛴', '🚕'],
+    'things that fly': ['🦅', '✈️', '🚁', '🦋', '🐝', '🦉', '🚀'],
+    clothes: ['👕', '👖', '🧦', '🧣', '👗', '🧤', '👟'],
+    'sea animals': ['🐠', '🐙', '🦀', '🐬', '🐳', '🦈', '🐡'],
+    instruments: ['🎸', '🎹', '🥁', '🎺', '🎻'],
+    tools: ['🔨', '🔧', '✂️', '📏', '🪓'],
+    'cold things': ['❄️', '🧊', '⛄', '🍦', '🏔️'],
+    insects: ['🐞', '🐝', '🦋', '🐜', '🐛'],
+    'farm animals': ['🐄', '🐷', '🐑', '🐔', '🐴', '🐐'],
+  };
+  // Harder levels use groups whose wrong answers look similar (e.g. a car among things that fly).
+  const CLASS_LEVEL = {
+    1: [['fruit', ['vehicles', 'clothes', 'instruments']], ['vehicles', ['fruit', 'sea animals', 'clothes']]],
+    2: [['clothes', ['fruit', 'tools', 'farm animals']], ['sea animals', ['vehicles', 'fruit', 'instruments']], ['instruments', ['tools', 'clothes', 'fruit']]],
+    3: [['farm animals', ['sea animals', 'insects']], ['tools', ['instruments', 'clothes']], ['insects', ['farm animals', 'sea animals']]],
+    4: [['things that fly', ['vehicles', 'farm animals']], ['cold things', ['fruit', 'clothes']]],
+    5: [['things that fly', ['vehicles', 'sea animals', 'farm animals']], ['sea animals', ['farm animals', 'things that fly']], ['cold things', ['clothes', 'sea animals']]],
+  };
+  function cg_picclass(d) {
+    for (let t = 0; t < 50; t++) {
+      const [cat, others] = pick(CLASS_LEVEL[d]);
+      const pool = CATS[cat];
+      const [x, y, z, ans] = U.sample(pool, 4);
+      const wrong = U.sample(others.flatMap((o) => CATS[o]).filter((e) => !pool.includes(e)), 3);
+      if (wrong.length < 3) continue;
+      return EC(`These three pictures go together: <div class="vis analogy emo"><span class="abox">${x}</span><span class="abox">${y}</span><span class="abox">${z}</span></div>Which picture belongs with them?`, ans, shuffle([ans, ...wrong]), { say: 'These three pictures go together. Which picture belongs with them?', hint: 'What kind of things are they?', explain: `They are all ${cat}.` });
+    }
+    return cg_picclass(1);
+  }
+  // Sentence completion: a spoken question, picture answers. [level, question, answer, wrong answers]
+  const SENT = [
+    [1, 'Which one do you use to cut paper?', '✂️', ['🥄', '📏', '🖍️']],
+    [1, 'Which one tells you what time it is?', '⏰', ['📚', '🔑', '🎈']],
+    [1, 'Which one keeps you dry in the rain?', '☂️', ['🕶️', '🧦', '🎒']],
+    [1, 'Which animal says “moo”?', '🐄', ['🐶', '🐷', '🐑']],
+    [1, 'Which one do you wear on your feet?', '👟', ['🧢', '🧤', '👓']],
+    [2, 'Which one would you find in a garden?', '🌻', ['🛏️', '🚿', '📺']],
+    [2, 'Which one grows on a tree?', '🍎', ['🥕', '🥚', '🧀']],
+    [2, 'Which animal can live both in water and on land?', '🐸', ['🐟', '🐦', '🐴']],
+    [2, 'Which one do you use to call a friend?', '📱', ['📖', '🎸', '⚽']],
+    [2, 'Which one gives light in the dark?', '🔦', ['🧸', '🧲', '🥁']],
+    [3, 'Which one is the biggest animal?', '🐋', ['🐘', '🦒', '🐻']],
+    [3, 'Which one is a baby animal?', '🐣', ['🐓', '🦅', '🦉']],
+    [3, 'Which one helps a doctor listen to your heart?', '🩺', ['🔨', '🎤', '🧲']],
+    [3, 'Which one do you use to see things far away?', '🔭', ['🔍', '🕶️', '📷']],
+    [3, 'Which one would melt in the sun?', '⛄', ['🪨', '🧱', '🏀']],
+    [4, 'Which one can you NOT eat?', '🧱', ['🍞', '🥕', '🍇']],
+    [4, 'Which one is used to build a house?', '🧱', ['🎈', '🧸', '🍩']],
+    [4, 'Which one do bees make?', '🍯', ['🥛', '🧀', '🥚']],
+    [4, 'Which one would you need at the beach on a sunny day?', '🕶️', ['🧣', '🧤', '☂️']],
+    [4, 'Which one has the most legs?', '🕷️', ['🐔', '🐕', '🐞']],
+    [5, 'Which one is cold AND sweet?', '🍦', ['🧊', '🍰', '⛄']],
+    [5, 'Which one flies but is NOT a bird?', '🦋', ['🦅', '🦉', '🐧']],
+    [5, 'Which one is an animal that does NOT live in water?', '🐫', ['🐬', '🐙', '🦈']],
+    [5, 'Which one would you use to fix a broken chair?', '🔨', ['✂️', '🧹', '🖍️']],
+    [5, 'Which one is a fruit that is NOT red?', '🍌', ['🍓', '🍒', '🍎']],
+  ];
+  function cg_sentence(d) {
+    const [, q, ans, wrong] = pick(SENT.filter((s) => s[0] === d));
+    return EC(`🔊 <b>${q}</b>`, ans, shuffle([ans, ...wrong]), { say: q, hint: 'Listen to the question again with 🔊.', explain: `${ans} — ${q.replace(/\?$/, '')}.` });
+  }
+
+  const T = (name, icon, battery, gen) => ({ name, icon, std: 'CogAT style · ' + battery, gen, track: 'prep', cogat: true, battery });
+  Object.assign(MQ.TOPICS, {
+    cg_picanalogy: T('Picture Analogies', '🔗', 'Verbal', cg_picanalogy),
+    cg_sentence: T('Sentence Completion', '👂', 'Verbal', cg_sentence),
+    cg_picclass: T('Picture Classification', '🗂️', 'Verbal', cg_picclass),
+    cg_numanalogy: T('Number Analogies', '🔢', 'Quantitative', cg_numanalogy),
+    cg_numpuzzle: T('Number Puzzles', '🧮', 'Quantitative', cg_numpuzzle),
+    cg_numseries: T('Number Series', '🧿', 'Quantitative', cg_numseries),
+    cg_matrix: T('Figure Matrices', '🔲', 'Nonverbal', cg_matrix),
+    cg_classify: T('Figure Classification', '🔷', 'Nonverbal', cg_classify),
+    cg_folding: T('Paper Folding', '📄', 'Nonverbal', cg_folding),
+  });
+  MQ.COGAT_BATTERIES = [
+    { id: 'Verbal', icon: '💬', topics: ['cg_picanalogy', 'cg_sentence', 'cg_picclass'] },
+    { id: 'Quantitative', icon: '🔢', topics: ['cg_numanalogy', 'cg_numpuzzle', 'cg_numseries'] },
+    { id: 'Nonverbal', icon: '🔷', topics: ['cg_matrix', 'cg_classify', 'cg_folding'] },
+  ];
+})();
+</script>
+  <script>
 // Game content: expedition worlds, creatures to discover, hatchery eggs, badges, ranks, companion lines.
 (function () {
   const MQ = (globalThis.MQ = globalThis.MQ || {});
@@ -3242,30 +3609,36 @@ body[data-track="k"] { --paper: #eef2fb; }
     const items = [];
     if (kind === 'joey') {
       for (let i = 0; i < 12; i++) items.push({ p: make('kg_joey', 1), pts: 1 });
+    } else if (kind === 'cogat' || kind === 'cogatk') {
+      // CogAT style: battery by battery, each question type in a row, getting harder within the type.
+      const levels = kind === 'cogat' ? [1, 2, 3, 4, 5] : [1, 1];
+      for (const b of MQ.COGAT_BATTERIES) for (const t of b.topics) for (const d of levels) items.push({ p: make(t, d), pts: 1, sec: b.id });
     } else {
       for (const pts of [3, 4, 5]) {
         const topics = U.shuffle(MQ.KANGAROO_TOPICS);
         for (let i = 0; i < 8; i++) items.push({ p: make(topics[i % topics.length], pts === 3 ? U.rnd(1, 2) : pts === 4 ? 3 : U.rnd(4, 5)), pts });
       }
     }
-    return { kind, items, answers: items.map(() => null), flags: items.map(() => false), i: 0, seconds: kind === 'joey' ? 0 : P.KANGAROO_MINUTES * 60, started: Date.now() };
+    return { kind, items, answers: items.map(() => null), flags: items.map(() => false), i: 0, seconds: kind === 'kangaroo' ? P.KANGAROO_MINUTES * 60 : 0, started: Date.now() };
   };
   P.scoreContest = (ct) => {
     const graded = ct.items.map((it, i) => ({ it, given: ct.answers[i], ok: ct.answers[i] !== null && ct.answers[i] === it.p.answer }));
-    const sections = {};
+    // Sections: point values for Kangaroo, batteries for CogAT. Types: accuracy per kind of question.
+    const sections = {}, types = {};
     for (const g of graded) {
-      const s = (sections[g.it.pts] = sections[g.it.pts] || { right: 0, n: 0 });
-      s.n++;
-      if (g.ok) s.right++;
+      const s = (sections[g.it.sec || g.it.pts] = sections[g.it.sec || g.it.pts] || { right: 0, n: 0 });
+      const t = (types[g.it.p.topic] = types[g.it.p.topic] || { right: 0, n: 0 });
+      s.n++; t.n++;
+      if (g.ok) { s.right++; t.right++; }
     }
     return {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
       date: U.dateKey(), kind: ct.kind,
       score: U.sum(graded.filter((g) => g.ok).map((g) => g.it.pts)), max: U.sum(ct.items.map((it) => it.pts)),
       right: graded.filter((g) => g.ok).length, blank: graded.filter((g) => g.given === null).length, n: graded.length,
-      sections, minutes: Math.max(1, Math.round((Date.now() - ct.started) / 60000)), timed: !!ct.timed,
+      sections, types, minutes: Math.max(1, Math.round((Date.now() - ct.started) / 60000)), timed: !!ct.timed,
       items: graded.map((g) => ({
-        t: g.it.p.topic, pts: g.it.pts, ok: g.ok,
+        t: g.it.p.topic, pts: g.it.pts, sec: g.it.sec || '', ok: g.ok,
         q: String(g.it.p.text).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160),
         g: g.given === null ? '' : g.given, a: g.it.p.answer, e: g.it.p.explain || '',
         letterG: g.given === null ? '' : 'ABCDE'[g.it.p.choices.indexOf(g.given)], letterA: 'ABCDE'[g.it.p.choices.indexOf(g.it.p.answer)],
@@ -4370,7 +4743,7 @@ body[data-track="k"] { --paper: #eef2fb; }
         <div><b>+${sess.earned}</b><small>💎 earned</small></div>
       </div>
       <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button>${sess.kgTopic
-        ? `<button class="btn ghost" data-act="go" data-arg="kgtypes">Other puzzle types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
+        ? `<button class="btn ghost" data-act="go" data-arg="${MQ.TOPICS[sess.kgTopic].cogat ? 'cgtypes' : 'kgtypes'}">Other types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
         : '<button class="btn ghost" data-act="go" data-arg="trainer">Change settings</button><button class="btn" data-act="startTrainer">Play again</button>'}</div></main>`);
     if (sess.correct) { MQ.sfx('reward'); if (record) MQ.confetti(); }
     if (st.settings.voice !== false && sess.correct) MQ.speak(`You got ${sess.correct} right! ${record ? 'A new record!' : 'Great training!'}`);
@@ -4477,10 +4850,29 @@ body[data-track="k"] { --paper: #eef2fb; }
   }
   // ---------------------------------------------------------------- Math Kangaroo style contest
   const myContests = (kind) => (st.tests.contests || []).filter((c) => c.kind === kind);
+  function cogatCard() {
+    const k = st.grade === 'k', kind = k ? 'cogatk' : 'cogat', last = myContests(kind).slice(-1)[0];
+    const n = k ? 18 : 45;
+    return `<article class="testcard" style="--pc:#7a5cc9">
+      <div class="tc-head"><span class="tc-ic">🧠</span><div><b>${k ? 'Brain Games' : 'CogAT practice'}</b><small>${k ? 'Thinking puzzles in the style of CogAT' : 'GATE screening · Eureka Union tests every 2nd grader'} · ${n} questions</small></div></div>
+      <p>${k ? 'Picture puzzles about patterns, shapes and things that go together. Every question is read aloud.' : 'Three parts like the real CogAT: <b>Verbal</b> (pictures that go together), <b>Quantitative</b> (number puzzles) and <b>Nonverbal</b> (shapes and paper folding). Pictures only, every question can be read aloud.'}</p>
+      ${last ? `<div class="tc-last">Last practice test, ${fmtDate(last.date)}: <b>${last.right} of ${last.n}</b> right <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
+      <div class="row left">
+        <button class="btn" data-act="startContest" data-arg="${kind}">${k ? 'Play the brain games' : 'Practice test'} ▶</button>
+        <button class="btn ghost" data-act="go" data-arg="cgtypes">Practice by type</button>
+      </div>
+    </article>`;
+  }
+  function cgtypes() {
+    render(header(st.grade === 'k' ? 'Brain Games' : 'CogAT practice', 'prep') + `<main class="prep">
+      <p class="lead">Pick a kind of question. They get harder as you get them right, and every answer is explained.</p>
+      ${MQ.COGAT_BATTERIES.map((b) => `<section><h2>${b.icon} ${b.id}</h2><div class="kgtypes">${b.topics.map((t) => `<button class="tile" data-act="kgPractice" data-arg="${t}"><span class="ti">${MQ.TOPICS[t].icon}</span><b>${MQ.TOPICS[t].name}</b></button>`).join('')}</div></section>`).join('')}
+    </main>`);
+  }
   function contestCard() {
     if (st.grade === 'k') {
       const last = myContests('joey').slice(-1)[0];
-      return `<article class="testcard" style="--pc:#e0a21b">
+      return cogatCard() + `<article class="testcard" style="--pc:#e0a21b">
         <div class="tc-head"><span class="tc-ic">🐣</span><div><b>Joey Puzzles</b><small>Brain teasers like Math Kangaroo, made for kindergarten · 12 puzzles</small></div></div>
         <p>Picture puzzles with 5 answers to choose from. Every question can be read aloud. No clock: take your time and think!</p>
         ${last ? `<div class="tc-last">Last time: <b>${last.right} of ${last.n}</b> ${'⭐'.repeat(Math.round((last.right / last.n) * 3))}</div>` : ''}
@@ -4488,7 +4880,7 @@ body[data-track="k"] { --paper: #eef2fb; }
       </article>`;
     }
     const last = myContests('kangaroo').slice(-1)[0];
-    return `<article class="testcard" style="--pc:#d4703a">
+    return cogatCard() + `<article class="testcard" style="--pc:#d4703a">
       <div class="tc-head"><span class="tc-ic">🦘</span><div><b>Math Kangaroo</b><small>Contest for grades 1–2 every March · 24 puzzles · 75 minutes</small></div></div>
       <p>Logic and thinking puzzles with answers A–E. The first 8 are worth 3 points, the next 8 are worth 4, the last 8 are worth 5. There is no penalty for a wrong answer, so always make a guess.</p>
       ${last ? `<div class="tc-last">Last mock contest, ${fmtDate(last.date)}: <b>${last.score} / ${last.max}</b> points <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
@@ -4511,13 +4903,17 @@ body[data-track="k"] { --paper: #eef2fb; }
     ct = P().newContest(kind);
     ct.timed = !!timed;
     ct.left = ct.timed ? ct.seconds : 0;
+    ct.soft = kind === 'cogat'; // CogAT: a clock that only shows the time used, never stops the test
+    ct.used = 0;
     render('', 'is-contest');
     contestView();
-    if (ct.timed) ct.interval = setInterval(contestTick, 1000);
+    if (ct.timed || ct.soft) ct.interval = setInterval(contestTick, 1000);
   }
   const clock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  const CT_TITLE = { kangaroo: '🦘 Math Kangaroo', joey: '🐣 Joey Puzzles', cogat: '🧠 CogAT practice', cogatk: '🧠 Brain Games' };
   function contestTick() {
     if (!ct) return;
+    if (ct.soft) { ct.used++; const el = $('#ct-timer'); if (el) el.textContent = '⏱ ' + clock(ct.used); return; }
     ct.left--;
     const el = $('#ct-timer');
     if (el) { el.textContent = '⏱ ' + clock(Math.max(0, ct.left)); el.classList.toggle('low', ct.left <= 300); }
@@ -4525,20 +4921,20 @@ body[data-track="k"] { --paper: #eef2fb; }
   }
   // Draw the contest without render(), so the clock keeps running between questions.
   function contestView() {
-    const i = ct.i, it = ct.items[i], p = it.p, n = ct.items.length, joey = ct.kind === 'joey';
+    const i = ct.i, it = ct.items[i], p = it.p, n = ct.items.length, joey = ct.kind === 'joey' || ct.kind === 'cogatk', kangaroo = ct.kind === 'kangaroo';
     const r = root();
     r.className = 'is-contest';
     r.innerHTML = `<div class="contest">
       <header class="playbar"><button class="iconbtn" data-act="ctQuit" aria-label="Stop">✕</button>
-        <span class="ptitle">${joey ? '🐣 Joey Puzzles' : '🦘 Math Kangaroo'}</span>
-        ${ct.timed ? `<span class="stat timer ${ct.left <= 300 ? 'low' : ''}" id="ct-timer">⏱ ${clock(ct.left)}</span>` : ''}</header>
+        <span class="ptitle">${CT_TITLE[ct.kind]}</span>
+        ${ct.timed ? `<span class="stat timer ${ct.left <= 300 ? 'low' : ''}" id="ct-timer">⏱ ${clock(ct.left)}</span>` : ct.soft ? `<span class="stat timer soft" id="ct-timer" title="Time used">⏱ ${clock(ct.used)}</span>` : ''}</header>
       <nav class="ctnav" aria-label="Questions">${ct.items.map((x, k) => `<button class="ctdot ${k === i ? 'cur' : ''} ${ct.answers[k] !== null ? 'ans' : ''} ${ct.flags[k] ? 'flag' : ''} p${x.pts}" data-act="ctGo" data-arg="${k}" aria-label="Question ${k + 1}">${k + 1}</button>`).join('')}</nav>
       <section class="pcard">
-        <div class="pmeta"><span>Question ${i + 1} of ${n}${joey ? '' : ` · <b>${it.pts} points</b>`}</span><span class="pmeta-r">${ct.flags[i] ? '🚩' : ''}${MQ.canSpeak() ? '<button class="speak" data-act="ctSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
+        <div class="pmeta"><span>Question ${i + 1} of ${n}${kangaroo ? ` · <b>${it.pts} points</b>` : it.sec ? ` · ${it.sec} · ${MQ.TOPICS[p.topic].name}` : ''}</span><span class="pmeta-r">${ct.flags[i] ? '🚩' : ''}${MQ.canSpeak() ? '<button class="speak" data-act="ctSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
         <div class="ptext ${p.big ? 'eq' : ''} ${p.wordy ? 'wordy' : ''}">${p.text}</div>
         ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
       </section>
-      <div class="choices ct ${p.choiceHtml ? 'pics' : ''}">${p.choices.map((c, k) => `<button class="choice ${ct.answers[i] === c ? 'sel' : ''}" data-act="ctPick" data-arg="${k}" aria-pressed="${ct.answers[i] === c}"><span class="letter">${'ABCDE'[k]}</span><span class="copt">${p.choiceHtml ? p.choiceHtml[k] : fmtChoice(c)}</span></button>`).join('')}</div>
+      <div class="choices ct n${p.choices.length} ${p.choiceHtml ? 'pics' : ''}">${p.choices.map((c, k) => `<button class="choice ${ct.answers[i] === c ? 'sel' : ''}" data-act="ctPick" data-arg="${k}" aria-pressed="${ct.answers[i] === c}"><span class="letter">${'ABCDE'[k]}</span><span class="copt">${p.choiceHtml ? p.choiceHtml[k] : fmtChoice(c)}</span></button>`).join('')}</div>
       <div class="ctbar">
         <button class="btn ghost" data-act="ctGo" data-arg="${i - 1}" ${i === 0 ? 'disabled' : ''}>← Back</button>
         ${joey ? '' : `<button class="btn ghost" data-act="ctFlag">${ct.flags[i] ? 'Unflag' : '🚩 Flag'}</button>`}
@@ -4563,34 +4959,45 @@ body[data-track="k"] { --paper: #eef2fb; }
     list.push(res);
     while (list.length > 12) list.shift();
     list.slice(0, -3).forEach((c) => { delete c.items; });
-    addGems(res.kind === 'joey' ? 15 : 25);
+    const kids = res.kind === 'joey' || res.kind === 'cogatk';
+    addGems(kids ? 15 : 25);
     S.save();
     contestResult(res, true);
     MQ.sfx('reward');
     MQ.confetti(140);
-    if (st.settings.voice !== false) MQ.speak(res.kind === 'joey' ? `You solved ${res.right} puzzles! Great thinking!` : `You scored ${res.score} points! Great job!`);
+    if (st.settings.voice !== false) MQ.speak(res.kind === 'kangaroo' ? `You scored ${res.score} points! Great job!` : `You got ${res.right} right! Great thinking!`);
     later(checkBadges, 1200);
   }
+  const CT_INFO = {
+    kangaroo: { title: 'Math Kangaroo', color: '#d4703a', more: 'kgtypes', note: 'Original puzzles in the style of Math Kangaroo; not affiliated with Math Kangaroo USA. Past official papers are available from mathkangaroo.org.' },
+    joey: { title: 'Joey Puzzles', color: '#e0a21b', more: '', note: 'Original puzzles in the style of Math Kangaroo, made for kindergarten.' },
+    cogat: { title: 'CogAT practice', color: '#7a5cc9', more: 'cgtypes', note: 'Original questions in the style of CogAT; not affiliated with the publisher. Percentiles cannot be estimated from practice, so this shows how many were right in each part.' },
+    cogatk: { title: 'Brain Games', color: '#7a5cc9', more: 'cgtypes', note: 'Original thinking puzzles in the style of CogAT.' },
+  };
   function contestResult(res, fresh) {
-    const joey = res.kind === 'joey';
-    const sec = (pts) => res.sections[pts] ? `<div><b>${res.sections[pts].right} / ${res.sections[pts].n}</b><small>${pts}-point puzzles</small></div>` : '';
-    render(header(joey ? 'Joey Puzzles' : 'Math Kangaroo', 'prep') + `<main class="presult">
-      <div class="pr-hero" style="box-shadow: inset 0 0 0 3px ${joey ? '#e0a21b' : '#d4703a'}, 0 5px 0 ${joey ? '#e0a21b' : '#d4703a'}">
-        ${fresh ? `<div class="pr-done">Finished! +${joey ? 15 : 25} 💎</div>` : `<div class="pr-done muted">${fmtDate(res.date)}</div>`}
-        <div class="pr-level">${joey ? `${res.right} of ${res.n}` : `${res.score} / ${res.max}`}</div>
-        <div class="muted">${joey ? 'puzzles solved ' + '⭐'.repeat(Math.max(1, Math.round((res.right / res.n) * 3))) : `points · ${res.right} of ${res.n} right${res.blank ? ` · ${res.blank} blank` : ''}${res.timed ? ` · ${res.minutes} min` : ''}`}</div>
+    const info = CT_INFO[res.kind] || CT_INFO.kangaroo, kangaroo = res.kind === 'kangaroo', kids = res.kind === 'joey' || res.kind === 'cogatk';
+    const tile = (label, s) => (s ? `<div><b>${s.right} / ${s.n}</b><small>${label}</small></div>` : '');
+    const tiles = kangaroo ? [3, 4, 5].map((p) => tile(`${p}-point puzzles`, res.sections[p])).join('')
+      : res.kind.startsWith('cogat') ? MQ.COGAT_BATTERIES.map((b) => tile(`${b.icon} ${b.id}`, res.sections[b.id])).join('') : '';
+    const typeRows = res.kind.startsWith('cogat') && res.types ? `<section class="pr-domains">${Object.entries(res.types).map(([t, s]) => `<div class="pr-dom"><span class="pd-name">${MQ.TOPICS[t].icon} ${MQ.TOPICS[t].name}</span><span class="lbar"><span class="lfill" style="width:${Math.round((s.right / s.n) * 100)}%"></span></span><span class="pd-lv">${s.right} of ${s.n}</span></div>`).join('')}</section>` : '';
+    render(header(info.title, 'prep') + `<main class="presult">
+      <div class="pr-hero" style="box-shadow: inset 0 0 0 3px ${info.color}, 0 5px 0 ${info.color}">
+        ${fresh ? `<div class="pr-done">Finished! +${kids ? 15 : 25} 💎</div>` : `<div class="pr-done muted">${fmtDate(res.date)}</div>`}
+        <div class="pr-level">${kangaroo ? `${res.score} / ${res.max}` : `${res.right} of ${res.n}`}</div>
+        <div class="muted">${kangaroo ? `points · ${res.right} of ${res.n} right${res.blank ? ` · ${res.blank} blank` : ''}${res.timed ? ` · ${res.minutes} min` : ''}` : kids ? 'solved ' + '⭐'.repeat(Math.max(1, Math.round((res.right / res.n) * 3))) : `right · ${res.minutes} min${res.blank ? ` · ${res.blank} blank` : ''}`}</div>
       </div>
-      ${joey ? '' : `<div class="sumgrid three">${sec(3)}${sec(4)}${sec(5)}</div>`}
+      ${tiles ? `<div class="sumgrid three">${tiles}</div>` : ''}
+      ${typeRows}
       ${res.items ? `<section><h2>Review</h2><ol class="rlist">${res.items.map((it, k) => `<li class="${it.ok ? 'ok' : 'no'}">
-        <span class="rmark">${it.ok ? '✓' : '✗'}</span><div><div class="rq"><b>${k + 1}.</b> ${esc(it.q)}${joey ? '' : ` <span class="dchip">${it.pts} pts</span>`}</div>
+        <span class="rmark">${it.ok ? '✓' : '✗'}</span><div><div class="rq"><b>${k + 1}.</b> ${esc(it.q)}${kangaroo ? ` <span class="dchip">${it.pts} pts</span>` : ''}</div>
         <div class="ra">${it.ok ? `Your answer: <b>${it.letterG}</b>` : `Your answer: <b>${it.letterG || '—'}</b> · Right answer: <b>${it.letterA}</b>${/^picture/.test(it.a) ? '' : ` (${esc(it.a)})`}`}</div>
         ${!it.ok && it.e ? `<div class="re">${esc(it.e)}</div>` : ''}</div></li>`).join('')}</ol></section>` : ''}
-      <div class="row"><button class="btn ghost" data-act="go" data-arg="prep">Test Prep</button><button class="btn ghost" data-act="go" data-arg="home">Home</button>${joey ? '' : '<button class="btn" data-act="go" data-arg="kgtypes">Practice by type</button>'}</div>
-      <p class="muted small center">Original puzzles in the style of Math Kangaroo; not affiliated with Math Kangaroo USA. Past official papers are available from mathkangaroo.org.</p>
+      <div class="row"><button class="btn ghost" data-act="go" data-arg="prep">Test Prep</button><button class="btn ghost" data-act="go" data-arg="home">Home</button>${info.more ? `<button class="btn" data-act="go" data-arg="${info.more}">Practice by type</button>` : ''}</div>
+      <p class="muted small center">${info.note}</p>
     </main>`);
   }
   function contestQuit() {
-    modal(`<div class="mtitle">Stop the ${ct && ct.kind === 'joey' ? 'puzzles' : 'contest'}?</div><p>Your answers will not be saved.</p>
+    modal(`<div class="mtitle">Stop the ${ct && ct.kind === 'kangaroo' ? 'contest' : 'test'}?</div><p>Your answers will not be saved.</p>
       <div class="row"><button class="btn ghost" data-act="closeModal">Keep going</button><button class="btn" data-act="ctLeave">Stop</button></div>`);
   }
 
@@ -4605,6 +5012,19 @@ body[data-track="k"] { --paper: #eef2fb; }
     </section>`;
   }
   function contestHistory() {
+    return kangarooHistory() + cogatHistory();
+  }
+  function cogatHistory() {
+    const k = st.grade === 'k', list = myContests(k ? 'cogatk' : 'cogat');
+    const intro = k ? '<h3>Brain Games (CogAT style)</h3><p class="muted">Thinking puzzles in the style of the CogAT, which Eureka Union gives in 2nd grade.</p>'
+      : '<h3>CogAT practice</h3><p class="muted">Eureka Union School District gives the CogAT to every 2nd grader each school year as one part of GATE screening (a school team and the district decide eligibility). Ask the school for the test date. This practice covers all three parts with original picture questions; real CogAT percentiles cannot be estimated from it.</p>';
+    if (!list.length) return intro + '<p>No practice test yet.</p>';
+    const types = {};
+    for (const c of list.slice(-3)) for (const [t, s] of Object.entries(c.types || {})) { const a = (types[t] = types[t] || { right: 0, n: 0 }); a.right += s.right; a.n += s.n; }
+    const byType = Object.keys(types).length ? `<p class="muted small">By question type (last ${Math.min(3, list.length)} test${list.length > 1 ? 's' : ''}):</p><section class="pr-domains">${Object.entries(types).filter(([t]) => MQ.TOPICS[t]).sort((a, b) => a[1].right / a[1].n - b[1].right / b[1].n).map(([t, s]) => `<div class="pr-dom"><span class="pd-name">${MQ.TOPICS[t].icon} ${MQ.TOPICS[t].name}</span><span class="lbar"><span class="lfill" style="width:${Math.round((s.right / s.n) * 100)}%"></span></span><span class="pd-lv">${Math.round((s.right / s.n) * 100)}%</span></div>`).join('')}</section>` : '';
+    return intro + byType + `<div class="tablewrap"><table class="topics"><thead><tr><th>Date</th><th>Right</th>${MQ.COGAT_BATTERIES.map((b) => `<th>${b.id}</th>`).join('')}</tr></thead><tbody>${list.slice().reverse().map((c) => `<tr><td>${fmtDate(c.date)}</td><td><b>${c.right} / ${c.n}</b></td>${MQ.COGAT_BATTERIES.map((b) => `<td>${c.sections[b.id] ? c.sections[b.id].right + '/' + c.sections[b.id].n : ''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  }
+  function kangarooHistory() {
     const kind = st.grade === 'k' ? 'joey' : 'kangaroo', list = myContests(kind);
     const intro = kind === 'joey'
       ? '<h3>Joey Puzzles</h3><p class="muted">Kangaroo-style brain teasers for kindergarten (Math Kangaroo itself starts in 1st grade).</p>'
@@ -4816,7 +5236,7 @@ body[data-track="k"] { --paper: #eef2fb; }
     if (scr === 'family') { ui.fam = null; return family(); }
     if (!st) return who();
     endContest();
-    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, parent: parentGate }[scr] || home)();
+    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, parent: parentGate }[scr] || home)();
   }
 
   const ACTIONS = {

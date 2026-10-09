@@ -549,6 +549,7 @@ body[data-track="k"] { --paper: #eef2fb; }
 .choices.ct { grid-template-columns: 1fr; gap: 8px; }
 .choices.ct .choice { display: flex; align-items: center; gap: 12px; text-align: left; min-height: 54px; font-size: 1.2rem; padding: 8px 14px; }
 .choices.ct.pics { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+.choices.ct.pics.n4 { grid-template-columns: 1fr 1fr; }
 .choices.ct.pics .choice { flex-direction: column; justify-content: center; min-height: 110px; }
 .choices.ct .letter { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #eef1f6; font-family: var(--display); font-weight: 600; font-size: 1rem; color: var(--ink-soft); }
 .choices.ct .choice.sel .letter { background: #5b63c9; color: #ffffff; }
@@ -562,4 +563,35 @@ body[data-track="k"] { --paper: #eef2fb; }
 @media (max-width: 480px) {
   .ctnav { grid-template-columns: repeat(8, 1fr); }
   .sumgrid.three { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ===== CogAT-style pictures ===== */
+.matrix2, .analogy { display: grid; grid-template-columns: auto auto auto; grid-template-rows: auto auto; align-items: center; justify-items: center; gap: 6px 10px; margin: 10px auto; width: max-content; max-width: 100%; }
+.matrix2 b, .analogy b { font-family: var(--display); font-size: 1.4rem; color: var(--ink-soft); }
+.matrix2 svg.vis { width: 76px; height: 76px; }
+.matrix2 .mq, .analogy .mq { width: 76px; height: 76px; display: grid; place-items: center; border: 3px dashed #b9c4d0; border-radius: 10px; font-family: var(--display); font-size: 2rem; color: #ff6b5b; background: #fbfcfe; }
+.analogy .abox { min-width: 76px; min-height: 76px; display: grid; place-items: center; background: #ffffff; border: 2px solid #d6e0e6; border-radius: 10px; padding: 4px; }
+.analogy.emo .abox { font-size: 2.6rem; line-height: 1; }
+.analogy.emo:not(:has(b)) { grid-template-columns: repeat(3, auto); grid-template-rows: auto; }
+.cluster { display: inline-grid; grid-template-columns: repeat(3, 1fr); gap: 1px; font-size: 1.15rem; line-height: 1.1; font-style: normal; }
+.cluster i { font-style: normal; }
+.cluster.c1 { grid-template-columns: 1fr; font-size: 1.8rem; }
+.cluster.c2, .cluster.c4 { grid-template-columns: repeat(2, 1fr); }
+.figrow { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0; }
+.figrow svg.vis { width: 70px; height: 70px; }
+.foldsteps { display: flex; align-items: flex-start; justify-content: center; gap: 6px; margin: 10px 0; }
+.foldsteps > div { display: grid; justify-items: center; gap: 4px; max-width: 110px; text-align: center; }
+.foldsteps svg.vis { width: 88px; height: 88px; }
+.foldsteps small { font-size: 0.72rem; color: var(--ink-soft); line-height: 1.2; }
+.foldsteps b { align-self: center; margin-top: -18px; font-size: 1.2rem; color: var(--ink-soft); }
+svg.vis.abacus { max-height: 160px; }
+.choices.pics .choice svg.abacus, .choices.ct .copt svg.abacus { width: auto; height: 96px; }
+.choices.pics .choice svg.sheet { width: 80px; height: 80px; }
+.cemo { font-size: 2.4rem; line-height: 1; }
+.choices .choice .cluster { font-size: 1.05rem; }
+.stat.timer.soft { color: var(--ink-soft); }
+@media (max-width: 380px) {
+  .matrix2 svg.vis, .matrix2 .mq, .analogy .mq, .analogy .abox { width: 62px; height: 62px; min-width: 62px; min-height: 62px; }
+  .analogy.emo .abox { font-size: 2.1rem; }
+  .foldsteps svg.vis { width: 74px; height: 74px; }
 }

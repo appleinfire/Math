@@ -412,6 +412,75 @@
     return svg(W, H, s, 'towers', 'towers of cubes');
   };
 
+  // ================= CogAT-style pictures =================
+  // A figure described by attributes: { shape, color, big, count, rot, dot }.
+  const FIG_COLORS = { blue: '#5b63c9', red: '#ff6b5b', green: '#2bb3a3', yellow: '#ffb547', white: '#ffffff' };
+  V.FIG_COLORS = FIG_COLORS;
+  function figShape(shape, cx, cy, r, fill, rot) {
+    const pts = (n, start) => U_range(n).map((i) => { const a = rad(start + (360 / n) * i + rot); return `${r1(cx + r * Math.sin(a))},${r1(cy - r * Math.cos(a))}`; }).join(' ');
+    const st = `fill="${fill}" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"`;
+    switch (shape) {
+      case 'circle': return `<circle cx="${cx}" cy="${cy}" r="${r}" ${st}/>`;
+      case 'square': return `<polygon points="${pts(4, 45)}" ${st}/>`;
+      case 'diamond': return `<polygon points="${pts(4, 0)}" ${st}/>`;
+      case 'triangle': return `<polygon points="${pts(3, 0)}" ${st}/>`;
+      case 'hexagon': return `<polygon points="${pts(6, 0)}" ${st}/>`;
+      case 'star': return `<polygon points="${U_range(10).map((i) => { const a = rad(36 * i + rot), rr = i % 2 ? r * 0.45 : r; return `${r1(cx + rr * Math.sin(a))},${r1(cy - rr * Math.cos(a))}`; }).join(' ')}" ${st}/>`;
+      case 'arrow': { // points up when rot = 0
+        const P = [[0, -1], [0.7, -0.1], [0.28, -0.1], [0.28, 1], [-0.28, 1], [-0.28, -0.1], [-0.7, -0.1]].map(([x, y]) => {
+          const a = rad(rot), X = x * r, Y = y * r;
+          return `${r1(cx + X * Math.cos(a) - Y * Math.sin(a))},${r1(cy + X * Math.sin(a) + Y * Math.cos(a))}`;
+        });
+        return `<polygon points="${P.join(' ')}" ${st}/>`;
+      }
+      default: return `<circle cx="${cx}" cy="${cy}" r="${r}" ${st}/>`;
+    }
+  }
+  const U_range = (n) => Array.from({ length: n }, (_, i) => i);
+  V.fig = (f, size = 76) => {
+    const n = f.count || 1, r = (f.big === false ? 0.17 : 0.3) * size * (n > 1 ? 0.62 : 1);
+    const spots = { 1: [[0.5, 0.5]], 2: [[0.3, 0.5], [0.7, 0.5]], 3: [[0.5, 0.27], [0.27, 0.72], [0.73, 0.72]], 4: [[0.3, 0.3], [0.7, 0.3], [0.3, 0.7], [0.7, 0.7]] }[n];
+    let s = `<rect x="1.5" y="1.5" width="${size - 3}" height="${size - 3}" rx="8" fill="#ffffff" stroke="#d6e0e6" stroke-width="2"/>`;
+    for (const [px, py] of spots) {
+      s += figShape(f.shape, r1(px * size), r1(py * size), r, FIG_COLORS[f.color] || f.color, f.rot || 0);
+      if (f.dot) s += `<circle cx="${r1(px * size)}" cy="${r1(py * size)}" r="${Math.max(3, r * 0.22)}" fill="${INK}"/>`;
+    }
+    return svg(size, size, s, 'fig', 'figure');
+  };
+  // 2×2 matrix: A → B, C → ?
+  V.matrix2 = (a, b, c) =>
+    `<div class="vis matrix2"><span>${V.fig(a)}</span><b>→</b><span>${V.fig(b)}</span><span>${V.fig(c)}</span><b>→</b><span class="mq">?</span></div>`;
+  V.figRow = (figs) => `<div class="vis figrow">${figs.map((f) => V.fig(f, 70)).join('')}</div>`;
+  // Abacus rods with beads; null = an empty rod with a question mark.
+  V.abacus = (counts, h = 9) => {
+    const w = 34, H = h * 13 + 30;
+    let s = `<rect x="4" y="${H - 14}" width="${counts.length * w + 8}" height="10" rx="4" fill="#8a5a2b"/>`;
+    counts.forEach((n, i) => {
+      const x = 8 + i * w + w / 2;
+      s += `<line x1="${x}" y1="10" x2="${x}" y2="${H - 14}" stroke="#8a5a2b" stroke-width="4"/>`;
+      if (n === null) s += text(x, H / 2, '?', 22, 'fill="#ff6b5b"');
+      else for (let k = 0; k < n; k++) s += `<ellipse cx="${x}" cy="${H - 22 - k * 13}" rx="13" ry="6.5" fill="${FILLS[(i % 5) + 1]}" stroke="${INK}" stroke-width="1.8"/>`;
+    });
+    return svg(counts.length * w + 16, H, s, 'abacus', 'abacus');
+  };
+  // Paper folding: a 4×4 sheet. holes = [[r, c]], fold = 'v' (left half over right) / 'h' (top over bottom) / 'q' (both).
+  V.sheet = (holes, { size = 96, visible = null } = {}) => {
+    const u = size / 4;
+    const show = (r, c) => !visible || visible(r, c);
+    let s = `<rect x="2" y="2" width="${size}" height="${size}" fill="#ffffff" stroke="${INK}" stroke-width="2.5"/>`;
+    for (let i = 1; i < 4; i++) s += `<line x1="${2 + i * u}" y1="2" x2="${2 + i * u}" y2="${2 + size}" stroke="#e3e8ef" stroke-width="1"/><line x1="2" y1="${2 + i * u}" x2="${2 + size}" y2="${2 + i * u}" stroke="#e3e8ef" stroke-width="1"/>`;
+    if (visible) for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) if (!show(r, c)) s += `<rect x="${2 + c * u}" y="${2 + r * u}" width="${u}" height="${u}" fill="#c9d3df"/>`;
+    for (const [r, c] of holes) s += `<circle cx="${2 + c * u + u / 2}" cy="${2 + r * u + u / 2}" r="${u * 0.26}" fill="${INK}"/>`;
+    return svg(size + 4, size + 4, s, 'sheet', 'sheet of paper');
+  };
+  V.foldSteps = (fold, holes) => {
+    const vis = fold === 'v' ? (r, c) => c >= 2 : fold === 'h' ? (r, c) => r >= 2 : (r, c) => r >= 2 && c >= 2;
+    const lines = fold === 'v' ? 'folded in half from left to right' : fold === 'h' ? 'folded in half from top to bottom' : 'folded in half twice';
+    return `<div class="vis foldsteps"><div>${V.sheet([], { visible: null })}<small>paper</small></div><b>→</b><div>${V.sheet([], { visible: vis })}<small>${lines}</small></div><b>→</b><div>${V.sheet(holes, { visible: vis })}<small>hole punched</small></div></div>`;
+  };
+  // Little groups of emoji (for picture number analogies).
+  V.cluster = (emoji, n) => `<span class="cluster c${Math.min(n, 9)}">${Array(n).fill(`<i>${emoji}</i>`).join('')}</span>`;
+
   // ================= Kindergarten pictures =================
   // A neat grid of emoji, in rows of `cols`. The last `gone` items are crossed out (take-away problems).
   V.emojis = (emoji, n, { cols = 5, gone = 0 } = {}) => {

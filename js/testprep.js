@@ -159,30 +159,36 @@
     const items = [];
     if (kind === 'joey') {
       for (let i = 0; i < 12; i++) items.push({ p: make('kg_joey', 1), pts: 1 });
+    } else if (kind === 'cogat' || kind === 'cogatk') {
+      // CogAT style: battery by battery, each question type in a row, getting harder within the type.
+      const levels = kind === 'cogat' ? [1, 2, 3, 4, 5] : [1, 1];
+      for (const b of MQ.COGAT_BATTERIES) for (const t of b.topics) for (const d of levels) items.push({ p: make(t, d), pts: 1, sec: b.id });
     } else {
       for (const pts of [3, 4, 5]) {
         const topics = U.shuffle(MQ.KANGAROO_TOPICS);
         for (let i = 0; i < 8; i++) items.push({ p: make(topics[i % topics.length], pts === 3 ? U.rnd(1, 2) : pts === 4 ? 3 : U.rnd(4, 5)), pts });
       }
     }
-    return { kind, items, answers: items.map(() => null), flags: items.map(() => false), i: 0, seconds: kind === 'joey' ? 0 : P.KANGAROO_MINUTES * 60, started: Date.now() };
+    return { kind, items, answers: items.map(() => null), flags: items.map(() => false), i: 0, seconds: kind === 'kangaroo' ? P.KANGAROO_MINUTES * 60 : 0, started: Date.now() };
   };
   P.scoreContest = (ct) => {
     const graded = ct.items.map((it, i) => ({ it, given: ct.answers[i], ok: ct.answers[i] !== null && ct.answers[i] === it.p.answer }));
-    const sections = {};
+    // Sections: point values for Kangaroo, batteries for CogAT. Types: accuracy per kind of question.
+    const sections = {}, types = {};
     for (const g of graded) {
-      const s = (sections[g.it.pts] = sections[g.it.pts] || { right: 0, n: 0 });
-      s.n++;
-      if (g.ok) s.right++;
+      const s = (sections[g.it.sec || g.it.pts] = sections[g.it.sec || g.it.pts] || { right: 0, n: 0 });
+      const t = (types[g.it.p.topic] = types[g.it.p.topic] || { right: 0, n: 0 });
+      s.n++; t.n++;
+      if (g.ok) { s.right++; t.right++; }
     }
     return {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
       date: U.dateKey(), kind: ct.kind,
       score: U.sum(graded.filter((g) => g.ok).map((g) => g.it.pts)), max: U.sum(ct.items.map((it) => it.pts)),
       right: graded.filter((g) => g.ok).length, blank: graded.filter((g) => g.given === null).length, n: graded.length,
-      sections, minutes: Math.max(1, Math.round((Date.now() - ct.started) / 60000)), timed: !!ct.timed,
+      sections, types, minutes: Math.max(1, Math.round((Date.now() - ct.started) / 60000)), timed: !!ct.timed,
       items: graded.map((g) => ({
-        t: g.it.p.topic, pts: g.it.pts, ok: g.ok,
+        t: g.it.p.topic, pts: g.it.pts, sec: g.it.sec || '', ok: g.ok,
         q: String(g.it.p.text).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160),
         g: g.given === null ? '' : g.given, a: g.it.p.answer, e: g.it.p.explain || '',
         letterG: g.given === null ? '' : 'ABCDE'[g.it.p.choices.indexOf(g.given)], letterA: 'ABCDE'[g.it.p.choices.indexOf(g.it.p.answer)],

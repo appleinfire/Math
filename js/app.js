@@ -755,7 +755,7 @@
         <div><b>+${sess.earned}</b><small>💎 earned</small></div>
       </div>
       <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button>${sess.kgTopic
-        ? `<button class="btn ghost" data-act="go" data-arg="kgtypes">Other puzzle types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
+        ? `<button class="btn ghost" data-act="go" data-arg="${MQ.TOPICS[sess.kgTopic].cogat ? 'cgtypes' : 'kgtypes'}">Other types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
         : '<button class="btn ghost" data-act="go" data-arg="trainer">Change settings</button><button class="btn" data-act="startTrainer">Play again</button>'}</div></main>`);
     if (sess.correct) { MQ.sfx('reward'); if (record) MQ.confetti(); }
     if (st.settings.voice !== false && sess.correct) MQ.speak(`You got ${sess.correct} right! ${record ? 'A new record!' : 'Great training!'}`);
@@ -862,10 +862,29 @@
   }
   // ---------------------------------------------------------------- Math Kangaroo style contest
   const myContests = (kind) => (st.tests.contests || []).filter((c) => c.kind === kind);
+  function cogatCard() {
+    const k = st.grade === 'k', kind = k ? 'cogatk' : 'cogat', last = myContests(kind).slice(-1)[0];
+    const n = k ? 18 : 45;
+    return `<article class="testcard" style="--pc:#7a5cc9">
+      <div class="tc-head"><span class="tc-ic">🧠</span><div><b>${k ? 'Brain Games' : 'CogAT practice'}</b><small>${k ? 'Thinking puzzles in the style of CogAT' : 'GATE screening · Eureka Union tests every 2nd grader'} · ${n} questions</small></div></div>
+      <p>${k ? 'Picture puzzles about patterns, shapes and things that go together. Every question is read aloud.' : 'Three parts like the real CogAT: <b>Verbal</b> (pictures that go together), <b>Quantitative</b> (number puzzles) and <b>Nonverbal</b> (shapes and paper folding). Pictures only, every question can be read aloud.'}</p>
+      ${last ? `<div class="tc-last">Last practice test, ${fmtDate(last.date)}: <b>${last.right} of ${last.n}</b> right <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
+      <div class="row left">
+        <button class="btn" data-act="startContest" data-arg="${kind}">${k ? 'Play the brain games' : 'Practice test'} ▶</button>
+        <button class="btn ghost" data-act="go" data-arg="cgtypes">Practice by type</button>
+      </div>
+    </article>`;
+  }
+  function cgtypes() {
+    render(header(st.grade === 'k' ? 'Brain Games' : 'CogAT practice', 'prep') + `<main class="prep">
+      <p class="lead">Pick a kind of question. They get harder as you get them right, and every answer is explained.</p>
+      ${MQ.COGAT_BATTERIES.map((b) => `<section><h2>${b.icon} ${b.id}</h2><div class="kgtypes">${b.topics.map((t) => `<button class="tile" data-act="kgPractice" data-arg="${t}"><span class="ti">${MQ.TOPICS[t].icon}</span><b>${MQ.TOPICS[t].name}</b></button>`).join('')}</div></section>`).join('')}
+    </main>`);
+  }
   function contestCard() {
     if (st.grade === 'k') {
       const last = myContests('joey').slice(-1)[0];
-      return `<article class="testcard" style="--pc:#e0a21b">
+      return cogatCard() + `<article class="testcard" style="--pc:#e0a21b">
         <div class="tc-head"><span class="tc-ic">🐣</span><div><b>Joey Puzzles</b><small>Brain teasers like Math Kangaroo, made for kindergarten · 12 puzzles</small></div></div>
         <p>Picture puzzles with 5 answers to choose from. Every question can be read aloud. No clock: take your time and think!</p>
         ${last ? `<div class="tc-last">Last time: <b>${last.right} of ${last.n}</b> ${'⭐'.repeat(Math.round((last.right / last.n) * 3))}</div>` : ''}
@@ -873,7 +892,7 @@
       </article>`;
     }
     const last = myContests('kangaroo').slice(-1)[0];
-    return `<article class="testcard" style="--pc:#d4703a">
+    return cogatCard() + `<article class="testcard" style="--pc:#d4703a">
       <div class="tc-head"><span class="tc-ic">🦘</span><div><b>Math Kangaroo</b><small>Contest for grades 1–2 every March · 24 puzzles · 75 minutes</small></div></div>
       <p>Logic and thinking puzzles with answers A–E. The first 8 are worth 3 points, the next 8 are worth 4, the last 8 are worth 5. There is no penalty for a wrong answer, so always make a guess.</p>
       ${last ? `<div class="tc-last">Last mock contest, ${fmtDate(last.date)}: <b>${last.score} / ${last.max}</b> points <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
@@ -896,13 +915,17 @@
     ct = P().newContest(kind);
     ct.timed = !!timed;
     ct.left = ct.timed ? ct.seconds : 0;
+    ct.soft = kind === 'cogat'; // CogAT: a clock that only shows the time used, never stops the test
+    ct.used = 0;
     render('', 'is-contest');
     contestView();
-    if (ct.timed) ct.interval = setInterval(contestTick, 1000);
+    if (ct.timed || ct.soft) ct.interval = setInterval(contestTick, 1000);
   }
   const clock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  const CT_TITLE = { kangaroo: '🦘 Math Kangaroo', joey: '🐣 Joey Puzzles', cogat: '🧠 CogAT practice', cogatk: '🧠 Brain Games' };
   function contestTick() {
     if (!ct) return;
+    if (ct.soft) { ct.used++; const el = $('#ct-timer'); if (el) el.textContent = '⏱ ' + clock(ct.used); return; }
     ct.left--;
     const el = $('#ct-timer');
     if (el) { el.textContent = '⏱ ' + clock(Math.max(0, ct.left)); el.classList.toggle('low', ct.left <= 300); }
@@ -910,20 +933,20 @@
   }
   // Draw the contest without render(), so the clock keeps running between questions.
   function contestView() {
-    const i = ct.i, it = ct.items[i], p = it.p, n = ct.items.length, joey = ct.kind === 'joey';
+    const i = ct.i, it = ct.items[i], p = it.p, n = ct.items.length, joey = ct.kind === 'joey' || ct.kind === 'cogatk', kangaroo = ct.kind === 'kangaroo';
     const r = root();
     r.className = 'is-contest';
     r.innerHTML = `<div class="contest">
       <header class="playbar"><button class="iconbtn" data-act="ctQuit" aria-label="Stop">✕</button>
-        <span class="ptitle">${joey ? '🐣 Joey Puzzles' : '🦘 Math Kangaroo'}</span>
-        ${ct.timed ? `<span class="stat timer ${ct.left <= 300 ? 'low' : ''}" id="ct-timer">⏱ ${clock(ct.left)}</span>` : ''}</header>
+        <span class="ptitle">${CT_TITLE[ct.kind]}</span>
+        ${ct.timed ? `<span class="stat timer ${ct.left <= 300 ? 'low' : ''}" id="ct-timer">⏱ ${clock(ct.left)}</span>` : ct.soft ? `<span class="stat timer soft" id="ct-timer" title="Time used">⏱ ${clock(ct.used)}</span>` : ''}</header>
       <nav class="ctnav" aria-label="Questions">${ct.items.map((x, k) => `<button class="ctdot ${k === i ? 'cur' : ''} ${ct.answers[k] !== null ? 'ans' : ''} ${ct.flags[k] ? 'flag' : ''} p${x.pts}" data-act="ctGo" data-arg="${k}" aria-label="Question ${k + 1}">${k + 1}</button>`).join('')}</nav>
       <section class="pcard">
-        <div class="pmeta"><span>Question ${i + 1} of ${n}${joey ? '' : ` · <b>${it.pts} points</b>`}</span><span class="pmeta-r">${ct.flags[i] ? '🚩' : ''}${MQ.canSpeak() ? '<button class="speak" data-act="ctSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
+        <div class="pmeta"><span>Question ${i + 1} of ${n}${kangaroo ? ` · <b>${it.pts} points</b>` : it.sec ? ` · ${it.sec} · ${MQ.TOPICS[p.topic].name}` : ''}</span><span class="pmeta-r">${ct.flags[i] ? '🚩' : ''}${MQ.canSpeak() ? '<button class="speak" data-act="ctSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
         <div class="ptext ${p.big ? 'eq' : ''} ${p.wordy ? 'wordy' : ''}">${p.text}</div>
         ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
       </section>
-      <div class="choices ct ${p.choiceHtml ? 'pics' : ''}">${p.choices.map((c, k) => `<button class="choice ${ct.answers[i] === c ? 'sel' : ''}" data-act="ctPick" data-arg="${k}" aria-pressed="${ct.answers[i] === c}"><span class="letter">${'ABCDE'[k]}</span><span class="copt">${p.choiceHtml ? p.choiceHtml[k] : fmtChoice(c)}</span></button>`).join('')}</div>
+      <div class="choices ct n${p.choices.length} ${p.choiceHtml ? 'pics' : ''}">${p.choices.map((c, k) => `<button class="choice ${ct.answers[i] === c ? 'sel' : ''}" data-act="ctPick" data-arg="${k}" aria-pressed="${ct.answers[i] === c}"><span class="letter">${'ABCDE'[k]}</span><span class="copt">${p.choiceHtml ? p.choiceHtml[k] : fmtChoice(c)}</span></button>`).join('')}</div>
       <div class="ctbar">
         <button class="btn ghost" data-act="ctGo" data-arg="${i - 1}" ${i === 0 ? 'disabled' : ''}>← Back</button>
         ${joey ? '' : `<button class="btn ghost" data-act="ctFlag">${ct.flags[i] ? 'Unflag' : '🚩 Flag'}</button>`}
@@ -948,34 +971,45 @@
     list.push(res);
     while (list.length > 12) list.shift();
     list.slice(0, -3).forEach((c) => { delete c.items; });
-    addGems(res.kind === 'joey' ? 15 : 25);
+    const kids = res.kind === 'joey' || res.kind === 'cogatk';
+    addGems(kids ? 15 : 25);
     S.save();
     contestResult(res, true);
     MQ.sfx('reward');
     MQ.confetti(140);
-    if (st.settings.voice !== false) MQ.speak(res.kind === 'joey' ? `You solved ${res.right} puzzles! Great thinking!` : `You scored ${res.score} points! Great job!`);
+    if (st.settings.voice !== false) MQ.speak(res.kind === 'kangaroo' ? `You scored ${res.score} points! Great job!` : `You got ${res.right} right! Great thinking!`);
     later(checkBadges, 1200);
   }
+  const CT_INFO = {
+    kangaroo: { title: 'Math Kangaroo', color: '#d4703a', more: 'kgtypes', note: 'Original puzzles in the style of Math Kangaroo; not affiliated with Math Kangaroo USA. Past official papers are available from mathkangaroo.org.' },
+    joey: { title: 'Joey Puzzles', color: '#e0a21b', more: '', note: 'Original puzzles in the style of Math Kangaroo, made for kindergarten.' },
+    cogat: { title: 'CogAT practice', color: '#7a5cc9', more: 'cgtypes', note: 'Original questions in the style of CogAT; not affiliated with the publisher. Percentiles cannot be estimated from practice, so this shows how many were right in each part.' },
+    cogatk: { title: 'Brain Games', color: '#7a5cc9', more: 'cgtypes', note: 'Original thinking puzzles in the style of CogAT.' },
+  };
   function contestResult(res, fresh) {
-    const joey = res.kind === 'joey';
-    const sec = (pts) => res.sections[pts] ? `<div><b>${res.sections[pts].right} / ${res.sections[pts].n}</b><small>${pts}-point puzzles</small></div>` : '';
-    render(header(joey ? 'Joey Puzzles' : 'Math Kangaroo', 'prep') + `<main class="presult">
-      <div class="pr-hero" style="box-shadow: inset 0 0 0 3px ${joey ? '#e0a21b' : '#d4703a'}, 0 5px 0 ${joey ? '#e0a21b' : '#d4703a'}">
-        ${fresh ? `<div class="pr-done">Finished! +${joey ? 15 : 25} 💎</div>` : `<div class="pr-done muted">${fmtDate(res.date)}</div>`}
-        <div class="pr-level">${joey ? `${res.right} of ${res.n}` : `${res.score} / ${res.max}`}</div>
-        <div class="muted">${joey ? 'puzzles solved ' + '⭐'.repeat(Math.max(1, Math.round((res.right / res.n) * 3))) : `points · ${res.right} of ${res.n} right${res.blank ? ` · ${res.blank} blank` : ''}${res.timed ? ` · ${res.minutes} min` : ''}`}</div>
+    const info = CT_INFO[res.kind] || CT_INFO.kangaroo, kangaroo = res.kind === 'kangaroo', kids = res.kind === 'joey' || res.kind === 'cogatk';
+    const tile = (label, s) => (s ? `<div><b>${s.right} / ${s.n}</b><small>${label}</small></div>` : '');
+    const tiles = kangaroo ? [3, 4, 5].map((p) => tile(`${p}-point puzzles`, res.sections[p])).join('')
+      : res.kind.startsWith('cogat') ? MQ.COGAT_BATTERIES.map((b) => tile(`${b.icon} ${b.id}`, res.sections[b.id])).join('') : '';
+    const typeRows = res.kind.startsWith('cogat') && res.types ? `<section class="pr-domains">${Object.entries(res.types).map(([t, s]) => `<div class="pr-dom"><span class="pd-name">${MQ.TOPICS[t].icon} ${MQ.TOPICS[t].name}</span><span class="lbar"><span class="lfill" style="width:${Math.round((s.right / s.n) * 100)}%"></span></span><span class="pd-lv">${s.right} of ${s.n}</span></div>`).join('')}</section>` : '';
+    render(header(info.title, 'prep') + `<main class="presult">
+      <div class="pr-hero" style="box-shadow: inset 0 0 0 3px ${info.color}, 0 5px 0 ${info.color}">
+        ${fresh ? `<div class="pr-done">Finished! +${kids ? 15 : 25} 💎</div>` : `<div class="pr-done muted">${fmtDate(res.date)}</div>`}
+        <div class="pr-level">${kangaroo ? `${res.score} / ${res.max}` : `${res.right} of ${res.n}`}</div>
+        <div class="muted">${kangaroo ? `points · ${res.right} of ${res.n} right${res.blank ? ` · ${res.blank} blank` : ''}${res.timed ? ` · ${res.minutes} min` : ''}` : kids ? 'solved ' + '⭐'.repeat(Math.max(1, Math.round((res.right / res.n) * 3))) : `right · ${res.minutes} min${res.blank ? ` · ${res.blank} blank` : ''}`}</div>
       </div>
-      ${joey ? '' : `<div class="sumgrid three">${sec(3)}${sec(4)}${sec(5)}</div>`}
+      ${tiles ? `<div class="sumgrid three">${tiles}</div>` : ''}
+      ${typeRows}
       ${res.items ? `<section><h2>Review</h2><ol class="rlist">${res.items.map((it, k) => `<li class="${it.ok ? 'ok' : 'no'}">
-        <span class="rmark">${it.ok ? '✓' : '✗'}</span><div><div class="rq"><b>${k + 1}.</b> ${esc(it.q)}${joey ? '' : ` <span class="dchip">${it.pts} pts</span>`}</div>
+        <span class="rmark">${it.ok ? '✓' : '✗'}</span><div><div class="rq"><b>${k + 1}.</b> ${esc(it.q)}${kangaroo ? ` <span class="dchip">${it.pts} pts</span>` : ''}</div>
         <div class="ra">${it.ok ? `Your answer: <b>${it.letterG}</b>` : `Your answer: <b>${it.letterG || '—'}</b> · Right answer: <b>${it.letterA}</b>${/^picture/.test(it.a) ? '' : ` (${esc(it.a)})`}`}</div>
         ${!it.ok && it.e ? `<div class="re">${esc(it.e)}</div>` : ''}</div></li>`).join('')}</ol></section>` : ''}
-      <div class="row"><button class="btn ghost" data-act="go" data-arg="prep">Test Prep</button><button class="btn ghost" data-act="go" data-arg="home">Home</button>${joey ? '' : '<button class="btn" data-act="go" data-arg="kgtypes">Practice by type</button>'}</div>
-      <p class="muted small center">Original puzzles in the style of Math Kangaroo; not affiliated with Math Kangaroo USA. Past official papers are available from mathkangaroo.org.</p>
+      <div class="row"><button class="btn ghost" data-act="go" data-arg="prep">Test Prep</button><button class="btn ghost" data-act="go" data-arg="home">Home</button>${info.more ? `<button class="btn" data-act="go" data-arg="${info.more}">Practice by type</button>` : ''}</div>
+      <p class="muted small center">${info.note}</p>
     </main>`);
   }
   function contestQuit() {
-    modal(`<div class="mtitle">Stop the ${ct && ct.kind === 'joey' ? 'puzzles' : 'contest'}?</div><p>Your answers will not be saved.</p>
+    modal(`<div class="mtitle">Stop the ${ct && ct.kind === 'kangaroo' ? 'contest' : 'test'}?</div><p>Your answers will not be saved.</p>
       <div class="row"><button class="btn ghost" data-act="closeModal">Keep going</button><button class="btn" data-act="ctLeave">Stop</button></div>`);
   }
 
@@ -990,6 +1024,19 @@
     </section>`;
   }
   function contestHistory() {
+    return kangarooHistory() + cogatHistory();
+  }
+  function cogatHistory() {
+    const k = st.grade === 'k', list = myContests(k ? 'cogatk' : 'cogat');
+    const intro = k ? '<h3>Brain Games (CogAT style)</h3><p class="muted">Thinking puzzles in the style of the CogAT, which Eureka Union gives in 2nd grade.</p>'
+      : '<h3>CogAT practice</h3><p class="muted">Eureka Union School District gives the CogAT to every 2nd grader each school year as one part of GATE screening (a school team and the district decide eligibility). Ask the school for the test date. This practice covers all three parts with original picture questions; real CogAT percentiles cannot be estimated from it.</p>';
+    if (!list.length) return intro + '<p>No practice test yet.</p>';
+    const types = {};
+    for (const c of list.slice(-3)) for (const [t, s] of Object.entries(c.types || {})) { const a = (types[t] = types[t] || { right: 0, n: 0 }); a.right += s.right; a.n += s.n; }
+    const byType = Object.keys(types).length ? `<p class="muted small">By question type (last ${Math.min(3, list.length)} test${list.length > 1 ? 's' : ''}):</p><section class="pr-domains">${Object.entries(types).filter(([t]) => MQ.TOPICS[t]).sort((a, b) => a[1].right / a[1].n - b[1].right / b[1].n).map(([t, s]) => `<div class="pr-dom"><span class="pd-name">${MQ.TOPICS[t].icon} ${MQ.TOPICS[t].name}</span><span class="lbar"><span class="lfill" style="width:${Math.round((s.right / s.n) * 100)}%"></span></span><span class="pd-lv">${Math.round((s.right / s.n) * 100)}%</span></div>`).join('')}</section>` : '';
+    return intro + byType + `<div class="tablewrap"><table class="topics"><thead><tr><th>Date</th><th>Right</th>${MQ.COGAT_BATTERIES.map((b) => `<th>${b.id}</th>`).join('')}</tr></thead><tbody>${list.slice().reverse().map((c) => `<tr><td>${fmtDate(c.date)}</td><td><b>${c.right} / ${c.n}</b></td>${MQ.COGAT_BATTERIES.map((b) => `<td>${c.sections[b.id] ? c.sections[b.id].right + '/' + c.sections[b.id].n : ''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  }
+  function kangarooHistory() {
     const kind = st.grade === 'k' ? 'joey' : 'kangaroo', list = myContests(kind);
     const intro = kind === 'joey'
       ? '<h3>Joey Puzzles</h3><p class="muted">Kangaroo-style brain teasers for kindergarten (Math Kangaroo itself starts in 1st grade).</p>'
@@ -1201,7 +1248,7 @@
     if (scr === 'family') { ui.fam = null; return family(); }
     if (!st) return who();
     endContest();
-    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, parent: parentGate }[scr] || home)();
+    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, parent: parentGate }[scr] || home)();
   }
 
   const ACTIONS = {

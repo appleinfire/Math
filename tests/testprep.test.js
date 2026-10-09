@@ -2,7 +2,7 @@
 // Simulates children with a known level taking the Placement Check and checks the estimate is close.
 const path = require('path');
 const assert = require('assert');
-for (const f of ['util', 'visuals', 'generators', 'generators-k', 'puzzles', 'content', 'content-k', 'store', 'testprep']) require(path.join(__dirname, '..', 'js', f + '.js'));
+for (const f of ['util', 'visuals', 'generators', 'generators-k', 'puzzles', 'cogat', 'content', 'content-k', 'store', 'testprep']) require(path.join(__dirname, '..', 'js', f + '.js'));
 const MQ = globalThis.MQ;
 const P = MQ.prep;
 
@@ -80,5 +80,26 @@ for (let r = 0; r < 30; r++) {
 const jo = P.newContest('joey');
 assert.strictEqual(jo.items.length, 12);
 assert.strictEqual(jo.seconds, 0);
+
+// CogAT practice: 3 batteries × 3 question types × 5 questions, 4 choices each, no repeats, no countdown.
+const key = (i) => i.p.text + (i.p.visual || '') + i.p.choices.join('|') + (i.p.choiceHtml || []).join('');
+for (let r = 0; r < 30; r++) {
+  const ct = P.newContest('cogat');
+  assert.strictEqual(ct.items.length, 45);
+  assert.strictEqual(ct.seconds, 0);
+  assert.deepStrictEqual([...new Set(ct.items.map((i) => i.sec))], ['Verbal', 'Quantitative', 'Nonverbal']);
+  assert.ok(ct.items.every((i) => i.p.choices.length === 4 && i.p.choices.includes(i.p.answer) && MQ.TOPICS[i.p.topic].cogat));
+  assert.strictEqual(new Set(ct.items.map(key)).size, 45, 'no repeated question in one CogAT test');
+  ct.answers = ct.items.map((i, k) => (k < 15 ? i.p.answer : k < 20 ? i.p.choices.find((c) => c !== i.p.answer) : null));
+  const sc = P.scoreContest(ct);
+  assert.deepStrictEqual(sc.sections.Verbal, { right: 15, n: 15 });
+  assert.deepStrictEqual(sc.sections.Quantitative, { right: 0, n: 15 });
+  assert.strictEqual(sc.right, 15);
+  assert.strictEqual(Object.keys(sc.types).length, 9);
+  assert.ok(Object.values(sc.types).every((t) => t.n === 5));
+  const k = P.newContest('cogatk');
+  assert.strictEqual(k.items.length, 18);
+  assert.strictEqual(new Set(k.items.map(key)).size, 18, 'no repeated question in Brain Games');
+}
 
 console.log(`OK — Placement Check estimates are within one step in at least ${(worst * 100).toFixed(0)}% of simulated runs.`);
