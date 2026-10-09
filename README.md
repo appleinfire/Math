@@ -45,7 +45,13 @@ Practice for the tests used in California schools. The app is not affiliated wit
   - **Practice by type**: 12 kinds of puzzles in contest style (counting shapes, balance scales, who is taller, calendar, coins, paths on a grid, flip and turn, cube towers, what comes next, hidden digits, age puzzles, and a hand-written bank of classics), each adapting its difficulty and explaining every answer.
   - Original puzzles in the contest's style; official past papers are sold by Math Kangaroo USA.
 - **Joey Puzzles** — kindergarten (Math Kangaroo starts in 1st grade): 12 picture puzzles with 5 answers, read aloud, no clock.
-- Coming next: CogAT practice for the GATE screening that Eureka Union gives every 2nd grader.
+- **CogAT practice** — 2nd grade. Eureka Union School District gives the CogAT to every 2nd grader as one part of GATE screening (ask the school for the date). The 2nd-grade test is all pictures with spoken directions, in three parts, and the app practices all nine question types:
+  - Verbal: picture analogies, sentence completion (spoken question, picture answers), picture classification;
+  - Quantitative: number analogies with groups of pictures, number puzzles with picture equations, number series on an abacus;
+  - Nonverbal: figure matrices, figure classification, paper folding.
+  - Practice by type (gets harder as she gets them right, every answer explained) or a 45-question practice test: 15 per part, 4 answers each, with a clock that shows time used but never stops the test. Results show how many were right in each part and each question type.
+  - Original questions in the CogAT style; not affiliated with the publisher. Real CogAT percentiles cannot be estimated from practice, so the app doesn't show any.
+- **Brain Games** — kindergarten: 18 easy CogAT-style picture questions (2 of each type), read aloud, no clock.
 
 ## Kindergarten track
 
@@ -95,6 +101,7 @@ js/cloud-config.js    Firebase project settings (public identifiers)
 js/vendor/            Firebase JS SDK 10.14.1 (compat builds), served with the app
 js/testprep.js        Placement Check (grade ladder, adaptive questions, level estimate, practice plan) and mock contests
 js/puzzles.js         Math Kangaroo style puzzle generators, hand-written puzzle bank, Joey puzzles
+js/cogat.js           CogAT style question generators (Verbal, Quantitative, Nonverbal)
 js/fx.js              sounds (Web Audio), read-aloud (Web Speech), confetti
 js/app.js             screens and game logic
 tools/build.py        bundles everything into dist/math-expedition.html (local-only copy)

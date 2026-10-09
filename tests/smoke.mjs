@@ -238,11 +238,9 @@ async function run(viewport, tag) {
     if ((await page.evaluate(() => MQ.app.session().p.kind)) !== kind) { errors.push(tag + ': never saw a ' + kind); return; }
     await snap(`34-${name}-ask`);
     await answer(page, false); // wrong first: the pick resets and a hint shows
-    await page.waitForTimeout(150);
-    if (!(await page.$('.fb.hint'))) errors.push(tag + ': no hint after a wrong ' + kind);
+    if (!(await page.waitForSelector('.fb.hint', { timeout: 3000 }).catch(() => null))) errors.push(tag + ': no hint after a wrong ' + kind);
     await answer(page, true);
-    await page.waitForTimeout(150);
-    if (!(await page.$('.fb.ok'))) errors.push(tag + ': right ' + kind + ' not accepted');
+    if (!(await page.waitForSelector('.fb.ok', { timeout: 3000 }).catch(() => null))) errors.push(tag + ': right ' + kind + ' not accepted');
     await snap(`35-${name}-right`);
     await page.click('[data-act=quit]');
   }
@@ -299,6 +297,36 @@ async function run(viewport, tag) {
   await page.waitForSelector('.sumgrid');
   if (!(await page.$('[data-act=kgPractice][data-arg=kg_mirror]'))) errors.push(tag + ': summary does not offer to play the same puzzle type again');
 
+  // ---- CogAT practice test: 3 parts × 15, soft clock, results by part and by question type
+  const cres = await runContest('cogat', 45, (k) => (k < 15 ? 'right' : k < 25 ? 'wrong' : k % 2 ? 'skip' : 'right'));
+  await snap('45-cogat-result');
+  if (!cres.res || cres.res.kind !== 'cogat' || cres.res.right !== cres.expect) errors.push(`${tag}: cogat right ${cres.res && cres.res.right} != ${cres.expect}`);
+  else if (cres.res.sections.Verbal.right !== 15 || Object.keys(cres.res.types).length !== 9) errors.push(`${tag}: cogat sections ${JSON.stringify(cres.res.sections)}`);
+  if ((await page.$$('.presult .sumgrid > div')).length !== 3 || (await page.$$('.presult .pr-dom')).length !== 9) errors.push(tag + ': cogat result does not show parts and types');
+  await page.click('.presult [data-act=go][data-arg=cgtypes]');
+  await page.waitForSelector('[data-act=kgPractice][data-arg=cg_folding]');
+  await snap('46-cgtypes');
+  for (const t of ['cg_folding', 'cg_matrix', 'cg_picanalogy']) {
+    await page.evaluate(() => MQ.app.go('cgtypes'));
+    await page.click(`[data-act=kgPractice][data-arg=${t}]`);
+    await page.waitForSelector('.pcard');
+    await snap('47-' + t);
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    await page.click('[data-act=quit]');
+    await page.waitForSelector('.sumgrid');
+  }
+  if (!(await page.$('[data-act=go][data-arg=cgtypes]'))) errors.push(tag + ': CogAT practice summary does not lead back to CogAT types');
+  await page.evaluate(() => MQ.app.go('parent'));
+  if (await page.$('#gate-in')) {
+    const [qa, qb] = (await page.textContent('.eqline')).match(/\d+/g).map(Number);
+    await page.fill('#gate-in', String(qa * qb));
+    await page.click('[data-act=gate]');
+  }
+  await page.waitForSelector('.parent');
+  if (!(await page.textContent('.parent')).includes('CogAT practice') || (await page.$$('.parent .pr-dom')).length < 9) errors.push(tag + ': parent page has no CogAT results by type');
+  await snap('49-parent-cogat');
+
   // Show a selection of visual problem types for review
   if (shots) {
     for (const [t, d] of [['time', 3], ['money', 2], ['place', 2], ['shapes', 3], ['measure', 2], ['data', 2], ['logic', 4], ['logic', 5], ['add100', 3], ['mult', 1], ['arrays', 3], ['words', 4]]) {
@@ -338,6 +366,9 @@ async function run(viewport, tag) {
   const jres = await runContest('joey', 12, (k) => (k < 9 ? 'right' : 'wrong'));
   await snap('44-joey-result');
   if (!jres.res || jres.res.kind !== 'joey' || jres.res.right !== 9) errors.push(`${tag}: joey result wrong ${jres.res && jres.res.right}`);
+  const bres = await runContest('cogatk', 18, (k) => (k < 12 ? 'right' : 'wrong'));
+  await snap('48-brain-games-result');
+  if (!bres.res || bres.res.kind !== 'cogatk' || bres.res.right !== 12) errors.push(`${tag}: brain games result wrong ${bres.res && bres.res.right}`);
   await page.evaluate(() => MQ.app.go('map'));
   await snap('23-k-map');
   await page.evaluate(() => MQ.app.go('trainer'));
@@ -354,8 +385,8 @@ async function run(viewport, tag) {
   // Reload keeps both, and shows the picker
   await page.reload();
   await page.waitForSelector('.who-screen');
+  await page.click('.profile >> text=Mila');
   if (shots) {
-    await page.click('.profile >> text=Mila');
     for (const t of ['k_count', 'k_numbers', 'k_compare', 'k_add', 'k_sub', 'k_teen', 'k_shapes', 'k_measure', 'k_words', 'k_patterns']) {
       for (const d of [1, 3, 5]) {
         await page.evaluate(([t, d]) => { MQ.state.trainer = { topics: [t], diff: d, mode: 'endless' }; MQ.app.go('trainer'); }, [t, d]);
