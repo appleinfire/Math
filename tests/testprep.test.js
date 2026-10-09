@@ -2,7 +2,7 @@
 // Simulates children with a known level taking the Placement Check and checks the estimate is close.
 const path = require('path');
 const assert = require('assert');
-for (const f of ['util', 'visuals', 'generators', 'generators-k', 'content', 'content-k', 'store', 'testprep']) require(path.join(__dirname, '..', 'js', f + '.js'));
+for (const f of ['util', 'visuals', 'generators', 'generators-k', 'puzzles', 'content', 'content-k', 'store', 'testprep']) require(path.join(__dirname, '..', 'js', f + '.js'));
 const MQ = globalThis.MQ;
 const P = MQ.prep;
 
@@ -59,5 +59,26 @@ assert.strictEqual(P.expected('g2', new Date('2027-04-01')), 7);
 assert.strictEqual(P.status(8, 6).id, 'above');
 assert.strictEqual(P.status(5.5, 6).id, 'on');
 assert.strictEqual(P.status(3, 6).id, 'below');
+
+// Mock Math Kangaroo contest: 24 questions, 8 × 3 + 8 × 4 + 8 × 5 points, every question A–E, no repeats.
+for (let r = 0; r < 30; r++) {
+  const ct = P.newContest('kangaroo');
+  assert.strictEqual(ct.items.length, 24);
+  assert.deepStrictEqual(ct.items.map((i) => i.pts), [...Array(8).fill(3), ...Array(8).fill(4), ...Array(8).fill(5)]);
+  assert.ok(ct.items.every((i) => i.p.choices.length === 5 && i.p.choices.includes(i.p.answer)));
+  assert.strictEqual(new Set(ct.items.map((i) => i.p.text + (i.p.visual || ''))).size, 24, 'no repeated question in one contest');
+  assert.strictEqual(ct.seconds, 75 * 60);
+  // all right = 96; blanks and wrong answers score 0 (no penalty)
+  ct.answers = ct.items.map((i) => i.p.answer);
+  assert.strictEqual(P.scoreContest(ct).score, 96);
+  ct.answers = ct.items.map((i, k) => (k < 8 ? i.p.answer : k < 12 ? i.p.choices.find((c) => c !== i.p.answer) : null));
+  const sc = P.scoreContest(ct);
+  assert.strictEqual(sc.score, 24);
+  assert.strictEqual(sc.blank, 12);
+  assert.deepStrictEqual(sc.sections[3], { right: 8, n: 8 });
+}
+const jo = P.newContest('joey');
+assert.strictEqual(jo.items.length, 12);
+assert.strictEqual(jo.seconds, 0);
 
 console.log(`OK — Placement Check estimates are within one step in at least ${(worst * 100).toFixed(0)}% of simulated runs.`);

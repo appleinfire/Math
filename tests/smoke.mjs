@@ -250,6 +250,55 @@ async function run(viewport, tag) {
   await practiceKind('arrays', 2, 'multi', 'multi');
   await practiceKind('place', 4, 'order', 'order');
 
+  // ---- Math Kangaroo mock contest: answer, skip, flag, jump back, finish with the blank warning
+  async function runContest(arg, n, plan) {
+    await page.evaluate(() => MQ.app.go('prep'));
+    await page.click(`[data-act=startContest][data-arg="${arg}"]`);
+    await page.waitForSelector('.contest');
+    const ctInfo = await page.evaluate(() => MQ.app.contest().items.map((i) => ({ answer: i.p.answer, choices: i.p.choices, pts: i.pts })));
+    if (ctInfo.length !== n) errors.push(`${tag}: contest has ${ctInfo.length} questions`);
+    let expect = 0;
+    for (let k = 0; k < n; k++) {
+      const what = plan(k); // 'right' | 'wrong' | 'skip'
+      if (k === 2) await snap(`40-${arg.split(':')[0]}-question`);
+      if (what !== 'skip') {
+        const c = ctInfo[k];
+        const idx = what === 'right' ? c.choices.indexOf(c.answer) : c.choices.findIndex((x) => x !== c.answer);
+        await page.click(`.choices.ct .choice >> nth=${idx}`);
+        if (what === 'right') expect += c.pts;
+      }
+      if (k === 4 && arg.startsWith('kangaroo')) await page.click('[data-act=ctFlag]');
+      if (k < n - 1) await page.click(`.ctbar [data-act=ctGo][data-arg="${k + 1}"]`);
+    }
+    // jump back to the flagged question with the number strip, check it kept its answer
+    if (arg.startsWith('kangaroo')) {
+      await page.click('.ctnav [data-arg="4"]');
+      const kept = await page.evaluate(() => MQ.app.contest().answers[4] !== null && MQ.app.contest().flags[4]);
+      if (!kept) errors.push(tag + ': answer or flag lost when jumping back');
+      await page.click(`.ctnav [data-arg="${n - 1}"]`);
+    }
+    await page.click('[data-act=ctFinish]');
+    if (await page.$('#modal')) await page.click('[data-act=ctFinishNow]');
+    await page.waitForSelector('.presult');
+    const res = await page.evaluate(() => MQ.state.tests.contests.slice(-1)[0]);
+    return { res, expect };
+  }
+  const kres1 = await runContest('kangaroo:timed', 24, (k) => (k % 4 === 3 ? 'skip' : k % 5 === 4 ? 'wrong' : 'right'));
+  await snap('41-kangaroo-result');
+  if (!kres1.res || kres1.res.score !== kres1.expect || kres1.res.max !== 96 || !kres1.res.timed) errors.push(`${tag}: kangaroo score ${kres1.res && kres1.res.score} != ${kres1.expect}`);
+  if (await page.evaluate(() => !!(MQ.app.contest()))) errors.push(tag + ': contest still running after finish');
+  // practice one puzzle type with picture answers
+  await page.evaluate(() => MQ.app.go('kgtypes'));
+  await snap('42-kgtypes');
+  await page.click('[data-act=kgPractice][data-arg=kg_mirror]');
+  await page.waitForSelector('.pcard');
+  await snap('43-kg-mirror');
+  await answer(page, true);
+  await page.waitForSelector('.fb.ok');
+  await page.click('[data-act=quit]');
+  await page.waitForSelector('.sumgrid');
+  if (!(await page.$('[data-act=kgPractice][data-arg=kg_mirror]'))) errors.push(tag + ': summary does not offer to play the same puzzle type again');
+
   // Show a selection of visual problem types for review
   if (shots) {
     for (const [t, d] of [['time', 3], ['money', 2], ['place', 2], ['shapes', 3], ['measure', 2], ['data', 2], ['logic', 4], ['logic', 5], ['add100', 3], ['mult', 1], ['arrays', 3], ['words', 4]]) {
@@ -286,6 +335,9 @@ async function run(viewport, tag) {
   if (!kres || kres.grade !== 'k' || kres.items.length !== 20) errors.push(tag + ': kindergarten check not saved');
   else if (Math.abs(kres.overall - 2) > 1.5) errors.push(`${tag}: a K child who knows up to Late K got ${kres.overall}`);
   await snap('36-k-check-result');
+  const jres = await runContest('joey', 12, (k) => (k < 9 ? 'right' : 'wrong'));
+  await snap('44-joey-result');
+  if (!jres.res || jres.res.kind !== 'joey' || jres.res.right !== 9) errors.push(`${tag}: joey result wrong ${jres.res && jres.res.right}`);
   await page.evaluate(() => MQ.app.go('map'));
   await snap('23-k-map');
   await page.evaluate(() => MQ.app.go('trainer'));
