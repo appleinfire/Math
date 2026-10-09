@@ -322,6 +322,36 @@
     return s + '</div>';
   };
 
+  // ---------- Number line ----------
+  // labels: values to print under the line (only the ends, so kids still have to count).
+  // marker: an arrow pointing at a value. pick: every tick can be tapped (data-act="tick").
+  // chosen / correct: dots drawn on a tick (the child's choice, the right answer).
+  V.numberLine = ({ min, max, step = 1, labels, marker = null, pick = false, chosen = null, correct = null }) => {
+    const n = Math.round((max - min) / step), L = 22, W = 340, y = 58;
+    const px = (W - 2 * L) / n;
+    const X = (v) => L + ((v - min) / step) * px;
+    const lab = labels || [min, max];
+    let s = `<line x1="${L - 12}" y1="${y}" x2="${W - L + 12}" y2="${y}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>` +
+      `<polygon points="${W - L + 16},${y} ${W - L + 8},${y - 6} ${W - L + 8},${y + 6}" fill="${INK}"/>` +
+      `<polygon points="${L - 16},${y} ${L - 8},${y - 6} ${L - 8},${y + 6}" fill="${INK}"/>`;
+    for (let i = 0; i <= n; i++) {
+      const v = min + i * step, x = X(v), big = lab.includes(v);
+      s += `<line x1="${r1(x)}" y1="${y - (big ? 12 : 8)}" x2="${r1(x)}" y2="${y + (big ? 12 : 8)}" stroke="${INK}" stroke-width="${big ? 3 : 2}"/>`;
+      if (big) s += text(x, y + 34, v, 15);
+    }
+    if (marker !== null) {
+      const x = X(marker);
+      s += `<line x1="${r1(x)}" y1="${y - 40}" x2="${r1(x)}" y2="${y - 16}" stroke="#ff6b5b" stroke-width="4" stroke-linecap="round"/><polygon points="${r1(x - 8)},${y - 22} ${r1(x + 8)},${y - 22} ${r1(x)},${y - 12}" fill="#ff6b5b"/>`;
+    }
+    if (correct !== null) s += `<circle cx="${r1(X(correct))}" cy="${y}" r="10" fill="#23955a" stroke="${INK}" stroke-width="2"/>`;
+    if (chosen !== null && chosen !== correct) s += `<circle cx="${r1(X(chosen))}" cy="${y}" r="9" fill="#ff6b5b" stroke="${INK}" stroke-width="2"/>`;
+    if (pick) for (let i = 0; i <= n; i++) {
+      const v = min + i * step;
+      s += `<rect class="tickhit" data-act="tick" data-arg="${v}" x="${r1(X(v) - px / 2)}" y="${y - 30}" width="${r1(px)}" height="60" fill="#ffffff" fill-opacity="0"><title>${v}</title></rect>`;
+    }
+    return svg(W, 100, s, 'numline', 'number line from ' + min + ' to ' + max);
+  };
+
   // ================= Kindergarten pictures =================
   // A neat grid of emoji, in rows of `cols`. The last `gone` items are crossed out (take-away problems).
   V.emojis = (emoji, n, { cols = 5, gone = 0 } = {}) => {

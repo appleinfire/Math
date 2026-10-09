@@ -6,7 +6,7 @@
 (function () {
   const MQ = (globalThis.MQ = globalThis.MQ || {});
   const U = MQ.U, V = MQ.V;
-  const { N, C, E, BLANK } = MQ.G;
+  const { N, C, M, O, Ln, E, BLANK } = MQ.G;
   const { rnd, pick, chance, shuffle } = U;
 
   const THINGS = [
@@ -52,6 +52,11 @@
       return C(`What number comes <b>after</b> ${n}?`, n + 1, numChoices(n + 1, 1, 10), { say: `What number comes after ${n}?`, hint: `Count: ${n}… what is next?` });
     }
     if (d === 2) {
+      if (chance(0.3)) {
+        if (chance(0.5)) { const n = rnd(1, 9); return Ln(`Tap where <b>${n}</b> goes on the number line.`, n, { min: 0, max: 10, step: 1, labels: [0, 5, 10] }, { say: `Tap where ${n} goes on the number line.`, hint: 'Find 5 in the middle, then count from there.' }); }
+        const ns = U.sample(U.range(1, 10), 4).sort((a, b) => a - b);
+        return O('Put the numbers in order. Start with the <b>smallest</b>.', ns, { say: 'Put the numbers in order. Start with the smallest.', hint: 'Which number do you say first when you count?' });
+      }
       switch (rnd(1, 3)) {
         case 1: { const n = rnd(2, 19); return N(`What number comes <b>before</b> ${n}?`, n - 1, { say: `What number comes before ${n}?`, hint: 'Count backwards by one.' }); }
         case 2: { const n = rnd(5, 19); return N(`What is <b>one more</b> than ${n}?`, n + 1, { say: `What is one more than ${n}?`, hint: 'One more means the next number when you count.' }); }
@@ -59,6 +64,11 @@
       }
     }
     if (d === 3) {
+      if (chance(0.25)) {
+        if (chance(0.5)) { const n = rnd(11, 19); return Ln(`Tap where <b>${n}</b> goes on the number line.`, n, { min: 10, max: 20, step: 1, labels: [10, 15, 20] }, { say: `Tap where ${n} goes on the number line.`, hint: '15 is in the middle. Count from 10 or from 15.' }); }
+        const ns = U.sample(U.range(1, 20), 4).sort((a, b) => a - b);
+        return O('Put the numbers in order. Start with the <b>smallest</b>.', ns, { say: 'Put the numbers in order. Start with the smallest.', hint: 'Numbers 1 to 9 come before the teen numbers.' });
+      }
       switch (rnd(1, 3)) {
         case 1: { const k = rnd(1, 6), seq = [k, k + 1, k + 2, k + 3].map((x) => x * 10); return seqQ(seq, 3, `Count by tens: ${seq.slice(0, 3).join(', ')}, and then?`, 'Count by tens: 10, 20, 30, 40…'); }
         case 2: {
@@ -97,6 +107,12 @@
       return C(`Are there <b>${askMore ? 'more' : 'fewer'}</b> ${ea} or ${eb}?`, ans, opts, { visual: V.compareRows(a, ea, b, eb), say: `Are there ${askMore ? 'more' : 'fewer'} ${pa} or ${pb}?${d === 2 ? ' Or the same?' : ''}`, hint: 'Match them up one to one. Which row has some left over?' });
     }
     if (d === 3) {
+      if (chance(0.3)) {
+        const k = rnd(4, 7);
+        let ns;
+        do ns = U.sample(U.range(1, 10), 5); while (!ns.some((x) => x > k) || !ns.some((x) => x <= k));
+        return M(`Tap <b>all</b> the numbers bigger than ${k}.`, ns.filter((x) => x > k), ns, { say: `Tap all the numbers bigger than ${k}.`, hint: `Count to ${k}. The bigger numbers come after it.` });
+      }
       const [a, b] = U.sample(U.range(1, 10), 2);
       const big = chance(0.6);
       return C(`Which number is <b>${big ? 'bigger' : 'smaller'}</b>?`, big ? Math.max(a, b) : Math.min(a, b), [a, b], { say: `Which number is ${big ? 'bigger' : 'smaller'}: ${a} or ${b}?`, hint: 'Which one do you say first when you count? That one is smaller.' });
@@ -198,6 +214,16 @@
       return C('What shape is this?', s, FLAT, { visual: V.shape(s, { rotate: chance(0.3) }), say: 'What shape is this?', hint: 'Count the sides. A circle has none!' });
     }
     if (d === 2) {
+      if (chance(0.3)) {
+        const target = pick(['triangle', 'circle', 'square']);
+        const kinds = Array.from({ length: 5 }, () => pick(['triangle', 'square', 'circle', 'rectangle', 'hexagon']));
+        if (!kinds.includes(target) || kinds.every((k) => k === target)) return k_shapes(2);
+        const keys = kinds.map((k, i) => `${k} ${i + 1}`);
+        return M(`Tap <b>all</b> the ${target}s.`, keys.filter((_, i) => kinds[i] === target), keys, {
+          choiceHtml: kinds.map((k) => V.shape(k, { rotate: k === 'triangle', fill: pick(V.FILLS) }).replace('width="180"', 'width="64"')),
+          say: `Tap all the ${target}s.`, hint: target === 'circle' ? 'A circle is round, with no corners.' : `Count the sides: a ${target} has ${target === 'triangle' ? 3 : 4}.`,
+        });
+      }
       const pool = [...FLAT, 'hexagon'];
       const s = pick(pool);
       const opts = U.sample(pool.filter((x) => x !== s), 3).concat(s);
@@ -222,6 +248,11 @@
   const COLORS = [['🟥 red', '#ff6b5b'], ['🟦 blue', '#5b8cff'], ['🟩 green', '#5ccf7a'], ['🟨 yellow', '#ffc94d'], ['🟪 purple', '#a678f0']];
   const HEAVY = [['🐘', '🐭'], ['🍉', '🍒'], ['🚗', '🚲'], ['🐋', '🐟'], ['🎃', '🍓'], ['🪨', '🪶'], ['🐻', '🐝']];
   function k_measure(d) {
+    if (d === 2 && chance(0.25)) {
+      const cols = U.sample(COLORS, 3), lens = U.sample(U.range(3, 12), 3);
+      const list = cols.map(([label, color], i) => ({ label, color, len: lens[i] }));
+      return O('Put the ribbons in order from <b>shortest</b> to <b>longest</b>.', list.slice().sort((a, b) => a.len - b.len).map((x) => x.label), { visual: V.ribbons(list), say: 'Put the ribbons in order from shortest to longest.', hint: 'Find the shortest ribbon first.' });
+    }
     if (d <= 2) {
       const k = d === 1 ? 2 : 3;
       const cols = U.sample(COLORS, k), lens = U.sample(U.range(3, 12), k);

@@ -30,7 +30,17 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 | **Hints** | A wrong answer gets a strategy hint and one more try ("make a ten", "count up", "break a ten"). A second miss shows the answer with an explanation. |
 | **Voice** | After each answer a voice says "Great job!" or a gentle "Oops! Try again." The next problem waits until the voice has finished; the **Next →** button skips the wait. Questions can be read aloud with 🔊 (automatic for kindergarten). Both can be turned off per child in *For grown-ups*. |
 | **Navigation** | Every screen has a back button; result screens have Home. **👥 Switch** on the home screen (or the small avatar in the top bar) changes the child without reloading. The browser's back gesture moves between screens and asks before leaving a game. |
-| **For grown-ups** | Protected by a multiplication question. Shows accuracy per topic with the standard code, activity for the last 14 days, recent mistakes, settings (sound, *unlock all worlds*), save codes and reset. |
+| **For grown-ups** | Protected by a multiplication question. Shows accuracy per topic with the standard code, activity for the last 14 days, recent mistakes, Placement Check history, settings (sound, *unlock all worlds*), save codes and reset. |
+
+## Test Prep
+
+Practice for the tests used in California schools. The app is not affiliated with these tests; all questions are original, written in the same formats and for the same standards.
+
+- **Placement Check (in the style of i-Ready Diagnostic)** — both grades. About 30 questions for 2nd grade and 20 for kindergarten, across the four i-Ready domains: Number & Operations, Algebra & Algebraic Thinking, Measurement & Data, Geometry. The check is adaptive: every next question is chosen near the child's current estimated level (one ladder from *Early K* to *3rd grade+*), and like i-Ready the first check starts one grade below. No hints or feedback during the check. Questions include i-Ready style formats: **select all that apply**, **put in order**, and **tap the number line**.
+  - Results: an estimated grade level for each domain and overall, compared with where most kids are at that time of year; a review of every answer; a practice plan that starts Endless Training on the two weakest domains at the right difficulty.
+  - History with a growth chart is kept per child and synced across devices. i-Ready runs three times a year at school (fall, winter, spring); a check a week before is a good rhythm.
+  - The level is the app's own estimate, not an official i-Ready scale score.
+- Coming next: Math Kangaroo practice and a mock contest (2nd grade), CogAT practice for the GATE screening that Eureka Union gives every 2nd grader.
 
 ## Kindergarten track
 
@@ -78,6 +88,7 @@ js/store.js           one saved profile per child (localStorage), stats, merging
 js/cloud.js           family sync through Firebase (code + PIN, live updates, offline queue)
 js/cloud-config.js    Firebase project settings (public identifiers)
 js/vendor/            Firebase JS SDK 10.14.1 (compat builds), served with the app
+js/testprep.js        Placement Check: grade ladder, adaptive question choice, level estimate, practice plan
 js/fx.js              sounds (Web Audio), read-aloud (Web Speech), confetti
 js/app.js             screens and game logic
 tools/build.py        bundles everything into dist/math-expedition.html (local-only copy)
@@ -91,6 +102,7 @@ No build step or dependencies are needed to run it. After changing code, run:
 ```
 node tests/generators.test.js      # 144,000 generated problems checked
 node tests/store.test.js           # merging progress from two devices, family keys
+node tests/testprep.test.js        # Placement Check accuracy on simulated children
 node tests/smoke.mjs               # two children, both grades, played in Chromium (needs Playwright)
 node tests/cloud-e2e.mjs           # two devices syncing through the real Firebase project
 python3 tools/build.py             # refresh the single-file version in dist/

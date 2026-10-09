@@ -481,6 +481,75 @@ body[data-track="k"] { --paper: #eef2fb; }
 .famchoices .grade-pick { padding: 16px; }
 .famerr { color: var(--bad); font-weight: 800; min-height: 1.2em; margin: 4px 0 0; }
 .family .ob-hero { margin-top: 4px; }
+
+/* ================= New answer formats (i-Ready style) ================= */
+.pick-note { text-align: center; font-weight: 800; color: var(--ink-soft); margin: 0 0 8px; font-size: 0.95rem; }
+.choices.multi .choice.sel, .choices .choice.sel { background: #eef1ff; box-shadow: inset 0 0 0 3px #5b63c9, 0 4px 0 #5b63c9; color: #333c7a; }
+.choices.multi .choice.sel::after { content: '✓'; position: absolute; top: 6px; right: 10px; font-size: 1rem; color: #5b63c9; }
+.choices.multi .choice { position: relative; }
+.choices.n5, .choices.n6 { grid-template-columns: repeat(3, 1fr); }
+.choices.multi.pics .choice svg { width: 64px; height: 64px; }
+.go-pick { margin-top: 12px; }
+.order-slots { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; margin-bottom: 12px; }
+.oslot { min-width: 64px; min-height: 52px; display: inline-grid; place-items: center; padding: 6px 10px; border-radius: 14px; border: 0; background: #eef1ff; box-shadow: inset 0 0 0 3px #5b63c9; font-family: var(--display); font-weight: 600; font-size: 1.15rem; color: var(--ink); }
+.oslot.empty { background: transparent; box-shadow: inset 0 0 0 2px var(--line); color: #b4bdc9; border: 2px dashed var(--line); }
+.oslot.right { background: var(--good-soft); box-shadow: inset 0 0 0 3px var(--good); color: var(--good); }
+.oarrow { font-style: normal; color: var(--ink-soft); font-weight: 900; }
+.order-items { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.order-items .choice { min-width: 80px; min-height: 56px; font-size: 1.2rem; }
+.order-items .choice:disabled { opacity: 0.25; }
+.linebox { display: flex; justify-content: center; background: var(--card); border-radius: 16px; box-shadow: inset 0 0 0 2px var(--line); padding: 4px; }
+.linebox svg { width: 100%; max-width: 420px; height: auto; }
+.tickhit { cursor: pointer; }
+.mini-pics { display: inline-flex; gap: 4px; vertical-align: middle; }
+.mini-pics svg { width: 36px; height: 36px; }
+
+/* ================= Test Prep ================= */
+.cprog { flex: 1; min-width: 80px; height: 10px; border-radius: 6px; background: var(--line); overflow: hidden; }
+.cprog span { display: block; height: 100%; background: #5b63c9; border-radius: 6px; transition: width 0.3s; }
+.tile.wide { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 12px; background: #eef1ff; box-shadow: inset 0 0 0 3px #5b63c9, 0 4px 0 #5b63c9; }
+.tile.wide > span:last-child { display: flex; flex-direction: column; }
+.prep { display: flex; flex-direction: column; gap: 14px; }
+.testcard { background: var(--card); border-radius: 22px; padding: 16px; box-shadow: inset 0 0 0 3px var(--pc), 0 5px 0 var(--pc); display: flex; flex-direction: column; gap: 10px; }
+.tc-head { display: flex; align-items: center; gap: 12px; }
+.tc-ic { font-size: 2.4rem; }
+.tc-head b { font-family: var(--display); font-weight: 600; font-size: 1.3rem; display: block; }
+.tc-head small { color: var(--ink-soft); font-weight: 700; }
+.tc-last { background: #f3f5fb; border-radius: 12px; padding: 8px 12px; font-size: 0.95rem; }
+.testcard .btn { align-self: flex-start; }
+.hchart { margin: 0; background: var(--card); border-radius: 16px; padding: 10px; box-shadow: inset 0 0 0 1px var(--line); overflow-x: auto; }
+.hchart svg { width: 100%; max-width: 420px; height: auto; display: block; margin: 0 auto; }
+.hchart figcaption { font-size: 0.78rem; color: var(--ink-soft); font-weight: 700; text-align: center; display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; align-items: center; }
+.lg { display: inline-block; width: 18px; height: 0; border-top: 3px solid #5b63c9; vertical-align: middle; }
+.lg.l2 { border-top: 2px dashed #9aa6b8; }
+.presult { display: flex; flex-direction: column; gap: 14px; }
+.pr-hero { text-align: center; background: var(--card); border-radius: 22px; padding: 18px 14px; box-shadow: inset 0 0 0 3px #5b63c9, 0 5px 0 #5b63c9; }
+.pr-done { font-weight: 800; color: #5b63c9; }
+.pr-level { font-family: var(--display); font-size: 2.2rem; font-weight: 600; line-height: 1.15; margin: 4px 0; }
+.pr-status { display: inline-block; font-weight: 900; border-radius: 999px; padding: 4px 14px; margin-bottom: 6px; }
+.pr-status.s-above { background: #fff1d2; color: #8a5a00; }
+.pr-status.s-on { background: var(--good-soft); color: var(--good); }
+.pr-status.s-below { background: #e8f3ff; color: #2f5f96; }
+.pr-domains { background: var(--card); border-radius: 18px; padding: 12px 14px; box-shadow: inset 0 0 0 1px var(--line); display: flex; flex-direction: column; gap: 10px; }
+.pr-dom { display: grid; grid-template-columns: 1fr; gap: 3px; }
+.pd-name { font-weight: 800; font-size: 0.95rem; }
+.pd-lv { font-size: 0.85rem; font-weight: 800; color: #5b63c9; }
+.lbar { position: relative; height: 14px; border-radius: 8px; background: #e8edf3; overflow: visible; }
+.lfill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 8px; background: linear-gradient(90deg, #8c9cff, #5b63c9); }
+.lexp { position: absolute; top: -4px; bottom: -4px; width: 3px; margin-left: -1px; background: var(--ink); border-radius: 2px; }
+.small { font-size: 0.82rem; }
+.pr-plan { background: #fff8e6; border-radius: 18px; padding: 12px 14px; box-shadow: inset 0 0 0 2px var(--sun); }
+.pr-plan h2 { margin-top: 0; }
+.pr-plan .chips { margin: 8px 0 12px; }
+.rlist { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.rlist li { display: flex; gap: 10px; background: var(--card); border-radius: 14px; padding: 10px 12px; box-shadow: inset 0 0 0 1px var(--line); }
+.rlist li.no { box-shadow: inset 0 0 0 2px var(--bad-soft); }
+.rmark { font-weight: 900; font-size: 1.2rem; flex: none; width: 1.4em; text-align: center; }
+.rlist li.ok .rmark { color: var(--good); }
+.rlist li.no .rmark { color: var(--bad); }
+.rq { font-weight: 700; }
+.ra { font-size: 0.9rem; color: var(--ink-soft); }
+.re { font-size: 0.88rem; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -877,6 +946,36 @@ body[data-track="k"] { --paper: #eef2fb; }
     return s + '</div>';
   };
 
+  // ---------- Number line ----------
+  // labels: values to print under the line (only the ends, so kids still have to count).
+  // marker: an arrow pointing at a value. pick: every tick can be tapped (data-act="tick").
+  // chosen / correct: dots drawn on a tick (the child's choice, the right answer).
+  V.numberLine = ({ min, max, step = 1, labels, marker = null, pick = false, chosen = null, correct = null }) => {
+    const n = Math.round((max - min) / step), L = 22, W = 340, y = 58;
+    const px = (W - 2 * L) / n;
+    const X = (v) => L + ((v - min) / step) * px;
+    const lab = labels || [min, max];
+    let s = `<line x1="${L - 12}" y1="${y}" x2="${W - L + 12}" y2="${y}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>` +
+      `<polygon points="${W - L + 16},${y} ${W - L + 8},${y - 6} ${W - L + 8},${y + 6}" fill="${INK}"/>` +
+      `<polygon points="${L - 16},${y} ${L - 8},${y - 6} ${L - 8},${y + 6}" fill="${INK}"/>`;
+    for (let i = 0; i <= n; i++) {
+      const v = min + i * step, x = X(v), big = lab.includes(v);
+      s += `<line x1="${r1(x)}" y1="${y - (big ? 12 : 8)}" x2="${r1(x)}" y2="${y + (big ? 12 : 8)}" stroke="${INK}" stroke-width="${big ? 3 : 2}"/>`;
+      if (big) s += text(x, y + 34, v, 15);
+    }
+    if (marker !== null) {
+      const x = X(marker);
+      s += `<line x1="${r1(x)}" y1="${y - 40}" x2="${r1(x)}" y2="${y - 16}" stroke="#ff6b5b" stroke-width="4" stroke-linecap="round"/><polygon points="${r1(x - 8)},${y - 22} ${r1(x + 8)},${y - 22} ${r1(x)},${y - 12}" fill="#ff6b5b"/>`;
+    }
+    if (correct !== null) s += `<circle cx="${r1(X(correct))}" cy="${y}" r="10" fill="#23955a" stroke="${INK}" stroke-width="2"/>`;
+    if (chosen !== null && chosen !== correct) s += `<circle cx="${r1(X(chosen))}" cy="${y}" r="9" fill="#ff6b5b" stroke="${INK}" stroke-width="2"/>`;
+    if (pick) for (let i = 0; i <= n; i++) {
+      const v = min + i * step;
+      s += `<rect class="tickhit" data-act="tick" data-arg="${v}" x="${r1(X(v) - px / 2)}" y="${y - 30}" width="${r1(px)}" height="60" fill="#ffffff" fill-opacity="0"><title>${v}</title></rect>`;
+    }
+    return svg(W, 100, s, 'numline', 'number line from ' + min + ' to ' + max);
+  };
+
   // ================= Kindergarten pictures =================
   // A neat grid of emoji, in rows of `cols`. The last `gone` items are crossed out (take-away problems).
   V.emojis = (emoji, n, { cols = 5, gone = 0 } = {}) => {
@@ -968,6 +1067,19 @@ body[data-track="k"] { --paper: #eef2fb; }
   function C(text, answer, choices, o = {}) {
     return Object.assign({ kind: 'choice', text, answer: String(answer), choices: choices.map(String) }, o);
   }
+  // Formats used by i-Ready style questions:
+  // M = select all that apply (answer = every right choice), O = put in order, Ln = tap a point on a number line.
+  function M(text, answers, choices, o = {}) {
+    return Object.assign({ kind: 'multi', text, answer: answers.map(String).sort(), choices: choices.map(String) }, o);
+  }
+  function O(text, ordered, o = {}) {
+    let items;
+    do items = shuffle(ordered); while (items.join('|') === ordered.join('|'));
+    return Object.assign({ kind: 'order', text, answer: ordered.map(String), items: items.map(String) }, o);
+  }
+  function Ln(text, answer, line, o = {}) {
+    return Object.assign({ kind: 'line', text, answer, line }, o);
+  }
 
   // ======================================================================
   // 1. Add & subtract within 20  (2.OA.2 fluency, 2.OA.1)
@@ -998,6 +1110,14 @@ body[data-track="k"] { --paper: #eef2fb; }
       });
     }
     if (d === 3) {
+      if (chance(0.2)) {
+        const target = pick([10, 10, 12, 15]);
+        const pairs = U.sample(U.range(1, target - 1), 5).map((x, i) => [x, target - x + (i < 2 || chance(0.3) ? 0 : pick([-2, -1, 1, 2]))]).filter(([, y]) => y > 0);
+        const opts = [...new Set(pairs.map(([x, y]) => `${x} + ${y}`))];
+        const good = opts.filter((s) => s.split(' + ').reduce((u, v) => u + +v, 0) === target);
+        if (good.length === opts.length || opts.length < 3) return add20(3);
+        return M(`Select <b>all</b> the ways to make <b>${target}</b>.`, good, opts, { hint: 'Add each pair. Which ones make exactly ' + target + '?' });
+      }
       const c = rnd(9, 20), a = rnd(1, c - 1), b = c - a;
       switch (rnd(1, 4)) {
         case 1: return N(E(`${a} + ? = ${c}`), b, { big: true, hint: `Count up from ${a} to ${c}.`, explain: `${a} + ${b} = ${c}` });
@@ -1042,6 +1162,7 @@ body[data-track="k"] { --paper: #eef2fb; }
   function place(d) {
     if (d === 1) {
       const n = rnd(12, 99), { t, o } = digits(n);
+      if (chance(0.25) && o > 0) return Ln(`Tap where <b>${n}</b> goes on the number line.`, n, { min: t * 10, max: t * 10 + 10, step: 1 }, { say: `Tap where ${n} goes on the number line.`, hint: `Start at ${t * 10} and count ${o} small jumps.` });
       switch (rnd(1, 3)) {
         case 1: return N('What number do the blocks show?', n, { visual: V.blocks(0, t, o), hint: 'Count the tens rods by 10s, then count on the ones.', explain: `${t} tens and ${o} ones = ${n}` });
         case 2: return N(`How many <b>tens</b> are in ${n}?`, t, { hint: `${n} = ? tens and ${o} ones.`, explain: `${n} = ${t} tens and ${o} ones` });
@@ -1050,6 +1171,10 @@ body[data-track="k"] { --paper: #eef2fb; }
     }
     if (d === 2) {
       const n = rnd(101, 999), { h, t, o } = digits(n);
+      if (chance(0.2)) {
+        const base = rnd(1, 8) * 100, v = base + rnd(1, 9) * 10;
+        return N('What number is the arrow pointing to?', v, { visual: V.numberLine({ min: base, max: base + 100, step: 10, marker: v }), hint: `Each jump is 10. Count by tens from ${base}.`, explain: `${base}, ${base + 10}, ${base + 20}… the arrow is at ${v}.` });
+      }
       switch (rnd(1, 3)) {
         case 1: return N('What number do the blocks show?', n, { visual: V.blocks(h, Math.min(t, 9), o), hint: 'Flats are 100, rods are 10, small cubes are 1.', explain: `${h} hundreds, ${t} tens, ${o} ones = ${n}` });
         case 2: {
@@ -1091,6 +1216,10 @@ body[data-track="k"] { --paper: #eef2fb; }
       }
     }
     if (d === 4) {
+      if (chance(0.25)) {
+        const h = rnd(1, 8), ns = U.sample(U.range(h * 100, h * 100 + 199), 4).sort((a, b) => a - b);
+        return O('Put the numbers in order from <b>least</b> to <b>greatest</b>.', ns, { hint: 'Compare the hundreds first, then the tens, then the ones.' });
+      }
       switch (rnd(1, 3)) {
         case 1: {
           let a = rnd(100, 999), b, left, right;
@@ -1242,6 +1371,11 @@ body[data-track="k"] { --paper: #eef2fb; }
       return C('Is this number of dots <b>odd</b> or <b>even</b>?', n % 2 ? 'odd' : 'even', ['odd', 'even'], { visual: V.pairs(n), hint: 'Pair up the dots. Is one left over?', explain: `${n} is ${n % 2 ? 'odd — one dot has no partner' : 'even — every dot has a partner'}.` });
     }
     if (d === 2) {
+      if (chance(0.25)) {
+        let ns;
+        do ns = U.sample(U.range(10, 60), 6); while (ns.filter((x) => x % 2 === 0).length < 2 || ns.filter((x) => x % 2).length < 2);
+        return M('Select <b>all</b> the even numbers.', ns.filter((x) => x % 2 === 0), ns, { hint: 'Even numbers end in 0, 2, 4, 6 or 8.' });
+      }
       if (chance(0.5)) {
         const n = rnd(21, 99);
         return C(`Is <b>${n}</b> odd or even?`, n % 2 ? 'odd' : 'even', ['odd', 'even'], { hint: 'Only the ones digit matters: 0, 2, 4, 6, 8 are even.', explain: `It ends in ${n % 10}, so ${n} is ${n % 2 ? 'odd' : 'even'}.` });
@@ -1394,6 +1528,13 @@ body[data-track="k"] { --paper: #eef2fb; }
     }
     if (d === 2) {
       if (chance(0.25)) {
+        const SIDES = { triangle: 3, square: 4, rectangle: 4, rhombus: 4, trapezoid: 4, pentagon: 5, hexagon: 6, circle: 0 };
+        const sides = pick([3, 4]), kinds = U.sample(Object.keys(SIDES), 5);
+        const good = kinds.filter((k) => SIDES[k] === sides);
+        if (!good.length || good.length === kinds.length) return shapes(2);
+        return M(`Select <b>all</b> the shapes with <b>${sides} sides</b>.`, good, kinds, { choiceHtml: kinds.map((k) => V.mini(k, 64)), hint: 'Count the sides of each shape. A circle has none.' });
+      }
+      if (chance(0.25)) {
         const [name, n] = pick([['triangle', 3], ['quadrilateral', 4], ['pentagon', 5], ['hexagon', 6]]);
         return C(`A shape with exactly <b>${n} sides</b> is called a…`, name, U.strChoices(name, ['triangle', 'quadrilateral', 'pentagon', 'hexagon', 'octagon'], 4), { hint: 'tri = 3, quad = 4, penta = 5, hexa = 6, octa = 8' });
       }
@@ -1471,6 +1612,12 @@ body[data-track="k"] { --paper: #eef2fb; }
       return N('How long is the crayon?' + (start ? ' Careful — it does not start at 0!' : ''), len, { unit: 'cm', visual: V.ruler({ unit: 'cm', max: 13, start, len, guides: true, color: pick(V.FILLS) }), hint: start ? `It starts at ${start}. Count the spaces from ${start} to the tip.` : 'Look at the number under the tip.', explain: start ? `${start + len} − ${start} = ${len}` : '' });
     }
     if (d === 3) {
+      if (chance(0.2)) {
+        const cols = U.sample([['🟥 red', '#ff6b5b'], ['🟦 blue', '#5b8cff'], ['🟩 green', '#5ccf7a'], ['🟨 yellow', '#ffc94d']], 3);
+        const lens = U.sample(U.range(3, 12), 3);
+        const list = cols.map(([label, color], i) => ({ label, color, len: lens[i] }));
+        return O('Put the ribbons in order from <b>shortest</b> to <b>longest</b>.', list.slice().sort((a, b) => a.len - b.len).map((x) => x.label), { visual: V.ribbons(list), hint: 'They all start at the same place. Find the shortest one first.' });
+      }
       if (chance(0.5)) {
         const [item, ans, sys] = pick(UNIT_ITEMS);
         const opts = sys === 'us' ? ['inches', 'feet', 'yards', 'miles'] : ['centimeters', 'meters', 'kilometers'];
@@ -1811,7 +1958,7 @@ body[data-track="k"] { --paper: #eef2fb; }
   };
 
   Object.values(MQ.TOPICS).forEach((t) => (t.track = 'g2'));
-  MQ.G = { N, C, E, BLANK, NAMES }; // shared with generators-k.js
+  MQ.G = { N, C, M, O, Ln, E, BLANK, NAMES }; // shared with generators-k.js and puzzles
 
   MQ.makeProblem = (topic, d) => {
     const p = MQ.TOPICS[topic].gen(U.clamp(d, 1, 5));
@@ -1830,7 +1977,7 @@ body[data-track="k"] { --paper: #eef2fb; }
 (function () {
   const MQ = (globalThis.MQ = globalThis.MQ || {});
   const U = MQ.U, V = MQ.V;
-  const { N, C, E, BLANK } = MQ.G;
+  const { N, C, M, O, Ln, E, BLANK } = MQ.G;
   const { rnd, pick, chance, shuffle } = U;
 
   const THINGS = [
@@ -1876,6 +2023,11 @@ body[data-track="k"] { --paper: #eef2fb; }
       return C(`What number comes <b>after</b> ${n}?`, n + 1, numChoices(n + 1, 1, 10), { say: `What number comes after ${n}?`, hint: `Count: ${n}… what is next?` });
     }
     if (d === 2) {
+      if (chance(0.3)) {
+        if (chance(0.5)) { const n = rnd(1, 9); return Ln(`Tap where <b>${n}</b> goes on the number line.`, n, { min: 0, max: 10, step: 1, labels: [0, 5, 10] }, { say: `Tap where ${n} goes on the number line.`, hint: 'Find 5 in the middle, then count from there.' }); }
+        const ns = U.sample(U.range(1, 10), 4).sort((a, b) => a - b);
+        return O('Put the numbers in order. Start with the <b>smallest</b>.', ns, { say: 'Put the numbers in order. Start with the smallest.', hint: 'Which number do you say first when you count?' });
+      }
       switch (rnd(1, 3)) {
         case 1: { const n = rnd(2, 19); return N(`What number comes <b>before</b> ${n}?`, n - 1, { say: `What number comes before ${n}?`, hint: 'Count backwards by one.' }); }
         case 2: { const n = rnd(5, 19); return N(`What is <b>one more</b> than ${n}?`, n + 1, { say: `What is one more than ${n}?`, hint: 'One more means the next number when you count.' }); }
@@ -1883,6 +2035,11 @@ body[data-track="k"] { --paper: #eef2fb; }
       }
     }
     if (d === 3) {
+      if (chance(0.25)) {
+        if (chance(0.5)) { const n = rnd(11, 19); return Ln(`Tap where <b>${n}</b> goes on the number line.`, n, { min: 10, max: 20, step: 1, labels: [10, 15, 20] }, { say: `Tap where ${n} goes on the number line.`, hint: '15 is in the middle. Count from 10 or from 15.' }); }
+        const ns = U.sample(U.range(1, 20), 4).sort((a, b) => a - b);
+        return O('Put the numbers in order. Start with the <b>smallest</b>.', ns, { say: 'Put the numbers in order. Start with the smallest.', hint: 'Numbers 1 to 9 come before the teen numbers.' });
+      }
       switch (rnd(1, 3)) {
         case 1: { const k = rnd(1, 6), seq = [k, k + 1, k + 2, k + 3].map((x) => x * 10); return seqQ(seq, 3, `Count by tens: ${seq.slice(0, 3).join(', ')}, and then?`, 'Count by tens: 10, 20, 30, 40…'); }
         case 2: {
@@ -1921,6 +2078,12 @@ body[data-track="k"] { --paper: #eef2fb; }
       return C(`Are there <b>${askMore ? 'more' : 'fewer'}</b> ${ea} or ${eb}?`, ans, opts, { visual: V.compareRows(a, ea, b, eb), say: `Are there ${askMore ? 'more' : 'fewer'} ${pa} or ${pb}?${d === 2 ? ' Or the same?' : ''}`, hint: 'Match them up one to one. Which row has some left over?' });
     }
     if (d === 3) {
+      if (chance(0.3)) {
+        const k = rnd(4, 7);
+        let ns;
+        do ns = U.sample(U.range(1, 10), 5); while (!ns.some((x) => x > k) || !ns.some((x) => x <= k));
+        return M(`Tap <b>all</b> the numbers bigger than ${k}.`, ns.filter((x) => x > k), ns, { say: `Tap all the numbers bigger than ${k}.`, hint: `Count to ${k}. The bigger numbers come after it.` });
+      }
       const [a, b] = U.sample(U.range(1, 10), 2);
       const big = chance(0.6);
       return C(`Which number is <b>${big ? 'bigger' : 'smaller'}</b>?`, big ? Math.max(a, b) : Math.min(a, b), [a, b], { say: `Which number is ${big ? 'bigger' : 'smaller'}: ${a} or ${b}?`, hint: 'Which one do you say first when you count? That one is smaller.' });
@@ -2022,6 +2185,16 @@ body[data-track="k"] { --paper: #eef2fb; }
       return C('What shape is this?', s, FLAT, { visual: V.shape(s, { rotate: chance(0.3) }), say: 'What shape is this?', hint: 'Count the sides. A circle has none!' });
     }
     if (d === 2) {
+      if (chance(0.3)) {
+        const target = pick(['triangle', 'circle', 'square']);
+        const kinds = Array.from({ length: 5 }, () => pick(['triangle', 'square', 'circle', 'rectangle', 'hexagon']));
+        if (!kinds.includes(target) || kinds.every((k) => k === target)) return k_shapes(2);
+        const keys = kinds.map((k, i) => `${k} ${i + 1}`);
+        return M(`Tap <b>all</b> the ${target}s.`, keys.filter((_, i) => kinds[i] === target), keys, {
+          choiceHtml: kinds.map((k) => V.shape(k, { rotate: k === 'triangle', fill: pick(V.FILLS) }).replace('width="180"', 'width="64"')),
+          say: `Tap all the ${target}s.`, hint: target === 'circle' ? 'A circle is round, with no corners.' : `Count the sides: a ${target} has ${target === 'triangle' ? 3 : 4}.`,
+        });
+      }
       const pool = [...FLAT, 'hexagon'];
       const s = pick(pool);
       const opts = U.sample(pool.filter((x) => x !== s), 3).concat(s);
@@ -2046,6 +2219,11 @@ body[data-track="k"] { --paper: #eef2fb; }
   const COLORS = [['🟥 red', '#ff6b5b'], ['🟦 blue', '#5b8cff'], ['🟩 green', '#5ccf7a'], ['🟨 yellow', '#ffc94d'], ['🟪 purple', '#a678f0']];
   const HEAVY = [['🐘', '🐭'], ['🍉', '🍒'], ['🚗', '🚲'], ['🐋', '🐟'], ['🎃', '🍓'], ['🪨', '🪶'], ['🐻', '🐝']];
   function k_measure(d) {
+    if (d === 2 && chance(0.25)) {
+      const cols = U.sample(COLORS, 3), lens = U.sample(U.range(3, 12), 3);
+      const list = cols.map(([label, color], i) => ({ label, color, len: lens[i] }));
+      return O('Put the ribbons in order from <b>shortest</b> to <b>longest</b>.', list.slice().sort((a, b) => a.len - b.len).map((x) => x.label), { visual: V.ribbons(list), say: 'Put the ribbons in order from shortest to longest.', hint: 'Find the shortest ribbon first.' });
+    }
     if (d <= 2) {
       const k = d === 1 ? 2 : 3;
       const cols = U.sample(COLORS, k), lens = U.sample(U.range(3, 12), k);
@@ -2489,6 +2667,153 @@ body[data-track="k"] { --paper: #eef2fb; }
 })();
 </script>
   <script>
+// Test prep: an i-Ready-style adaptive "Placement Check".
+//
+// One grade ladder (Early K … 3rd grade+) serves both grades. Each step takes its questions from the
+// existing generators (kindergarten track for K–1st, 2nd-grade track for 2nd–3rd). The check covers the
+// four i-Ready domains and picks every next question near the child's current estimated level.
+//
+// The level is estimated from all answers so far with a small item-response model:
+//   P(right) = guess + (1 − guess) · logistic(1.7 · (ability − step))
+// where "guess" depends on the format (a 2-button choice is easy to guess, a typed number is not).
+(function () {
+  const MQ = (globalThis.MQ = globalThis.MQ || {});
+  const U = MQ.U;
+  const P = {};
+
+  P.DOMAINS = [
+    { id: 'nbt', name: 'Number & Operations', short: 'Numbers', icon: '🔢' },
+    { id: 'alg', name: 'Algebra & Algebraic Thinking', short: 'Algebra', icon: '🧩' },
+    { id: 'md', name: 'Measurement & Data', short: 'Measurement', icon: '📏' },
+    { id: 'geo', name: 'Geometry', short: 'Geometry', icon: '🔷' },
+  ];
+  const DOMAIN_OF = {
+    add20: 'alg', place: 'nbt', add100: 'nbt', sub100: 'nbt', arrays: 'alg', time: 'md', money: 'md', shapes: 'geo', measure: 'md',
+    data: 'md', big: 'nbt', words: 'alg', mult: 'alg', logic: 'alg',
+    k_count: 'nbt', k_numbers: 'nbt', k_compare: 'nbt', k_teen: 'nbt', k_add: 'alg', k_sub: 'alg', k_words: 'alg', k_patterns: 'alg',
+    k_measure: 'md', k_shapes: 'geo',
+  };
+  Object.entries(DOMAIN_OF).forEach(([t, d]) => { if (MQ.TOPICS[t]) MQ.TOPICS[t].domain = d; });
+
+  // Which topics feed each domain on each track (school-math topics only, no enrichment puzzles).
+  const POOL = {
+    k: { nbt: ['k_count', 'k_numbers', 'k_compare', 'k_teen'], alg: ['k_add', 'k_sub', 'k_words'], md: ['k_measure'], geo: ['k_shapes'] },
+    g2: { nbt: ['place', 'add100', 'sub100', 'big'], alg: ['add20', 'arrays', 'words'], md: ['time', 'money', 'measure', 'data'], geo: ['shapes'] },
+  };
+  P.POOL = POOL;
+  P.STEPS = [
+    { label: 'Early K', track: 'k', d: 1 },
+    { label: 'Mid K', track: 'k', d: 2 },
+    { label: 'Late K', track: 'k', d: 3 },
+    { label: 'Early 1st', track: 'k', d: 4 },
+    { label: 'Late 1st', track: 'k', d: 5 },
+    { label: 'Early 2nd', track: 'g2', d: 1 },
+    { label: 'Mid 2nd', track: 'g2', d: 2 },
+    { label: 'Late 2nd', track: 'g2', d: 3 },
+    { label: 'Early 3rd', track: 'g2', d: 4 },
+    { label: '3rd grade+', track: 'g2', d: 5 },
+  ];
+  const TOP = P.STEPS.length - 1;
+  const clampStep = (x) => U.clamp(Math.round(x), 0, TOP);
+  P.label = (theta) => P.STEPS[clampStep(theta)].label;
+
+  // Where a child "should" be today: fall = early, winter = mid, spring = late in their grade.
+  P.expected = (grade, date = new Date()) => {
+    const m = date.getMonth(); // 0 = Jan
+    const part = m >= 7 && m <= 9 ? 0 : m >= 10 || m <= 1 ? 1 : 2;
+    return (grade === 'k' ? 0 : 5) + part;
+  };
+  P.status = (theta, expected) => {
+    const diff = theta - expected;
+    if (diff >= 1.5) return { id: 'above', text: 'Above grade level', icon: '🌟' };
+    if (diff >= -1) return { id: 'on', text: 'On grade level', icon: '✅' };
+    return { id: 'below', text: 'Needs practice', icon: '🌱' };
+  };
+
+  // ---------- the statistics ----------
+  const guessOf = (p) =>
+    p.kind === 'choice' ? 1 / p.choices.length : p.kind === 'line' ? 1 / (Math.round((p.line.max - p.line.min) / p.line.step) + 1) : p.kind === 'order' ? 0.05 : p.kind === 'multi' ? 0.05 : 0.02;
+  const pRight = (theta, step, g) => g + (1 - g) / (1 + Math.exp(-1.7 * (theta - step)));
+  // Most likely ability given the answers, with a gentle prior around `mean`.
+  function estimate(items, mean, sd = 2.5) {
+    let best = mean, bestLL = -Infinity;
+    for (let th = -1; th <= TOP + 1.001; th += 0.05) {
+      let ll = -((th - mean) ** 2) / (2 * sd * sd);
+      for (const it of items) {
+        const pr = pRight(th, it.s, it.g);
+        ll += Math.log(it.ok ? pr : 1 - pr);
+      }
+      if (ll > bestLL) { bestLL = ll; best = th; }
+    }
+    return U.clamp(best, 0, TOP);
+  }
+  P.estimate = estimate;
+
+  // ---------- running a check ----------
+  P.newCheck = (grade, history = []) => {
+    const last = history.filter((h) => h.grade === grade).slice(-1)[0];
+    // Like i-Ready: the first check starts one grade below; later checks start a little below the last result.
+    const start = last ? U.clamp(Math.round(last.overall) - 1, 0, TOP) : grade === 'k' ? 0 : 3;
+    const counts = grade === 'k' ? { nbt: 6, alg: 5, md: 4, geo: 5 } : { nbt: 8, alg: 8, md: 8, geo: 6 };
+    const plan = [];
+    const left = Object.assign({}, counts);
+    while (Object.values(left).some((n) => n > 0)) for (const d of ['nbt', 'alg', 'md', 'geo']) if (left[d]-- > 0) plan.push(d);
+    return { grade, start, plan, items: [], seen: new Set(), date: U.dateKey() };
+  };
+  P.total = (eng) => eng.plan.length;
+  P.done = (eng) => eng.items.length >= eng.plan.length;
+  const overallNow = (eng) => estimate(eng.items, eng.start + 0.5, 3);
+  const domainNow = (eng, dom) => estimate(eng.items.filter((it) => it.dom === dom), eng.items.length ? overallNow(eng) : eng.start + 0.5, 2);
+
+  P.next = (eng) => {
+    const dom = eng.plan[eng.items.length];
+    const step = clampStep(domainNow(eng, dom));
+    const st = P.STEPS[step];
+    let p;
+    for (let i = 0; i < 30; i++) {
+      p = MQ.makeProblem(U.pick(POOL[st.track][dom]), st.d);
+      const key = p.text + (p.visual || '');
+      if (!eng.seen.has(key)) { eng.seen.add(key); break; }
+    }
+    p.step = step;
+    p.dom = dom;
+    return p;
+  };
+  P.answer = (eng, p, ok, given) => {
+    eng.items.push({
+      dom: p.dom, s: p.step, ok: !!ok, g: guessOf(p), t: p.topic, d: p.d,
+      q: String(p.text).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150),
+      given: given === undefined ? '' : String(given), a: Array.isArray(p.answer) ? p.answer.join(', ') : String(p.answer), e: p.explain || '',
+    });
+  };
+  P.result = (eng) => {
+    const overall = overallNow(eng);
+    const domains = {};
+    for (const d of P.DOMAINS) domains[d.id] = Math.round(domainNow(eng, d.id) * 10) / 10;
+    return {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      date: eng.date, grade: eng.grade,
+      overall: Math.round(overall * 10) / 10, domains,
+      expected: P.expected(eng.grade),
+      n: eng.items.length, correct: eng.items.filter((i) => i.ok).length,
+      items: eng.items,
+    };
+  };
+
+  // What to practice next: the two weakest domains, at the difficulty that matches the result.
+  P.practicePlan = (res, grade) => {
+    const track = grade === 'k' ? 'k' : 'g2';
+    const toD = (theta) => (track === 'k' ? U.clamp(Math.round(theta) + 1, 1, 5) : U.clamp(Math.round(theta) - 4, 1, 5));
+    const weakest = P.DOMAINS.slice().sort((a, b) => res.domains[a.id] - res.domains[b.id]).slice(0, 2);
+    const topics = [...new Set(weakest.flatMap((d) => POOL[track][d.id]))];
+    const diff = toD(Math.min(...weakest.map((d) => res.domains[d.id])));
+    return { domains: weakest, topics, diff };
+  };
+
+  MQ.prep = P;
+})();
+</script>
+  <script>
 // Saved progress, one profile per child, in localStorage on this device.
 //   math-expedition-profiles   → { active, order: [ids] }
 //   math-expedition-p-<id>     → that child's whole state (grade, progress, crystals, stats…)
@@ -2521,6 +2846,7 @@ body[data-track="k"] { --paper: #eef2fb; }
     daily: { last: '', streak: 0, best: 0 },
     days: {}, // 'YYYY-MM-DD': { a, c }
     mistakes: [],
+    tests: { checks: [] }, // Placement Check results (newest last)
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
     settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true },
   });
@@ -2649,6 +2975,10 @@ body[data-track="k"] { --paper: #eef2fb; }
     if ((old.daily.last || '') > (nw.daily.last || '')) out.daily = Object.assign({}, old.daily);
     out.daily.best = max(nw.daily.best, old.daily.best);
     if ((old.lastPlayed || '') > (out.lastPlayed || '')) out.lastPlayed = old.lastPlayed;
+    // test results from both devices are kept (each result has its own id)
+    const checks = {};
+    for (const c of [...((old.tests || {}).checks || []), ...((nw.tests || {}).checks || [])]) checks[c.id] = c;
+    out.tests = Object.assign({}, nw.tests, { checks: Object.values(checks).sort((x, y) => (x.id < y.id ? -1 : 1)) }); // ids start with a timestamp
     out.rev = max(nw.rev, old.rev);
     return out;
   };
@@ -2864,14 +3194,21 @@ body[data-track="k"] { --paper: #eef2fb; }
     if (/^\d+\/\d+$/.test(c)) { const [a, b] = c.split('/'); return `<span class="frac"><span>${a}</span><span>${b}</span></span>`; }
     return esc(c);
   };
-  const fmtAnswer = (p) => (p.kind === 'choice' ? (p.choiceHtml ? p.choiceHtml[p.choices.indexOf(p.answer)] : fmtChoice(p.answer)) : U.comma(p.answer) + (p.unit ? ' ' + p.unit : ''));
+  const fmtAnswer = (p) => {
+    if (p.kind === 'choice') return p.choiceHtml ? p.choiceHtml[p.choices.indexOf(p.answer)] : fmtChoice(p.answer);
+    if (p.kind === 'multi') return p.choiceHtml ? `<span class="mini-pics">${p.answer.map((a) => p.choiceHtml[p.choices.indexOf(a)]).join('')}</span>` : p.answer.map(fmtChoice).join(', ');
+    if (p.kind === 'order') return p.answer.map(fmtChoice).join(' → ');
+    return U.comma(p.answer) + (p.unit ? ' ' + p.unit : '');
+  };
   const gradeChip = (g) => `<span class="gchip g-${g}">${MQ.track(g).label}</span>`;
 
   // ---------------------------------------------------------------- voice
   const voiceOn = () => st.settings.voice !== false && MQ.canSpeak() && !(sess && sess.timer);
   const UNIT_WORDS = { '¢': 'cents', min: 'minutes', in: 'inches', cm: 'centimeters', ft: 'feet', 'sq cm': 'square centimeters' };
   function spokenAnswer(p) {
-    if (p.kind === 'num') return p.answer + (p.unit ? ' ' + (UNIT_WORDS[p.unit] || p.unit) : '');
+    if (p.kind === 'num' || p.kind === 'line') return p.answer + (p.unit ? ' ' + (UNIT_WORDS[p.unit] || p.unit) : '');
+    if (p.kind === 'multi') return p.choiceHtml ? '' : p.answer.map((a) => MQ.toSpeech(a)).join(' and ');
+    if (p.kind === 'order') return p.answer.map((a) => MQ.toSpeech(a)).join(', then ');
     const words = { '<': 'less than', '>': 'greater than', '=': 'equal', '= same': 'the same' }[p.answer];
     return words || MQ.toSpeech(p.answer.replace(/^\$/, '')) || '';
   }
@@ -3048,7 +3385,7 @@ body[data-track="k"] { --paper: #eef2fb; }
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
-    const redraw = { home, map, journal, badges, world: () => world(arg) }[scr];
+    const redraw = { home, map, journal, badges, prep, world: () => world(arg) }[scr];
     if (redraw) redraw();
   }
   function newExplorer() {
@@ -3134,6 +3471,7 @@ body[data-track="k"] { --paper: #eef2fb; }
         <button class="tile t-journal" data-act="go" data-arg="journal"><span class="ti">📔</span><b>Field Journal</b><small>${have} / ${total} creatures</small></button>
         <button class="tile t-hatch" data-act="go" data-arg="hatch"><span class="ti">🥚</span><b>Hatchery</b><small>Rare eggs · ${MQ.EGG_PRICE} 💎</small></button>
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
+        <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>Placement Check in the style of i-Ready${myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : ''}</small></span></button>
       </div>
       <footer class="foot">${syncLine()}<button class="linkbtn" data-act="go" data-arg="parent">For grown-ups</button></footer>
     </main>`);
@@ -3178,6 +3516,7 @@ body[data-track="k"] { --paper: #eef2fb; }
 
   // ---------------------------------------------------------------- play
   function pickProblem() {
+    if (sess.mode === 'check') return MQ.prep.next(sess.eng);
     const topic = U.pick(sess.topics);
     const d = sess.auto ? sess.autoD : U.rnd(sess.d[0], sess.d[1]);
     let p;
@@ -3191,7 +3530,7 @@ body[data-track="k"] { --paper: #eef2fb; }
   function startSession(cfg) {
     remember('play');
     sess = Object.assign({ correct: 0, firstTry: 0, mistakes: 0, streak: 0, best: 0, answered: 0, earned: 0, recent: [], tries: 0, p: null, input: '', autoD: 2, up: 0, down: 0, left: cfg.timer || 0, locked: false }, cfg);
-    const color = sess.world ? sess.world.color : sess.mode === 'daily' ? '#e09a2b' : '#ff6b5b';
+    const color = sess.world ? sess.world.color : sess.mode === 'daily' ? '#e09a2b' : sess.mode === 'check' ? '#5b63c9' : '#ff6b5b';
     render(`<div class="play" style="--wc:${color}">
       <header class="playbar"><button class="iconbtn" data-act="quit" aria-label="Stop">✕</button><div class="pstatus" id="pstatus"></div>${gemPill()}</header>
       <div class="buddy small"><span class="buddy-e">${st.companion}</span><div class="bubble" id="bubble"></div></div>
@@ -3217,6 +3556,9 @@ body[data-track="k"] { --paper: #eef2fb; }
       el.innerHTML = `<span class="stat">🔥 <b>${sess.streak}</b></span><span class="stat">✓ <b>${sess.correct}</b></span>` +
         (sess.timer ? `<span class="stat timer ${sess.left <= 10 ? 'low' : ''}">⏱ <b>${m}:${s}</b></span>` : '') +
         `<span class="stat dchip d${sess.auto ? sess.autoD : sess.d[1]}">${sess.auto ? 'Auto · ' + D_NAMES[sess.autoD] : D_NAMES[sess.d[1]]}</span>`;
+    } else if (sess.mode === 'check') {
+      const total = MQ.prep.total(sess.eng), done = sess.answered;
+      el.innerHTML = `<span class="ptitle">🎯 Placement Check</span><span class="cprog"><span style="width:${Math.round((done / total) * 100)}%"></span></span><span class="stat">${Math.min(done + 1, total)} / ${total}</span>`;
     } else {
       const title = sess.mode === 'daily' ? '📅 Daily Quest' : `${sess.world.emoji} ${levelName(sess.level, sess.li)}`;
       el.innerHTML = `<span class="ptitle">${title}</span><span class="slots">${U.range(1, sess.goal).map((i) => `<i class="${i <= sess.correct ? 'on' : ''}"></i>`).join('')}</span>`;
@@ -3228,9 +3570,15 @@ body[data-track="k"] { --paper: #eef2fb; }
     sess.tries = 0;
     sess.input = '';
     sess.locked = false;
+    sess.sel = [];
+    sess.lineVal = null;
+    sess.showLine = null;
+    sess.pickChoice = null;
     const p = sess.p, T = MQ.TOPICS[p.topic];
     const card = $('#pcard');
-    card.innerHTML = `<div class="pmeta"><span>${T.icon} ${T.name}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="speak" aria-label="Read the question aloud">🔊</button>' : ''}<span class="dchip d${p.d}">${D_ICONS[p.d]} ${D_NAMES[p.d]}</span></span></div>
+    // In a Placement Check the difficulty is not shown (it would give the level away).
+    const chip = sess.mode === 'check' ? '' : `<span class="dchip d${p.d}">${D_ICONS[p.d]} ${D_NAMES[p.d]}</span>`;
+    card.innerHTML = `<div class="pmeta"><span>${T.icon} ${T.name}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="speak" aria-label="Read the question aloud">🔊</button>' : ''}${chip}</span></div>
       <div class="ptext ${p.big ? 'eq' : ''} ${p.wordy ? 'wordy' : ''}">${p.text}</div>
       ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
       ${p.kind === 'num' ? `<div class="display" id="display"><span class="dval" id="dval"></span>${p.unit ? `<span class="unit">${p.unit}</span>` : ''}</div>` : ''}
@@ -3243,13 +3591,65 @@ body[data-track="k"] { --paper: #eef2fb; }
       const slot = card.querySelector('.ptext .blank') || card.querySelector('.pvis .column .ans');
       if (slot) { slot.id = 'slot'; $('#display').hidden = true; }
     }
-    $('#answer').innerHTML = p.kind === 'num'
-      ? `<div class="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((k) => `<button class="key" data-act="key" data-arg="${k}">${k}</button>`).join('')}<button class="key alt" data-act="key" data-arg="back" aria-label="Delete">⌫</button><button class="key" data-act="key" data-arg="0">0</button><button class="key go" data-act="submit">Check</button></div>`
-      : `<div class="choices n${p.choices.length} ${p.choiceHtml ? 'pics' : ''}">${p.choices.map((c, i) => `<button class="choice" data-act="choose" data-arg="${i}" aria-label="${esc(c)}">${p.choiceHtml ? p.choiceHtml[i] : fmtChoice(c)}</button>`).join('')}</div>`;
+    redrawAnswer();
     showInput();
     status();
     if (st.settings.readAloud) MQ.speak(p.say || MQ.toSpeech(p.text));
   }
+  // The answer area for each question format.
+  //   num: number pad · choice: buttons · multi: tap every right answer · order: tap cards in order · line: tap the number line
+  function answerHtml(p) {
+    const checkMode = sess.mode === 'check';
+    const go = sess.locked ? '' : `<button class="btn big go-pick" data-act="submitPick">${checkMode ? 'Next →' : 'Check'}</button>`;
+    if (p.kind === 'num') {
+      return `<div class="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((k) => `<button class="key" data-act="key" data-arg="${k}">${k}</button>`).join('')}<button class="key alt" data-act="key" data-arg="back" aria-label="Delete">⌫</button><button class="key" data-act="key" data-arg="0">0</button><button class="key go" data-act="submit">${checkMode ? 'Next' : 'Check'}</button></div>`;
+    }
+    if (p.kind === 'choice') {
+      return `<div class="choices n${p.choices.length} ${p.choiceHtml ? 'pics' : ''}">${p.choices.map((c, i) => `<button class="choice" data-act="choose" data-arg="${i}" aria-label="${esc(c)}">${p.choiceHtml ? p.choiceHtml[i] : fmtChoice(c)}</button>`).join('')}</div>${checkMode ? go : ''}`;
+    }
+    if (p.kind === 'multi') {
+      return `<p class="pick-note">Tap <b>every</b> right answer.</p><div class="choices multi n${p.choices.length} ${p.choiceHtml ? 'pics' : ''}">${p.choices.map((c, i) => `<button class="choice ${sess.sel.includes(i) ? 'sel' : ''}" data-act="toggle" data-arg="${i}" aria-pressed="${sess.sel.includes(i)}" aria-label="${esc(c)}">${p.choiceHtml ? p.choiceHtml[i] : fmtChoice(c)}</button>`).join('')}</div>${go}`;
+    }
+    if (p.kind === 'order') {
+      const slotsHtml = p.items.map((_, k) => (sess.sel[k] === undefined ? `<span class="oslot empty">${k + 1}</span>` : `<button class="oslot" data-act="unorder" data-arg="${k}" aria-label="Take back ${esc(p.items[sess.sel[k]])}">${fmtChoice(p.items[sess.sel[k]])}</button>`)).join('<i class="oarrow">→</i>');
+      return `<p class="pick-note">Tap the cards in order. Tap a placed card to take it back.</p><div class="order-slots">${slotsHtml}</div><div class="order-items">${p.items.map((c, i) => `<button class="choice" data-act="orderPick" data-arg="${i}" ${sess.sel.includes(i) ? 'disabled' : ''}>${fmtChoice(c)}</button>`).join('')}</div>${go}`;
+    }
+    if (p.kind === 'line') {
+      return `<p class="pick-note">Tap a spot on the number line.</p><div class="linebox">${MQ.V.numberLine(Object.assign({}, p.line, { pick: !sess.locked, chosen: sess.lineVal, correct: sess.showLine }))}</div>${go}`;
+    }
+    return '';
+  }
+  function redrawAnswer() { $('#answer').innerHTML = answerHtml(sess.p); }
+  function submitPick() {
+    if (!sess || sess.locked) return;
+    const p = sess.p;
+    if (p.kind === 'num') return submit();
+    if (p.kind === 'choice') {
+      if (sess.pickChoice === null) return say(`${st.buddyName}: Tap an answer first!`);
+      return check(p.choices[sess.pickChoice], document.querySelectorAll('.choice')[sess.pickChoice]);
+    }
+    if (p.kind === 'multi') {
+      if (!sess.sel.length) return say(`${st.buddyName}: Tap the answers you think are right.`);
+      return check(sess.sel.map((i) => p.choices[i]));
+    }
+    if (p.kind === 'order') {
+      if (sess.sel.length < p.items.length) return say(`${st.buddyName}: Put all the cards in order first!`);
+      return check(sess.sel.map((i) => p.items[i]));
+    }
+    if (p.kind === 'line') {
+      if (sess.lineVal === null) return say(`${st.buddyName}: Tap a spot on the number line first!`);
+      return check(sess.lineVal);
+    }
+  }
+  // Show which picks were right after an answer (multi, order, number line).
+  function markPicks(right) {
+    const p = sess.p;
+    if (p.kind === 'multi') document.querySelectorAll('.choices.multi .choice').forEach((b, i) => { b.classList.remove('sel'); if (p.answer.includes(p.choices[i])) b.classList.add('right'); else if (sess.sel.includes(i)) b.classList.add('nope'); });
+    if (p.kind === 'order' && right) document.querySelectorAll('.oslot').forEach((b) => b.classList.add('right'));
+    if (p.kind === 'line') { sess.showLine = p.answer; redrawAnswer(); }
+    if (p.kind === 'multi' || p.kind === 'order') { const g = $('.go-pick'); if (g) g.remove(); }
+  }
+
   // All answer boxes show what is typed (e.g. "8 = ? + ?" with equal addends).
   const slots = () => { const s = document.querySelectorAll('.ptext .blank'); return $('#slot') && s.length > 1 ? [...s] : [$('#slot') || $('#dval')].filter(Boolean); };
   function showInput() {
@@ -3276,12 +3676,33 @@ body[data-track="k"] { --paper: #eef2fb; }
     if (!sess || sess.locked) return;
     const btn = document.querySelectorAll('.choice')[i];
     if (!btn || btn.disabled) return;
+    if (sess.mode === 'check') { // in a check, a tap only selects; "Next" confirms
+      sess.pickChoice = i;
+      document.querySelectorAll('.choice').forEach((b, k) => b.classList.toggle('sel', k === i));
+      MQ.sfx('tap');
+      return;
+    }
     check(sess.p.choices[i], btn);
   }
   function check(given, btn) {
     const p = sess.p;
-    const ok = p.kind === 'num' ? Number(given) === p.answer : String(given) === p.answer;
-    if (ok) right(btn); else wrong(given, btn);
+    const same = (a, b) => a.join('|') === b.join('|');
+    const ok = p.kind === 'num' || p.kind === 'line' ? Number(given) === p.answer
+      : p.kind === 'multi' ? same([...given].sort(), p.answer)
+      : p.kind === 'order' ? same(given, p.answer)
+      : String(given) === p.answer;
+    if (sess.mode === 'check') return checkAnswer(ok, given);
+    if (ok) right(btn); else wrong(Array.isArray(given) ? given.join(', ') : given, btn);
+  }
+  // Placement Check: no feedback, just save the answer and move on.
+  function checkAnswer(ok, given) {
+    sess.locked = true;
+    sess.answered++;
+    if (ok) sess.correct++;
+    MQ.prep.answer(sess.eng, sess.p, ok, Array.isArray(given) ? given.join(', ') : given);
+    MQ.sfx('tap');
+    status();
+    later(MQ.prep.done(sess.eng) ? finishCheck : nextProblem, 220);
   }
   function autoAdjust(good) {
     if (!sess.auto) return;
@@ -3319,6 +3740,7 @@ body[data-track="k"] { --paper: #eef2fb; }
     MQ.sfx(chest || (first && MQ.SAY.streak[sess.streak]) ? 'streak' : 'correct');
     if (btn) btn.classList.add('right');
     slots().forEach((el) => el.classList.add('right'));
+    markPicks(true);
     const done = sess.goal && sess.correct >= sess.goal;
     $('#feedback').innerHTML = `<div class="fb ok"><span>✓ ${msg}</span>${sess.timer ? '' : `<button class="btn next" data-act="advance">${done ? 'Finish ★' : 'Next →'}</button>`}</div>`;
     say(`${st.buddyName}: ${msg}`);
@@ -3369,6 +3791,7 @@ body[data-track="k"] { --paper: #eef2fb; }
         if (btn) { btn.disabled = true; btn.classList.add('nope'); }
         sess.input = '';
         showInput();
+        if (['multi', 'order', 'line'].includes(p.kind)) { sess.sel = []; sess.lineVal = null; redrawAnswer(); } // start the pick again
         $('#feedback').innerHTML = `<div class="fb hint">💡 ${p.hint || 'Look again carefully and try once more.'}</div>`;
         if (voiceOn()) MQ.speak(U.pick(MQ.SAY.voiceRetry) + (st.settings.readAloud && p.hint ? ' ' + MQ.toSpeech(p.hint) : ''));
         say(`${st.buddyName}: ${U.pick(MQ.SAY.retry)}`);
@@ -3385,6 +3808,7 @@ body[data-track="k"] { --paper: #eef2fb; }
     if (btn) btn.classList.add('nope');
     document.querySelectorAll('.choice').forEach((b, i) => { if (p.choices && p.choices[i] === p.answer) b.classList.add('right'); });
     if (p.kind === 'num') slots().forEach((el) => { el.textContent = p.answer; el.classList.add('shown'); });
+    markPicks(false);
     $('#feedback').innerHTML = `<div class="fb reveal"><div>The answer is <b>${fmtAnswer(p)}</b>.</div>${p.explain ? `<div class="explain">${p.explain}</div>` : ''}<button class="btn" data-act="advance">Next →</button></div>`;
     say(`${st.buddyName}: ${U.pick(MQ.SAY.reveal)}`);
     sess.pending = nextProblem; // waits for the Next button
@@ -3488,8 +3912,103 @@ body[data-track="k"] { --paper: #eef2fb; }
       sess.locked = true;
       return finishTrainer();
     }
+    if (sess.mode === 'check') {
+      return modal(`<div class="mtitle">Stop the Placement Check?</div><p>Your answers so far will not be saved. You can start a new check any time.</p>
+        <div class="row"><button class="btn ghost" data-act="closeModal">Keep going</button><button class="btn" data-act="leave">Stop</button></div>`);
+    }
     modal(`<div class="mtitle">Leave this ${sess.mode === 'daily' ? 'quest' : 'level'}?</div><p>You will need to start it again to ${sess.mode === 'daily' ? 'finish the quest' : 'discover the creature'}.</p>
       <div class="row"><button class="btn ghost" data-act="closeModal">Keep playing</button><button class="btn" data-act="leave">Leave</button></div>`);
+  }
+
+  // ---------------------------------------------------------------- test prep
+  const P = () => MQ.prep;
+  const myChecks = () => (st.tests.checks || []).filter((c) => c.grade === st.grade);
+  const fmtDate = (k) => { const d = new Date(k + 'T12:00:00'); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); };
+  // Line chart of the overall level across checks, with where the grade "should" be as a dashed line.
+  function historyChart(checks) {
+    if (checks.length < 2) return '';
+    const W = 320, H = 150, L = 64, T = 10, B = 24, PW = W - L - 12, PH = H - T - B;
+    const lo = Math.max(0, Math.floor(Math.min(...checks.map((c) => Math.min(c.overall, c.expected))) - 1));
+    const hi = Math.min(9, Math.ceil(Math.max(...checks.map((c) => Math.max(c.overall, c.expected))) + 1));
+    const y = (v) => T + PH - ((v - lo) / Math.max(1, hi - lo)) * PH;
+    const x = (i) => L + (checks.length === 1 ? PW / 2 : (i / (checks.length - 1)) * PW);
+    let s = '';
+    for (let v = lo; v <= hi; v++) s += `<line x1="${L}" y1="${y(v)}" x2="${L + PW}" y2="${y(v)}" stroke="#d6e0e6"/><text x="${L - 6}" y="${y(v) + 4}" font-size="10" text-anchor="end" fill="#5b6885" font-family="Nunito, sans-serif" font-weight="700">${P().STEPS[v].label}</text>`;
+    s += `<polyline points="${checks.map((c, i) => `${x(i)},${y(c.expected)}`).join(' ')}" fill="none" stroke="#9aa6b8" stroke-width="2" stroke-dasharray="5 4"/>`;
+    s += `<polyline points="${checks.map((c, i) => `${x(i)},${y(c.overall)}`).join(' ')}" fill="none" stroke="#5b63c9" stroke-width="3"/>`;
+    s += checks.map((c, i) => `<circle cx="${x(i)}" cy="${y(c.overall)}" r="5" fill="#5b63c9" stroke="#ffffff" stroke-width="2"/><text x="${x(i)}" y="${H - 6}" font-size="10" text-anchor="middle" fill="#5b6885" font-family="Nunito, sans-serif" font-weight="700">${fmtDate(c.date).replace(/, \d{4}$/, '')}</text>`).join('');
+    return `<figure class="hchart">${`<svg viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="Placement Check history">${s}</svg>`}<figcaption><span class="lg l1"></span>Placement Check level <span class="lg l2"></span>Where most kids are at that time of year</figcaption></figure>`;
+  }
+  function prep() {
+    const checks = myChecks(), last = checks[checks.length - 1];
+    const total = st.grade === 'k' ? 20 : 30;
+    render(header('Test Prep') + `<main class="prep">
+      <p class="lead">Get ready for the tests you take at school.</p>
+      <article class="testcard" style="--pc:#5b63c9">
+        <div class="tc-head"><span class="tc-ic">🎯</span><div><b>Placement Check</b><small>In the style of i-Ready · ${total} questions · about ${st.grade === 'k' ? 15 : 25} minutes</small></div></div>
+        <p>Questions about numbers, algebra, measurement and shapes. They get harder or easier as you answer, like i-Ready at school. No hints this time: just do your best, and make your best guess if you are not sure.</p>
+        ${last ? `<div class="tc-last">Last check, ${fmtDate(last.date)}: <b>${P().label(last.overall)}</b> · ${P().status(last.overall, last.expected).icon} ${P().status(last.overall, last.expected).text} <button class="linkbtn" data-act="viewCheck" data-arg="${last.id}">See results</button></div>` : ''}
+        <button class="btn" data-act="startCheck">${last ? 'Take a new check' : 'Start the check'} ▶</button>
+      </article>
+      ${historyChart(checks)}
+    </main>`);
+    cur = 'prep';
+  }
+  function startCheck() {
+    const eng = P().newCheck(st.grade, myChecks());
+    startSession({ mode: 'check', eng, topics: [], d: [1, 1], goal: 0 });
+    say(`${st.buddyName}: Do your best! No hints in a check. If you are not sure, make your best guess.`);
+  }
+  function finishCheck() {
+    const res = P().result(sess.eng);
+    const list = st.tests.checks;
+    list.push(res);
+    while (list.length > 12) list.shift();
+    list.slice(0, -3).forEach((c) => { delete c.items; }); // keep the answer review only for the latest checks
+    addGems(20);
+    S.save();
+    sess = null;
+    checkResult(res, true);
+    MQ.sfx('reward');
+    MQ.confetti(120);
+    if (st.settings.voice !== false) MQ.speak('You finished the placement check! Great job!');
+    later(checkBadges, 1200);
+  }
+  function checkResult(res, fresh) {
+    const stt = P().status(res.overall, res.expected);
+    const plan = P().practicePlan(res, st.grade);
+    const bar = (v) => `<span class="lbar"><span class="lfill" style="width:${((v + 0.5) / 10) * 100}%"></span><span class="lexp" style="left:${((res.expected + 0.5) / 10) * 100}%" title="Where most kids are now"></span></span>`;
+    render(header('Placement Check', 'prep') + `<main class="presult">
+      <div class="pr-hero">
+        ${fresh ? '<div class="pr-done">Check complete! +20 💎</div>' : `<div class="pr-done muted">${fmtDate(res.date)}</div>`}
+        <div class="pr-level">${P().label(res.overall)}</div>
+        <div class="pr-status s-${stt.id}">${stt.icon} ${stt.text}</div>
+        <p class="muted">${res.correct} of ${res.n} right · most kids are at <b>${P().label(res.expected)}</b> at this time of year</p>
+      </div>
+      <section class="pr-domains">${P().DOMAINS.map((d) => `<div class="pr-dom"><span class="pd-name">${d.icon} ${d.name}</span>${bar(res.domains[d.id])}<span class="pd-lv">${P().label(res.domains[d.id])}</span></div>`).join('')}
+        <p class="muted small">The dark tick shows where most kids are at this time of year.</p></section>
+      <section class="pr-plan"><h2>What to practice next</h2>
+        <p>${plan.domains.map((d) => `${d.icon} <b>${d.name}</b>`).join(' and ')}</p>
+        <div class="chips">${plan.topics.map((t) => `<span class="chip sel">${MQ.TOPICS[t].icon} ${MQ.TOPICS[t].name}</span>`).join('')}</div>
+        <button class="btn" data-act="practicePlan" data-arg="${res.id}">Practice these ▶</button></section>
+      <div class="row">${res.items ? `<button class="btn ghost" data-act="reviewCheck" data-arg="${res.id}">Review answers</button>` : ''}<button class="btn ghost" data-act="go" data-arg="prep">Test Prep</button><button class="btn ghost" data-act="go" data-arg="home">Home</button></div>
+      <p class="muted small center">Practice in the style of i-Ready. The level is an estimate from this app, not an official i-Ready score.</p>
+    </main>`);
+  }
+  function reviewCheck(res) {
+    render(header('Review answers', 'prep') + `<main class="review"><ol class="rlist">${res.items.map((it) => `<li class="${it.ok ? 'ok' : 'no'}">
+      <span class="rmark">${it.ok ? '✓' : '✗'}</span><div><div class="rq">${esc(it.q)}</div>
+      ${it.ok ? `<div class="ra">Your answer: <b>${esc(it.given)}</b></div>` : `<div class="ra">Your answer: <b>${esc(it.given || '—')}</b> · Right answer: <b>${esc(it.a)}</b></div>${it.e ? `<div class="re">${esc(it.e)}</div>` : ''}`}</div></li>`).join('')}</ol>
+      <div class="row"><button class="btn ghost" data-act="viewCheck" data-arg="${res.id}">Back to results</button></div></main>`);
+  }
+  // Grown-ups: history of checks by domain.
+  function readinessSection() {
+    const checks = myChecks();
+    const rows = checks.slice().reverse().map((c) => `<tr><td>${fmtDate(c.date)}</td><td><b>${P().label(c.overall)}</b></td>${P().DOMAINS.map((d) => `<td>${P().label(c.domains[d.id])}</td>`).join('')}</tr>`).join('');
+    return `<section><h2>Test readiness</h2>
+      <p class="muted">i-Ready Diagnostic is taken at school three times a year (fall, winter, spring). A Placement Check here a week before helps ${esc(st.name)} get used to the format and shows what to practice. Results are estimates from this app, not official i-Ready scores.</p>
+      ${checks.length ? `${historyChart(checks)}<div class="tablewrap"><table class="topics"><thead><tr><th>Date</th><th>Overall</th>${P().DOMAINS.map((d) => `<th>${d.short}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>` : '<p>No Placement Check yet. Start one from <b>Test Prep</b> on the home screen.</p>'}
+    </section>`;
   }
 
   // ---------------------------------------------------------------- trainer
@@ -3639,6 +4158,7 @@ body[data-track="k"] { --paper: #eef2fb; }
         <textarea id="savecode" class="field code" rows="3" placeholder="Save code appears here, or paste one to load it"></textarea>
         <div class="row left"><button class="btn ghost" data-act="exportSave">Show & copy save code</button><button class="btn ghost" data-act="importSave">Load pasted code</button></div>
         <p class="muted" id="save-msg"></p></section>
+      ${readinessSection()}
       <section><h2>How levels map to school</h2><p>${track().school}</p></section>
       <section><h2>${CL() && MQ.cloud.family ? 'Explorers in your family' : 'Explorers on this device'}</h2>
         <p class="muted">Each child has a separate profile: their own grade, map, creatures, crystals and statistics. Changing the grade switches the map; progress in the other grade is kept.</p>
@@ -3689,7 +4209,7 @@ body[data-track="k"] { --paper: #eef2fb; }
     if (scr === 'new') { ui.newKid = null; return newExplorer(); }
     if (scr === 'family') { ui.fam = null; return family(); }
     if (!st) return who();
-    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, parent: parentGate }[scr] || home)();
+    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, parent: parentGate }[scr] || home)();
   }
 
   const ACTIONS = {
@@ -3739,7 +4259,29 @@ body[data-track="k"] { --paper: #eef2fb; }
     next: () => advance(),
     advance: () => advance(),
     quit: () => quit(),
-    leave: () => { closeModal(); const w = sess && sess.world; sess = null; w ? world(w.id) : home(); },
+    leave: () => { closeModal(); const w = sess && sess.world, wasCheck = sess && sess.mode === 'check'; sess = null; w ? world(w.id) : wasCheck ? prep() : home(); },
+    toggle: (a) => {
+      if (!sess || sess.locked) return;
+      const i = +a, k = sess.sel.indexOf(i);
+      k >= 0 ? sess.sel.splice(k, 1) : sess.sel.push(i);
+      MQ.sfx('tap');
+      redrawAnswer();
+    },
+    orderPick: (a) => { if (!sess || sess.locked || sess.sel.includes(+a)) return; sess.sel.push(+a); MQ.sfx('tap'); redrawAnswer(); },
+    unorder: (a) => { if (!sess || sess.locked) return; sess.sel.splice(+a, 1); MQ.sfx('tap'); redrawAnswer(); },
+    tick: (a) => { if (!sess || sess.locked) return; sess.lineVal = +a; MQ.sfx('tap'); redrawAnswer(); },
+    submitPick: () => submitPick(),
+    startCheck: () => startCheck(),
+    viewCheck: (a) => { const c = myChecks().find((x) => x.id === a); c ? checkResult(c, false) : prep(); },
+    reviewCheck: (a) => { const c = myChecks().find((x) => x.id === a); c && c.items ? reviewCheck(c) : prep(); },
+    practicePlan: (a) => {
+      const c = myChecks().find((x) => x.id === a);
+      if (!c) return prep();
+      const plan = P().practicePlan(c, st.grade);
+      st.trainer = { topics: plan.topics, diff: plan.diff, mode: 'endless' };
+      S.save();
+      startTrainer();
+    },
     closeModal: () => closeModal(),
     toggleTopic: (a) => {
       const t = st.trainer.topics, i = t.indexOf(a);
@@ -3809,7 +4351,8 @@ body[data-track="k"] { --paper: #eef2fb; }
         if (/^[0-9]$/.test(e.key)) key(e.key);
         else if (e.key === 'Backspace') { e.preventDefault(); key('back'); }
         else if (e.key === 'Enter') submit();
-      } else if (/^[1-4]$/.test(e.key)) choose(+e.key - 1);
+      } else if (/^[1-6]$/.test(e.key) && sess.p.kind === 'choice') choose(+e.key - 1);
+      else if (e.key === 'Enter') submitPick();
     });
     // One child: straight to their home. Several: ask who is playing.
     // A brand-new device first offers to join the family, so progress is shared from the start.

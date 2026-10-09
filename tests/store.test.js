@@ -35,6 +35,12 @@ assert.strictEqual(m.rev, 200);
 assert.deepStrictEqual(S.mergeProfiles(b, a), m, 'merge order does not matter');
 assert.strictEqual(S.mergeProfiles(null, b), b);
 
+// Placement Check results taken on two devices are all kept, oldest first.
+const ta = Object.assign(base(), { rev: 10, tests: { checks: [{ id: 'm1', date: '2026-10-01', overall: 5 }] } });
+const tb = Object.assign(base(), { rev: 20, tests: { checks: [{ id: 'm3', date: '2026-10-09', overall: 6 }, { id: 'm1', date: '2026-10-01', overall: 5 }] } });
+const tc = Object.assign(base(), { rev: 5, tests: { checks: [{ id: 'm2', date: '2026-10-05', overall: 5.5 }] } });
+assert.deepStrictEqual(S.mergeProfiles(S.mergeProfiles(ta, tb), tc).tests.checks.map((c) => c.id), ['m1', 'm2', 'm3']);
+
 // Erasing progress on purpose is not undone by an older copy from another device.
 const erased = Object.assign(base(), { rev: 300, resetAt: 300 });
 const merged = S.mergeProfiles(erased, a);
