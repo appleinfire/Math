@@ -868,6 +868,9 @@
     logic: { name: 'Patterns & Logic', icon: '🧩', std: 'Puzzles (ahead)', gen: logic, ahead: true },
   };
 
+  Object.values(MQ.TOPICS).forEach((t) => (t.track = 'g2'));
+  MQ.G = { N, C, E, BLANK, NAMES }; // shared with generators-k.js
+
   MQ.makeProblem = (topic, d) => {
     const p = MQ.TOPICS[topic].gen(U.clamp(d, 1, 5));
     p.topic = topic;

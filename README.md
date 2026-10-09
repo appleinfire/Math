@@ -1,13 +1,22 @@
 # Math Expedition 🧭
 
-A math trainer for a 2nd grader in California. She explores eight worlds, solves problems, and discovers real animals with surprising science facts. Everything follows the California Common Core math standards for 2nd grade, and every topic also has harder levels that go ahead into 3rd grade.
+A math trainer for kids in California, built for a kindergartner and a 2nd grader sharing one iPad. Each child explores their own map of worlds, solves problems, and discovers real animals with surprising science facts. Problems follow the California Common Core math standards for the child's grade, and every topic has harder levels that go ahead into the next grade.
+
+## Several children, one device
+
+- **Who's exploring?** On launch the app asks who is playing (with one profile it opens straight to that child). Each card shows the child's name, grade, level, crystals and creatures.
+- **Separate profiles.** Every child has their own grade, world map, creatures, crystals, badges, daily streak, training settings and statistics. Nothing is shared between profiles.
+- **Grade tracks.** A profile follows one grade track: **Kindergarten** (7 worlds, baby animals) or **2nd grade** (8 worlds, wild animals). A grown-up can move a child to another grade; progress in the old grade is kept.
+- **Switching.** Tap the buddy avatar on the home screen (or the small avatar in the top bar) to go back to the picker.
+- **Grown-ups page** shows the report for the current child and lists every explorer on the device: change grade, delete, add a new one.
+- Progress from the first single-player version is moved into a 2nd-grade profile automatically.
 
 ## How to open it
 
 - **Simplest:** open `dist/math-expedition.html` in any browser. It is one file, so you can AirDrop or email it to an iPad and open it in Safari. It works offline.
 - **As an app on the iPad:** host the folder with GitHub Pages (Settings → Pages → deploy from this branch, folder `/`), open the link in Safari, then Share → *Add to Home Screen*. It then opens full screen and works offline.
 
-Progress is saved in the browser on that device. To move it to another device, use **For grown-ups → Move progress to another device**.
+Progress is saved in the browser on that device, separately for each child. To move one child's progress to another device, open their profile and use **For grown-ups → Move progress to another device**.
 
 ## How the game works
 
@@ -21,7 +30,23 @@ Progress is saved in the browser on that device. To move it to another device, u
 | **Hints** | A wrong answer gets a strategy hint and one more try ("make a ten", "count up", "break a ten"). A second miss shows the answer with an explanation. |
 | **For grown-ups** | Protected by a multiplication question. Shows accuracy per topic with the standard code, activity for the last 14 days, recent mistakes, settings (sound, *unlock all worlds*), save codes and reset. |
 
-## Worlds and topics
+## Kindergarten track
+
+Made for kids who are just starting to read: problems are mostly pictures, answer buttons can be emoji or shapes, and every question can be **read aloud** (🔊 button, or automatically for kindergarten profiles, using the browser's built-in speech).
+
+| World | Topics | Standards |
+|---|---|---|
+| 🌻 Sunny Meadow | Counting objects to 20, numbers in order, count by tens | K.CC.1–5 |
+| 🪷 Lily Pond | More, fewer, the same; comparing numbers | K.CC.6–7 |
+| 🍎 Apple Orchard | Adding within 10 with pictures, story problems | K.OA.1–2, K.OA.5 |
+| 🍂 Maple Woods | Taking away within 10 | K.OA.1–2, K.OA.5 |
+| 🐚 Shell Beach | Ten-frames, making 10, teen numbers as 10 + ones | K.OA.4, K.NBT.1 |
+| 💎 Crystal Caves | Flat and solid shapes, longer/taller/heavier, sorting, patterns | K.G, K.MD |
+| 🌠 Star Bridge | Challenge zone: 1st-grade math (to 20, tens and ones, measuring with units) | 1.OA, 1.NBT, 1.MD |
+
+Difficulty for kindergarten: 🌱 Sprout and 🧭 Explorer = core K, 🏕️ Ranger = strong K, 🏔️ Expert = end of K / start of 1st, 🐉 Legend = 1st grade. Endless Training works the same way as for 2nd grade, including **Auto** difficulty, which keeps raising the level while she gets answers right.
+
+## 2nd-grade worlds and topics
 
 | World | Topics | Standards |
 |---|---|---|
@@ -43,10 +68,12 @@ index.html            app shell
 css/style.css         all styles
 js/util.js            helpers
 js/visuals.js         SVG pictures: clocks, coins, base-ten blocks, rulers, graphs, shapes
-js/generators.js      problem generators, 14 topics × 5 difficulties
-js/content.js         worlds, creatures and facts, badges, buddy phrases
-js/store.js           saving progress (localStorage) and stats
-js/fx.js              sounds (Web Audio) and confetti
+js/generators.js      2nd-grade problem generators, 14 topics × 5 difficulties
+js/generators-k.js    kindergarten problem generators, 10 topics × 5 difficulties
+js/content.js         2nd-grade worlds and creatures, grade tracks, badges, buddy phrases
+js/content-k.js       kindergarten worlds and baby animals
+js/store.js           one saved profile per child (localStorage), stats
+js/fx.js              sounds (Web Audio), read-aloud (Web Speech), confetti
 js/app.js             screens and game logic
 tools/build.py        bundles everything into dist/math-expedition.html
 tests/                generator test (node) and browser smoke test (Playwright)
@@ -55,7 +82,7 @@ tests/                generator test (node) and browser smoke test (Playwright)
 No build step or dependencies are needed to run it. After changing code, run:
 
 ```
-node tests/generators.test.js      # 105,000 generated problems checked
-node tests/smoke.mjs               # plays through the app in Chromium (needs Playwright)
+node tests/generators.test.js      # 144,000 generated problems checked
+node tests/smoke.mjs               # two children, both grades, played in Chromium (needs Playwright)
 python3 tools/build.py             # refresh the single-file version in dist/
 ```

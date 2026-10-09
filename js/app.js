@@ -3,15 +3,17 @@
   const MQ = globalThis.MQ, U = MQ.U, S = MQ.store;
   const D_NAMES = { 1: 'Sprout', 2: 'Explorer', 3: 'Ranger', 4: 'Expert', 5: 'Legend' };
   const D_ICONS = { 1: '🌱', 2: '🧭', 3: '🏕️', 4: '🏔️', 5: '🐉' };
-  const CORE = ['add20', 'place', 'add100', 'sub100', 'arrays', 'time', 'money', 'shapes', 'measure', 'data', 'big', 'words'];
+  const TRACK_COLOR = { k: '#e0a21b', g2: '#2bb3a3' };
   const DAILY_REWARD = 15;
 
   let st = null; // MQ.state
   let sess = null; // current play session
   let timers = [];
-  let ui = {}; // small per-screen UI state (onboarding pick, hatch, reset confirm…)
+  let ui = {}; // small per-screen UI state (new-explorer form, hatch, reset confirm…)
 
   const $ = (sel) => document.querySelector(sel);
+  const track = () => MQ.track(st.grade);
+  const WORLDS = () => track().worlds;
   const root = () => document.getElementById('app');
   const esc = U.esc;
   const later = (fn, ms) => { timers.push(setTimeout(fn, ms)); };
@@ -23,14 +25,16 @@
   function render(html, cls = '') {
     clearTimers();
     const r = root();
+    MQ.hush();
+    document.body.dataset.track = st ? st.grade : '';
     r.className = cls;
     r.innerHTML = html;
     window.scrollTo(0, 0);
   }
 
   // ---------------------------------------------------------------- helpers
-  const worldIndex = (id) => MQ.WORLDS.findIndex((w) => w.id === id);
-  const worldOpen = (i) => st.settings.unlockAll || i === 0 || !!st.levels[MQ.WORLDS[i - 1].id + '-5'];
+  const worldIndex = (id) => WORLDS().findIndex((w) => w.id === id);
+  const worldOpen = (i) => st.settings.unlockAll || i === 0 || !!st.levels[WORLDS()[i - 1].id + '-5'];
   const levelOpen = (w, i) => worldOpen(worldIndex(w.id)) && (st.settings.unlockAll || i === 0 || !!st.levels[w.id + '-' + (i - 1)]);
   const worldStars = (w) => w.levels.reduce((s, _, i) => s + ((st.levels[w.id + '-' + i] || {}).stars || 0), 0);
   const starStr = (n, of = 3) => '<span class="stars">' + U.range(1, of).map((i) => `<i class="${i <= n ? 'on' : ''}">★</i>`).join('') + '</span>';
@@ -41,10 +45,11 @@
     if (/^\d+\/\d+$/.test(c)) { const [a, b] = c.split('/'); return `<span class="frac"><span>${a}</span><span>${b}</span></span>`; }
     return esc(c);
   };
-  const fmtAnswer = (p) => (p.kind === 'choice' ? fmtChoice(p.answer) : U.comma(p.answer) + (p.unit ? ' ' + p.unit : ''));
+  const fmtAnswer = (p) => (p.kind === 'choice' ? (p.choiceHtml ? p.choiceHtml[p.choices.indexOf(p.answer)] : fmtChoice(p.answer)) : U.comma(p.answer) + (p.unit ? ' ' + p.unit : ''));
+  const gradeChip = (g) => `<span class="gchip g-${g}">${MQ.track(g).label}</span>`;
 
   function header(title, back = 'home') {
-    return `<header class="bar"><button class="iconbtn" data-act="go" data-arg="${back}" aria-label="Back">←</button><h1>${title}</h1>${gemPill()}</header>`;
+    return `<header class="bar"><button class="iconbtn" data-act="go" data-arg="${back}" aria-label="Back">←</button><h1>${title}</h1>${gemPill()}<button class="mini-av" data-act="go" data-arg="who" aria-label="Switch explorer" title="${esc(st.name)}">${st.companion}</button></header>`;
   }
   function say(text) {
     const b = $('#bubble');
@@ -100,7 +105,7 @@
     if (any) { S.save(); MQ.sfx('reward'); }
   }
   function creatureCard(c, reveal = false) {
-    const w = MQ.WORLDS.find((x) => x.id === c.world);
+    const w = MQ.worldById(c.world);
     return `<div class="creature ${reveal ? 'reveal' : ''} r-${c.rarity}">
       <div class="creature-inner">
         <div class="cfront">?</div>
@@ -114,39 +119,79 @@
       </div></div>`;
   }
 
-  // ---------------------------------------------------------------- onboarding
-  function onboarding() {
-    ui.buddy = ui.buddy || st.companion || '🦊';
-    render(`<main class="onboard">
+  // ---------------------------------------------------------------- profiles
+  // "Who's exploring?" — one card per child. Each child has their own grade track and progress.
+  function who() {
+    const list = S.profiles();
+    if (!list.length) return newExplorer();
+    sess = null;
+    st = null;
+    MQ.state = null;
+    render(`<main class="who-screen">
       <div class="ob-hero" aria-hidden="true">🧭</div>
-      <h1 class="title">Math Expedition</h1>
-      <p class="lead">Explore eight wild worlds, solve number puzzles, and discover amazing real animals.</p>
-      <label for="ob-name">What’s your name, explorer?</label>
-      <input id="ob-name" class="field" maxlength="16" autocomplete="off" value="${esc(st.name)}" placeholder="Your name">
+      <h1 class="title center">Who’s exploring today?</h1>
+      <div class="profiles">${list.map((p) => {
+        const lv = MQ.levelFromXp(p.xp).level;
+        return `<button class="profile" data-act="openProfile" data-arg="${p.id}" style="--pc:${TRACK_COLOR[p.grade] || '#2bb3a3'}">
+          <span class="pav">${p.companion}</span><b>${esc(p.name)}</b>${gradeChip(p.grade)}
+          <small>Level ${lv} · 💎 ${p.crystals} · ${Object.keys(p.creatures).length} creatures</small></button>`;
+      }).join('')}
+        <button class="profile add" data-act="go" data-arg="new"><span class="pav">＋</span><b>New explorer</b><small>Add a brother or sister</small></button>
+      </div>
+      <p class="muted center">Each explorer has their own grade, map, creatures and progress.</p>
+    </main>`, 'is-who');
+  }
+  function newExplorer() {
+    const first = !S.profiles().length;
+    const k = (ui.newKid = ui.newKid || { name: '', grade: 'g2', buddy: '🦊', buddyName: 'Pip' });
+    const grades = [
+      ['k', '🌻', 'Kindergarten', 'Counting, adding within 10, shapes · read-aloud'],
+      ['g2', '🧭', '2nd grade', 'Numbers to 1000, time, money, word problems'],
+    ];
+    render(`<main class="onboard">
+      ${first ? '' : '<header class="bar"><button class="iconbtn" data-act="go" data-arg="who" aria-label="Back">←</button><h1>New explorer</h1></header>'}
+      ${first ? '<div class="ob-hero" aria-hidden="true">🧭</div><h1 class="title">Math Expedition</h1><p class="lead">Explore wild worlds, solve number puzzles, and discover amazing real animals.</p>' : ''}
+      <label for="ob-name">Explorer’s name</label>
+      <input id="ob-name" class="field" maxlength="16" autocomplete="off" value="${esc(k.name)}" placeholder="Name">
+      <div class="label">Which grade?</div>
+      <div class="grades">${grades.map(([id, ic, n, d]) => `<button class="grade-pick ${k.grade === id ? 'sel' : ''}" data-act="pickGrade" data-arg="${id}" style="--pc:${TRACK_COLOR[id]}"><span class="gi">${ic}</span><b>${n}</b><small>${d}</small></button>`).join('')}</div>
       <div class="label">Pick an expedition buddy</div>
-      <div class="buddies">${MQ.COMPANIONS.map((c) => `<button class="buddy-pick ${ui.buddy === c.e ? 'sel' : ''}" data-act="pickBuddy" data-arg="${c.e}" aria-label="${c.n}">${c.e}</button>`).join('')}</div>
+      <div class="buddies">${MQ.COMPANIONS.map((c) => `<button class="buddy-pick ${k.buddy === c.e ? 'sel' : ''}" data-act="pickBuddy" data-arg="${c.e}" aria-label="${c.n}">${c.e}</button>`).join('')}</div>
       <label for="ob-buddy">Name your buddy</label>
-      <input id="ob-buddy" class="field" maxlength="14" autocomplete="off" value="${esc(st.buddyName || 'Pip')}">
-      <button class="btn big" data-act="startGame">Start the adventure →</button>
+      <input id="ob-buddy" class="field" maxlength="14" autocomplete="off" value="${esc(k.buddyName)}">
+      <button class="btn big" data-act="createKid">Start the adventure →</button>
     </main>`, 'is-onboard');
+  }
+  function keepNewKidFields() {
+    const k = ui.newKid;
+    if ($('#ob-name')) k.name = $('#ob-name').value.trim();
+    if ($('#ob-buddy')) k.buddyName = $('#ob-buddy').value.trim() || 'Pip';
+  }
+  function openProfile(id) {
+    st = S.open(id);
+    if (!st) return who();
+    sess = null;
+    ui = {};
+    home();
   }
 
   // ---------------------------------------------------------------- home
   function nextUp() {
-    for (let wi = 0; wi < MQ.WORLDS.length; wi++) {
+    for (let wi = 0; wi < WORLDS().length; wi++) {
       if (!worldOpen(wi)) break;
-      const w = MQ.WORLDS[wi];
+      const w = WORLDS()[wi];
       const li = w.levels.findIndex((_, i) => !st.levels[w.id + '-' + i]);
       if (li >= 0 && levelOpen(w, li)) return { w, li };
     }
     return null;
   }
   function home() {
-    if (!st.name) return onboarding();
+    if (!st) return who();
     const lv = MQ.levelFromXp(st.xp);
     const pct = Math.round(((st.xp - lv.from) / (lv.to - lv.from)) * 100);
     const nu = nextUp();
-    const have = Object.keys(st.creatures).length, total = MQ.ALL_CREATURES.length;
+    const all = MQ.trackCreatures(st.grade);
+    const have = all.filter((c) => st.creatures[c.id]).length, total = all.length;
     const dailyDone = st.daily.last === U.dateKey();
     const badgeCount = Object.keys(st.badges).length;
     let cont;
@@ -162,16 +207,16 @@
     }
     render(`<main class="home">
       <header class="hello">
-        <div class="avatar" aria-hidden="true">${st.companion}</div>
+        <button class="avatar" data-act="go" data-arg="who" aria-label="Switch explorer">${st.companion}<small>switch</small></button>
         <div class="who"><div class="hi">Hi, ${esc(st.name)}!</div>
-          <div class="rank">Level ${lv.level} · ${MQ.rankTitle(lv.level)}</div>
+          <div class="rank">${gradeChip(st.grade)} Level ${lv.level} · ${MQ.rankTitle(lv.level)}</div>
           <div class="xp" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pct}%"></span></div></div>
         ${gemPill()}
       </header>
       <div class="buddy"><span class="buddy-e">${st.companion}</span><div class="bubble" id="bubble">${esc(st.buddyName)}: ${esc(U.pick(MQ.SAY.hello))}</div></div>
       ${cont}
       <div class="tiles">
-        <button class="tile t-map" data-act="go" data-arg="map"><span class="ti">🗺️</span><b>Expedition Map</b><small>8 worlds · 48 levels</small></button>
+        <button class="tile t-map" data-act="go" data-arg="map"><span class="ti">🗺️</span><b>Expedition Map</b><small>${WORLDS().length} worlds · ${WORLDS().length * 6} levels</small></button>
         <button class="tile t-endless" data-act="go" data-arg="trainer"><span class="ti">♾️</span><b>Endless Training</b><small>Pick topics & difficulty</small></button>
         <button class="tile t-daily ${dailyDone ? 'done' : ''}" data-act="daily"><span class="ti">${dailyDone ? '✅' : '📅'}</span><b>Daily Quest</b><small>${dailyDone ? 'Done today · 🔥 ' + st.daily.streak : '+' + DAILY_REWARD + ' 💎 · streak ' + st.daily.streak}</small></button>
         <button class="tile t-journal" data-act="go" data-arg="journal"><span class="ti">📔</span><b>Field Journal</b><small>${have} / ${total} creatures</small></button>
@@ -184,21 +229,22 @@
 
   // ---------------------------------------------------------------- map & world
   function map() {
-    const cards = MQ.WORLDS.map((w, i) => {
+    const cards = WORLDS().map((w, i) => {
       const open = worldOpen(i);
       const stars = worldStars(w);
       const found = w.levels.filter((l) => st.creatures[l.creature]).length;
       return `<button class="wcard ${open ? '' : 'locked'}" ${open ? `data-act="go" data-arg="world:${w.id}"` : 'disabled'} style="--wc:${w.color};--wt:${w.tint}">
         <span class="wemoji">${open ? w.emoji : '🔒'}</span>
         <span class="winfo"><b>${i + 1}. ${w.name}</b><small>${w.blurb}</small>
-        ${open ? `<span class="wprog">★ ${stars}/18 · ${w.levels.map((l) => `<i class="${st.creatures[l.creature] ? '' : 'sil'}">${MQ.CREATURES[l.creature].emoji}</i>`).join('')}</span>` : `<span class="wprog">Befriend the guardian of ${MQ.WORLDS[i - 1].name} to open</span>`}
+        ${open ? `<span class="wprog">★ ${stars}/18 · ${w.levels.map((l) => `<i class="${st.creatures[l.creature] ? '' : 'sil'}">${MQ.CREATURES[l.creature].emoji}</i>`).join('')}</span>` : `<span class="wprog">Befriend the guardian of ${WORLDS()[i - 1].name} to open</span>`}
         </span>${open && found === 6 ? '<span class="wdone">✓</span>' : ''}</button>`;
     }).join('');
     render(header('Expedition Map') + `<main class="map">${cards}</main>`);
   }
 
   function world(id) {
-    const w = MQ.WORLDS.find((x) => x.id === id);
+    const w = WORLDS().find((x) => x.id === id);
+    if (!w) return map();
     const rows = w.levels.map((lv, i) => {
       const open = levelOpen(w, i);
       const rec = st.levels[w.id + '-' + i];
@@ -267,7 +313,7 @@
     sess.locked = false;
     const p = sess.p, T = MQ.TOPICS[p.topic];
     const card = $('#pcard');
-    card.innerHTML = `<div class="pmeta"><span>${T.icon} ${T.name}</span><span class="dchip d${p.d}">${D_ICONS[p.d]} ${D_NAMES[p.d]}</span></div>
+    card.innerHTML = `<div class="pmeta"><span>${T.icon} ${T.name}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="speak" aria-label="Read the question aloud">🔊</button>' : ''}<span class="dchip d${p.d}">${D_ICONS[p.d]} ${D_NAMES[p.d]}</span></span></div>
       <div class="ptext ${p.big ? 'eq' : ''} ${p.wordy ? 'wordy' : ''}">${p.text}</div>
       ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
       ${p.kind === 'num' ? `<div class="display" id="display"><span class="dval" id="dval"></span>${p.unit ? `<span class="unit">${p.unit}</span>` : ''}</div>` : ''}
@@ -282,9 +328,10 @@
     }
     $('#answer').innerHTML = p.kind === 'num'
       ? `<div class="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((k) => `<button class="key" data-act="key" data-arg="${k}">${k}</button>`).join('')}<button class="key alt" data-act="key" data-arg="back" aria-label="Delete">⌫</button><button class="key" data-act="key" data-arg="0">0</button><button class="key go" data-act="submit">Check</button></div>`
-      : `<div class="choices n${p.choices.length}">${p.choices.map((c, i) => `<button class="choice" data-act="choose" data-arg="${i}">${fmtChoice(c)}</button>`).join('')}</div>`;
+      : `<div class="choices n${p.choices.length} ${p.choiceHtml ? 'pics' : ''}">${p.choices.map((c, i) => `<button class="choice" data-act="choose" data-arg="${i}" aria-label="${esc(c)}">${p.choiceHtml ? p.choiceHtml[i] : fmtChoice(c)}</button>`).join('')}</div>`;
     showInput();
     status();
+    if (st.settings.readAloud) MQ.speak(p.say || MQ.toSpeech(p.text));
   }
   // All answer boxes show what is typed (e.g. "8 = ? + ?" with equal addends).
   const slots = () => { const s = document.querySelectorAll('.ptext .blank'); return $('#slot') && s.length > 1 ? [...s] : [$('#slot') || $('#dval')].filter(Boolean); };
@@ -391,6 +438,7 @@
         sess.input = '';
         showInput();
         $('#feedback').innerHTML = `<div class="fb hint">💡 ${p.hint || 'Look again carefully and try once more.'}</div>`;
+        if (st.settings.readAloud) MQ.speak('Try again. ' + MQ.toSpeech(p.hint || ''));
         say(`${st.buddyName}: ${U.pick(MQ.SAY.retry)}`);
         return;
       }
@@ -428,7 +476,7 @@
     let creature = null;
     if (!st.creatures[lv.creature]) { st.creatures[lv.creature] = { got: U.dateKey(), from: w.id }; creature = MQ.CREATURES[lv.creature]; }
     const wi = worldIndex(w.id);
-    const newWorld = firstClear && lv.type === 'boss' && !st.settings.unlockAll ? MQ.WORLDS[wi + 1] : null;
+    const newWorld = firstClear && lv.type === 'boss' && !st.settings.unlockAll ? WORLDS()[wi + 1] : null;
     S.save();
     const hasNext = li < 5 && levelOpen(w, li + 1);
     render(`<main class="result" style="--wc:${w.color};--wt:${w.tint}">
@@ -509,14 +557,16 @@
   // ---------------------------------------------------------------- trainer
   function trainer() {
     const t = st.trainer;
+    t.topics = t.topics.filter((x) => MQ.TOPICS[x] && MQ.TOPICS[x].track === st.grade);
+    if (!t.topics.length) t.topics = track().core.slice(0, 3);
     const chip = (id) => { const T = MQ.TOPICS[id]; return `<button class="chip ${t.topics.includes(id) ? 'sel' : ''}" data-act="toggleTopic" data-arg="${id}" aria-pressed="${t.topics.includes(id)}">${T.icon} ${T.name}</button>`; };
-    const diffs = ['auto', 1, 2, 3, 4, 5].map((d) => `<button class="seg ${String(t.diff) === String(d) ? 'sel' : ''}" data-act="setDiff" data-arg="${d}">${d === 'auto' ? '🎯<b>Auto</b><small>adjusts to you</small>' : `${D_ICONS[d]}<b>${D_NAMES[d]}</b><small>${['', 'warm-up', '2nd grade', 'strong 2nd', 'end of 2nd', 'ahead!'][d]}</small>`}</button>`).join('');
+    const diffs = ['auto', 1, 2, 3, 4, 5].map((d) => `<button class="seg ${String(t.diff) === String(d) ? 'sel' : ''}" data-act="setDiff" data-arg="${d}">${d === 'auto' ? '🎯<b>Auto</b><small>adjusts to you</small>' : `${D_ICONS[d]}<b>${D_NAMES[d]}</b><small>${track().dLabels[d]}</small>`}</button>`).join('');
     const modes = [['endless', '♾️', 'Endless', 'no clock, hints on'], ['l60', '⚡', 'Lightning 60s', `best: ${st.stats.lightning60 || 0}`], ['l120', '⏱️', 'Lightning 2 min', `best: ${st.stats.lightning120 || 0}`]]
       .map(([id, ic, n, sub]) => `<button class="seg ${t.mode === id ? 'sel' : ''}" data-act="setMode" data-arg="${id}">${ic}<b>${n}</b><small>${sub}</small></button>`).join('');
     render(header('Endless Training') + `<main class="trainer">
-      <section><h2>1. Choose topics <button class="linkbtn" data-act="allCore">all 2nd grade</button></h2>
-        <div class="chips">${CORE.map(chip).join('')}</div>
-        <h3>Challenge — ahead of 2nd grade</h3><div class="chips">${['mult', 'logic'].map(chip).join('')}</div></section>
+      <section><h2>1. Choose topics <button class="linkbtn" data-act="allCore">all ${track().label}</button></h2>
+        <div class="chips">${track().core.map(chip).join('')}</div>
+        <h3>${track().aheadLabel}</h3><div class="chips">${track().ahead.map(chip).join('')}</div></section>
       <section><h2>2. Difficulty</h2><div class="segs six">${diffs}</div></section>
       <section><h2>3. Mode</h2><div class="segs three">${modes}</div></section>
       <button class="btn big" data-act="startTrainer" ${t.topics.length ? '' : 'disabled'}>Start training ▶</button>
@@ -525,24 +575,27 @@
   }
   function startTrainer() {
     const t = st.trainer;
+    t.topics = t.topics.filter((x) => MQ.TOPICS[x] && MQ.TOPICS[x].track === st.grade);
     if (!t.topics.length) return trainer();
     startSession({ mode: 'trainer', topics: t.topics.slice(), auto: t.diff === 'auto', d: t.diff === 'auto' ? [2, 2] : [+t.diff, +t.diff], goal: 0, timer: t.mode === 'l60' ? 60 : t.mode === 'l120' ? 120 : 0 });
   }
   function startDaily() {
     // Mix of topics from worlds that are open, at a level that stretches a little.
     const topics = new Set();
-    MQ.WORLDS.forEach((w, i) => { if (worldOpen(i) && w.id !== 'sky') w.levels.forEach((l) => l.topics.forEach((t) => CORE.includes(t) && topics.add(t))); });
-    if (topics.size < 3) ['add20', 'add100', 'sub100', 'place', 'time'].forEach((t) => topics.add(t));
-    startSession({ mode: 'daily', topics: [...topics], d: [2, 4], goal: 5 });
+    const core = track().core;
+    WORLDS().forEach((w, i) => { if (worldOpen(i) && i < WORLDS().length - 1) w.levels.forEach((l) => l.topics.forEach((t) => core.includes(t) && topics.add(t))); });
+    if (topics.size < 3) core.slice(0, 5).forEach((t) => topics.add(t));
+    startSession({ mode: 'daily', topics: [...topics], d: track().daily, goal: 5 });
   }
 
   // ---------------------------------------------------------------- journal, hatchery, badges
   function journal() {
-    const have = Object.keys(st.creatures).length, total = MQ.ALL_CREATURES.length;
+    const all = MQ.trackCreatures(st.grade);
+    const have = all.filter((c) => st.creatures[c.id]).length, total = all.length;
     const card = (c) => st.creatures[c.id]
       ? `<button class="ccard r-${c.rarity}" data-act="creature" data-arg="${c.id}"><span class="ce">${c.emoji}</span><span class="cn">${c.name}</span></button>`
       : `<div class="ccard locked"><span class="ce sil">${c.emoji}</span><span class="cn">???</span></div>`;
-    const sections = MQ.WORLDS.map((w) => `<section style="--wc:${w.color};--wt:${w.tint}"><h2>${w.emoji} ${w.name}</h2><div class="cgrid">${w.levels.map((l) => card(MQ.CREATURES[l.creature])).join('')}</div></section>`).join('') +
+    const sections = WORLDS().map((w) => `<section style="--wc:${w.color};--wt:${w.tint}"><h2>${w.emoji} ${w.name}</h2><div class="cgrid">${w.levels.map((l) => card(MQ.CREATURES[l.creature])).join('')}</div></section>`).join('') +
       `<section style="--wc:#b0569e;--wt:#f6dff1"><h2>🥚 Hatchery rarities</h2><div class="cgrid">${MQ.EGG_CREATURES.map(card).join('')}</div></section>`;
     render(header('Field Journal') + `<main class="journal"><div class="jcount"><b>${have}</b> of ${total} creatures discovered<div class="xp"><span style="width:${Math.round((have / total) * 100)}%"></span></div></div>${sections}</main>`);
   }
@@ -592,7 +645,7 @@
 
   // ---------------------------------------------------------------- grown-ups
   function parentGate() {
-    ui.gate = { a: U.rnd(12, 19), b: U.rnd(3, 9) };
+    ui.gate = { a: U.rnd(13, 29), b: U.rnd(6, 9) };
     render(header('For grown-ups') + `<main class="gate"><p class="lead">Grown-ups only. Please solve:</p>
       <div class="eqline">${ui.gate.a} × ${ui.gate.b} = </div>
       <input id="gate-in" class="field center" inputmode="numeric" autocomplete="off" aria-label="answer">
@@ -607,7 +660,7 @@
     const days = U.range(0, 13).map((i) => { const d = new Date(); d.setDate(d.getDate() - (13 - i)); const k = U.dateKey(d); return { k, n: (st.days[k] || {}).a || 0, wd: 'SMTWTFS'[d.getDay()] }; });
     const maxN = Math.max(10, ...days.map((d) => d.n));
     const active = days.filter((d) => d.n > 0).length;
-    const rows = Object.keys(MQ.TOPICS).map((id) => {
+    const rows = Object.keys(MQ.TOPICS).filter((id) => MQ.TOPICS[id].track === st.grade || (s.topics[id] && s.topics[id].a)).map((id) => {
       const T = MQ.TOPICS[id], t = s.topics[id];
       if (!t || !t.a) return `<tr><td>${T.icon} ${T.name}<small>${T.std}</small></td><td colspan="3" class="muted">not practiced yet</td></tr>`;
       const pct = Math.round((t.c / t.a) * 100);
@@ -615,7 +668,12 @@
       return `<tr><td>${T.icon} ${T.name}<small>${T.std}</small></td><td class="num">${t.a}</td><td class="num"><span class="acc ${pct >= 85 ? 'g' : pct >= 65 ? 'y' : 'r'}">${pct}%</span></td><td>${D_NAMES[maxD]}</td></tr>`;
     }).join('');
     const mist = st.mistakes.slice(0, 12).map((m) => `<li><span class="mt">${MQ.TOPICS[m.topic] ? MQ.TOPICS[m.topic].icon : ''} ${esc(m.text)}</span><span class="ma">answered <b>${esc(m.given)}</b>, correct <b>${esc(m.answer)}</b></span></li>`).join('');
+    const kids = S.profiles().map((p) => `<li class="kid">
+        <span class="kav">${p.companion}</span><span class="kname"><b>${esc(p.name)}</b><small>Level ${MQ.levelFromXp(p.xp).level} · ${p.stats.correct} solved${p.lastPlayed ? ' · last played ' + p.lastPlayed : ''}</small></span>
+        <span class="kgrade">${Object.keys(MQ.TRACKS).map((g) => `<button class="chip ${p.grade === g ? 'sel' : ''}" data-act="setGrade" data-arg="${p.id}:${g}">${MQ.track(g).label}</button>`).join('')}</span>
+        <button class="linkbtn" data-act="delProfile" data-arg="${p.id}">${ui.delArmed === p.id ? 'Tap again to delete' : 'Delete'}</button></li>`).join('');
     render(header('For grown-ups') + `<main class="parent">
+      <p class="lead">Report for <b>${esc(st.name)}</b> ${gradeChip(st.grade)}</p>
       <section class="kpis">
         <div><b>${s.correct}</b><small>problems solved</small></div>
         <div><b>${acc}%</b><small>right on first try</small></div>
@@ -629,6 +687,7 @@
       <section class="settings"><h2>Settings</h2>
         <label class="toggle"><input type="checkbox" id="set-sound" data-act="setting" data-arg="sound" ${st.settings.sound ? 'checked' : ''}> Sound effects</label>
         <label class="toggle"><input type="checkbox" id="set-unlock" data-act="setting" data-arg="unlockAll" ${st.settings.unlockAll ? 'checked' : ''}> Unlock all worlds (skip ahead to match what is taught in class)</label>
+        <label class="toggle"><input type="checkbox" id="set-read" data-act="setting" data-arg="readAloud" ${st.settings.readAloud ? 'checked' : ''}> Read every question aloud (for kids who don’t read yet; the 🔊 button always works)</label>
         <div class="namerow"><label for="set-name">Child’s name</label><input id="set-name" class="field" maxlength="16" value="${esc(st.name)}">
           <label for="set-buddy">Buddy’s name</label><input id="set-buddy" class="field" maxlength="14" value="${esc(st.buddyName)}">
           <button class="btn ghost" data-act="saveNames">Save names</button></div>
@@ -638,9 +697,12 @@
         <textarea id="savecode" class="field code" rows="3" placeholder="Save code appears here, or paste one to load it"></textarea>
         <div class="row left"><button class="btn ghost" data-act="exportSave">Show & copy save code</button><button class="btn ghost" data-act="importSave">Load pasted code</button></div>
         <p class="muted" id="save-msg"></p></section>
-      <section><h2>How levels map to school</h2>
-        <p>Problems follow the California Common Core standards for 2nd grade. Difficulty: 🌱 Sprout = warm-up, 🧭 Explorer and 🏕️ Ranger = core 2nd grade, 🏔️ Expert = end of 2nd / start of 3rd, 🐉 Legend = challenge problems from 3rd grade and beyond. Each world ends with a ⚡ Challenge level and a 👑 Guardian level that mixes topics. The Sky Kingdom is all 3rd-grade challenge material: multiplication, division and logic puzzles.</p></section>
-      <section><h2>Start over</h2><button class="btn danger" data-act="reset">${ui.resetArmed ? 'Tap again to erase all progress' : 'Erase all progress'}</button></section>
+      <section><h2>How levels map to school</h2><p>${track().school}</p></section>
+      <section><h2>Explorers on this device</h2>
+        <p class="muted">Each child has a separate profile: their own grade, map, creatures, crystals and statistics. Changing the grade switches the map; progress in the other grade is kept.</p>
+        <ul class="kids">${kids}</ul>
+        <div class="row left"><button class="btn ghost" data-act="go" data-arg="new">Add an explorer</button></div></section>
+      <section><h2>Start over</h2><button class="btn danger" data-act="reset">${ui.resetArmed ? `Tap again to erase ${esc(st.name)}’s progress` : `Erase ${esc(st.name)}’s progress`}</button></section>
     </main>`);
   }
 
@@ -648,27 +710,45 @@
   function go(where) {
     closeModal();
     if (where !== 'hatch') ui.hatch = null;
-    if (where !== 'parent') ui.resetArmed = false;
+    if (where !== 'parent') { ui.resetArmed = false; ui.delArmed = null; }
     const [scr, arg] = where.split(':');
     if (scr !== 'play') sess = null;
+    if (scr === 'who') return who();
+    if (scr === 'new') { ui.newKid = null; return newExplorer(); }
+    if (!st) return who();
     ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, parent: parentGate }[scr] || home)();
   }
 
   const ACTIONS = {
     go: (a) => go(a),
-    pickBuddy: (a) => { ui.buddy = a; st.name = $('#ob-name').value.trim(); st.buddyName = $('#ob-buddy').value.trim() || 'Pip'; onboarding(); },
-    startGame: () => {
-      const n = $('#ob-name').value.trim();
-      if (!n) { $('#ob-name').focus(); $('#ob-name').classList.add('shake'); return; }
-      st.name = n.slice(0, 16);
-      st.buddyName = ($('#ob-buddy').value.trim() || 'Pip').slice(0, 14);
-      st.companion = ui.buddy || '🦊';
-      MQ.playerName = st.name;
-      S.save();
+    pickBuddy: (a) => { keepNewKidFields(); ui.newKid.buddy = a; newExplorer(); },
+    pickGrade: (a) => { keepNewKidFields(); ui.newKid.grade = a; newExplorer(); },
+    createKid: () => {
+      keepNewKidFields();
+      const k = ui.newKid;
+      if (!k.name) { $('#ob-name').focus(); $('#ob-name').classList.add('shake'); return; }
+      st = S.create({ name: k.name.slice(0, 16), grade: k.grade, companion: k.buddy, buddyName: k.buddyName.slice(0, 14) });
+      ui = {};
       MQ.sfx('reward');
       home();
     },
-    startLevel: (a) => { const [wid, i] = a.split(':'); const w = MQ.WORLDS.find((x) => x.id === wid); const lv = w.levels[+i]; startSession({ mode: 'level', world: w, li: +i, level: lv, topics: lv.topics, d: lv.d, goal: lv.goal }); },
+    openProfile: (a) => openProfile(a),
+    speak: () => { if (sess && sess.p) MQ.speak(sess.p.say || MQ.toSpeech(sess.p.text)); },
+    setGrade: (a) => {
+      const [id, g] = a.split(':');
+      S.update(id, { grade: g, settings: Object.assign({}, (S.profiles().find((p) => p.id === id) || {}).settings, { readAloud: g === 'k' }) });
+      if (st.id === id) st = S.open(id);
+      parent();
+    },
+    delProfile: (a) => {
+      if (ui.delArmed !== a) { ui.delArmed = a; return parent(); }
+      ui.delArmed = null;
+      const self = st.id === a;
+      S.remove(a);
+      if (self) return who();
+      parent();
+    },
+    startLevel: (a) => { const [wid, i] = a.split(':'); const w = WORLDS().find((x) => x.id === wid); const lv = w.levels[+i]; startSession({ mode: 'level', world: w, li: +i, level: lv, topics: lv.topics, d: lv.d, goal: lv.goal }); },
     daily: () => startDaily(),
     key: (a) => key(a),
     submit: () => submit(),
@@ -678,7 +758,7 @@
     leave: () => { closeModal(); const w = sess && sess.world; sess = null; w ? world(w.id) : home(); },
     closeModal: () => closeModal(),
     toggleTopic: (a) => { const t = st.trainer.topics; const i = t.indexOf(a); i >= 0 ? t.splice(i, 1) : t.push(a); S.save(); trainer(); },
-    allCore: () => { st.trainer.topics = CORE.slice(); S.save(); trainer(); },
+    allCore: () => { st.trainer.topics = track().core.slice(); S.save(); trainer(); },
     setDiff: (a) => { st.trainer.diff = a === 'auto' ? 'auto' : +a; S.save(); trainer(); },
     setMode: (a) => { st.trainer.mode = a; S.save(); trainer(); },
     startTrainer: () => startTrainer(),
@@ -709,14 +789,14 @@
       ui.resetArmed = false;
       S.reset();
       st = MQ.state;
-      MQ.playerName = '';
-      onboarding();
+      toast('Progress erased');
+      home();
     },
   };
   function act(name, arg, el) { if (ACTIONS[name]) ACTIONS[name](arg, el); }
 
   function init() {
-    st = S.load();
+    S.init();
     document.addEventListener('click', (e) => {
       const el = e.target.closest('[data-act]');
       if (!el || el.disabled) return;
@@ -736,7 +816,10 @@
         else if (e.key === 'Enter') submit();
       } else if (/^[1-4]$/.test(e.key)) choose(+e.key - 1);
     });
-    st.name ? home() : onboarding();
+    // One child: straight to their home. Several: ask who is playing.
+    const list = S.profiles();
+    if (list.length === 1) openProfile(list[0].id);
+    else who();
   }
 
   MQ.app = { init, go, session: () => sess }; // session() is used by the browser smoke test

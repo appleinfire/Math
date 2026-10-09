@@ -322,5 +322,64 @@
     return s + '</div>';
   };
 
+  // ================= Kindergarten pictures =================
+  // A neat grid of emoji, in rows of `cols`. The last `gone` items are crossed out (take-away problems).
+  V.emojis = (emoji, n, { cols = 5, gone = 0 } = {}) => {
+    let s = `<div class="vis emojis" style="--cols:${Math.min(cols, Math.max(n, 1))}">`;
+    for (let i = 0; i < n; i++) s += `<span class="${i >= n - gone ? 'gone' : ''}">${emoji}</span>`;
+    return s + '</div>';
+  };
+  // Two groups joined by a sign: 🍎🍎 + 🍎🍎🍎
+  V.emojiSum = (emoji, a, b, op = '+') =>
+    `<div class="vis emojisum"><span class="eg">${Array(a).fill(emoji).join('')}</span><b>${op}</b><span class="eg">${Array(b).fill(emoji).join('')}</span></div>`;
+  // Groups of ten in boxes, plus loose ones.
+  V.tenGroups = (emoji, tens, ones) => {
+    let s = '<div class="vis tengroups">';
+    for (let i = 0; i < tens; i++) s += `<span class="tg">${Array(10).fill(emoji).join('')}</span>`;
+    if (ones) s += `<span class="tg loose">${Array(ones).fill(emoji).join('')}</span>`;
+    return s + '</div>';
+  };
+  // Pattern strip; null = the missing spot.
+  V.strip = (items) => `<div class="vis strip">${items.map((x) => (x === null ? '<span class="pq">?</span>' : `<span>${x}</span>`)).join('')}</div>`;
+  // Two rows lined up one-to-one so kids can compare by matching.
+  V.compareRows = (a, ea, b, eb) =>
+    `<div class="vis comparerows"><div>${Array(a).fill(`<span>${ea}</span>`).join('')}</div><div>${Array(b).fill(`<span>${eb}</span>`).join('')}</div></div>`;
+  // Ten-frames: 2 × 5 boxes, filled with dots. n may go past 10 (several frames).
+  V.tenFrames = (n, color = '#ff7e6b') => {
+    const frames = Math.max(1, Math.ceil(n / 10)), c = 34, gap = 14;
+    let s = '';
+    for (let f = 0; f < frames; f++) {
+      const ox = 6 + f * (5 * c + gap);
+      s += `<rect x="${ox}" y="6" width="${5 * c}" height="${2 * c}" fill="#ffffff" stroke="${INK}" stroke-width="3" rx="4"/>`;
+      for (let i = 1; i < 5; i++) s += `<line x1="${ox + i * c}" y1="6" x2="${ox + i * c}" y2="${6 + 2 * c}" stroke="${INK}" stroke-width="2"/>`;
+      s += `<line x1="${ox}" y1="${6 + c}" x2="${ox + 5 * c}" y2="${6 + c}" stroke="${INK}" stroke-width="2"/>`;
+      for (let i = 0; i < 10; i++) {
+        if (f * 10 + i >= n) break;
+        s += `<circle cx="${ox + (i % 5) * c + c / 2}" cy="${6 + Math.floor(i / 5) * c + c / 2}" r="11" fill="${color}" stroke="${INK}" stroke-width="2"/>`;
+      }
+    }
+    return svg(frames * 5 * c + (frames - 1) * gap + 12, 2 * c + 12, s, 'tenframe', n + ' dots in ten frames');
+  };
+  // Colored ribbons (horizontal) or towers (vertical) for longer / shorter / taller.
+  V.ribbons = (list, vertical = false) => {
+    let s = '';
+    if (!vertical) {
+      list.forEach((r, i) => { s += `<rect x="10" y="${10 + i * 40}" width="${r.len * 26}" height="24" rx="12" fill="${r.color}" stroke="${INK}" stroke-width="2.5"/>`; });
+      return svg(10 + 12 * 26 + 10, list.length * 40 + 10, s, 'ribbons', 'ribbons');
+    }
+    list.forEach((r, i) => { const h = r.len * 16; s += `<rect x="${12 + i * 60}" y="${10 + 12 * 16 - h}" width="40" height="${h}" rx="6" fill="${r.color}" stroke="${INK}" stroke-width="2.5"/>`; });
+    s += `<line x1="4" y1="${10 + 12 * 16}" x2="${list.length * 60 + 8}" y2="${10 + 12 * 16}" stroke="${INK}" stroke-width="3"/>`;
+    return svg(list.length * 60 + 12, 12 * 16 + 16, s, 'ribbons', 'towers');
+  };
+  // A ribbon measured with a row of cubes underneath.
+  V.cubeMeasure = (len, color = '#5cc8b8') => {
+    const u = 28;
+    let s = `<rect x="8" y="8" width="${len * u}" height="22" rx="11" fill="${color}" stroke="${INK}" stroke-width="2.5"/>`;
+    for (let i = 0; i < len; i++) s += `<rect x="${8 + i * u}" y="40" width="${u}" height="${u}" fill="${FILLS[(i % 3) + 1]}" stroke="${INK}" stroke-width="2"/>`;
+    return svg(len * u + 16, 40 + u + 8, s, 'cubes', 'ribbon and cubes');
+  };
+  // A small shape icon (used inside answer buttons and in "count the shapes" pictures).
+  V.mini = (kind, size = 64, fill) => V.shape(kind, { fill: fill || FILLS[{ circle: 0, square: 3, triangle: 1, rectangle: 4, hexagon: 2, pentagon: 5 }[kind] || 0] }).replace('width="180"', `width="${size}"`);
+
   MQ.V = V;
 })();

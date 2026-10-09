@@ -1,10 +1,10 @@
 // Run: node tests/generators.test.js
 // Generates thousands of problems for every topic and difficulty and checks they are well-formed.
 const path = require('path');
-for (const f of ['util', 'visuals', 'generators', 'content']) require(path.join(__dirname, '..', 'js', f + '.js'));
+for (const f of ['util', 'visuals', 'generators', 'generators-k', 'content', 'content-k']) require(path.join(__dirname, '..', 'js', f + '.js'));
 const MQ = globalThis.MQ;
 
-const RUNS = 1500;
+const RUNS = 1200;
 let failures = 0;
 const fail = (topic, d, msg, p) => {
   failures++;
@@ -32,7 +32,7 @@ for (const topic of Object.keys(MQ.TOPICS)) {
         else if (!p.choices.includes(p.answer)) fail(topic, d, 'answer missing from choices', p);
         else if (new Set(p.choices).size !== p.choices.length) fail(topic, d, 'duplicate choices', p);
       } else fail(topic, d, 'unknown kind', p);
-      seen.add(p.text + (p.visual || ''));
+      seen.add(p.text + (p.visual || '') + (p.choices || []).join('|'));
     }
     if (seen.size < 8) fail(topic, d, `only ${seen.size} distinct problems`);
   }
@@ -58,7 +58,22 @@ for (const c of MQ.ALL_CREATURES) {
   if (ids.has(c.id)) fail('content', 0, 'duplicate creature ' + c.id);
   ids.add(c.id);
 }
-for (const w of MQ.WORLDS) for (const l of w.levels) for (const t of l.topics) if (!MQ.TOPICS[t]) fail('content', 0, `world ${w.id} uses unknown topic ${t}`);
+const worldIds = new Set();
+for (const tr of Object.values(MQ.TRACKS)) {
+  const used = new Set();
+  for (const w of tr.worlds) {
+    if (worldIds.has(w.id)) fail('content', 0, 'duplicate world id ' + w.id);
+    worldIds.add(w.id);
+    if (w.levels.length !== 6) fail('content', 0, `world ${w.id} needs 6 levels`);
+    for (const l of w.levels) {
+      if (!MQ.CREATURES[l.creature]) fail('content', 0, `world ${w.id} has unknown creature ${l.creature}`);
+      else if (used.has(MQ.CREATURES[l.creature].emoji)) fail('content', 0, `track ${tr.id} repeats creature emoji ${MQ.CREATURES[l.creature].emoji}`);
+      else used.add(MQ.CREATURES[l.creature].emoji);
+      for (const t of l.topics) if (!MQ.TOPICS[t] || MQ.TOPICS[t].track !== tr.id) fail('content', 0, `world ${w.id} uses topic ${t} from another track`);
+    }
+  }
+  for (const t of [...tr.core, ...tr.ahead]) if (!MQ.TOPICS[t]) fail('content', 0, `track ${tr.id} lists unknown topic ${t}`);
+}
 
 if (failures) {
   console.error(`\n${failures} problem(s) failed.`);

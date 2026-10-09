@@ -40,6 +40,32 @@
     try { SONGS[name] && SONGS[name](); } catch (e) { /* audio unavailable */ }
   };
 
+  // Read-aloud for kids who don't read yet (Web Speech API, built into iPad Safari and Chrome).
+  MQ.canSpeak = () => typeof window !== 'undefined' && 'speechSynthesis' in window;
+  MQ.toSpeech = (html) =>
+    String(html)
+      .replace(/<span class="blank">\?<\/span>/g, ' what ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\+/g, ' plus ').replace(/−/g, ' minus ').replace(/×/g, ' times ').replace(/÷/g, ' divided by ').replace(/=/g, ' equals ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  MQ.speak = (text) => {
+    if (!MQ.canSpeak() || !text) return;
+    try {
+      const synth = window.speechSynthesis;
+      synth.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      const voices = synth.getVoices();
+      const v = voices.find((x) => /en-US/i.test(x.lang) && /Samantha|Google US English|Ava|Allison|Female/i.test(x.name)) || voices.find((x) => /^en/i.test(x.lang));
+      if (v) u.voice = v;
+      u.lang = 'en-US';
+      u.rate = 0.9;
+      u.pitch = 1.1;
+      synth.speak(u);
+    } catch (e) { /* speech unavailable */ }
+  };
+  MQ.hush = () => { try { MQ.canSpeak() && window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } };
+
   const reduced = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   MQ.confetti = (amount = 120) => {
     if (reduced()) return;

@@ -23,7 +23,8 @@ async function run(viewport, tag) {
   await snap('01-onboard');
   await page.fill('#ob-name', 'Sofia');
   await page.click('[data-act=pickBuddy][data-arg="🐙"]');
-  await page.click('[data-act=startGame]');
+  await page.click('[data-act=pickGrade][data-arg=g2]');
+  await page.click('[data-act=createKid]');
   await snap('02-home');
 
   // Solve a level: answer the first problem wrong once (to see the hint), then everything right.
@@ -128,8 +129,66 @@ async function run(viewport, tag) {
       await page.evaluate(() => MQ.app.go('home'));
     }
   }
+  // ---- Second child in kindergarten: separate profile, separate progress
+  await page.evaluate(() => MQ.app.go('who'));
+  await page.click('[data-act=go][data-arg=new]');
+  await page.fill('#ob-name', 'Mila');
+  await page.click('[data-act=pickGrade][data-arg=k]');
+  await page.click('[data-act=pickBuddy][data-arg="🦦"]');
+  await snap('20-new-k');
+  await page.click('[data-act=createKid]');
+  await page.waitForSelector('.home');
+  const k0 = await page.evaluate(() => ({ grade: MQ.state.grade, gems: MQ.state.crystals, creatures: Object.keys(MQ.state.creatures).length, read: MQ.state.settings.readAloud }));
+  if (k0.grade !== 'k' || k0.gems !== 0 || k0.creatures !== 0 || !k0.read) errors.push(tag + ': new K profile is not clean ' + JSON.stringify(k0));
+  await snap('21-k-home');
+  await page.click('.continue');
+  await solve(8);
+  await page.waitForSelector('.result');
+  await page.waitForTimeout(1500);
+  await snap('22-k-level-done');
+  const kc = await page.evaluate(() => Object.keys(MQ.state.creatures));
+  if (kc.length !== 1 || !kc[0].startsWith('k_')) errors.push(tag + ': K creature wrong ' + kc);
+  await page.evaluate(() => MQ.app.go('map'));
+  await snap('23-k-map');
+  await page.evaluate(() => MQ.app.go('trainer'));
+  await snap('24-k-trainer');
+  // Back to the older sister: her progress is untouched
+  await page.evaluate(() => MQ.app.go('who'));
+  await snap('25-who');
+  const profiles = await page.$$('.profile:not(.add)');
+  if (profiles.length !== 2) errors.push(tag + ': expected 2 profiles, got ' + profiles.length);
+  await page.click('.profile >> text=Sofia');
+  const g2 = await page.evaluate(() => ({ grade: MQ.state.grade, creatures: Object.keys(MQ.state.creatures) }));
+  if (g2.grade !== 'g2' || g2.creatures.some((c) => c.startsWith('k_')) || g2.creatures.length < 2) errors.push(tag + ': profiles mixed ' + JSON.stringify(g2));
+  // Reload keeps both, and shows the picker
+  await page.reload();
+  await page.waitForSelector('.who-screen');
+  if (shots) {
+    await page.click('.profile >> text=Mila');
+    for (const t of ['k_count', 'k_numbers', 'k_compare', 'k_add', 'k_sub', 'k_teen', 'k_shapes', 'k_measure', 'k_words', 'k_patterns']) {
+      for (const d of [1, 3, 5]) {
+        await page.evaluate(([t, d]) => { MQ.state.trainer = { topics: [t], diff: d, mode: 'endless' }; MQ.app.go('trainer'); }, [t, d]);
+        await page.click('[data-act=startTrainer]');
+        await page.waitForSelector('.pcard .ptext');
+        await page.waitForTimeout(350);
+        await snap(`k-${t}-${d}`);
+      }
+    }
+  }
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   if (overflow) errors.push(tag + ': horizontal overflow');
+  await page.close();
+}
+// The first version saved one player under an old key: it must become a 2nd-grade profile.
+{
+  const page = await browser.newPage();
+  page.on('pageerror', (e) => errors.push('migrate: ' + e.message));
+  await page.goto(url);
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('math-expedition-v1', JSON.stringify({ v: 1, name: 'Old', companion: '🦉', crystals: 42, xp: 120, levels: { 'tide-0': { stars: 3 } }, creatures: { hermit: { got: '2026-10-01' } } })); });
+  await page.reload();
+  await page.waitForSelector('.home');
+  const m = await page.evaluate(() => ({ name: MQ.state.name, grade: MQ.state.grade, gems: MQ.state.crystals, old: localStorage.getItem('math-expedition-v1') }));
+  if (m.name !== 'Old' || m.grade !== 'g2' || m.gems !== 42 || m.old) errors.push('migrate: ' + JSON.stringify(m));
   await page.close();
 }
 await run({ width: 390, height: 844 }, 'phone');

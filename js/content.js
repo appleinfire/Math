@@ -4,9 +4,9 @@
 
   // Each world = one biome + a cluster of math topics.
   // Each level: topics, difficulty range [min,max], goal (correct answers needed), type, creature reward.
-  const L = (topics, d, creature, type = 'normal', goal) => ({
+  const L = (MQ.L = (topics, d, creature, type = 'normal', goal) => ({
     topics, d: Array.isArray(d) ? d : [d, d], creature, type, goal: goal || (type === 'boss' ? 7 : 5),
-  });
+  }));
 
   MQ.WORLDS = [
     {
@@ -67,7 +67,7 @@
     },
   ];
 
-  const C = (id, emoji, name, fact, rarity = 'common') => ({ id, emoji, name, fact, rarity });
+  const C = (MQ.C = (id, emoji, name, fact, rarity = 'common') => ({ id, emoji, name, fact, rarity }));
   MQ.CREATURES = {
     // Tide Pools
     hermit: C('hermit', '🦀', 'Hermit Crab', 'When a hermit crab finds a bigger shell, crabs sometimes line up from biggest to smallest and all swap shells at once — like a housing chain!'),
@@ -146,10 +146,29 @@
   ];
   MQ.EGG_PRICE = 30;
 
-  MQ.ALL_CREATURES = [...Object.values(MQ.CREATURES).map((c) => c), ...MQ.EGG_CREATURES];
-  MQ.WORLDS.forEach((w) => w.levels.forEach((l) => (MQ.CREATURES[l.creature].world = w.id)));
-  MQ.EGG_CREATURES.forEach((c) => (c.world = 'egg'));
+  // A track = one grade: its own world map, topics, and creatures. Each child's profile follows one track.
+  MQ.TRACKS = {
+    g2: {
+      id: 'g2', label: '2nd grade', short: '2nd', worlds: MQ.WORLDS,
+      core: ['add20', 'place', 'add100', 'sub100', 'arrays', 'time', 'money', 'shapes', 'measure', 'data', 'big', 'words'],
+      ahead: ['mult', 'logic'], aheadLabel: 'Challenge — ahead of 2nd grade',
+      dLabels: ['', 'warm-up', '2nd grade', 'strong 2nd', 'end of 2nd', '3rd grade!'],
+      daily: [2, 4], paper: '#eef5f2',
+      school: 'Problems follow the California Common Core standards for 2nd grade. Difficulty: 🌱 Sprout = warm-up, 🧭 Explorer and 🏕️ Ranger = core 2nd grade, 🏔️ Expert = end of 2nd / start of 3rd, 🐉 Legend = challenge problems from 3rd grade and beyond. Each world ends with a ⚡ Challenge level and a 👑 Guardian level that mixes topics. The Sky Kingdom is all 3rd-grade challenge material: multiplication, division and logic puzzles.',
+    },
+  };
+  MQ.track = (grade) => MQ.TRACKS[grade] || MQ.TRACKS.g2;
+  MQ.trackWorlds = (s) => MQ.track(s.grade).worlds;
+  MQ.trackCreatures = (grade) => [...MQ.track(grade).worlds.flatMap((w) => w.levels.map((l) => MQ.CREATURES[l.creature])), ...MQ.EGG_CREATURES];
+  // Call after a track's worlds and creatures are registered.
+  MQ.linkCreatures = () => {
+    Object.values(MQ.TRACKS).forEach((t) => t.worlds.forEach((w) => w.levels.forEach((l) => (MQ.CREATURES[l.creature].world = w.id))));
+    MQ.EGG_CREATURES.forEach((c) => (c.world = 'egg'));
+    MQ.ALL_CREATURES = [...Object.values(MQ.CREATURES), ...MQ.EGG_CREATURES];
+  };
+  MQ.linkCreatures();
   MQ.creatureById = (id) => MQ.ALL_CREATURES.find((c) => c.id === id);
+  MQ.worldById = (id) => Object.values(MQ.TRACKS).flatMap((t) => t.worlds).find((w) => w.id === id);
 
   MQ.COMPANIONS = [
     { e: '🦊', n: 'Fox' }, { e: '🐙', n: 'Octopus' }, { e: '🦉', n: 'Owl' },
@@ -167,22 +186,22 @@
 
   MQ.BADGES = [
     { id: 'first', icon: '🎒', name: 'First Steps', desc: 'Finish your first level', test: (s) => Object.keys(s.levels).length >= 1 },
-    { id: 'boss', icon: '🛡️', name: 'Guardian Friend', desc: 'Beat a world guardian (boss level)', test: (s) => MQ.WORLDS.some((w) => s.levels[w.id + '-5']) },
+    { id: 'boss', icon: '🛡️', name: 'Guardian Friend', desc: 'Beat a world guardian (boss level)', test: (s) => MQ.trackWorlds(s).some((w) => s.levels[w.id + '-5']) },
     { id: 'col10', icon: '📔', name: 'Naturalist', desc: 'Discover 10 creatures', test: (s) => Object.keys(s.creatures).length >= 10 },
-    { id: 'col30', icon: '🔭', name: 'Field Scientist', desc: 'Discover 30 creatures', test: (s) => Object.keys(s.creatures).length >= 30 },
-    { id: 'colall', icon: '🌍', name: 'Living Encyclopedia', desc: 'Discover every creature', test: (s) => Object.keys(s.creatures).length >= MQ.ALL_CREATURES.length },
+    { id: 'col30', icon: '🔭', name: 'Field Scientist', desc: 'Discover 25 creatures', test: (s) => Object.keys(s.creatures).length >= 25 },
+    { id: 'colall', icon: '🌍', name: 'Living Encyclopedia', desc: 'Discover every creature', test: (s) => Object.keys(s.creatures).length >= MQ.trackCreatures(s.grade).length },
     { id: 'streak10', icon: '🔥', name: 'On Fire', desc: '10 right in a row', test: (s) => s.stats.bestStreak >= 10 },
     { id: 'streak25', icon: '☄️', name: 'Unstoppable', desc: '25 right in a row', test: (s) => s.stats.bestStreak >= 25 },
     { id: 'solve100', icon: '💯', name: 'Century', desc: 'Solve 100 problems', test: (s) => s.stats.correct >= 100 },
     { id: 'solve500', icon: '🏔️', name: 'Mountain of Math', desc: 'Solve 500 problems', test: (s) => s.stats.correct >= 500 },
     { id: 'solve1000', icon: '🚀', name: 'Thousand Club', desc: 'Solve 1,000 problems', test: (s) => s.stats.correct >= 1000 },
-    { id: 'perfect', icon: '🌟', name: 'Star Collector', desc: 'Get 3 stars on every level in a world', test: (s) => MQ.WORLDS.some((w) => w.levels.every((_, i) => (s.levels[w.id + '-' + i] || {}).stars === 3)) },
+    { id: 'perfect', icon: '🌟', name: 'Star Collector', desc: 'Get 3 stars on every level in a world', test: (s) => MQ.trackWorlds(s).some((w) => w.levels.every((_, i) => (s.levels[w.id + '-' + i] || {}).stars === 3)) },
     { id: 'daily3', icon: '📅', name: 'Habit Builder', desc: 'Daily Quest 3 days in a row', test: (s) => s.daily.best >= 3 },
     { id: 'daily7', icon: '🗓️', name: 'Week Warrior', desc: 'Daily Quest 7 days in a row', test: (s) => s.daily.best >= 7 },
     { id: 'light15', icon: '⚡', name: 'Lightning Brain', desc: '15 right in a 60-second Lightning Round', test: (s) => (s.stats.lightning60 || 0) >= 15 },
     { id: 'egg', icon: '🥚', name: 'Hatchling', desc: 'Hatch your first egg', test: (s) => s.eggsHatched >= 1 },
     { id: 'ahead', icon: '🧠', name: 'Big Brain', desc: 'Solve 25 challenge-level problems', test: (s) => (s.stats.d5 || 0) >= 25 },
-    { id: 'sky', icon: '🐉', name: 'Dragon Rider', desc: 'Beat the Sky Kingdom guardian', test: (s) => !!s.levels['sky-5'] },
+    { id: 'sky', icon: '🌠', name: 'Summit Explorer', desc: 'Befriend the guardian of the last world', test: (s) => { const w = MQ.trackWorlds(s); return !!s.levels[w[w.length - 1].id + '-5']; } },
   ];
 
   MQ.SAY = {
