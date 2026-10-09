@@ -101,6 +101,10 @@ try {
   check(true, 'A: crystals earned on B arrived live');
   await A.waitForFunction((w) => document.querySelector('#gems') && document.querySelector('#gems').textContent === String(w), want, { timeout: 5000 }).then(() => check(true, 'A: home screen redrawn with the new number'), () => check(false, 'A: home screen redrawn with the new number'));
 
+  // ---- A Placement Check result saved on A shows up on B
+  await A.evaluate(() => { MQ.state.tests.checks.push({ id: 'e2e' + Date.now().toString(36), date: MQ.U.dateKey(), grade: 'g2', overall: 6.2, expected: 5, domains: { nbt: 6, alg: 6.5, md: 5.8, geo: 7 }, n: 30, correct: 21 }); MQ.store.save(); });
+  await B.waitForFunction(() => MQ.state && MQ.state.tests.checks.some((c) => c.id.startsWith('e2e')), null, { timeout: 30000 }).then(() => check(true, 'B: Placement Check result from A arrived'), () => check(false, 'B: Placement Check result from A arrived'));
+
   // ---- Reload B: everything is still there (and comes from the device cache instantly)
   await B.reload();
   await B.waitForSelector('.home');

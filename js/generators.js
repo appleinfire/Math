@@ -26,6 +26,19 @@
   function C(text, answer, choices, o = {}) {
     return Object.assign({ kind: 'choice', text, answer: String(answer), choices: choices.map(String) }, o);
   }
+  // Formats used by i-Ready style questions:
+  // M = select all that apply (answer = every right choice), O = put in order, Ln = tap a point on a number line.
+  function M(text, answers, choices, o = {}) {
+    return Object.assign({ kind: 'multi', text, answer: answers.map(String).sort(), choices: choices.map(String) }, o);
+  }
+  function O(text, ordered, o = {}) {
+    let items;
+    do items = shuffle(ordered); while (items.join('|') === ordered.join('|'));
+    return Object.assign({ kind: 'order', text, answer: ordered.map(String), items: items.map(String) }, o);
+  }
+  function Ln(text, answer, line, o = {}) {
+    return Object.assign({ kind: 'line', text, answer, line }, o);
+  }
 
   // ======================================================================
   // 1. Add & subtract within 20  (2.OA.2 fluency, 2.OA.1)
@@ -56,6 +69,14 @@
       });
     }
     if (d === 3) {
+      if (chance(0.2)) {
+        const target = pick([10, 10, 12, 15]);
+        const pairs = U.sample(U.range(1, target - 1), 5).map((x, i) => [x, target - x + (i < 2 || chance(0.3) ? 0 : pick([-2, -1, 1, 2]))]).filter(([, y]) => y > 0);
+        const opts = [...new Set(pairs.map(([x, y]) => `${x} + ${y}`))];
+        const good = opts.filter((s) => s.split(' + ').reduce((u, v) => u + +v, 0) === target);
+        if (good.length === opts.length || opts.length < 3) return add20(3);
+        return M(`Select <b>all</b> the ways to make <b>${target}</b>.`, good, opts, { hint: 'Add each pair. Which ones make exactly ' + target + '?' });
+      }
       const c = rnd(9, 20), a = rnd(1, c - 1), b = c - a;
       switch (rnd(1, 4)) {
         case 1: return N(E(`${a} + ? = ${c}`), b, { big: true, hint: `Count up from ${a} to ${c}.`, explain: `${a} + ${b} = ${c}` });
@@ -100,6 +121,7 @@
   function place(d) {
     if (d === 1) {
       const n = rnd(12, 99), { t, o } = digits(n);
+      if (chance(0.25) && o > 0) return Ln(`Tap where <b>${n}</b> goes on the number line.`, n, { min: t * 10, max: t * 10 + 10, step: 1 }, { say: `Tap where ${n} goes on the number line.`, hint: `Start at ${t * 10} and count ${o} small jumps.` });
       switch (rnd(1, 3)) {
         case 1: return N('What number do the blocks show?', n, { visual: V.blocks(0, t, o), hint: 'Count the tens rods by 10s, then count on the ones.', explain: `${t} tens and ${o} ones = ${n}` });
         case 2: return N(`How many <b>tens</b> are in ${n}?`, t, { hint: `${n} = ? tens and ${o} ones.`, explain: `${n} = ${t} tens and ${o} ones` });
@@ -108,6 +130,10 @@
     }
     if (d === 2) {
       const n = rnd(101, 999), { h, t, o } = digits(n);
+      if (chance(0.2)) {
+        const base = rnd(1, 8) * 100, v = base + rnd(1, 9) * 10;
+        return N('What number is the arrow pointing to?', v, { visual: V.numberLine({ min: base, max: base + 100, step: 10, marker: v }), hint: `Each jump is 10. Count by tens from ${base}.`, explain: `${base}, ${base + 10}, ${base + 20}… the arrow is at ${v}.` });
+      }
       switch (rnd(1, 3)) {
         case 1: return N('What number do the blocks show?', n, { visual: V.blocks(h, Math.min(t, 9), o), hint: 'Flats are 100, rods are 10, small cubes are 1.', explain: `${h} hundreds, ${t} tens, ${o} ones = ${n}` });
         case 2: {
@@ -149,6 +175,10 @@
       }
     }
     if (d === 4) {
+      if (chance(0.25)) {
+        const h = rnd(1, 8), ns = U.sample(U.range(h * 100, h * 100 + 199), 4).sort((a, b) => a - b);
+        return O('Put the numbers in order from <b>least</b> to <b>greatest</b>.', ns, { hint: 'Compare the hundreds first, then the tens, then the ones.' });
+      }
       switch (rnd(1, 3)) {
         case 1: {
           let a = rnd(100, 999), b, left, right;
@@ -300,6 +330,11 @@
       return C('Is this number of dots <b>odd</b> or <b>even</b>?', n % 2 ? 'odd' : 'even', ['odd', 'even'], { visual: V.pairs(n), hint: 'Pair up the dots. Is one left over?', explain: `${n} is ${n % 2 ? 'odd — one dot has no partner' : 'even — every dot has a partner'}.` });
     }
     if (d === 2) {
+      if (chance(0.25)) {
+        let ns;
+        do ns = U.sample(U.range(10, 60), 6); while (ns.filter((x) => x % 2 === 0).length < 2 || ns.filter((x) => x % 2).length < 2);
+        return M('Select <b>all</b> the even numbers.', ns.filter((x) => x % 2 === 0), ns, { hint: 'Even numbers end in 0, 2, 4, 6 or 8.' });
+      }
       if (chance(0.5)) {
         const n = rnd(21, 99);
         return C(`Is <b>${n}</b> odd or even?`, n % 2 ? 'odd' : 'even', ['odd', 'even'], { hint: 'Only the ones digit matters: 0, 2, 4, 6, 8 are even.', explain: `It ends in ${n % 10}, so ${n} is ${n % 2 ? 'odd' : 'even'}.` });
@@ -452,6 +487,13 @@
     }
     if (d === 2) {
       if (chance(0.25)) {
+        const SIDES = { triangle: 3, square: 4, rectangle: 4, rhombus: 4, trapezoid: 4, pentagon: 5, hexagon: 6, circle: 0 };
+        const sides = pick([3, 4]), kinds = U.sample(Object.keys(SIDES), 5);
+        const good = kinds.filter((k) => SIDES[k] === sides);
+        if (!good.length || good.length === kinds.length) return shapes(2);
+        return M(`Select <b>all</b> the shapes with <b>${sides} sides</b>.`, good, kinds, { choiceHtml: kinds.map((k) => V.mini(k, 64)), hint: 'Count the sides of each shape. A circle has none.' });
+      }
+      if (chance(0.25)) {
         const [name, n] = pick([['triangle', 3], ['quadrilateral', 4], ['pentagon', 5], ['hexagon', 6]]);
         return C(`A shape with exactly <b>${n} sides</b> is called a…`, name, U.strChoices(name, ['triangle', 'quadrilateral', 'pentagon', 'hexagon', 'octagon'], 4), { hint: 'tri = 3, quad = 4, penta = 5, hexa = 6, octa = 8' });
       }
@@ -529,6 +571,12 @@
       return N('How long is the crayon?' + (start ? ' Careful — it does not start at 0!' : ''), len, { unit: 'cm', visual: V.ruler({ unit: 'cm', max: 13, start, len, guides: true, color: pick(V.FILLS) }), hint: start ? `It starts at ${start}. Count the spaces from ${start} to the tip.` : 'Look at the number under the tip.', explain: start ? `${start + len} − ${start} = ${len}` : '' });
     }
     if (d === 3) {
+      if (chance(0.2)) {
+        const cols = U.sample([['🟥 red', '#ff6b5b'], ['🟦 blue', '#5b8cff'], ['🟩 green', '#5ccf7a'], ['🟨 yellow', '#ffc94d']], 3);
+        const lens = U.sample(U.range(3, 12), 3);
+        const list = cols.map(([label, color], i) => ({ label, color, len: lens[i] }));
+        return O('Put the ribbons in order from <b>shortest</b> to <b>longest</b>.', list.slice().sort((a, b) => a.len - b.len).map((x) => x.label), { visual: V.ribbons(list), hint: 'They all start at the same place. Find the shortest one first.' });
+      }
       if (chance(0.5)) {
         const [item, ans, sys] = pick(UNIT_ITEMS);
         const opts = sys === 'us' ? ['inches', 'feet', 'yards', 'miles'] : ['centimeters', 'meters', 'kilometers'];
@@ -869,7 +917,7 @@
   };
 
   Object.values(MQ.TOPICS).forEach((t) => (t.track = 'g2'));
-  MQ.G = { N, C, E, BLANK, NAMES }; // shared with generators-k.js
+  MQ.G = { N, C, M, O, Ln, E, BLANK, NAMES }; // shared with generators-k.js and puzzles
 
   MQ.makeProblem = (topic, d) => {
     const p = MQ.TOPICS[topic].gen(U.clamp(d, 1, 5));

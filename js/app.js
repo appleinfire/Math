@@ -47,14 +47,21 @@
     if (/^\d+\/\d+$/.test(c)) { const [a, b] = c.split('/'); return `<span class="frac"><span>${a}</span><span>${b}</span></span>`; }
     return esc(c);
   };
-  const fmtAnswer = (p) => (p.kind === 'choice' ? (p.choiceHtml ? p.choiceHtml[p.choices.indexOf(p.answer)] : fmtChoice(p.answer)) : U.comma(p.answer) + (p.unit ? ' ' + p.unit : ''));
+  const fmtAnswer = (p) => {
+    if (p.kind === 'choice') return p.choiceHtml ? p.choiceHtml[p.choices.indexOf(p.answer)] : fmtChoice(p.answer);
+    if (p.kind === 'multi') return p.choiceHtml ? `<span class="mini-pics">${p.answer.map((a) => p.choiceHtml[p.choices.indexOf(a)]).join('')}</span>` : p.answer.map(fmtChoice).join(', ');
+    if (p.kind === 'order') return p.answer.map(fmtChoice).join(' → ');
+    return U.comma(p.answer) + (p.unit ? ' ' + p.unit : '');
+  };
   const gradeChip = (g) => `<span class="gchip g-${g}">${MQ.track(g).label}</span>`;
 
   // ---------------------------------------------------------------- voice
   const voiceOn = () => st.settings.voice !== false && MQ.canSpeak() && !(sess && sess.timer);
   const UNIT_WORDS = { '¢': 'cents', min: 'minutes', in: 'inches', cm: 'centimeters', ft: 'feet', 'sq cm': 'square centimeters' };
   function spokenAnswer(p) {
-    if (p.kind === 'num') return p.answer + (p.unit ? ' ' + (UNIT_WORDS[p.unit] || p.unit) : '');
+    if (p.kind === 'num' || p.kind === 'line') return p.answer + (p.unit ? ' ' + (UNIT_WORDS[p.unit] || p.unit) : '');
+    if (p.kind === 'multi') return p.choiceHtml ? '' : p.answer.map((a) => MQ.toSpeech(a)).join(' and ');
+    if (p.kind === 'order') return p.answer.map((a) => MQ.toSpeech(a)).join(', then ');
     const words = { '<': 'less than', '>': 'greater than', '=': 'equal', '= same': 'the same' }[p.answer];
     return words || MQ.toSpeech(p.answer.replace(/^\$/, '')) || '';
   }
@@ -231,7 +238,7 @@
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
-    const redraw = { home, map, journal, badges, world: () => world(arg) }[scr];
+    const redraw = { home, map, journal, badges, prep, world: () => world(arg) }[scr];
     if (redraw) redraw();
   }
   function newExplorer() {
@@ -317,6 +324,7 @@
         <button class="tile t-journal" data-act="go" data-arg="journal"><span class="ti">📔</span><b>Field Journal</b><small>${have} / ${total} creatures</small></button>
         <button class="tile t-hatch" data-act="go" data-arg="hatch"><span class="ti">🥚</span><b>Hatchery</b><small>Rare eggs · ${MQ.EGG_PRICE} 💎</small></button>
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
+        <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>Placement Check in the style of i-Ready${myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : ''}</small></span></button>
       </div>
       <footer class="foot">${syncLine()}<button class="linkbtn" data-act="go" data-arg="parent">For grown-ups</button></footer>
     </main>`);
@@ -361,6 +369,7 @@
 
   // ---------------------------------------------------------------- play
   function pickProblem() {
+    if (sess.mode === 'check') return MQ.prep.next(sess.eng);
     const topic = U.pick(sess.topics);
     const d = sess.auto ? sess.autoD : U.rnd(sess.d[0], sess.d[1]);
     let p;
@@ -374,7 +383,7 @@
   function startSession(cfg) {
     remember('play');
     sess = Object.assign({ correct: 0, firstTry: 0, mistakes: 0, streak: 0, best: 0, answered: 0, earned: 0, recent: [], tries: 0, p: null, input: '', autoD: 2, up: 0, down: 0, left: cfg.timer || 0, locked: false }, cfg);
-    const color = sess.world ? sess.world.color : sess.mode === 'daily' ? '#e09a2b' : '#ff6b5b';
+    const color = sess.world ? sess.world.color : sess.mode === 'daily' ? '#e09a2b' : sess.mode === 'check' ? '#5b63c9' : '#ff6b5b';
     render(`<div class="play" style="--wc:${color}">
       <header class="playbar"><button class="iconbtn" data-act="quit" aria-label="Stop">✕</button><div class="pstatus" id="pstatus"></div>${gemPill()}</header>
       <div class="buddy small"><span class="buddy-e">${st.companion}</span><div class="bubble" id="bubble"></div></div>
@@ -400,6 +409,9 @@
       el.innerHTML = `<span class="stat">🔥 <b>${sess.streak}</b></span><span class="stat">✓ <b>${sess.correct}</b></span>` +
         (sess.timer ? `<span class="stat timer ${sess.left <= 10 ? 'low' : ''}">⏱ <b>${m}:${s}</b></span>` : '') +
         `<span class="stat dchip d${sess.auto ? sess.autoD : sess.d[1]}">${sess.auto ? 'Auto · ' + D_NAMES[sess.autoD] : D_NAMES[sess.d[1]]}</span>`;
+    } else if (sess.mode === 'check') {
+      const total = MQ.prep.total(sess.eng), done = sess.answered;
+      el.innerHTML = `<span class="ptitle">🎯 Placement Check</span><span class="cprog"><span style="width:${Math.round((done / total) * 100)}%"></span></span><span class="stat">${Math.min(done + 1, total)} / ${total}</span>`;
     } else {
       const title = sess.mode === 'daily' ? '📅 Daily Quest' : `${sess.world.emoji} ${levelName(sess.level, sess.li)}`;
       el.innerHTML = `<span class="ptitle">${title}</span><span class="slots">${U.range(1, sess.goal).map((i) => `<i class="${i <= sess.correct ? 'on' : ''}"></i>`).join('')}</span>`;
@@ -411,9 +423,15 @@
     sess.tries = 0;
     sess.input = '';
     sess.locked = false;
+    sess.sel = [];
+    sess.lineVal = null;
+    sess.showLine = null;
+    sess.pickChoice = null;
     const p = sess.p, T = MQ.TOPICS[p.topic];
     const card = $('#pcard');
-    card.innerHTML = `<div class="pmeta"><span>${T.icon} ${T.name}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="speak" aria-label="Read the question aloud">🔊</button>' : ''}<span class="dchip d${p.d}">${D_ICONS[p.d]} ${D_NAMES[p.d]}</span></span></div>
+    // In a Placement Check the difficulty is not shown (it would give the level away).
+    const chip = sess.mode === 'check' ? '' : `<span class="dchip d${p.d}">${D_ICONS[p.d]} ${D_NAMES[p.d]}</span>`;
+    card.innerHTML = `<div class="pmeta"><span>${T.icon} ${T.name}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="speak" aria-label="Read the question aloud">🔊</button>' : ''}${chip}</span></div>
       <div class="ptext ${p.big ? 'eq' : ''} ${p.wordy ? 'wordy' : ''}">${p.text}</div>
       ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
       ${p.kind === 'num' ? `<div class="display" id="display"><span class="dval" id="dval"></span>${p.unit ? `<span class="unit">${p.unit}</span>` : ''}</div>` : ''}
@@ -426,13 +444,65 @@
       const slot = card.querySelector('.ptext .blank') || card.querySelector('.pvis .column .ans');
       if (slot) { slot.id = 'slot'; $('#display').hidden = true; }
     }
-    $('#answer').innerHTML = p.kind === 'num'
-      ? `<div class="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((k) => `<button class="key" data-act="key" data-arg="${k}">${k}</button>`).join('')}<button class="key alt" data-act="key" data-arg="back" aria-label="Delete">⌫</button><button class="key" data-act="key" data-arg="0">0</button><button class="key go" data-act="submit">Check</button></div>`
-      : `<div class="choices n${p.choices.length} ${p.choiceHtml ? 'pics' : ''}">${p.choices.map((c, i) => `<button class="choice" data-act="choose" data-arg="${i}" aria-label="${esc(c)}">${p.choiceHtml ? p.choiceHtml[i] : fmtChoice(c)}</button>`).join('')}</div>`;
+    redrawAnswer();
     showInput();
     status();
     if (st.settings.readAloud) MQ.speak(p.say || MQ.toSpeech(p.text));
   }
+  // The answer area for each question format.
+  //   num: number pad · choice: buttons · multi: tap every right answer · order: tap cards in order · line: tap the number line
+  function answerHtml(p) {
+    const checkMode = sess.mode === 'check';
+    const go = sess.locked ? '' : `<button class="btn big go-pick" data-act="submitPick">${checkMode ? 'Next →' : 'Check'}</button>`;
+    if (p.kind === 'num') {
+      return `<div class="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((k) => `<button class="key" data-act="key" data-arg="${k}">${k}</button>`).join('')}<button class="key alt" data-act="key" data-arg="back" aria-label="Delete">⌫</button><button class="key" data-act="key" data-arg="0">0</button><button class="key go" data-act="submit">${checkMode ? 'Next' : 'Check'}</button></div>`;
+    }
+    if (p.kind === 'choice') {
+      return `<div class="choices n${p.choices.length} ${p.choiceHtml ? 'pics' : ''}">${p.choices.map((c, i) => `<button class="choice" data-act="choose" data-arg="${i}" aria-label="${esc(c)}">${p.choiceHtml ? p.choiceHtml[i] : fmtChoice(c)}</button>`).join('')}</div>${checkMode ? go : ''}`;
+    }
+    if (p.kind === 'multi') {
+      return `<p class="pick-note">Tap <b>every</b> right answer.</p><div class="choices multi n${p.choices.length} ${p.choiceHtml ? 'pics' : ''}">${p.choices.map((c, i) => `<button class="choice ${sess.sel.includes(i) ? 'sel' : ''}" data-act="toggle" data-arg="${i}" aria-pressed="${sess.sel.includes(i)}" aria-label="${esc(c)}">${p.choiceHtml ? p.choiceHtml[i] : fmtChoice(c)}</button>`).join('')}</div>${go}`;
+    }
+    if (p.kind === 'order') {
+      const slotsHtml = p.items.map((_, k) => (sess.sel[k] === undefined ? `<span class="oslot empty">${k + 1}</span>` : `<button class="oslot" data-act="unorder" data-arg="${k}" aria-label="Take back ${esc(p.items[sess.sel[k]])}">${fmtChoice(p.items[sess.sel[k]])}</button>`)).join('<i class="oarrow">→</i>');
+      return `<p class="pick-note">Tap the cards in order. Tap a placed card to take it back.</p><div class="order-slots">${slotsHtml}</div><div class="order-items">${p.items.map((c, i) => `<button class="choice" data-act="orderPick" data-arg="${i}" ${sess.sel.includes(i) ? 'disabled' : ''}>${fmtChoice(c)}</button>`).join('')}</div>${go}`;
+    }
+    if (p.kind === 'line') {
+      return `<p class="pick-note">Tap a spot on the number line.</p><div class="linebox">${MQ.V.numberLine(Object.assign({}, p.line, { pick: !sess.locked, chosen: sess.lineVal, correct: sess.showLine }))}</div>${go}`;
+    }
+    return '';
+  }
+  function redrawAnswer() { $('#answer').innerHTML = answerHtml(sess.p); }
+  function submitPick() {
+    if (!sess || sess.locked) return;
+    const p = sess.p;
+    if (p.kind === 'num') return submit();
+    if (p.kind === 'choice') {
+      if (sess.pickChoice === null) return say(`${st.buddyName}: Tap an answer first!`);
+      return check(p.choices[sess.pickChoice], document.querySelectorAll('.choice')[sess.pickChoice]);
+    }
+    if (p.kind === 'multi') {
+      if (!sess.sel.length) return say(`${st.buddyName}: Tap the answers you think are right.`);
+      return check(sess.sel.map((i) => p.choices[i]));
+    }
+    if (p.kind === 'order') {
+      if (sess.sel.length < p.items.length) return say(`${st.buddyName}: Put all the cards in order first!`);
+      return check(sess.sel.map((i) => p.items[i]));
+    }
+    if (p.kind === 'line') {
+      if (sess.lineVal === null) return say(`${st.buddyName}: Tap a spot on the number line first!`);
+      return check(sess.lineVal);
+    }
+  }
+  // Show which picks were right after an answer (multi, order, number line).
+  function markPicks(right) {
+    const p = sess.p;
+    if (p.kind === 'multi') document.querySelectorAll('.choices.multi .choice').forEach((b, i) => { b.classList.remove('sel'); if (p.answer.includes(p.choices[i])) b.classList.add('right'); else if (sess.sel.includes(i)) b.classList.add('nope'); });
+    if (p.kind === 'order' && right) document.querySelectorAll('.oslot').forEach((b) => b.classList.add('right'));
+    if (p.kind === 'line') { sess.showLine = p.answer; redrawAnswer(); }
+    if (p.kind === 'multi' || p.kind === 'order') { const g = $('.go-pick'); if (g) g.remove(); }
+  }
+
   // All answer boxes show what is typed (e.g. "8 = ? + ?" with equal addends).
   const slots = () => { const s = document.querySelectorAll('.ptext .blank'); return $('#slot') && s.length > 1 ? [...s] : [$('#slot') || $('#dval')].filter(Boolean); };
   function showInput() {
@@ -459,12 +529,33 @@
     if (!sess || sess.locked) return;
     const btn = document.querySelectorAll('.choice')[i];
     if (!btn || btn.disabled) return;
+    if (sess.mode === 'check') { // in a check, a tap only selects; "Next" confirms
+      sess.pickChoice = i;
+      document.querySelectorAll('.choice').forEach((b, k) => b.classList.toggle('sel', k === i));
+      MQ.sfx('tap');
+      return;
+    }
     check(sess.p.choices[i], btn);
   }
   function check(given, btn) {
     const p = sess.p;
-    const ok = p.kind === 'num' ? Number(given) === p.answer : String(given) === p.answer;
-    if (ok) right(btn); else wrong(given, btn);
+    const same = (a, b) => a.join('|') === b.join('|');
+    const ok = p.kind === 'num' || p.kind === 'line' ? Number(given) === p.answer
+      : p.kind === 'multi' ? same([...given].sort(), p.answer)
+      : p.kind === 'order' ? same(given, p.answer)
+      : String(given) === p.answer;
+    if (sess.mode === 'check') return checkAnswer(ok, given);
+    if (ok) right(btn); else wrong(Array.isArray(given) ? given.join(', ') : given, btn);
+  }
+  // Placement Check: no feedback, just save the answer and move on.
+  function checkAnswer(ok, given) {
+    sess.locked = true;
+    sess.answered++;
+    if (ok) sess.correct++;
+    MQ.prep.answer(sess.eng, sess.p, ok, Array.isArray(given) ? given.join(', ') : given);
+    MQ.sfx('tap');
+    status();
+    later(MQ.prep.done(sess.eng) ? finishCheck : nextProblem, 220);
   }
   function autoAdjust(good) {
     if (!sess.auto) return;
@@ -502,6 +593,7 @@
     MQ.sfx(chest || (first && MQ.SAY.streak[sess.streak]) ? 'streak' : 'correct');
     if (btn) btn.classList.add('right');
     slots().forEach((el) => el.classList.add('right'));
+    markPicks(true);
     const done = sess.goal && sess.correct >= sess.goal;
     $('#feedback').innerHTML = `<div class="fb ok"><span>✓ ${msg}</span>${sess.timer ? '' : `<button class="btn next" data-act="advance">${done ? 'Finish ★' : 'Next →'}</button>`}</div>`;
     say(`${st.buddyName}: ${msg}`);
@@ -552,6 +644,7 @@
         if (btn) { btn.disabled = true; btn.classList.add('nope'); }
         sess.input = '';
         showInput();
+        if (['multi', 'order', 'line'].includes(p.kind)) { sess.sel = []; sess.lineVal = null; redrawAnswer(); } // start the pick again
         $('#feedback').innerHTML = `<div class="fb hint">💡 ${p.hint || 'Look again carefully and try once more.'}</div>`;
         if (voiceOn()) MQ.speak(U.pick(MQ.SAY.voiceRetry) + (st.settings.readAloud && p.hint ? ' ' + MQ.toSpeech(p.hint) : ''));
         say(`${st.buddyName}: ${U.pick(MQ.SAY.retry)}`);
@@ -568,6 +661,7 @@
     if (btn) btn.classList.add('nope');
     document.querySelectorAll('.choice').forEach((b, i) => { if (p.choices && p.choices[i] === p.answer) b.classList.add('right'); });
     if (p.kind === 'num') slots().forEach((el) => { el.textContent = p.answer; el.classList.add('shown'); });
+    markPicks(false);
     $('#feedback').innerHTML = `<div class="fb reveal"><div>The answer is <b>${fmtAnswer(p)}</b>.</div>${p.explain ? `<div class="explain">${p.explain}</div>` : ''}<button class="btn" data-act="advance">Next →</button></div>`;
     say(`${st.buddyName}: ${U.pick(MQ.SAY.reveal)}`);
     sess.pending = nextProblem; // waits for the Next button
@@ -671,8 +765,103 @@
       sess.locked = true;
       return finishTrainer();
     }
+    if (sess.mode === 'check') {
+      return modal(`<div class="mtitle">Stop the Placement Check?</div><p>Your answers so far will not be saved. You can start a new check any time.</p>
+        <div class="row"><button class="btn ghost" data-act="closeModal">Keep going</button><button class="btn" data-act="leave">Stop</button></div>`);
+    }
     modal(`<div class="mtitle">Leave this ${sess.mode === 'daily' ? 'quest' : 'level'}?</div><p>You will need to start it again to ${sess.mode === 'daily' ? 'finish the quest' : 'discover the creature'}.</p>
       <div class="row"><button class="btn ghost" data-act="closeModal">Keep playing</button><button class="btn" data-act="leave">Leave</button></div>`);
+  }
+
+  // ---------------------------------------------------------------- test prep
+  const P = () => MQ.prep;
+  const myChecks = () => (st.tests.checks || []).filter((c) => c.grade === st.grade);
+  const fmtDate = (k) => { const d = new Date(k + 'T12:00:00'); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); };
+  // Line chart of the overall level across checks, with where the grade "should" be as a dashed line.
+  function historyChart(checks) {
+    if (checks.length < 2) return '';
+    const W = 320, H = 150, L = 64, T = 10, B = 24, PW = W - L - 12, PH = H - T - B;
+    const lo = Math.max(0, Math.floor(Math.min(...checks.map((c) => Math.min(c.overall, c.expected))) - 1));
+    const hi = Math.min(9, Math.ceil(Math.max(...checks.map((c) => Math.max(c.overall, c.expected))) + 1));
+    const y = (v) => T + PH - ((v - lo) / Math.max(1, hi - lo)) * PH;
+    const x = (i) => L + (checks.length === 1 ? PW / 2 : (i / (checks.length - 1)) * PW);
+    let s = '';
+    for (let v = lo; v <= hi; v++) s += `<line x1="${L}" y1="${y(v)}" x2="${L + PW}" y2="${y(v)}" stroke="#d6e0e6"/><text x="${L - 6}" y="${y(v) + 4}" font-size="10" text-anchor="end" fill="#5b6885" font-family="Nunito, sans-serif" font-weight="700">${P().STEPS[v].label}</text>`;
+    s += `<polyline points="${checks.map((c, i) => `${x(i)},${y(c.expected)}`).join(' ')}" fill="none" stroke="#9aa6b8" stroke-width="2" stroke-dasharray="5 4"/>`;
+    s += `<polyline points="${checks.map((c, i) => `${x(i)},${y(c.overall)}`).join(' ')}" fill="none" stroke="#5b63c9" stroke-width="3"/>`;
+    s += checks.map((c, i) => `<circle cx="${x(i)}" cy="${y(c.overall)}" r="5" fill="#5b63c9" stroke="#ffffff" stroke-width="2"/><text x="${x(i)}" y="${H - 6}" font-size="10" text-anchor="middle" fill="#5b6885" font-family="Nunito, sans-serif" font-weight="700">${fmtDate(c.date).replace(/, \d{4}$/, '')}</text>`).join('');
+    return `<figure class="hchart">${`<svg viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="Placement Check history">${s}</svg>`}<figcaption><span class="lg l1"></span>Placement Check level <span class="lg l2"></span>Where most kids are at that time of year</figcaption></figure>`;
+  }
+  function prep() {
+    const checks = myChecks(), last = checks[checks.length - 1];
+    const total = st.grade === 'k' ? 20 : 30;
+    render(header('Test Prep') + `<main class="prep">
+      <p class="lead">Get ready for the tests you take at school.</p>
+      <article class="testcard" style="--pc:#5b63c9">
+        <div class="tc-head"><span class="tc-ic">🎯</span><div><b>Placement Check</b><small>In the style of i-Ready · ${total} questions · about ${st.grade === 'k' ? 15 : 25} minutes</small></div></div>
+        <p>Questions about numbers, algebra, measurement and shapes. They get harder or easier as you answer, like i-Ready at school. No hints this time: just do your best, and make your best guess if you are not sure.</p>
+        ${last ? `<div class="tc-last">Last check, ${fmtDate(last.date)}: <b>${P().label(last.overall)}</b> · ${P().status(last.overall, last.expected).icon} ${P().status(last.overall, last.expected).text} <button class="linkbtn" data-act="viewCheck" data-arg="${last.id}">See results</button></div>` : ''}
+        <button class="btn" data-act="startCheck">${last ? 'Take a new check' : 'Start the check'} ▶</button>
+      </article>
+      ${historyChart(checks)}
+    </main>`);
+    cur = 'prep';
+  }
+  function startCheck() {
+    const eng = P().newCheck(st.grade, myChecks());
+    startSession({ mode: 'check', eng, topics: [], d: [1, 1], goal: 0 });
+    say(`${st.buddyName}: Do your best! No hints in a check. If you are not sure, make your best guess.`);
+  }
+  function finishCheck() {
+    const res = P().result(sess.eng);
+    const list = st.tests.checks;
+    list.push(res);
+    while (list.length > 12) list.shift();
+    list.slice(0, -3).forEach((c) => { delete c.items; }); // keep the answer review only for the latest checks
+    addGems(20);
+    S.save();
+    sess = null;
+    checkResult(res, true);
+    MQ.sfx('reward');
+    MQ.confetti(120);
+    if (st.settings.voice !== false) MQ.speak('You finished the placement check! Great job!');
+    later(checkBadges, 1200);
+  }
+  function checkResult(res, fresh) {
+    const stt = P().status(res.overall, res.expected);
+    const plan = P().practicePlan(res, st.grade);
+    const bar = (v) => `<span class="lbar"><span class="lfill" style="width:${((v + 0.5) / 10) * 100}%"></span><span class="lexp" style="left:${((res.expected + 0.5) / 10) * 100}%" title="Where most kids are now"></span></span>`;
+    render(header('Placement Check', 'prep') + `<main class="presult">
+      <div class="pr-hero">
+        ${fresh ? '<div class="pr-done">Check complete! +20 💎</div>' : `<div class="pr-done muted">${fmtDate(res.date)}</div>`}
+        <div class="pr-level">${P().label(res.overall)}</div>
+        <div class="pr-status s-${stt.id}">${stt.icon} ${stt.text}</div>
+        <p class="muted">${res.correct} of ${res.n} right · most kids are at <b>${P().label(res.expected)}</b> at this time of year</p>
+      </div>
+      <section class="pr-domains">${P().DOMAINS.map((d) => `<div class="pr-dom"><span class="pd-name">${d.icon} ${d.name}</span>${bar(res.domains[d.id])}<span class="pd-lv">${P().label(res.domains[d.id])}</span></div>`).join('')}
+        <p class="muted small">The dark tick shows where most kids are at this time of year.</p></section>
+      <section class="pr-plan"><h2>What to practice next</h2>
+        <p>${plan.domains.map((d) => `${d.icon} <b>${d.name}</b>`).join(' and ')}</p>
+        <div class="chips">${plan.topics.map((t) => `<span class="chip sel">${MQ.TOPICS[t].icon} ${MQ.TOPICS[t].name}</span>`).join('')}</div>
+        <button class="btn" data-act="practicePlan" data-arg="${res.id}">Practice these ▶</button></section>
+      <div class="row">${res.items ? `<button class="btn ghost" data-act="reviewCheck" data-arg="${res.id}">Review answers</button>` : ''}<button class="btn ghost" data-act="go" data-arg="prep">Test Prep</button><button class="btn ghost" data-act="go" data-arg="home">Home</button></div>
+      <p class="muted small center">Practice in the style of i-Ready. The level is an estimate from this app, not an official i-Ready score.</p>
+    </main>`);
+  }
+  function reviewCheck(res) {
+    render(header('Review answers', 'prep') + `<main class="review"><ol class="rlist">${res.items.map((it) => `<li class="${it.ok ? 'ok' : 'no'}">
+      <span class="rmark">${it.ok ? '✓' : '✗'}</span><div><div class="rq">${esc(it.q)}</div>
+      ${it.ok ? `<div class="ra">Your answer: <b>${esc(it.given)}</b></div>` : `<div class="ra">Your answer: <b>${esc(it.given || '—')}</b> · Right answer: <b>${esc(it.a)}</b></div>${it.e ? `<div class="re">${esc(it.e)}</div>` : ''}`}</div></li>`).join('')}</ol>
+      <div class="row"><button class="btn ghost" data-act="viewCheck" data-arg="${res.id}">Back to results</button></div></main>`);
+  }
+  // Grown-ups: history of checks by domain.
+  function readinessSection() {
+    const checks = myChecks();
+    const rows = checks.slice().reverse().map((c) => `<tr><td>${fmtDate(c.date)}</td><td><b>${P().label(c.overall)}</b></td>${P().DOMAINS.map((d) => `<td>${P().label(c.domains[d.id])}</td>`).join('')}</tr>`).join('');
+    return `<section><h2>Test readiness</h2>
+      <p class="muted">i-Ready Diagnostic is taken at school three times a year (fall, winter, spring). A Placement Check here a week before helps ${esc(st.name)} get used to the format and shows what to practice. Results are estimates from this app, not official i-Ready scores.</p>
+      ${checks.length ? `${historyChart(checks)}<div class="tablewrap"><table class="topics"><thead><tr><th>Date</th><th>Overall</th>${P().DOMAINS.map((d) => `<th>${d.short}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>` : '<p>No Placement Check yet. Start one from <b>Test Prep</b> on the home screen.</p>'}
+    </section>`;
   }
 
   // ---------------------------------------------------------------- trainer
@@ -822,6 +1011,7 @@
         <textarea id="savecode" class="field code" rows="3" placeholder="Save code appears here, or paste one to load it"></textarea>
         <div class="row left"><button class="btn ghost" data-act="exportSave">Show & copy save code</button><button class="btn ghost" data-act="importSave">Load pasted code</button></div>
         <p class="muted" id="save-msg"></p></section>
+      ${readinessSection()}
       <section><h2>How levels map to school</h2><p>${track().school}</p></section>
       <section><h2>${CL() && MQ.cloud.family ? 'Explorers in your family' : 'Explorers on this device'}</h2>
         <p class="muted">Each child has a separate profile: their own grade, map, creatures, crystals and statistics. Changing the grade switches the map; progress in the other grade is kept.</p>
@@ -872,7 +1062,7 @@
     if (scr === 'new') { ui.newKid = null; return newExplorer(); }
     if (scr === 'family') { ui.fam = null; return family(); }
     if (!st) return who();
-    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, parent: parentGate }[scr] || home)();
+    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, parent: parentGate }[scr] || home)();
   }
 
   const ACTIONS = {
@@ -922,7 +1112,29 @@
     next: () => advance(),
     advance: () => advance(),
     quit: () => quit(),
-    leave: () => { closeModal(); const w = sess && sess.world; sess = null; w ? world(w.id) : home(); },
+    leave: () => { closeModal(); const w = sess && sess.world, wasCheck = sess && sess.mode === 'check'; sess = null; w ? world(w.id) : wasCheck ? prep() : home(); },
+    toggle: (a) => {
+      if (!sess || sess.locked) return;
+      const i = +a, k = sess.sel.indexOf(i);
+      k >= 0 ? sess.sel.splice(k, 1) : sess.sel.push(i);
+      MQ.sfx('tap');
+      redrawAnswer();
+    },
+    orderPick: (a) => { if (!sess || sess.locked || sess.sel.includes(+a)) return; sess.sel.push(+a); MQ.sfx('tap'); redrawAnswer(); },
+    unorder: (a) => { if (!sess || sess.locked) return; sess.sel.splice(+a, 1); MQ.sfx('tap'); redrawAnswer(); },
+    tick: (a) => { if (!sess || sess.locked) return; sess.lineVal = +a; MQ.sfx('tap'); redrawAnswer(); },
+    submitPick: () => submitPick(),
+    startCheck: () => startCheck(),
+    viewCheck: (a) => { const c = myChecks().find((x) => x.id === a); c ? checkResult(c, false) : prep(); },
+    reviewCheck: (a) => { const c = myChecks().find((x) => x.id === a); c && c.items ? reviewCheck(c) : prep(); },
+    practicePlan: (a) => {
+      const c = myChecks().find((x) => x.id === a);
+      if (!c) return prep();
+      const plan = P().practicePlan(c, st.grade);
+      st.trainer = { topics: plan.topics, diff: plan.diff, mode: 'endless' };
+      S.save();
+      startTrainer();
+    },
     closeModal: () => closeModal(),
     toggleTopic: (a) => {
       const t = st.trainer.topics, i = t.indexOf(a);
@@ -992,7 +1204,8 @@
         if (/^[0-9]$/.test(e.key)) key(e.key);
         else if (e.key === 'Backspace') { e.preventDefault(); key('back'); }
         else if (e.key === 'Enter') submit();
-      } else if (/^[1-4]$/.test(e.key)) choose(+e.key - 1);
+      } else if (/^[1-6]$/.test(e.key) && sess.p.kind === 'choice') choose(+e.key - 1);
+      else if (e.key === 'Enter') submitPick();
     });
     // One child: straight to their home. Several: ask who is playing.
     // A brand-new device first offers to join the family, so progress is shared from the start.

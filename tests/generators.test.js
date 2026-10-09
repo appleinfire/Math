@@ -31,8 +31,22 @@ for (const topic of Object.keys(MQ.TOPICS)) {
         if (!Array.isArray(p.choices) || p.choices.length < 2 || p.choices.length > 4) fail(topic, d, 'choice count', p);
         else if (!p.choices.includes(p.answer)) fail(topic, d, 'answer missing from choices', p);
         else if (new Set(p.choices).size !== p.choices.length) fail(topic, d, 'duplicate choices', p);
+      } else if (p.kind === 'multi') {
+        if (!Array.isArray(p.choices) || p.choices.length < 3 || p.choices.length > 6) fail(topic, d, 'multi: choice count', p);
+        else if (new Set(p.choices).size !== p.choices.length) fail(topic, d, 'multi: duplicate choices', p);
+        else if (!Array.isArray(p.answer) || !p.answer.length || p.answer.length === p.choices.length) fail(topic, d, 'multi: needs some right and some wrong choices', p);
+        else if (!p.answer.every((a) => p.choices.includes(a))) fail(topic, d, 'multi: answer not among choices', p);
+        else if (p.choiceHtml && p.choiceHtml.length !== p.choices.length) fail(topic, d, 'multi: pictures do not match choices', p);
+      } else if (p.kind === 'order') {
+        if (!Array.isArray(p.items) || p.items.length < 3 || p.items.length > 5) fail(topic, d, 'order: item count', p);
+        else if (new Set(p.items).size !== p.items.length) fail(topic, d, 'order: duplicate items', p);
+        else if ([...p.items].sort().join('|') !== [...p.answer].sort().join('|')) fail(topic, d, 'order: answer is not the same items', p);
+        else if (p.items.join('|') === p.answer.join('|')) fail(topic, d, 'order: items already in order', p);
+      } else if (p.kind === 'line') {
+        const l = p.line;
+        if (!l || !(l.min < l.max) || !Number.isInteger(p.answer) || p.answer < l.min || p.answer > l.max || (p.answer - l.min) % l.step) fail(topic, d, 'line: answer not on a tick', p);
       } else fail(topic, d, 'unknown kind', p);
-      seen.add(p.text + (p.visual || '') + (p.choices || []).join('|'));
+      seen.add(p.text + (p.visual || '') + (p.choices || p.items || []).join('|'));
     }
     if (seen.size < 8) fail(topic, d, `only ${seen.size} distinct problems`);
   }

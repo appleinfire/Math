@@ -12,6 +12,31 @@ const shots = process.argv[2];
 const errors = [];
 
 const browser = await pw.chromium.launch({ executablePath: process.env.CHROMIUM || undefined });
+
+// Answer the current question through the UI, right or wrong, whatever its format.
+async function answer(page, right = true) {
+  const p = await page.evaluate(() => { const s = MQ.app.session(); return { kind: s.p.kind, answer: s.p.answer, choices: s.p.choices, items: s.p.items, line: s.p.line, text: s.p.text, check: s.mode === 'check' }; });
+  if (p.kind === 'num') {
+    for (const ch of right ? String(p.answer) : '999') await page.click(`[data-act=key][data-arg="${ch}"]`);
+    await page.click('[data-act=submit]');
+  } else if (p.kind === 'choice') {
+    await page.click(`.choice >> nth=${right ? p.choices.indexOf(p.answer) : p.choices.findIndex((c) => c !== p.answer)}`);
+    if (p.check) await page.click('.go-pick');
+  } else if (p.kind === 'multi') {
+    const picks = right ? p.answer.map((a) => p.choices.indexOf(a)) : [p.choices.findIndex((c) => !p.answer.includes(c))];
+    for (const i of picks) await page.click(`.choices.multi .choice >> nth=${i}`);
+    await page.click('.go-pick');
+  } else if (p.kind === 'order') {
+    const seq = right ? p.answer.map((a) => p.items.indexOf(a)) : p.items.map((_, i) => i);
+    for (const i of seq) await page.click(`.order-items .choice >> nth=${i}`);
+    await page.click('.go-pick');
+  } else if (p.kind === 'line') {
+    const v = right ? p.answer : p.answer === p.line.min ? p.line.max : p.line.min;
+    await page.click(`.tickhit[data-arg="${v}"]`, { force: true });
+    await page.click('.go-pick');
+  }
+  return p;
+}
 async function run(viewport, tag) {
   const page = await browser.newPage({ viewport });
   await page.addInitScript(() => {
@@ -41,21 +66,14 @@ async function run(viewport, tag) {
     for (let i = 0; i < n; i++) {
       await page.waitForFunction(() => { const s = MQ.app.session(); return document.querySelector('.result') || (s && s.p && !s.locked); });
       if (await page.$('.result')) return;
-      const p = await page.evaluate(() => { const s = MQ.app.session(); return { kind: s.p.kind, answer: s.p.answer, choices: s.p.choices }; });
       if (wrongFirst && i === 0) {
-        if (p.kind === 'num') { await page.click('[data-act=key][data-arg="9"]'); await page.click('[data-act=key][data-arg="9"]'); await page.click('[data-act=key][data-arg="9"]'); await page.click('[data-act=submit]'); }
-        else { const w = p.choices.findIndex((c) => c !== p.answer); await page.click(`.choice >> nth=${w}`); }
+        await answer(page, false);
         await page.waitForTimeout(150);
         if (i === 0) await snap('04-hint');
         const locked = await page.evaluate(() => MQ.app.session().locked);
         if (locked) { await page.click('[data-act=advance]'); continue; }
       }
-      if (p.kind === 'num') {
-        for (const ch of String(p.answer)) await page.click(`[data-act=key][data-arg="${ch}"]`);
-        await page.click('[data-act=submit]');
-      } else {
-        await page.click(`.choice >> nth=${p.choices.indexOf(p.answer)}`);
-      }
+      await answer(page, true);
       await page.waitForTimeout(1900);
     }
   }
@@ -78,30 +96,27 @@ async function run(viewport, tag) {
   await page.click('[data-act=go][data-arg=trainer]');
   await page.click('[data-act=startTrainer]');
   await page.waitForFunction(() => { const s = MQ.app.session(); return s && s.p && !s.locked; });
-  const answerRight = async () => {
-    const p = await page.evaluate(() => { const s = MQ.app.session(); return { kind: s.p.kind, answer: s.p.answer, choices: s.p.choices, text: s.p.text }; });
-    if (p.kind === 'num') { for (const ch of String(p.answer)) await page.click(`[data-act=key][data-arg="${ch}"]`); await page.click('[data-act=submit]'); }
-    else await page.click(`.choice >> nth=${p.choices.indexOf(p.answer)}`);
-    return p.text;
-  };
-  let before = await answerRight();
+  // Remember the exact problem object (two problems can have the same text, e.g. "Add." with different numbers).
+  const markProblem = () => page.evaluate(() => { window.__pmark = MQ.app.session().p; });
+  const sameProblem = () => page.evaluate(() => MQ.app.session().p === window.__pmark);
+  await markProblem();
+  await answer(page, true);
   await page.waitForTimeout(700);
-  const mid = await page.evaluate(() => ({ text: MQ.app.session().p.text, said: window.__said.slice(-1)[0], next: !!document.querySelector('.fb.ok [data-act=advance]') }));
-  if (mid.text !== before) errors.push(tag + ': moved on before the voice finished');
+  const mid = await page.evaluate(() => ({ said: window.__said.slice(-1)[0], next: !!document.querySelector('.fb.ok [data-act=advance]') }));
+  if (!(await sameProblem())) errors.push(tag + ': moved on before the voice finished');
   if (!mid.next) errors.push(tag + ': no Next button after a right answer');
   if (!/Great|Yes|Awesome|got it|Well done|Super|Perfect|Way to go/.test(mid.said || '')) errors.push(tag + ': praise not spoken: ' + mid.said);
   await page.waitForTimeout(1300);
-  if ((await page.evaluate(() => MQ.app.session().p.text)) === before) errors.push(tag + ': did not move on after the voice finished');
+  if (await sameProblem()) errors.push(tag + ': did not move on after the voice finished');
   await page.waitForFunction(() => !MQ.app.session().locked);
-  before = await answerRight();
+  await markProblem();
+  await answer(page, true);
   await page.waitForTimeout(150);
   await page.click('.fb.ok [data-act=advance]');
   await page.waitForTimeout(100);
-  if ((await page.evaluate(() => MQ.app.session().p.text)) === before) errors.push(tag + ': Next did not skip the voice');
+  if (await sameProblem()) errors.push(tag + ': Next did not skip the voice');
   // a wrong answer gets a gentle spoken "try again"
-  const pw = await page.evaluate(() => { const s = MQ.app.session(); return { kind: s.p.kind, answer: s.p.answer, choices: s.p.choices }; });
-  if (pw.kind === 'num') { await page.click('[data-act=key][data-arg="9"]'); await page.click('[data-act=key][data-arg="9"]'); await page.click('[data-act=key][data-arg="9"]'); await page.click('[data-act=submit]'); }
-  else await page.click(`.choice >> nth=${pw.choices.findIndex((c) => c !== pw.answer)}`);
+  await answer(page, false);
   await page.waitForTimeout(200);
   const saidWrong = await page.evaluate(() => window.__said.slice(-1)[0]);
   if (!/Oops|Almost|Not quite|try|Good try|okay|effort/i.test(saidWrong || '')) errors.push(tag + ': no gentle message after a wrong answer: ' + saidWrong);
@@ -166,6 +181,75 @@ async function run(viewport, tag) {
   await page.waitForSelector('.kpis');
   await snap('15-parent');
 
+  // ---- Placement Check (i-Ready style): 30 questions, no feedback, then results and a practice plan
+  async function runCheck(expectN, knowsUpTo) {
+    await page.evaluate(() => MQ.app.go('prep'));
+    await page.waitForSelector('.testcard');
+    await page.click('[data-act=startCheck]');
+    let n = 0;
+    for (;;) {
+      await page.waitForFunction(() => document.querySelector('.presult') || (MQ.app.session() && MQ.app.session().p && !MQ.app.session().locked));
+      if (await page.$('.presult')) break;
+      const step = await page.evaluate(() => MQ.app.session().p.step);
+      if (n === 3) await snap('30-check-question');
+      if (await page.$('.fb')) errors.push(tag + ': the check showed feedback');
+      await answer(page, step <= knowsUpTo);
+      n++;
+      if (n > expectN + 2) { errors.push(tag + ': check did not end'); break; }
+    }
+    if (n !== expectN) errors.push(`${tag}: check asked ${n} questions, expected ${expectN}`);
+    return page.evaluate(() => MQ.state.tests.checks.slice(-1)[0]);
+  }
+  const gemsBefore = await page.evaluate(() => MQ.state.crystals);
+  const res = await runCheck(30, 6);
+  await snap('31-check-result');
+  if (!res || res.items.length !== 30) errors.push(tag + ': check result not saved');
+  else if (Math.abs(res.overall - 6) > 1.5) errors.push(`${tag}: a child who knows up to Mid 2nd got ${res.overall}`);
+  if ((await page.evaluate(() => MQ.state.crystals)) !== gemsBefore + 20) errors.push(tag + ': no crystals for finishing the check');
+  await page.click('[data-act=reviewCheck]');
+  await page.waitForSelector('.rlist');
+  if ((await page.$$('.rlist li')).length !== 30) errors.push(tag + ': review does not list all answers');
+  await snap('32-check-review');
+  await page.click('[data-act=viewCheck]');
+  await page.click('[data-act=practicePlan]');
+  await page.waitForSelector('.pcard');
+  const planTopics = await page.evaluate(() => MQ.app.session().topics.map((t) => MQ.TOPICS[t].track));
+  if (!planTopics.length || planTopics.some((tr) => tr !== 'g2')) errors.push(tag + ': practice plan topics wrong ' + planTopics);
+  await page.click('[data-act=quit]');
+  await page.evaluate(() => MQ.app.go('prep'));
+  await snap('33-prep');
+  await page.evaluate(() => MQ.app.go('parent'));
+  const qq = await page.textContent('.eqline');
+  const [ga, gb] = qq.match(/\d+/g).map(Number);
+  await page.fill('#gate-in', String(ga * gb));
+  await page.click('[data-act=gate]');
+  if (!(await page.$('.parent table.topics th'))) errors.push(tag + ': no readiness table');
+
+  // ---- New answer formats inside regular practice: find one of each and answer it
+  async function practiceKind(topic, d, kind, name) {
+    await page.evaluate(([t, d]) => { MQ.state.trainer = { topics: [t], diff: d, mode: 'endless' }; MQ.app.go('trainer'); }, [topic, d]);
+    await page.click('[data-act=startTrainer]');
+    for (let k = 0; k < 40; k++) {
+      await page.waitForFunction(() => MQ.app.session() && MQ.app.session().p && !MQ.app.session().locked);
+      if ((await page.evaluate(() => MQ.app.session().p.kind)) === kind) break;
+      await answer(page, true);
+      await page.click('[data-act=advance]').catch(() => {});
+    }
+    if ((await page.evaluate(() => MQ.app.session().p.kind)) !== kind) { errors.push(tag + ': never saw a ' + kind); return; }
+    await snap(`34-${name}-ask`);
+    await answer(page, false); // wrong first: the pick resets and a hint shows
+    await page.waitForTimeout(150);
+    if (!(await page.$('.fb.hint'))) errors.push(tag + ': no hint after a wrong ' + kind);
+    await answer(page, true);
+    await page.waitForTimeout(150);
+    if (!(await page.$('.fb.ok'))) errors.push(tag + ': right ' + kind + ' not accepted');
+    await snap(`35-${name}-right`);
+    await page.click('[data-act=quit]');
+  }
+  await practiceKind('place', 1, 'line', 'line');
+  await practiceKind('arrays', 2, 'multi', 'multi');
+  await practiceKind('place', 4, 'order', 'order');
+
   // Show a selection of visual problem types for review
   if (shots) {
     for (const [t, d] of [['time', 3], ['money', 2], ['place', 2], ['shapes', 3], ['measure', 2], ['data', 2], ['logic', 4], ['logic', 5], ['add100', 3], ['mult', 1], ['arrays', 3], ['words', 4]]) {
@@ -198,6 +282,10 @@ async function run(viewport, tag) {
   await snap('22-k-level-done');
   const kc = await page.evaluate(() => Object.keys(MQ.state.creatures));
   if (kc.length !== 1 || !kc[0].startsWith('k_')) errors.push(tag + ': K creature wrong ' + kc);
+  const kres = await runCheck(20, 2);
+  if (!kres || kres.grade !== 'k' || kres.items.length !== 20) errors.push(tag + ': kindergarten check not saved');
+  else if (Math.abs(kres.overall - 2) > 1.5) errors.push(`${tag}: a K child who knows up to Late K got ${kres.overall}`);
+  await snap('36-k-check-result');
   await page.evaluate(() => MQ.app.go('map'));
   await snap('23-k-map');
   await page.evaluate(() => MQ.app.go('trainer'));
