@@ -29,7 +29,7 @@
     days: {}, // 'YYYY-MM-DD': { a, c }
     mistakes: [],
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
-    settings: { sound: true, unlockAll: false, readAloud: grade === 'k' },
+    settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true },
   });
 
   function merge(base, saved) {

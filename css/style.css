@@ -446,3 +446,13 @@ body[data-track="k"] { --paper: #eef2fb; }
   .emojis { font-size: 2rem; }
   .comparerows div { font-size: 1.55rem; }
 }
+
+/* ================= Answer feedback with Next, explorer switch ================= */
+.fb.ok { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 14px; }
+.fb .btn.next { padding: 8px 16px; font-size: 1rem; background: var(--good); box-shadow: 0 4px 0 #17703f; }
+.fb .btn.next:active { box-shadow: 0 1px 0 #17703f; }
+.hello-r { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: none; }
+.pill.switch { border: 0; font-size: 0.85rem; cursor: pointer; }
+.pill.switch:active { transform: translateY(2px); }
+.mini-av { position: relative; }
+.mini-av::after { content: '👥'; position: absolute; right: -4px; bottom: -4px; font-size: 0.7rem; background: var(--card); border-radius: 50%; padding: 1px; box-shadow: 0 0 0 1px var(--line); }

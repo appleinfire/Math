@@ -46,25 +46,37 @@
     String(html)
       .replace(/<span class="blank">\?<\/span>/g, ' what ')
       .replace(/<[^>]+>/g, ' ')
+      .replace(/(\d)\/(\d)/g, '$1 out of $2')
       .replace(/\+/g, ' plus ').replace(/−/g, ' minus ').replace(/×/g, ' times ').replace(/÷/g, ' divided by ').replace(/=/g, ' equals ')
+      .replace(/\p{Extended_Pictographic}|️|‍/gu, ' ')
       .replace(/\s+/g, ' ')
       .trim();
-  MQ.speak = (text) => {
-    if (!MQ.canSpeak() || !text) return;
-    try {
-      const synth = window.speechSynthesis;
-      synth.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      const voices = synth.getVoices();
-      const v = voices.find((x) => /en-US/i.test(x.lang) && /Samantha|Google US English|Ava|Allison|Female/i.test(x.name)) || voices.find((x) => /^en/i.test(x.lang));
-      if (v) u.voice = v;
-      u.lang = 'en-US';
-      u.rate = 0.9;
-      u.pitch = 1.1;
-      synth.speak(u);
-    } catch (e) { /* speech unavailable */ }
-  };
-  MQ.hush = () => { try { MQ.canSpeak() && window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } };
+  // Speaks the text and resolves when the voice has finished (or after a safety timeout, because
+  // some browsers never fire "end"). Resolves false right away when speech is unavailable.
+  let speaking = 0;
+  MQ.speak = (text) =>
+    new Promise((resolve) => {
+      if (!MQ.canSpeak() || !text) return resolve(false);
+      const id = ++speaking;
+      let done = false;
+      const finish = () => { if (!done) { done = true; clearTimeout(timer); resolve(id === speaking); } };
+      const timer = setTimeout(finish, Math.min(10000, 1500 + text.split(/\s+/).length * 450));
+      try {
+        const synth = window.speechSynthesis;
+        synth.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        const voices = synth.getVoices();
+        const v = voices.find((x) => /en-US/i.test(x.lang) && /Samantha|Google US English|Ava|Allison|Female/i.test(x.name)) || voices.find((x) => /^en/i.test(x.lang));
+        if (v) u.voice = v;
+        u.lang = 'en-US';
+        u.rate = 0.92;
+        u.pitch = 1.1;
+        u.onend = finish;
+        u.onerror = finish;
+        synth.speak(u);
+      } catch (e) { finish(); }
+    });
+  MQ.hush = () => { speaking++; try { MQ.canSpeak() && window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } };
 
   const reduced = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   MQ.confetti = (amount = 120) => {

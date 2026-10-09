@@ -48,8 +48,17 @@
   const fmtAnswer = (p) => (p.kind === 'choice' ? (p.choiceHtml ? p.choiceHtml[p.choices.indexOf(p.answer)] : fmtChoice(p.answer)) : U.comma(p.answer) + (p.unit ? ' ' + p.unit : ''));
   const gradeChip = (g) => `<span class="gchip g-${g}">${MQ.track(g).label}</span>`;
 
+  // ---------------------------------------------------------------- voice
+  const voiceOn = () => st.settings.voice !== false && MQ.canSpeak() && !(sess && sess.timer);
+  const UNIT_WORDS = { '¢': 'cents', min: 'minutes', in: 'inches', cm: 'centimeters', ft: 'feet', 'sq cm': 'square centimeters' };
+  function spokenAnswer(p) {
+    if (p.kind === 'num') return p.answer + (p.unit ? ' ' + (UNIT_WORDS[p.unit] || p.unit) : '');
+    const words = { '<': 'less than', '>': 'greater than', '=': 'equal', '= same': 'the same' }[p.answer];
+    return words || MQ.toSpeech(p.answer.replace(/^\$/, '')) || '';
+  }
+
   function header(title, back = 'home') {
-    return `<header class="bar"><button class="iconbtn" data-act="go" data-arg="${back}" aria-label="Back">←</button><h1>${title}</h1>${gemPill()}<button class="mini-av" data-act="go" data-arg="who" aria-label="Switch explorer" title="${esc(st.name)}">${st.companion}</button></header>`;
+    return `<header class="bar"><button class="iconbtn" data-act="go" data-arg="${back}" aria-label="Back">←</button><h1>${title}</h1>${gemPill()}<button class="mini-av" data-act="go" data-arg="who" aria-label="Switch explorer (now ${esc(st.name)})" title="Switch explorer">${st.companion}</button></header>`;
   }
   function say(text) {
     const b = $('#bubble');
@@ -172,6 +181,7 @@
     if (!st) return who();
     sess = null;
     ui = {};
+    remember('home');
     home();
   }
 
@@ -207,11 +217,11 @@
     }
     render(`<main class="home">
       <header class="hello">
-        <button class="avatar" data-act="go" data-arg="who" aria-label="Switch explorer">${st.companion}<small>switch</small></button>
+        <div class="avatar" aria-hidden="true">${st.companion}</div>
         <div class="who"><div class="hi">Hi, ${esc(st.name)}!</div>
           <div class="rank">${gradeChip(st.grade)} Level ${lv.level} · ${MQ.rankTitle(lv.level)}</div>
           <div class="xp" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pct}%"></span></div></div>
-        ${gemPill()}
+        <div class="hello-r">${gemPill()}<button class="pill switch" data-act="go" data-arg="who">👥 ${S.profiles().length > 1 ? 'Switch' : 'Add / switch'}</button></div>
       </header>
       <div class="buddy"><span class="buddy-e">${st.companion}</span><div class="bubble" id="bubble">${esc(st.buddyName)}: ${esc(U.pick(MQ.SAY.hello))}</div></div>
       ${cont}
@@ -274,6 +284,7 @@
     return p;
   }
   function startSession(cfg) {
+    remember('play');
     sess = Object.assign({ correct: 0, firstTry: 0, mistakes: 0, streak: 0, best: 0, answered: 0, earned: 0, recent: [], tries: 0, p: null, input: '', autoD: 2, up: 0, down: 0, left: cfg.timer || 0, locked: false }, cfg);
     const color = sess.world ? sess.world.color : sess.mode === 'daily' ? '#e09a2b' : '#ff6b5b';
     render(`<div class="play" style="--wc:${color}">
@@ -308,6 +319,7 @@
   }
   function nextProblem() {
     sess.p = pickProblem();
+    sess.pending = null;
     sess.tries = 0;
     sess.input = '';
     sess.locked = false;
@@ -402,12 +414,26 @@
     MQ.sfx(chest || (first && MQ.SAY.streak[sess.streak]) ? 'streak' : 'correct');
     if (btn) btn.classList.add('right');
     slots().forEach((el) => el.classList.add('right'));
-    $('#feedback').innerHTML = `<div class="fb ok">✓ ${msg}</div>`;
+    const done = sess.goal && sess.correct >= sess.goal;
+    $('#feedback').innerHTML = `<div class="fb ok"><span>✓ ${msg}</span>${sess.timer ? '' : `<button class="btn next" data-act="advance">${done ? 'Finish ★' : 'Next →'}</button>`}</div>`;
     say(`${st.buddyName}: ${msg}`);
     S.save();
     status();
-    const done = sess.goal && sess.correct >= sess.goal;
-    later(done ? finish : nextProblem, done ? 900 : sess.timer ? 450 : first ? 900 : 1400);
+    // Move on after the voice finishes (or a short pause without voice). "Next" skips the wait.
+    const fn = done ? finish : nextProblem, s0 = sess;
+    sess.pending = fn;
+    const autoGo = () => { if (sess === s0 && s0.pending === fn) advance(); };
+    if (voiceOn()) {
+      const line = U.pick(MQ.SAY.voiceRight) + (U.chance(0.3) ? ' ' + st.name + '!' : '');
+      MQ.speak(line).then(() => later(autoGo, 300));
+    } else later(autoGo, sess.timer ? 450 : first ? 1100 : 1500);
+  }
+  function advance() {
+    if (!sess || !sess.pending) return;
+    const f = sess.pending;
+    sess.pending = null;
+    MQ.hush();
+    f();
   }
   function wrong(given, btn) {
     const p = sess.p;
@@ -425,7 +451,8 @@
       if (btn) btn.classList.add('nope');
       $('#feedback').innerHTML = `<div class="fb reveal">It was <b>${fmtAnswer(p)}</b></div>`;
       status();
-      later(nextProblem, 1300);
+      sess.pending = nextProblem;
+      later(advance, 1300);
       return;
     }
     if (sess.tries === 1) {
@@ -438,7 +465,7 @@
         sess.input = '';
         showInput();
         $('#feedback').innerHTML = `<div class="fb hint">💡 ${p.hint || 'Look again carefully and try once more.'}</div>`;
-        if (st.settings.readAloud) MQ.speak('Try again. ' + MQ.toSpeech(p.hint || ''));
+        if (voiceOn()) MQ.speak(U.pick(MQ.SAY.voiceRetry) + (st.settings.readAloud && p.hint ? ' ' + MQ.toSpeech(p.hint) : ''));
         say(`${st.buddyName}: ${U.pick(MQ.SAY.retry)}`);
         return;
       }
@@ -453,8 +480,10 @@
     if (btn) btn.classList.add('nope');
     document.querySelectorAll('.choice').forEach((b, i) => { if (p.choices && p.choices[i] === p.answer) b.classList.add('right'); });
     if (p.kind === 'num') slots().forEach((el) => { el.textContent = p.answer; el.classList.add('shown'); });
-    $('#feedback').innerHTML = `<div class="fb reveal"><div>The answer is <b>${fmtAnswer(p)}</b>.</div>${p.explain ? `<div class="explain">${p.explain}</div>` : ''}<button class="btn" data-act="next">Next →</button></div>`;
+    $('#feedback').innerHTML = `<div class="fb reveal"><div>The answer is <b>${fmtAnswer(p)}</b>.</div>${p.explain ? `<div class="explain">${p.explain}</div>` : ''}<button class="btn" data-act="advance">Next →</button></div>`;
     say(`${st.buddyName}: ${U.pick(MQ.SAY.reveal)}`);
+    sess.pending = nextProblem; // waits for the Next button
+    if (voiceOn()) { const a = spokenAnswer(p); MQ.speak(U.pick(MQ.SAY.voiceReveal) + (a ? ` The answer is ${a}.` : ' Look at the green answer.')); }
     S.save();
     status();
   }
@@ -486,12 +515,14 @@
       ${creature ? creatureCard(creature, true) : `<p class="muted">You already discovered the ${MQ.CREATURES[lv.creature].emoji} ${MQ.CREATURES[lv.creature].name} here.${stars < 3 ? ' Try for 3 stars!' : ''}</p>`}
       ${newWorld ? `<div class="unlock">🗺️ New world unlocked: <b>${newWorld.emoji} ${newWorld.name}</b></div>` : ''}
       <div class="row">
+        <button class="btn ghost" data-act="go" data-arg="home">Home</button>
         <button class="btn ghost" data-act="go" data-arg="world:${w.id}">Map</button>
         <button class="btn ghost" data-act="startLevel" data-arg="${w.id}:${li}">Replay</button>
         ${hasNext ? `<button class="btn" data-act="startLevel" data-arg="${w.id}:${li + 1}">Next level →</button>` : newWorld ? `<button class="btn" data-act="go" data-arg="world:${newWorld.id}">Go to ${newWorld.name} →</button>` : ''}
       </div></main>`);
     MQ.sfx('reward');
     MQ.confetti(lv.type === 'boss' ? 220 : 120);
+    if (st.settings.voice !== false) MQ.speak(creature ? `Level complete! You discovered the ${creature.name}!` : 'Level complete! Great job!');
     later(checkBadges, 1400);
   }
 
@@ -516,6 +547,7 @@
       <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button><button class="btn" data-act="go" data-arg="hatch">Visit the Hatchery 🥚</button></div></main>`);
     MQ.sfx('reward');
     MQ.confetti();
+    if (st.settings.voice !== false) MQ.speak('Daily quest complete! Great job!');
     later(checkBadges, 1400);
   }
 
@@ -539,6 +571,7 @@
       </div>
       <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button><button class="btn ghost" data-act="go" data-arg="trainer">Change settings</button><button class="btn" data-act="startTrainer">Play again</button></div></main>`);
     if (sess.correct) { MQ.sfx('reward'); if (record) MQ.confetti(); }
+    if (st.settings.voice !== false && sess.correct) MQ.speak(`You got ${sess.correct} right! ${record ? 'A new record!' : 'Great training!'}`);
     later(checkBadges, 1200);
   }
 
@@ -687,6 +720,7 @@
       <section class="settings"><h2>Settings</h2>
         <label class="toggle"><input type="checkbox" id="set-sound" data-act="setting" data-arg="sound" ${st.settings.sound ? 'checked' : ''}> Sound effects</label>
         <label class="toggle"><input type="checkbox" id="set-unlock" data-act="setting" data-arg="unlockAll" ${st.settings.unlockAll ? 'checked' : ''}> Unlock all worlds (skip ahead to match what is taught in class)</label>
+        <label class="toggle"><input type="checkbox" id="set-voice" data-act="setting" data-arg="voice" ${st.settings.voice !== false ? 'checked' : ''}> Say “Great job!” or “Try again” out loud after each answer, and wait for the voice before the next problem</label>
         <label class="toggle"><input type="checkbox" id="set-read" data-act="setting" data-arg="readAloud" ${st.settings.readAloud ? 'checked' : ''}> Read every question aloud (for kids who don’t read yet; the 🔊 button always works)</label>
         <div class="namerow"><label for="set-name">Child’s name</label><input id="set-name" class="field" maxlength="16" value="${esc(st.name)}">
           <label for="set-buddy">Buddy’s name</label><input id="set-buddy" class="field" maxlength="14" value="${esc(st.buddyName)}">
@@ -707,7 +741,26 @@
   }
 
   // ---------------------------------------------------------------- routing
+  // Browser back (Safari swipe, Android back) moves between screens instead of leaving the app.
+  const useHistory = (() => { try { return window.top === window && !!history.pushState; } catch (e) { return false; } })();
+  let fromPop = false;
+  function remember(where) {
+    if (!useHistory || fromPop) return;
+    try { history.pushState({ where }, ''); } catch (e) { /* ignore */ }
+  }
+  function onPop(e) {
+    if (sess && root().classList.contains('is-play')) { // leaving a game asks first, like the ✕ button
+      remember('play');
+      return quit();
+    }
+    if ($('#modal')) closeModal();
+    const where = (e.state && e.state.where) || (st ? 'home' : 'who');
+    fromPop = true;
+    go(where === 'play' ? 'home' : where);
+    fromPop = false;
+  }
   function go(where) {
+    remember(where);
     closeModal();
     if (where !== 'hatch') ui.hatch = null;
     if (where !== 'parent') { ui.resetArmed = false; ui.delArmed = null; }
@@ -753,11 +806,18 @@
     key: (a) => key(a),
     submit: () => submit(),
     choose: (a) => choose(+a),
-    next: () => { if (sess) nextProblem(); },
+    next: () => advance(),
+    advance: () => advance(),
     quit: () => quit(),
     leave: () => { closeModal(); const w = sess && sess.world; sess = null; w ? world(w.id) : home(); },
     closeModal: () => closeModal(),
-    toggleTopic: (a) => { const t = st.trainer.topics; const i = t.indexOf(a); i >= 0 ? t.splice(i, 1) : t.push(a); S.save(); trainer(); },
+    toggleTopic: (a) => {
+      const t = st.trainer.topics, i = t.indexOf(a);
+      if (i >= 0 && t.length === 1) return toast('Keep at least one topic');
+      i >= 0 ? t.splice(i, 1) : t.push(a);
+      S.save();
+      trainer();
+    },
     allCore: () => { st.trainer.topics = track().core.slice(); S.save(); trainer(); },
     setDiff: (a) => { st.trainer.diff = a === 'auto' ? 'auto' : +a; S.save(); trainer(); },
     setMode: (a) => { st.trainer.mode = a; S.save(); trainer(); },
@@ -807,9 +867,12 @@
       const el = e.target.closest('input[type=checkbox][data-act]');
       if (el) act(el.dataset.act, el.dataset.arg, el);
     });
+    window.addEventListener('popstate', onPop);
+    try { if (useHistory) history.replaceState({ where: 'start' }, ''); } catch (e) { /* ignore */ }
     document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && $('#modal')) return closeModal();
       if (!root().classList.contains('is-play') || !sess || $('#modal')) return;
-      if (sess.locked) { if ((e.key === 'Enter' || e.key === ' ') && $('[data-act="next"]')) { e.preventDefault(); nextProblem(); } return; }
+      if (sess.locked) { if ((e.key === 'Enter' || e.key === ' ') && sess.pending) { e.preventDefault(); advance(); } return; }
       if (sess.p.kind === 'num') {
         if (/^[0-9]$/.test(e.key)) key(e.key);
         else if (e.key === 'Backspace') { e.preventDefault(); key('back'); }

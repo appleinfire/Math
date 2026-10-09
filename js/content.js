@@ -209,6 +209,10 @@
     correct: ['Brilliant!', 'You nailed it!', 'Super sharp!', 'Exactly right!', 'Spot on!', 'Wow, great thinking!', 'Math wizard!', 'Nice work!', 'Yes! 🎉', 'Perfect!'],
     retry: ['Not quite. Peek at the hint and try again!', 'Almost! Mistakes help your brain grow.', 'Take another look — you can do it.', 'Hmm, try a different way.'],
     reveal: ['That one was tricky. Now you know the trick!', 'Let’s remember this one together.', 'Every explorer gets lost sometimes. On to the next!'],
+    // Spoken out loud after an answer (short and gentle).
+    voiceRight: ['Great job!', 'Yes! That’s right!', 'Awesome!', 'You got it!', 'Well done!', 'Super!', 'Perfect!', 'Way to go!'],
+    voiceRetry: ['Oops! Try again.', 'Almost! Let’s try again.', 'Not quite. You can do it!', 'Hmm, try one more time.'],
+    voiceReveal: ['That’s okay!', 'Good try!', 'Nice effort!'],
     streak: { 3: 'Three in a row! 🔥', 5: 'Five in a row! You’re on fire! 🔥', 10: 'TEN in a row! Incredible! ☄️', 15: '15 in a row! Unstoppable!', 20: '20 in a row! Legendary!' },
   };
 })();

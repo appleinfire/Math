@@ -28,6 +28,8 @@ Progress is saved in the browser on that device, separately for each child. To m
 | **Hatchery** | Spend 30 💎 on an egg, tap it 3 times, and hatch one of 14 rare creatures that only come from eggs. |
 | **Badges & ranks** | 17 badges (streaks, collections, daily habit, lightning rounds, challenge problems). Explorer level grows with XP. |
 | **Hints** | A wrong answer gets a strategy hint and one more try ("make a ten", "count up", "break a ten"). A second miss shows the answer with an explanation. |
+| **Voice** | After each answer a voice says "Great job!" or a gentle "Oops! Try again." The next problem waits until the voice has finished; the **Next →** button skips the wait. Questions can be read aloud with 🔊 (automatic for kindergarten). Both can be turned off per child in *For grown-ups*. |
+| **Navigation** | Every screen has a back button; result screens have Home. **👥 Switch** on the home screen (or the small avatar in the top bar) changes the child without reloading. The browser's back gesture moves between screens and asks before leaving a game. |
 | **For grown-ups** | Protected by a multiplication question. Shows accuracy per topic with the standard code, activity for the last 14 days, recent mistakes, settings (sound, *unlock all worlds*), save codes and reset. |
 
 ## Kindergarten track

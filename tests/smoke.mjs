@@ -14,6 +14,15 @@ const errors = [];
 const browser = await pw.chromium.launch({ executablePath: process.env.CHROMIUM || undefined });
 async function run(viewport, tag) {
   const page = await browser.newPage({ viewport });
+  await page.addInitScript(() => {
+    window.__said = [];
+    const synth = { speaking: false, _cur: null,
+      getVoices: () => [{ lang: 'en-US', name: 'Test' }],
+      speak(u) { this._cur = u; window.__said.push(u.text); const me = u; setTimeout(() => { if (synth._cur === me) { synth._cur = null; me.onend && me.onend(); } }, 1200); },
+      cancel() { const u = this._cur; this._cur = null; if (u && u.onerror) u.onerror(); } };
+    Object.defineProperty(window, 'speechSynthesis', { value: synth, configurable: true });
+    window.SpeechSynthesisUtterance = function (t) { this.text = t; };
+  });
   page.on('console', (m) => m.type() === 'error' && !/fonts\.g|ERR_|Failed to load resource/.test(m.text()) && errors.push(tag + ': ' + m.text()));
   page.on('pageerror', (e) => errors.push(tag + ': ' + e.message));
   const snap = async (name) => shots && page.screenshot({ path: path.join(shots, `${tag}-${name}.png`), fullPage: true });
@@ -39,7 +48,7 @@ async function run(viewport, tag) {
         await page.waitForTimeout(150);
         if (i === 0) await snap('04-hint');
         const locked = await page.evaluate(() => MQ.app.session().locked);
-        if (locked) { await page.click('[data-act=next]'); continue; }
+        if (locked) { await page.click('[data-act=advance]'); continue; }
       }
       if (p.kind === 'num') {
         for (const ch of String(p.answer)) await page.click(`[data-act=key][data-arg="${ch}"]`);
@@ -47,7 +56,7 @@ async function run(viewport, tag) {
       } else {
         await page.click(`.choice >> nth=${p.choices.indexOf(p.answer)}`);
       }
-      await page.waitForTimeout(1500);
+      await page.waitForTimeout(1900);
     }
   }
   await page.click('.continue');
@@ -64,7 +73,45 @@ async function run(viewport, tag) {
       const p = MQ.makeProblem(t, d); const div = document.createElement('div'); div.innerHTML = p.text + (p.visual || ''); }
   });
 
+  // Voice: praise is spoken, the next problem waits for the voice, Next skips the wait.
+  await page.click('[data-act=go][data-arg=home]');
+  await page.click('[data-act=go][data-arg=trainer]');
+  await page.click('[data-act=startTrainer]');
+  await page.waitForFunction(() => { const s = MQ.app.session(); return s && s.p && !s.locked; });
+  const answerRight = async () => {
+    const p = await page.evaluate(() => { const s = MQ.app.session(); return { kind: s.p.kind, answer: s.p.answer, choices: s.p.choices, text: s.p.text }; });
+    if (p.kind === 'num') { for (const ch of String(p.answer)) await page.click(`[data-act=key][data-arg="${ch}"]`); await page.click('[data-act=submit]'); }
+    else await page.click(`.choice >> nth=${p.choices.indexOf(p.answer)}`);
+    return p.text;
+  };
+  let before = await answerRight();
+  await page.waitForTimeout(700);
+  const mid = await page.evaluate(() => ({ text: MQ.app.session().p.text, said: window.__said.slice(-1)[0], next: !!document.querySelector('.fb.ok [data-act=advance]') }));
+  if (mid.text !== before) errors.push(tag + ': moved on before the voice finished');
+  if (!mid.next) errors.push(tag + ': no Next button after a right answer');
+  if (!/Great|Yes|Awesome|got it|Well done|Super|Perfect|Way to go/.test(mid.said || '')) errors.push(tag + ': praise not spoken: ' + mid.said);
+  await page.waitForTimeout(1300);
+  if ((await page.evaluate(() => MQ.app.session().p.text)) === before) errors.push(tag + ': did not move on after the voice finished');
+  await page.waitForFunction(() => !MQ.app.session().locked);
+  before = await answerRight();
+  await page.waitForTimeout(150);
+  await page.click('.fb.ok [data-act=advance]');
+  await page.waitForTimeout(100);
+  if ((await page.evaluate(() => MQ.app.session().p.text)) === before) errors.push(tag + ': Next did not skip the voice');
+  // a wrong answer gets a gentle spoken "try again"
+  const pw = await page.evaluate(() => { const s = MQ.app.session(); return { kind: s.p.kind, answer: s.p.answer, choices: s.p.choices }; });
+  if (pw.kind === 'num') { await page.click('[data-act=key][data-arg="9"]'); await page.click('[data-act=key][data-arg="9"]'); await page.click('[data-act=key][data-arg="9"]'); await page.click('[data-act=submit]'); }
+  else await page.click(`.choice >> nth=${pw.choices.findIndex((c) => c !== pw.answer)}`);
+  await page.waitForTimeout(200);
+  const saidWrong = await page.evaluate(() => window.__said.slice(-1)[0]);
+  if (!/Oops|Almost|Not quite|try|Good try|okay|effort/i.test(saidWrong || '')) errors.push(tag + ': no gentle message after a wrong answer: ' + saidWrong);
+  await snap('16-voice-wrong');
+  await page.click('[data-act=quit]');
+  await page.waitForSelector('.sumgrid');
+
   // Trainer
+  await page.click('[data-act=go][data-arg=home]');
+  await page.click('[data-act=go][data-arg=map]');
   await page.click('[data-act=go][data-arg="world:tide"]');
   await page.click('[data-act=go][data-arg=map]');
   await page.click('[data-act=go][data-arg=home]');
@@ -82,6 +129,7 @@ async function run(viewport, tag) {
 
   // Daily quest
   await page.click('.result [data-act=go][data-arg=home]');
+  await page.waitForSelector('.home');
   await page.click('[data-act=daily]');
   await solve(5);
   await page.waitForSelector('.result');
@@ -130,7 +178,9 @@ async function run(viewport, tag) {
     }
   }
   // ---- Second child in kindergarten: separate profile, separate progress
-  await page.evaluate(() => MQ.app.go('who'));
+  await page.evaluate(() => MQ.app.go('home'));
+  await page.click('.hello-r [data-act=go][data-arg=who]');
+  await page.waitForSelector('.who-screen');
   await page.click('[data-act=go][data-arg=new]');
   await page.fill('#ob-name', 'Mila');
   await page.click('[data-act=pickGrade][data-arg=k]');
@@ -152,8 +202,9 @@ async function run(viewport, tag) {
   await snap('23-k-map');
   await page.evaluate(() => MQ.app.go('trainer'));
   await snap('24-k-trainer');
-  // Back to the older sister: her progress is untouched
-  await page.evaluate(() => MQ.app.go('who'));
+  // Back to the older sister through the switch button: her progress is untouched
+  await page.evaluate(() => MQ.app.go('home'));
+  await page.click('.hello-r [data-act=go][data-arg=who]');
   await snap('25-who');
   const profiles = await page.$$('.profile:not(.add)');
   if (profiles.length !== 2) errors.push(tag + ': expected 2 profiles, got ' + profiles.length);
@@ -174,6 +225,26 @@ async function run(viewport, tag) {
         await snap(`k-${t}-${d}`);
       }
     }
+  }
+  // Browser back moves between screens, and asks before leaving a game
+  await page.evaluate(() => MQ.app.go('home'));
+  await page.click('[data-act=go][data-arg=map]');
+  await page.click('.wcard >> nth=0');
+  await page.goBack();
+  await page.waitForSelector('.map');
+  await page.goBack();
+  await page.waitForSelector('.home');
+  await page.click('.continue');
+  await page.waitForSelector('.pcard');
+  await page.goBack();
+  await page.waitForSelector('#modal');
+  await snap('26-back-in-game');
+  await page.click('[data-act=closeModal]');
+  if (!(await page.$('.pcard'))) errors.push(tag + ': game closed after back + keep playing');
+  // Every screen offers a way back (header back button or result buttons)
+  for (const scr of ['map', 'trainer', 'journal', 'hatch', 'badges', 'parent']) {
+    await page.evaluate((x) => MQ.app.go(x), scr);
+    if (!(await page.$('.bar [data-act=go][aria-label=Back]'))) errors.push(tag + ': no back button on ' + scr);
   }
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   if (overflow) errors.push(tag + ': horizontal overflow');
