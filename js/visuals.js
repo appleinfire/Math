@@ -352,6 +352,66 @@
     return svg(W, 100, s, 'numline', 'number line from ' + min + ' to ' + max);
   };
 
+  // ================= Puzzle pictures (Math Kangaroo style) =================
+  // A shape made of unit squares. cells = [[row, col], …].
+  V.cellShape = (cells, { size = 34, fill = '#8c9cff', line = null } = {}) => {
+    const rows = Math.max(...cells.map((c) => c[0])) + 1, cols = Math.max(...cells.map((c) => c[1])) + 1;
+    let s = cells.map(([r, c]) => `<rect x="${6 + c * size}" y="${6 + r * size}" width="${size}" height="${size}" fill="${fill}" stroke="${INK}" stroke-width="2.5"/>`).join('');
+    let W = cols * size + 12;
+    if (line === 'right') { // a dotted mirror line to the right of the shape
+      s += `<line x1="${W + 8}" y1="0" x2="${W + 8}" y2="${rows * size + 12}" stroke="#ff6b5b" stroke-width="3" stroke-dasharray="6 5"/>`;
+      W += 16;
+    }
+    return svg(W, rows * size + 12, s, 'cells', 'shape made of squares');
+  };
+  // A triangle cut by lines from the top corner into `parts` pieces.
+  V.fan = (parts) => {
+    const A = [130, 14], L = [14, 176], R = [246, 176];
+    let s = `<polygon points="${A} ${L} ${R}" fill="#ffd58a" stroke="${INK}" stroke-width="3.5" stroke-linejoin="round"/>`;
+    for (let i = 1; i < parts; i++) {
+      const x = L[0] + ((R[0] - L[0]) * i) / parts;
+      s += `<line x1="${A[0]}" y1="${A[1]}" x2="${r1(x)}" y2="${L[1]}" stroke="${INK}" stroke-width="3"/>`;
+    }
+    return svg(260, 190, s, 'shape', 'triangle cut into parts');
+  };
+  // A balance scale in equilibrium with emoji on each pan.
+  V.scale = (left, right) => {
+    const pan = (cx, items) => {
+      const t = items.join('');
+      return `<path d="M${cx - 62},96 Q${cx},132 ${cx + 62},96 Z" fill="#cfd8e3" stroke="${INK}" stroke-width="3"/>` +
+        `<line x1="${cx - 56}" y1="96" x2="${cx}" y2="40" stroke="${INK}" stroke-width="1.5"/><line x1="${cx + 56}" y1="96" x2="${cx}" y2="40" stroke="${INK}" stroke-width="1.5"/>` +
+        `<text x="${cx}" y="90" font-size="${items.length > 4 ? 18 : 24}" text-anchor="middle">${t}</text>`;
+    };
+    const s = `<rect x="146" y="40" width="8" height="120" fill="${INK}"/><rect x="110" y="158" width="80" height="10" rx="4" fill="${INK}"/>` +
+      `<line x1="70" y1="40" x2="230" y2="40" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><circle cx="150" cy="40" r="7" fill="#ffb547" stroke="${INK}" stroke-width="2"/>` +
+      pan(70, left) + pan(230, right);
+    return svg(300, 172, s, 'scale', 'balance scale');
+  };
+  // A street grid: A at the bottom left, B at the top right.
+  V.pathGrid = (rows, cols) => {
+    const u = Math.min(56, Math.floor(240 / Math.max(rows, cols))), x0 = 26, y0 = 18;
+    let s = '';
+    for (let r = 0; r <= rows; r++) s += `<line x1="${x0}" y1="${y0 + r * u}" x2="${x0 + cols * u}" y2="${y0 + r * u}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
+    for (let c = 0; c <= cols; c++) s += `<line x1="${x0 + c * u}" y1="${y0}" x2="${x0 + c * u}" y2="${y0 + rows * u}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
+    s += `<circle cx="${x0}" cy="${y0 + rows * u}" r="12" fill="#ff6b5b" stroke="${INK}" stroke-width="2"/>` + text(x0, y0 + rows * u + 5, 'A', 13, 'fill="#ffffff"');
+    s += `<circle cx="${x0 + cols * u}" cy="${y0}" r="12" fill="#2bb3a3" stroke="${INK}" stroke-width="2"/>` + text(x0 + cols * u, y0 + 5, 'B', 13, 'fill="#ffffff"');
+    return svg(x0 * 2 + cols * u, y0 * 2 + rows * u, s, 'grid', 'grid of streets from A to B');
+  };
+  // Towers of cubes, drawn in 3D. back / front = tower heights per column (front row may be omitted).
+  V.towers = (back, front = []) => {
+    const s0 = 30, dx = 15, dy = 15, cols = back.length, maxH = Math.max(...back, ...front, 1);
+    const W = cols * s0 + dx * 2 + 24, H = maxH * s0 + dy * 2 + 24, base = H - 10;
+    const cube = (x, y, color) =>
+      `<polygon points="${x},${y} ${x + dx},${y - dy} ${x + dx + s0},${y - dy} ${x + s0},${y}" fill="#d9f1ff" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>` +
+      `<polygon points="${x + s0},${y} ${x + s0 + dx},${y - dy} ${x + s0 + dx},${y - dy + s0} ${x + s0},${y + s0}" fill="#5aa9d6" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>` +
+      `<rect x="${x}" y="${y}" width="${s0}" height="${s0}" fill="${color}" stroke="${INK}" stroke-width="2"/>`;
+    let s = '';
+    const row = (heights, off, color) => heights.forEach((h, c) => { for (let k = 0; k < h; k++) s += cube(12 + c * s0 + off, base - (k + 1) * s0 - off, color); });
+    row(back, front.length ? dx : 0, '#9fd3ef');
+    if (front.length) row(front, 0, '#9fd3ef');
+    return svg(W, H, s, 'towers', 'towers of cubes');
+  };
+
   // ================= Kindergarten pictures =================
   // A neat grid of emoji, in rows of `cols`. The last `gone` items are crossed out (take-away problems).
   V.emojis = (emoji, n, { cols = 5, gone = 0 } = {}) => {

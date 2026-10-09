@@ -536,3 +536,30 @@ body[data-track="k"] { --paper: #eef2fb; }
 .rq { font-weight: 700; }
 .ra { font-size: 0.9rem; color: var(--ink-soft); }
 .re { font-size: 0.88rem; margin-top: 2px; }
+
+/* ================= Math Kangaroo style contest ================= */
+.contest { display: flex; flex-direction: column; gap: 12px; }
+.ctnav { display: grid; grid-template-columns: repeat(12, 1fr); gap: 5px; }
+.ctdot { aspect-ratio: 1; min-width: 0; border: 0; border-radius: 9px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); font-weight: 900; font-size: 0.78rem; color: var(--ink-soft); padding: 0; position: relative; }
+.ctdot.p4 { box-shadow: inset 0 0 0 2px #c9cff5; }
+.ctdot.p5 { box-shadow: inset 0 0 0 2px #f2c6ab; }
+.ctdot.ans { background: #dfe3ff; color: #333c7a; }
+.ctdot.cur { box-shadow: inset 0 0 0 3px var(--ink); color: var(--ink); }
+.ctdot.flag::after { content: ''; position: absolute; top: 2px; right: 2px; width: 7px; height: 7px; border-radius: 50%; background: var(--coral); }
+.choices.ct { grid-template-columns: 1fr; gap: 8px; }
+.choices.ct .choice { display: flex; align-items: center; gap: 12px; text-align: left; min-height: 54px; font-size: 1.2rem; padding: 8px 14px; }
+.choices.ct.pics { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+.choices.ct.pics .choice { flex-direction: column; justify-content: center; min-height: 110px; }
+.choices.ct .letter { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #eef1f6; font-family: var(--display); font-weight: 600; font-size: 1rem; color: var(--ink-soft); }
+.choices.ct .choice.sel .letter { background: #5b63c9; color: #ffffff; }
+.choices.ct .copt svg { width: auto; max-width: 100%; height: 64px; }
+.ctbar { display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
+.ctbar .btn { flex: 1; min-width: 96px; }
+.kgtypes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.sumgrid.three { grid-template-columns: repeat(3, 1fr); }
+.column-inline { font-family: var(--display); font-size: clamp(1.2rem, 6vw, 1.6rem); font-weight: 600; text-align: center; margin: 8px 0; letter-spacing: 0.02em; white-space: nowrap; }
+.emojieq { white-space: normal; }
+@media (max-width: 480px) {
+  .ctnav { grid-template-columns: repeat(8, 1fr); }
+  .sumgrid.three { grid-template-columns: repeat(3, 1fr); }
+}

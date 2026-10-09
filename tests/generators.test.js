@@ -1,7 +1,7 @@
 // Run: node tests/generators.test.js
 // Generates thousands of problems for every topic and difficulty and checks they are well-formed.
 const path = require('path');
-for (const f of ['util', 'visuals', 'generators', 'generators-k', 'content', 'content-k']) require(path.join(__dirname, '..', 'js', f + '.js'));
+for (const f of ['util', 'visuals', 'generators', 'generators-k', 'puzzles', 'content', 'content-k']) require(path.join(__dirname, '..', 'js', f + '.js'));
 const MQ = globalThis.MQ;
 
 const RUNS = 1200;
@@ -28,7 +28,8 @@ for (const topic of Object.keys(MQ.TOPICS)) {
       if (p.kind === 'num') {
         if (!Number.isInteger(p.answer) || p.answer < 0 || p.answer > 9999) fail(topic, d, 'answer not a whole number 0..9999', p);
       } else if (p.kind === 'choice') {
-        if (!Array.isArray(p.choices) || p.choices.length < 2 || p.choices.length > 4) fail(topic, d, 'choice count', p);
+        const maxChoices = MQ.TOPICS[topic].kangaroo ? 5 : 4; // contest puzzles always have A–E
+        if (!Array.isArray(p.choices) || p.choices.length < 2 || p.choices.length > maxChoices || (MQ.TOPICS[topic].kangaroo && p.choices.length !== 5)) fail(topic, d, 'choice count', p);
         else if (!p.choices.includes(p.answer)) fail(topic, d, 'answer missing from choices', p);
         else if (new Set(p.choices).size !== p.choices.length) fail(topic, d, 'duplicate choices', p);
       } else if (p.kind === 'multi') {
@@ -48,7 +49,9 @@ for (const topic of Object.keys(MQ.TOPICS)) {
       } else fail(topic, d, 'unknown kind', p);
       seen.add(p.text + (p.visual || '') + (p.choices || p.items || []).join('|'));
     }
-    if (seen.size < 8) fail(topic, d, `only ${seen.size} distinct problems`);
+    // Picture puzzles have fewer possible layouts; still, a contest must never feel repetitive.
+    const minDistinct = MQ.TOPICS[topic].kangaroo ? 5 : 8;
+    if (seen.size < minDistinct) fail(topic, d, `only ${seen.size} distinct problems`);
   }
 }
 

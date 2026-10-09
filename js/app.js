@@ -18,10 +18,13 @@
   const root = () => document.getElementById('app');
   const esc = U.esc;
   const later = (fn, ms) => { timers.push(setTimeout(fn, ms)); };
+  let ct = null; // the mock contest in progress (Math Kangaroo / Joey)
+  const endContest = () => { if (ct && ct.interval) clearInterval(ct.interval); ct = null; };
   function clearTimers() {
     timers.forEach(clearTimeout);
     timers = [];
     if (sess && sess.interval) { clearInterval(sess.interval); sess.interval = null; }
+    if (ct && ct.interval) { clearInterval(ct.interval); ct.interval = null; }
   }
   function render(html, cls = '') {
     clearTimers();
@@ -751,7 +754,9 @@
         <div><b>${sess.best}</b><small>best streak</small></div>
         <div><b>+${sess.earned}</b><small>💎 earned</small></div>
       </div>
-      <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button><button class="btn ghost" data-act="go" data-arg="trainer">Change settings</button><button class="btn" data-act="startTrainer">Play again</button></div></main>`);
+      <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button>${sess.kgTopic
+        ? `<button class="btn ghost" data-act="go" data-arg="kgtypes">Other puzzle types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
+        : '<button class="btn ghost" data-act="go" data-arg="trainer">Change settings</button><button class="btn" data-act="startTrainer">Play again</button>'}</div></main>`);
     if (sess.correct) { MQ.sfx('reward'); if (record) MQ.confetti(); }
     if (st.settings.voice !== false && sess.correct) MQ.speak(`You got ${sess.correct} right! ${record ? 'A new record!' : 'Great training!'}`);
     later(checkBadges, 1200);
@@ -804,6 +809,7 @@
         <button class="btn" data-act="startCheck">${last ? 'Take a new check' : 'Start the check'} ▶</button>
       </article>
       ${historyChart(checks)}
+      ${contestCard()}
     </main>`);
     cur = 'prep';
   }
@@ -854,6 +860,125 @@
       ${it.ok ? `<div class="ra">Your answer: <b>${esc(it.given)}</b></div>` : `<div class="ra">Your answer: <b>${esc(it.given || '—')}</b> · Right answer: <b>${esc(it.a)}</b></div>${it.e ? `<div class="re">${esc(it.e)}</div>` : ''}`}</div></li>`).join('')}</ol>
       <div class="row"><button class="btn ghost" data-act="viewCheck" data-arg="${res.id}">Back to results</button></div></main>`);
   }
+  // ---------------------------------------------------------------- Math Kangaroo style contest
+  const myContests = (kind) => (st.tests.contests || []).filter((c) => c.kind === kind);
+  function contestCard() {
+    if (st.grade === 'k') {
+      const last = myContests('joey').slice(-1)[0];
+      return `<article class="testcard" style="--pc:#e0a21b">
+        <div class="tc-head"><span class="tc-ic">🐣</span><div><b>Joey Puzzles</b><small>Brain teasers like Math Kangaroo, made for kindergarten · 12 puzzles</small></div></div>
+        <p>Picture puzzles with 5 answers to choose from. Every question can be read aloud. No clock: take your time and think!</p>
+        ${last ? `<div class="tc-last">Last time: <b>${last.right} of ${last.n}</b> ${'⭐'.repeat(Math.round((last.right / last.n) * 3))}</div>` : ''}
+        <button class="btn" data-act="startContest" data-arg="joey">Play 12 puzzles ▶</button>
+      </article>`;
+    }
+    const last = myContests('kangaroo').slice(-1)[0];
+    return `<article class="testcard" style="--pc:#d4703a">
+      <div class="tc-head"><span class="tc-ic">🦘</span><div><b>Math Kangaroo</b><small>Contest for grades 1–2 every March · 24 puzzles · 75 minutes</small></div></div>
+      <p>Logic and thinking puzzles with answers A–E. The first 8 are worth 3 points, the next 8 are worth 4, the last 8 are worth 5. There is no penalty for a wrong answer, so always make a guess.</p>
+      ${last ? `<div class="tc-last">Last mock contest, ${fmtDate(last.date)}: <b>${last.score} / ${last.max}</b> points <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
+      <div class="row left">
+        <button class="btn" data-act="startContest" data-arg="kangaroo:timed">Mock contest (75 min) ▶</button>
+        <button class="btn ghost" data-act="startContest" data-arg="kangaroo">Without the clock</button>
+        <button class="btn ghost" data-act="go" data-arg="kgtypes">Practice by type</button>
+      </div>
+    </article>`;
+  }
+  function kgtypes() {
+    render(header('Kangaroo practice', 'prep') + `<main class="prep">
+      <p class="lead">Pick a kind of puzzle. Problems get harder as you get them right, and every one has an explanation.</p>
+      <div class="kgtypes">${MQ.KANGAROO_TOPICS.map((t) => `<button class="tile" data-act="kgPractice" data-arg="${t}"><span class="ti">${MQ.TOPICS[t].icon}</span><b>${MQ.TOPICS[t].name}</b></button>`).join('')}</div>
+    </main>`);
+  }
+  function startContest(arg) {
+    const [kind, timed] = arg.split(':');
+    remember('contest');
+    ct = P().newContest(kind);
+    ct.timed = !!timed;
+    ct.left = ct.timed ? ct.seconds : 0;
+    render('', 'is-contest');
+    contestView();
+    if (ct.timed) ct.interval = setInterval(contestTick, 1000);
+  }
+  const clock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  function contestTick() {
+    if (!ct) return;
+    ct.left--;
+    const el = $('#ct-timer');
+    if (el) { el.textContent = '⏱ ' + clock(Math.max(0, ct.left)); el.classList.toggle('low', ct.left <= 300); }
+    if (ct.left <= 0) { clearInterval(ct.interval); ct.interval = null; toast('⏰ Time is up!'); contestFinish(); }
+  }
+  // Draw the contest without render(), so the clock keeps running between questions.
+  function contestView() {
+    const i = ct.i, it = ct.items[i], p = it.p, n = ct.items.length, joey = ct.kind === 'joey';
+    const r = root();
+    r.className = 'is-contest';
+    r.innerHTML = `<div class="contest">
+      <header class="playbar"><button class="iconbtn" data-act="ctQuit" aria-label="Stop">✕</button>
+        <span class="ptitle">${joey ? '🐣 Joey Puzzles' : '🦘 Math Kangaroo'}</span>
+        ${ct.timed ? `<span class="stat timer ${ct.left <= 300 ? 'low' : ''}" id="ct-timer">⏱ ${clock(ct.left)}</span>` : ''}</header>
+      <nav class="ctnav" aria-label="Questions">${ct.items.map((x, k) => `<button class="ctdot ${k === i ? 'cur' : ''} ${ct.answers[k] !== null ? 'ans' : ''} ${ct.flags[k] ? 'flag' : ''} p${x.pts}" data-act="ctGo" data-arg="${k}" aria-label="Question ${k + 1}">${k + 1}</button>`).join('')}</nav>
+      <section class="pcard">
+        <div class="pmeta"><span>Question ${i + 1} of ${n}${joey ? '' : ` · <b>${it.pts} points</b>`}</span><span class="pmeta-r">${ct.flags[i] ? '🚩' : ''}${MQ.canSpeak() ? '<button class="speak" data-act="ctSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
+        <div class="ptext ${p.big ? 'eq' : ''} ${p.wordy ? 'wordy' : ''}">${p.text}</div>
+        ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
+      </section>
+      <div class="choices ct ${p.choiceHtml ? 'pics' : ''}">${p.choices.map((c, k) => `<button class="choice ${ct.answers[i] === c ? 'sel' : ''}" data-act="ctPick" data-arg="${k}" aria-pressed="${ct.answers[i] === c}"><span class="letter">${'ABCDE'[k]}</span><span class="copt">${p.choiceHtml ? p.choiceHtml[k] : fmtChoice(c)}</span></button>`).join('')}</div>
+      <div class="ctbar">
+        <button class="btn ghost" data-act="ctGo" data-arg="${i - 1}" ${i === 0 ? 'disabled' : ''}>← Back</button>
+        ${joey ? '' : `<button class="btn ghost" data-act="ctFlag">${ct.flags[i] ? 'Unflag' : '🚩 Flag'}</button>`}
+        ${i < n - 1 ? `<button class="btn" data-act="ctGo" data-arg="${i + 1}">Next →</button>` : '<button class="btn" data-act="ctFinish">Finish ✓</button>'}
+      </div>
+      <p class="muted center small">${ct.answers.filter((a) => a !== null).length} of ${n} answered${joey ? '' : ' · tap a number above to jump to any question'}</p>
+    </div>`;
+    if (st.settings.readAloud) MQ.speak(p.say || MQ.toSpeech(p.text));
+  }
+  function contestFinish(confirmed) {
+    if (!ct) return;
+    const blank = ct.answers.filter((a) => a === null).length;
+    const timeUp = ct.timed && ct.left <= 0;
+    if (!confirmed && blank && !timeUp) {
+      return modal(`<div class="mtitle">Finish now?</div><p>You left <b>${blank}</b> ${blank === 1 ? 'question' : 'questions'} blank.${ct.kind === 'joey' ? '' : ' A wrong answer costs nothing, so a guess is better than a blank.'}</p>
+        <div class="row"><button class="btn ghost" data-act="closeModal">Keep working</button><button class="btn" data-act="ctFinishNow">Finish</button></div>`);
+    }
+    closeModal();
+    const res = P().scoreContest(ct);
+    endContest();
+    const list = st.tests.contests;
+    list.push(res);
+    while (list.length > 12) list.shift();
+    list.slice(0, -3).forEach((c) => { delete c.items; });
+    addGems(res.kind === 'joey' ? 15 : 25);
+    S.save();
+    contestResult(res, true);
+    MQ.sfx('reward');
+    MQ.confetti(140);
+    if (st.settings.voice !== false) MQ.speak(res.kind === 'joey' ? `You solved ${res.right} puzzles! Great thinking!` : `You scored ${res.score} points! Great job!`);
+    later(checkBadges, 1200);
+  }
+  function contestResult(res, fresh) {
+    const joey = res.kind === 'joey';
+    const sec = (pts) => res.sections[pts] ? `<div><b>${res.sections[pts].right} / ${res.sections[pts].n}</b><small>${pts}-point puzzles</small></div>` : '';
+    render(header(joey ? 'Joey Puzzles' : 'Math Kangaroo', 'prep') + `<main class="presult">
+      <div class="pr-hero" style="box-shadow: inset 0 0 0 3px ${joey ? '#e0a21b' : '#d4703a'}, 0 5px 0 ${joey ? '#e0a21b' : '#d4703a'}">
+        ${fresh ? `<div class="pr-done">Finished! +${joey ? 15 : 25} 💎</div>` : `<div class="pr-done muted">${fmtDate(res.date)}</div>`}
+        <div class="pr-level">${joey ? `${res.right} of ${res.n}` : `${res.score} / ${res.max}`}</div>
+        <div class="muted">${joey ? 'puzzles solved ' + '⭐'.repeat(Math.max(1, Math.round((res.right / res.n) * 3))) : `points · ${res.right} of ${res.n} right${res.blank ? ` · ${res.blank} blank` : ''}${res.timed ? ` · ${res.minutes} min` : ''}`}</div>
+      </div>
+      ${joey ? '' : `<div class="sumgrid three">${sec(3)}${sec(4)}${sec(5)}</div>`}
+      ${res.items ? `<section><h2>Review</h2><ol class="rlist">${res.items.map((it, k) => `<li class="${it.ok ? 'ok' : 'no'}">
+        <span class="rmark">${it.ok ? '✓' : '✗'}</span><div><div class="rq"><b>${k + 1}.</b> ${esc(it.q)}${joey ? '' : ` <span class="dchip">${it.pts} pts</span>`}</div>
+        <div class="ra">${it.ok ? `Your answer: <b>${it.letterG}</b>` : `Your answer: <b>${it.letterG || '—'}</b> · Right answer: <b>${it.letterA}</b>${/^picture/.test(it.a) ? '' : ` (${esc(it.a)})`}`}</div>
+        ${!it.ok && it.e ? `<div class="re">${esc(it.e)}</div>` : ''}</div></li>`).join('')}</ol></section>` : ''}
+      <div class="row"><button class="btn ghost" data-act="go" data-arg="prep">Test Prep</button><button class="btn ghost" data-act="go" data-arg="home">Home</button>${joey ? '' : '<button class="btn" data-act="go" data-arg="kgtypes">Practice by type</button>'}</div>
+      <p class="muted small center">Original puzzles in the style of Math Kangaroo; not affiliated with Math Kangaroo USA. Past official papers are available from mathkangaroo.org.</p>
+    </main>`);
+  }
+  function contestQuit() {
+    modal(`<div class="mtitle">Stop the ${ct && ct.kind === 'joey' ? 'puzzles' : 'contest'}?</div><p>Your answers will not be saved.</p>
+      <div class="row"><button class="btn ghost" data-act="closeModal">Keep going</button><button class="btn" data-act="ctLeave">Stop</button></div>`);
+  }
+
   // Grown-ups: history of checks by domain.
   function readinessSection() {
     const checks = myChecks();
@@ -861,7 +986,16 @@
     return `<section><h2>Test readiness</h2>
       <p class="muted">i-Ready Diagnostic is taken at school three times a year (fall, winter, spring). A Placement Check here a week before helps ${esc(st.name)} get used to the format and shows what to practice. Results are estimates from this app, not official i-Ready scores.</p>
       ${checks.length ? `${historyChart(checks)}<div class="tablewrap"><table class="topics"><thead><tr><th>Date</th><th>Overall</th>${P().DOMAINS.map((d) => `<th>${d.short}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>` : '<p>No Placement Check yet. Start one from <b>Test Prep</b> on the home screen.</p>'}
+      ${contestHistory()}
     </section>`;
+  }
+  function contestHistory() {
+    const kind = st.grade === 'k' ? 'joey' : 'kangaroo', list = myContests(kind);
+    const intro = kind === 'joey'
+      ? '<h3>Joey Puzzles</h3><p class="muted">Kangaroo-style brain teasers for kindergarten (Math Kangaroo itself starts in 1st grade).</p>'
+      : '<h3>Math Kangaroo</h3><p class="muted">The contest is held every March. Levels 1–2 take the same test: 24 puzzles, 75 minutes, answers A–E, 3/4/5 points (96 in all). Mock contests here use original puzzles in the same style; official past papers are sold at mathkangaroo.org.</p>';
+    if (!list.length) return intro + '<p>No mock contest yet.</p>';
+    return intro + `<div class="tablewrap"><table class="topics"><thead><tr><th>Date</th><th>Score</th><th>Right</th>${kind === 'joey' ? '' : '<th>3 pts</th><th>4 pts</th><th>5 pts</th><th>Time</th>'}</tr></thead><tbody>${list.slice().reverse().map((c) => `<tr><td>${fmtDate(c.date)}</td><td><b>${kind === 'joey' ? c.right + ' / ' + c.n : c.score + ' / ' + c.max}</b></td><td>${c.right} / ${c.n}</td>${kind === 'joey' ? '' : [3, 4, 5].map((p) => `<td>${c.sections[p] ? c.sections[p].right + '/' + c.sections[p].n : ''}</td>`).join('') + `<td>${c.timed ? c.minutes + ' min' : 'no clock'}</td>`}</tr>`).join('')}</tbody></table></div>`;
   }
 
   // ---------------------------------------------------------------- trainer
@@ -1045,6 +1179,10 @@
       remember('play');
       return quit();
     }
+    if (ct && root().classList.contains('is-contest')) {
+      remember('contest');
+      return contestQuit();
+    }
     if ($('#modal')) closeModal();
     const where = (e.state && e.state.where) || (st ? 'home' : 'who');
     fromPop = true;
@@ -1062,7 +1200,8 @@
     if (scr === 'new') { ui.newKid = null; return newExplorer(); }
     if (scr === 'family') { ui.fam = null; return family(); }
     if (!st) return who();
-    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, parent: parentGate }[scr] || home)();
+    endContest();
+    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, parent: parentGate }[scr] || home)();
   }
 
   const ACTIONS = {
@@ -1124,6 +1263,17 @@
     unorder: (a) => { if (!sess || sess.locked) return; sess.sel.splice(+a, 1); MQ.sfx('tap'); redrawAnswer(); },
     tick: (a) => { if (!sess || sess.locked) return; sess.lineVal = +a; MQ.sfx('tap'); redrawAnswer(); },
     submitPick: () => submitPick(),
+    startContest: (a) => startContest(a),
+    ctGo: (a) => { if (!ct) return; const k = +a; if (k < 0 || k >= ct.items.length) return; ct.i = k; MQ.hush(); contestView(); window.scrollTo(0, 0); },
+    ctPick: (a) => { if (!ct) return; const c = ct.items[ct.i].p.choices[+a]; ct.answers[ct.i] = ct.answers[ct.i] === c ? null : c; MQ.sfx('tap'); contestView(); },
+    ctFlag: () => { if (!ct) return; ct.flags[ct.i] = !ct.flags[ct.i]; contestView(); },
+    ctSpeak: () => { if (ct) { const p = ct.items[ct.i].p; MQ.speak(p.say || MQ.toSpeech(p.text)); } },
+    ctFinish: () => contestFinish(false),
+    ctFinishNow: () => contestFinish(true),
+    ctQuit: () => contestQuit(),
+    ctLeave: () => { closeModal(); endContest(); prep(); },
+    viewContest: (a) => { const c = (st.tests.contests || []).find((x) => x.id === a); c ? contestResult(c, false) : prep(); },
+    kgPractice: (a) => { if (!MQ.TOPICS[a]) return prep(); startSession({ mode: 'trainer', topics: [a], auto: true, d: [2, 2], goal: 0, timer: 0, kgTopic: a }); },
     startCheck: () => startCheck(),
     viewCheck: (a) => { const c = myChecks().find((x) => x.id === a); c ? checkResult(c, false) : prep(); },
     reviewCheck: (a) => { const c = myChecks().find((x) => x.id === a); c && c.items ? reviewCheck(c) : prep(); },
@@ -1198,6 +1348,13 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && $('#modal')) return closeModal();
       if (e.key === 'Enter' && $('#fam-go') && !$('#fam-go').disabled) return famSubmit();
+      if (ct && root().classList.contains('is-contest') && !$('#modal')) { // contest: A–E picks, arrows move
+        const k = 'abcde'.indexOf(e.key.toLowerCase());
+        if (k >= 0 && k < ct.items[ct.i].p.choices.length) return act('ctPick', String(k));
+        if (e.key === 'ArrowRight') return act('ctGo', String(ct.i + 1));
+        if (e.key === 'ArrowLeft') return act('ctGo', String(ct.i - 1));
+        return;
+      }
       if (!root().classList.contains('is-play') || !sess || $('#modal')) return;
       if (sess.locked) { if ((e.key === 'Enter' || e.key === ' ') && sess.pending) { e.preventDefault(); advance(); } return; }
       if (sess.p.kind === 'num') {
@@ -1217,7 +1374,7 @@
     else who();
   }
 
-  MQ.app = { init, go, session: () => sess }; // session() is used by the browser smoke test
+  MQ.app = { init, go, session: () => sess, contest: () => ct }; // session() and contest() are used by the browser tests
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

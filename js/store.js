@@ -30,7 +30,7 @@
     daily: { last: '', streak: 0, best: 0 },
     days: {}, // 'YYYY-MM-DD': { a, c }
     mistakes: [],
-    tests: { checks: [] }, // Placement Check results (newest last)
+    tests: { checks: [], contests: [] }, // Placement Check and mock contest results (newest last)
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
     settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true },
   });
@@ -159,10 +159,15 @@
     if ((old.daily.last || '') > (nw.daily.last || '')) out.daily = Object.assign({}, old.daily);
     out.daily.best = max(nw.daily.best, old.daily.best);
     if ((old.lastPlayed || '') > (out.lastPlayed || '')) out.lastPlayed = old.lastPlayed;
-    // test results from both devices are kept (each result has its own id)
-    const checks = {};
-    for (const c of [...((old.tests || {}).checks || []), ...((nw.tests || {}).checks || [])]) checks[c.id] = c;
-    out.tests = Object.assign({}, nw.tests, { checks: Object.values(checks).sort((x, y) => (x.id < y.id ? -1 : 1)) }); // ids start with a timestamp
+    // test results from both devices are kept (each result has its own id, which starts with a timestamp)
+    out.tests = Object.assign({}, nw.tests);
+    for (const key of new Set([...Object.keys(old.tests || {}), ...Object.keys(nw.tests || {})])) {
+      const both = [...((old.tests || {})[key] || []), ...((nw.tests || {})[key] || [])];
+      if (!both.every((x) => x && x.id)) continue;
+      const byId = {};
+      for (const r of both) byId[r.id] = r;
+      out.tests[key] = Object.values(byId).sort((x, y) => (x.id < y.id ? -1 : 1));
+    }
     out.rev = max(nw.rev, old.rev);
     return out;
   };

@@ -40,7 +40,12 @@ Practice for the tests used in California schools. The app is not affiliated wit
   - Results: an estimated grade level for each domain and overall, compared with where most kids are at that time of year; a review of every answer; a practice plan that starts Endless Training on the two weakest domains at the right difficulty.
   - History with a growth chart is kept per child and synced across devices. i-Ready runs three times a year at school (fall, winter, spring); a check a week before is a good rhythm.
   - The level is the app's own estimate, not an official i-Ready scale score.
-- Coming next: Math Kangaroo practice and a mock contest (2nd grade), CogAT practice for the GATE screening that Eureka Union gives every 2nd grader.
+- **Math Kangaroo** — 2nd grade. The contest is held every March; levels 1–2 take the same test: 24 puzzles, 75 minutes, answers A–E, 8 puzzles each worth 3, 4 and 5 points (96 in all), no penalty for a wrong answer.
+  - **Mock contest** with the same structure, with or without the 75-minute clock: an answer sheet A–E, a number strip to jump to any question, flags, a warning about blanks before finishing, then the score by section and a review with explanations.
+  - **Practice by type**: 12 kinds of puzzles in contest style (counting shapes, balance scales, who is taller, calendar, coins, paths on a grid, flip and turn, cube towers, what comes next, hidden digits, age puzzles, and a hand-written bank of classics), each adapting its difficulty and explaining every answer.
+  - Original puzzles in the contest's style; official past papers are sold by Math Kangaroo USA.
+- **Joey Puzzles** — kindergarten (Math Kangaroo starts in 1st grade): 12 picture puzzles with 5 answers, read aloud, no clock.
+- Coming next: CogAT practice for the GATE screening that Eureka Union gives every 2nd grader.
 
 ## Kindergarten track
 
@@ -88,7 +93,8 @@ js/store.js           one saved profile per child (localStorage), stats, merging
 js/cloud.js           family sync through Firebase (code + PIN, live updates, offline queue)
 js/cloud-config.js    Firebase project settings (public identifiers)
 js/vendor/            Firebase JS SDK 10.14.1 (compat builds), served with the app
-js/testprep.js        Placement Check: grade ladder, adaptive question choice, level estimate, practice plan
+js/testprep.js        Placement Check (grade ladder, adaptive questions, level estimate, practice plan) and mock contests
+js/puzzles.js         Math Kangaroo style puzzle generators, hand-written puzzle bank, Joey puzzles
 js/fx.js              sounds (Web Audio), read-aloud (Web Speech), confetti
 js/app.js             screens and game logic
 tools/build.py        bundles everything into dist/math-expedition.html (local-only copy)

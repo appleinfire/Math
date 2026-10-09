@@ -16,7 +16,6 @@ html = re.sub(r'<script src="(js/[^"]+)"></script>', lambda m: '<script>\n' + (r
 # Drop pieces that need separate files (manifest, icons, service worker).
 html = re.sub(r'\s*<link rel="(manifest|icon|apple-touch-icon)"[^>]*>', '', html)
 html = re.sub(r'\s*<script>\s*if \(\'serviceWorker\'.*?</script>', '', html, flags=re.S)
-html = html.replace('MQ.app = { init, go, session: () => sess }; // session() is used by the browser smoke test', 'MQ.app = { init, go, session: () => sess };')
 
 dist = root / 'dist'
 dist.mkdir(exist_ok=True)
