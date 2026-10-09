@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#2bb3a3"/>
+  <g stroke="#ffffff" stroke-opacity="0.18" stroke-width="4">
+    <path d="M0 128H512M0 256H512M0 384H512M128 0V512M256 0V512M384 0V512"/>
+  </g>
+  <circle cx="256" cy="256" r="150" fill="#ffffff" stroke="#22304f" stroke-width="18"/>
+  <polygon points="256,120 292,256 256,392 220,256" fill="#ff6b5b" stroke="#22304f" stroke-width="12" stroke-linejoin="round"/>
+  <polygon points="256,256 292,256 256,392 220,256" fill="#22304f"/>
+  <circle cx="256" cy="256" r="18" fill="#ffb547" stroke="#22304f" stroke-width="8"/>
+  <text x="256" y="104" font-family="Arial, sans-serif" font-weight="900" font-size="44" fill="#22304f" text-anchor="middle">N</text>
+  <text x="392" y="272" font-family="Arial, sans-serif" font-weight="900" font-size="60" fill="#ff6b5b" text-anchor="middle">+</text>
+  <text x="120" y="272" font-family="Arial, sans-serif" font-weight="900" font-size="60" fill="#ff6b5b" text-anchor="middle">×</text>
+</svg>
