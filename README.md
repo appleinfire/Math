@@ -13,10 +13,10 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 
 ## How to open it
 
-- **Simplest:** open `dist/math-expedition.html` in any browser. It is one file, so you can AirDrop or email it to an iPad and open it in Safari. It works offline.
-- **As an app on the iPad:** host the folder with GitHub Pages (Settings → Pages → deploy from this branch, folder `/`), open the link in Safari, then Share → *Add to Home Screen*. It then opens full screen and works offline.
-
-Progress is saved in the browser on that device, separately for each child. To move one child's progress to another device, open their profile and use **For grown-ups → Move progress to another device**.
+- **Online (main way):** **https://appleinfire.github.io/Math/** — works on any phone, tablet or computer. On an iPad, open it in Safari, then Share → *Add to Home Screen* to get a full-screen app icon. It keeps working offline.
+- **Same progress everywhere:** on the first device choose *Create a family* (family code + PIN). On every other device choose *I already have a family* and type the same code and PIN. Explorers, levels, creatures and crystals then stay in sync across all devices.
+- **Updates:** every push to `main` is tested and published automatically by GitHub Actions in about a minute. See [docs/DEPLOY.md](docs/DEPLOY.md) for the setup and how sync works.
+- **Offline single file:** `dist/math-expedition.html` still works on its own (progress stays on that device).
 
 ## How the game works
 
@@ -74,10 +74,15 @@ js/generators.js      2nd-grade problem generators, 14 topics × 5 difficulties
 js/generators-k.js    kindergarten problem generators, 10 topics × 5 difficulties
 js/content.js         2nd-grade worlds and creatures, grade tracks, badges, buddy phrases
 js/content-k.js       kindergarten worlds and baby animals
-js/store.js           one saved profile per child (localStorage), stats
+js/store.js           one saved profile per child (localStorage), stats, merging copies from two devices
+js/cloud.js           family sync through Firebase (code + PIN, live updates, offline queue)
+js/cloud-config.js    Firebase project settings (public identifiers)
+js/vendor/            Firebase JS SDK 10.14.1 (compat builds), served with the app
 js/fx.js              sounds (Web Audio), read-aloud (Web Speech), confetti
 js/app.js             screens and game logic
-tools/build.py        bundles everything into dist/math-expedition.html
+tools/build.py        bundles everything into dist/math-expedition.html (local-only copy)
+.github/workflows/    automatic deploy to GitHub Pages
+firestore.rules       Firestore security rules (paste into the Firebase console)
 tests/                generator test (node) and browser smoke test (Playwright)
 ```
 
@@ -85,6 +90,8 @@ No build step or dependencies are needed to run it. After changing code, run:
 
 ```
 node tests/generators.test.js      # 144,000 generated problems checked
+node tests/store.test.js           # merging progress from two devices, family keys
 node tests/smoke.mjs               # two children, both grades, played in Chromium (needs Playwright)
+node tests/cloud-e2e.mjs           # two devices syncing through the real Firebase project
 python3 tools/build.py             # refresh the single-file version in dist/
 ```

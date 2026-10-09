@@ -10,6 +10,8 @@ import pathlib, re
 root = pathlib.Path(__file__).resolve().parent.parent
 html = (root / 'index.html').read_text()
 html = html.replace('<link rel="stylesheet" href="css/style.css">', '<style>\n' + (root / 'css/style.css').read_text() + '</style>')
+# The single-file copy is local-only: drop the cloud sync scripts (they need the website's https origin).
+html = re.sub(r'\s*<script src="js/(vendor/[^"]+|cloud-config\.js|cloud\.js)"></script>', '', html)
 html = re.sub(r'<script src="(js/[^"]+)"></script>', lambda m: '<script>\n' + (root / m.group(1)).read_text() + '</script>', html)
 # Drop pieces that need separate files (manifest, icons, service worker).
 html = re.sub(r'\s*<link rel="(manifest|icon|apple-touch-icon)"[^>]*>', '', html)

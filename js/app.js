@@ -10,6 +10,7 @@
   let sess = null; // current play session
   let timers = [];
   let ui = {}; // small per-screen UI state (new-explorer form, hatch, reset confirm…)
+  let cur = ''; // screen that may be redrawn when another device changes the data ('' = leave it alone)
 
   const $ = (sel) => document.querySelector(sel);
   const track = () => MQ.track(st.grade);
@@ -25,6 +26,7 @@
   function render(html, cls = '') {
     clearTimers();
     const r = root();
+    cur = '';
     MQ.hush();
     document.body.dataset.track = st ? st.grade : '';
     r.className = cls;
@@ -148,7 +150,89 @@
         <button class="profile add" data-act="go" data-arg="new"><span class="pav">＋</span><b>New explorer</b><small>Add a brother or sister</small></button>
       </div>
       <p class="muted center">Each explorer has their own grade, map, creatures and progress.</p>
+      ${syncLine()}
     </main>`, 'is-who');
+    cur = 'who';
+  }
+
+  // ---------------------------------------------------------------- family sync
+  const CL = () => (MQ.cloud && MQ.cloud.configured() ? MQ.cloud : null);
+  function syncLine() {
+    const C = CL();
+    if (!C) return '';
+    if (!C.family) return `<div id="sync" class="sync off">📱 Progress is saved on this device only. <button class="linkbtn" data-act="go" data-arg="family">Connect family ☁️</button></div>`;
+    const label = { connecting: 'connecting…', saving: 'saving…', synced: 'synced ✓', offline: 'offline — saved here, will sync later', error: 'sync problem, will retry' }[C.status] || 'synced ✓';
+    return `<div id="sync" class="sync s-${C.status}">☁️ Family <b>${esc(C.family.name)}</b> · ${label}</div>`;
+  }
+  const FAM_ERRORS = {
+    'short-code': 'The family code needs at least 6 letters or numbers.',
+    'bad-pin': 'The PIN must be 4 to 6 digits.',
+    'pin-mismatch': 'The two PINs are different. Type the same PIN twice.',
+    exists: 'This family code and PIN are already used. Choose “I already have a family” to join it, or pick a different code.',
+    'not-found': 'No family found with this code and PIN. Check both and try again.',
+    offline: 'No internet connection. Connect to Wi-Fi and try again.',
+    denied: 'The server refused access. Check the Firebase setup (docs/DEPLOY.md).',
+    unavailable: 'Online sync is not available in this copy of the app. Open the website version.',
+  };
+  function family() {
+    const f = (ui.fam = ui.fam || { mode: 'choose', code: '', error: '' });
+    const hasKids = S.profiles().length > 0;
+    const backTo = f.mode !== 'choose' ? 'famChoose' : hasKids ? 'who' : '';
+    const top = `<header class="bar">${backTo ? `<button class="iconbtn" data-act="${backTo === 'who' ? 'go' : 'famMode'}" data-arg="${backTo === 'who' ? 'who' : 'choose'}" aria-label="Back">←</button>` : ''}<h1>${f.mode === 'create' ? 'Create a family' : f.mode === 'join' ? 'Join your family' : 'Save progress online'}</h1></header>`;
+    let body;
+    if (f.mode === 'choose') {
+      body = `<div class="ob-hero" aria-hidden="true">☁️</div>
+        <p class="lead center">Connect this device to your family, and every phone, tablet and computer shows the same explorers, levels and creatures.</p>
+        <div class="famchoices">
+          <button class="grade-pick" data-act="famMode" data-arg="create" style="--pc:#2bb3a3"><span class="gi">🏡</span><b>Create a family</b><small>First device: choose a family code and PIN</small></button>
+          <button class="grade-pick" data-act="famMode" data-arg="join" style="--pc:#e0a21b"><span class="gi">🔑</span><b>I already have a family</b><small>Another device: type the same code and PIN</small></button>
+          ${hasKids ? '' : `<button class="grade-pick" data-act="localOnly" style="--pc:#c4ccd6"><span class="gi">📱</span><b>Play on this device only</b><small>You can connect later in For grown-ups</small></button>`}
+        </div>`;
+    } else {
+      const create = f.mode === 'create';
+      body = `<p class="muted">${create ? 'Pick a family code you will remember (at least 6 letters, for example <b>rudyk-tigers</b>) and a 4–6 digit PIN. Write them down: you type them once on every new device.' : 'Type the family code and PIN you chose on the first device.'}${hasKids && create ? ' The explorers already on this device will be added to the family.' : ''}</p>
+        <label for="fam-code">Family code</label>
+        <input id="fam-code" class="field" maxlength="40" autocomplete="off" autocapitalize="none" spellcheck="false" value="${esc(f.code)}" placeholder="family code">
+        <label for="fam-pin">PIN</label>
+        <input id="fam-pin" class="field" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="4–6 digits">
+        ${create ? '<label for="fam-pin2">PIN again</label><input id="fam-pin2" class="field" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="same PIN">' : ''}
+        <p class="famerr" id="fam-err" role="alert">${esc(f.error)}</p>
+        <button class="btn big" id="fam-go" data-act="famSubmit">${create ? 'Create family' : 'Connect'}</button>`;
+    }
+    render(`<main class="onboard family">${top}${body}</main>`, 'is-onboard');
+  }
+  async function famSubmit() {
+    const f = ui.fam, C = MQ.cloud, btn = $('#fam-go'), err = $('#fam-err');
+    f.code = $('#fam-code').value;
+    const pin = $('#fam-pin').value.trim();
+    const showErr = (code) => { f.error = FAM_ERRORS[code] || 'Something went wrong. Try again.'; err.textContent = f.error; btn.disabled = false; btn.textContent = f.mode === 'create' ? 'Create family' : 'Connect'; };
+    if (f.mode === 'create' && pin !== $('#fam-pin2').value.trim()) return showErr('pin-mismatch');
+    btn.disabled = true;
+    btn.textContent = 'Connecting…';
+    err.textContent = '';
+    try {
+      await C.connect({ code: f.code, pin, create: f.mode === 'create' });
+    } catch (e) {
+      return showErr(e.code);
+    }
+    ui.fam = null;
+    toast('☁️ Family connected');
+    MQ.sfx('reward');
+    const list = S.profiles();
+    if (!list.length) return newExplorer();
+    if (list.length === 1) return openProfile(list[0].id);
+    who();
+  }
+  // Another device changed something: refresh the screen if it only shows data (never in the middle of a game).
+  function onCloud(what) {
+    if (what === 'status') { const el = $('#sync'); if (el) el.outerHTML = syncLine(); return; }
+    if (root().classList.contains('is-play')) return;
+    if (st && MQ.state !== st) { st = null; return who(); } // this explorer was deleted on another device
+    if (!cur) return;
+    if (cur === 'who') return who();
+    const [scr, arg] = cur.split(':');
+    const redraw = { home, map, journal, badges, world: () => world(arg) }[scr];
+    if (redraw) redraw();
   }
   function newExplorer() {
     const first = !S.profiles().length;
@@ -160,6 +244,7 @@
     render(`<main class="onboard">
       ${first ? '' : '<header class="bar"><button class="iconbtn" data-act="go" data-arg="who" aria-label="Back">←</button><h1>New explorer</h1></header>'}
       ${first ? '<div class="ob-hero" aria-hidden="true">🧭</div><h1 class="title">Math Expedition</h1><p class="lead">Explore wild worlds, solve number puzzles, and discover amazing real animals.</p>' : ''}
+      ${first && CL() && !MQ.cloud.family ? '<p class="muted">Already have a family on another device? <button class="linkbtn" data-act="go" data-arg="family">Connect it ☁️</button></p>' : ''}
       <label for="ob-name">Explorer’s name</label>
       <input id="ob-name" class="field" maxlength="16" autocomplete="off" value="${esc(k.name)}" placeholder="Name">
       <div class="label">Which grade?</div>
@@ -233,8 +318,9 @@
         <button class="tile t-hatch" data-act="go" data-arg="hatch"><span class="ti">🥚</span><b>Hatchery</b><small>Rare eggs · ${MQ.EGG_PRICE} 💎</small></button>
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
       </div>
-      <footer class="foot"><button class="linkbtn" data-act="go" data-arg="parent">For grown-ups</button></footer>
+      <footer class="foot">${syncLine()}<button class="linkbtn" data-act="go" data-arg="parent">For grown-ups</button></footer>
     </main>`);
+    cur = 'home';
   }
 
   // ---------------------------------------------------------------- map & world
@@ -250,6 +336,7 @@
         </span>${open && found === 6 ? '<span class="wdone">✓</span>' : ''}</button>`;
     }).join('');
     render(header('Expedition Map') + `<main class="map">${cards}</main>`);
+    cur = 'map';
   }
 
   function world(id) {
@@ -269,6 +356,7 @@
       </button>`;
     }).join('');
     render(header(`${w.emoji} ${w.name}`, 'map') + `<main class="world" style="--wc:${w.color};--wt:${w.tint}"><p class="wblurb">${w.blurb}</p><div class="trail">${rows}</div></main>`);
+    cur = 'world:' + id;
   }
 
   // ---------------------------------------------------------------- play
@@ -631,6 +719,7 @@
     const sections = WORLDS().map((w) => `<section style="--wc:${w.color};--wt:${w.tint}"><h2>${w.emoji} ${w.name}</h2><div class="cgrid">${w.levels.map((l) => card(MQ.CREATURES[l.creature])).join('')}</div></section>`).join('') +
       `<section style="--wc:#b0569e;--wt:#f6dff1"><h2>🥚 Hatchery rarities</h2><div class="cgrid">${MQ.EGG_CREATURES.map(card).join('')}</div></section>`;
     render(header('Field Journal') + `<main class="journal"><div class="jcount"><b>${have}</b> of ${total} creatures discovered<div class="xp"><span style="width:${Math.round((have / total) * 100)}%"></span></div></div>${sections}</main>`);
+    cur = 'journal';
   }
   function hatch() {
     const left = MQ.EGG_CREATURES.filter((c) => !st.creatures[c.id]);
@@ -674,6 +763,7 @@
   }
   function badges() {
     render(header('Badges') + `<main class="badges"><div class="bgrid">${MQ.BADGES.map((b) => `<div class="badge ${st.badges[b.id] ? 'got' : ''}"><span class="bi">${b.icon}</span><b>${b.name}</b><small>${b.desc}</small></div>`).join('')}</div></main>`);
+    cur = 'badges';
   }
 
   // ---------------------------------------------------------------- grown-ups
@@ -726,18 +816,30 @@
           <label for="set-buddy">Buddy’s name</label><input id="set-buddy" class="field" maxlength="14" value="${esc(st.buddyName)}">
           <button class="btn ghost" data-act="saveNames">Save names</button></div>
       </section>
-      <section><h2>Move progress to another device</h2>
-        <p class="muted">Progress is saved in this browser only. Copy the save code here and paste it on the other device.</p>
+      ${famSection()}
+      <section><h2>${CL() && MQ.cloud.family ? 'Backup save code' : 'Move progress to another device'}</h2>
+        <p class="muted">${CL() && MQ.cloud.family ? 'Progress already syncs through your family. A save code is an extra backup of this explorer.' : 'Copy the save code here and paste it on the other device.'}</p>
         <textarea id="savecode" class="field code" rows="3" placeholder="Save code appears here, or paste one to load it"></textarea>
         <div class="row left"><button class="btn ghost" data-act="exportSave">Show & copy save code</button><button class="btn ghost" data-act="importSave">Load pasted code</button></div>
         <p class="muted" id="save-msg"></p></section>
       <section><h2>How levels map to school</h2><p>${track().school}</p></section>
-      <section><h2>Explorers on this device</h2>
+      <section><h2>${CL() && MQ.cloud.family ? 'Explorers in your family' : 'Explorers on this device'}</h2>
         <p class="muted">Each child has a separate profile: their own grade, map, creatures, crystals and statistics. Changing the grade switches the map; progress in the other grade is kept.</p>
         <ul class="kids">${kids}</ul>
         <div class="row left"><button class="btn ghost" data-act="go" data-arg="new">Add an explorer</button></div></section>
       <section><h2>Start over</h2><button class="btn danger" data-act="reset">${ui.resetArmed ? `Tap again to erase ${esc(st.name)}’s progress` : `Erase ${esc(st.name)}’s progress`}</button></section>
     </main>`);
+  }
+
+  function famSection() {
+    const C = CL();
+    if (!C) return `<section><h2>Family sync</h2><p class="muted">Online sync works in the website version of Math Expedition.</p></section>`;
+    if (!C.family) return `<section><h2>Family sync</h2>${syncLine()}<p class="muted">Connect to keep the same explorers, levels and creatures on every device.</p><div class="row left"><button class="btn" data-act="go" data-arg="family">Connect family ☁️</button></div></section>`;
+    const url = location.origin + location.pathname;
+    return `<section><h2>Family sync</h2>${syncLine()}
+      <p>To add a phone, tablet or computer: open <b>${esc(url)}</b>, choose <b>I already have a family</b>, and type the family code <b>${esc(C.family.name)}</b> and your PIN.</p>
+      <p class="muted">The PIN is not stored on devices. If you forget it, create a new family on this device: the explorers here will move into it.</p>
+      <div class="row left"><button class="btn ghost" data-act="famDisconnect">${ui.discArmed ? 'Tap again to disconnect this device' : 'Disconnect this device'}</button></div></section>`;
   }
 
   // ---------------------------------------------------------------- routing
@@ -763,11 +865,12 @@
     remember(where);
     closeModal();
     if (where !== 'hatch') ui.hatch = null;
-    if (where !== 'parent') { ui.resetArmed = false; ui.delArmed = null; }
+    if (where !== 'parent') { ui.resetArmed = false; ui.delArmed = null; ui.discArmed = false; }
     const [scr, arg] = where.split(':');
     if (scr !== 'play') sess = null;
     if (scr === 'who') return who();
     if (scr === 'new') { ui.newKid = null; return newExplorer(); }
+    if (scr === 'family') { ui.fam = null; return family(); }
     if (!st) return who();
     ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, parent: parentGate }[scr] || home)();
   }
@@ -786,6 +889,16 @@
       home();
     },
     openProfile: (a) => openProfile(a),
+    famMode: (a) => { ui.fam = ui.fam || {}; if ($('#fam-code')) ui.fam.code = $('#fam-code').value; ui.fam.mode = a; ui.fam.error = ''; family(); },
+    famSubmit: () => famSubmit(),
+    localOnly: () => { try { localStorage.setItem('math-expedition-localonly', '1'); } catch (e) { /* ignore */ } ui.newKid = null; newExplorer(); },
+    famDisconnect: () => {
+      if (!ui.discArmed) { ui.discArmed = true; return parent(); }
+      ui.discArmed = false;
+      MQ.cloud.disconnect();
+      toast('This device is no longer synced');
+      parent();
+    },
     speak: () => { if (sess && sess.p) MQ.speak(sess.p.say || MQ.toSpeech(sess.p.text)); },
     setGrade: (a) => {
       const [id, g] = a.split(':');
@@ -857,6 +970,7 @@
 
   function init() {
     S.init();
+    if (MQ.cloud) { MQ.cloud.init(); MQ.cloud.onUpdate(onCloud); }
     document.addEventListener('click', (e) => {
       const el = e.target.closest('[data-act]');
       if (!el || el.disabled) return;
@@ -871,6 +985,7 @@
     try { if (useHistory) history.replaceState({ where: 'start' }, ''); } catch (e) { /* ignore */ }
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && $('#modal')) return closeModal();
+      if (e.key === 'Enter' && $('#fam-go') && !$('#fam-go').disabled) return famSubmit();
       if (!root().classList.contains('is-play') || !sess || $('#modal')) return;
       if (sess.locked) { if ((e.key === 'Enter' || e.key === ' ') && sess.pending) { e.preventDefault(); advance(); } return; }
       if (sess.p.kind === 'num') {
@@ -880,7 +995,11 @@
       } else if (/^[1-4]$/.test(e.key)) choose(+e.key - 1);
     });
     // One child: straight to their home. Several: ask who is playing.
+    // A brand-new device first offers to join the family, so progress is shared from the start.
     const list = S.profiles();
+    let localOnly = false;
+    try { localOnly = localStorage.getItem('math-expedition-localonly') === '1'; } catch (e) { /* ignore */ }
+    if (!list.length && CL() && !MQ.cloud.family && !localOnly) return family();
     if (list.length === 1) openProfile(list[0].id);
     else who();
   }

@@ -456,3 +456,14 @@ body[data-track="k"] { --paper: #eef2fb; }
 .pill.switch:active { transform: translateY(2px); }
 .mini-av { position: relative; }
 .mini-av::after { content: '👥'; position: absolute; right: -4px; bottom: -4px; font-size: 0.7rem; background: var(--card); border-radius: 50%; padding: 1px; box-shadow: 0 0 0 1px var(--line); }
+
+/* ================= Family sync ================= */
+.sync { margin: 10px auto 4px; max-width: 520px; text-align: center; font-size: 0.88rem; font-weight: 700; color: var(--ink-soft); background: var(--card); border-radius: 999px; padding: 6px 14px; box-shadow: inset 0 0 0 1px var(--line); }
+.sync .linkbtn { font-weight: 800; color: var(--ink); }
+.sync.s-synced { color: #17766b; }
+.sync.s-offline, .sync.s-error { color: #8a5a00; background: var(--sun-soft); }
+.foot { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.famchoices { display: grid; gap: 12px; margin-top: 8px; }
+.famchoices .grade-pick { padding: 16px; }
+.famerr { color: var(--bad); font-weight: 800; min-height: 1.2em; margin: 4px 0 0; }
+.family .ob-hero { margin-top: 4px; }
