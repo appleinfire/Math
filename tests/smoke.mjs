@@ -253,6 +253,42 @@ async function run(viewport, tag) {
   if (!(await page.$('.home .goal .ring'))) errors.push(tag + ': no goal ring on home');
   await snap('15b-home-goal');
 
+  // ---- Grown-up preview: every level opens, a locked level can be played, and nothing is saved
+  const storeBefore = await page.evaluate(() => JSON.stringify(Object.fromEntries(Object.keys(localStorage).sort().map((k) => [k, localStorage.getItem(k)]))));
+  await page.evaluate(() => MQ.app.go('parent'));
+  {
+    const [pa, pb] = (await page.textContent('.eqline')).match(/\d+/g).map(Number);
+    await page.fill('#gate-in', String(pa * pb));
+    await page.click('[data-act=gate]');
+  }
+  await page.click('[data-act=startPreview]');
+  await page.waitForSelector('#app > .pvbar + header + .map');
+  if ((await page.$$('.wcard.locked')).length) errors.push(tag + ': preview did not open every world');
+  await snap('19-preview-map');
+  const lastWorld = await page.evaluate(() => MQ.track('g2').worlds.slice(-1)[0].id);
+  await page.click(`[data-act=go][data-arg="world:${lastWorld}"]`);
+  await page.click('.lrow >> nth=5');
+  await page.waitForSelector('#app.is-play > .pvbar');
+  await solve(9);
+  await page.waitForSelector('.result');
+  await page.evaluate(() => MQ.app.go('lgtypes'));
+  await page.click('[data-act=pvLevel][data-arg="5"]');
+  await page.click('[data-act=kgPractice][data-arg=lg_liars]');
+  await page.waitForSelector('.pcard');
+  if ((await page.evaluate(() => MQ.app.session().p.d)) !== 5) errors.push(tag + ': preview level picker did not start at level 5');
+  await snap('19b-preview-level5');
+  await answer(page, false);
+  await page.click('.pvbar [data-act=exitPreview]');
+  await page.waitForSelector('.home');
+  if (await page.$('.pvbar')) errors.push(tag + ': preview bar still shown after Exit');
+  const storeAfter = await page.evaluate(() => JSON.stringify(Object.fromEntries(Object.keys(localStorage).sort().map((k) => [k, localStorage.getItem(k)]))));
+  if (storeAfter !== storeBefore) errors.push(tag + ': the preview changed saved progress');
+  const real = await page.evaluate(() => ({ unlock: MQ.state.settings.unlockAll, last: Object.keys(MQ.state.levels).some((k) => k.startsWith(MQ.track('g2').worlds.slice(-1)[0].id)) }));
+  if (real.unlock || real.last) errors.push(tag + ': preview leaked into the child profile ' + JSON.stringify(real));
+  await page.click('[data-act=go][data-arg=map]');
+  if (!(await page.$$('.wcard.locked')).length) errors.push(tag + ': worlds are not locked again after the preview');
+  await page.evaluate(() => MQ.app.go('home'));
+
   // ---- My Progress: six months of practice that gets better, seeded, then read back from the chart
   await page.evaluate(() => {
     const st = MQ.state, d = new Date();

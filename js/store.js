@@ -96,17 +96,36 @@
     S.save();
     return S.open(st.id);
   };
+  // Grown-up preview: the app plays on a copy of the child's profile with every world open, and nothing is saved
+  // (no storage, no cloud upload, no unfinished tests). Ending the preview reloads the real profile.
+  S.preview = false;
+  S.startPreview = () => {
+    if (!MQ.state || S.preview) return MQ.state;
+    const copy = JSON.parse(JSON.stringify(MQ.state));
+    copy.settings.unlockAll = true;
+    S.preview = true;
+    MQ.state = copy;
+    return copy;
+  };
+  S.endPreview = () => {
+    if (!S.preview) return MQ.state;
+    S.preview = false;
+    const id = MQ.state && MQ.state.id;
+    MQ.state = null;
+    return id ? S.open(id) : null;
+  };
+
   // Unfinished tests (Placement Check, mock contests), one per kind, kept on this device for each child.
   const PAUSE = (id) => 'math-expedition-pause-' + id;
-  S.paused = (kind) => (MQ.state && (get(PAUSE(MQ.state.id)) || {})[kind]) || null;
+  S.paused = (kind) => (!S.preview && MQ.state && (get(PAUSE(MQ.state.id)) || {})[kind]) || null;
   S.setPaused = (kind, data) => {
-    if (!MQ.state) return;
+    if (!MQ.state || S.preview) return;
     const all = get(PAUSE(MQ.state.id)) || {};
     all[kind] = data;
     put(PAUSE(MQ.state.id), all);
   };
   S.clearPaused = (kind) => {
-    if (!MQ.state) return;
+    if (!MQ.state || S.preview) return;
     const all = get(PAUSE(MQ.state.id)) || {};
     if (!(kind in all)) return;
     delete all[kind];
@@ -123,6 +142,7 @@
     changed('remove', id);
   };
   S.update = (id, fields) => { // change another profile's name / grade from the grown-ups page
+    if (S.preview) return;
     const st = MQ.state && MQ.state.id === id ? MQ.state : readProfile(id);
     if (!st) return;
     Object.assign(st, fields);
@@ -133,7 +153,7 @@
   };
   S.save = () => {
     const st = MQ.state;
-    if (!st) return;
+    if (!st || S.preview) return;
     stamp(st);
     memory[st.id] = st;
     put(PKEY(st.id), st);
@@ -226,15 +246,16 @@
   S.applyRemote = (remote) => {
     if (!remote || !remote.id) return false;
     const id = remote.id;
-    const local = (MQ.state && MQ.state.id === id ? MQ.state : null) || readProfile(id) || memory[id];
+    const live = MQ.state && MQ.state.id === id && !S.preview; // in a preview the copy on screen is left alone
+    const local = (live ? MQ.state : null) || readProfile(id) || memory[id];
     const merged = merge(fresh(remote.grade || 'g2'), S.mergeProfiles(local, remote));
     if (local && JSON.stringify(local) === JSON.stringify(merged)) return false;
-    if (MQ.state && MQ.state.id === id) { // update in place so the screen keeps the same object
+    if (live) { // update in place so the screen keeps the same object
       for (const k of Object.keys(MQ.state)) delete MQ.state[k];
       Object.assign(MQ.state, merged);
     }
     memory[id] = merged;
-    put(PKEY(id), MQ.state && MQ.state.id === id ? MQ.state : merged);
+    put(PKEY(id), live ? MQ.state : merged);
     if (!index.order.includes(id)) index.order.push(id);
     put(INDEX, index);
     return true;
@@ -249,7 +270,7 @@
     if (MQ.state && MQ.state.id === id) MQ.state = null;
     return true;
   };
-  S.raw = (id) => (MQ.state && MQ.state.id === id ? MQ.state : readProfile(id) || memory[id]);
+  S.raw = (id) => (MQ.state && MQ.state.id === id && !S.preview ? MQ.state : readProfile(id) || memory[id]);
 
   // ---------- mistakes to practice again ----------
   // A first-try mistake puts the skill (topic + difficulty) in box 0, due today. A first-try right answer on a

@@ -674,3 +674,11 @@ svg.vis.abacus { max-height: 160px; }
   .segs.four .seg { padding: 8px 2px; }
   .wdots i { width: 19px; height: 19px; }
 }
+
+/* Grown-up preview: every level open, nothing saved */
+.pvbar { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: -4px 0 10px; padding: 8px 12px; border-radius: 14px; background: #5b3fa8; color: #ffffff; font-size: 0.88rem; font-weight: 700; box-shadow: 0 3px 0 #3e2a78; }
+.pvbar .btn { padding: 6px 14px; font-size: 0.9rem; background: #ffffff; color: #3e2a78; box-shadow: 0 2px 0 #c9bdf0; flex: none; }
+.pvlevels { display: flex; flex-direction: column; gap: 6px; background: #f1edff; border-radius: 16px; padding: 10px; box-shadow: inset 0 0 0 2px #c9bdf0; }
+.pvlevels > span { font-weight: 800; color: #3e2a78; }
+.pvlevels .segs.six { grid-template-columns: repeat(6, 1fr); }
+.pvlevels .seg { font-size: 1.1rem; padding: 6px 2px; }

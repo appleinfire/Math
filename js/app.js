@@ -33,8 +33,16 @@
     MQ.hush();
     document.body.dataset.track = st ? st.grade : '';
     r.className = cls;
-    r.innerHTML = html;
+    r.innerHTML = previewBar() + html;
     window.scrollTo(0, 0);
+  }
+  // Grown-up preview (S.preview): every level open on a copy of the profile, nothing saved. Shown on every screen.
+  const previewBar = () => (S.preview ? '<div class="pvbar" role="status"><span>👀 <b>Grown-up preview</b> · every level is open · nothing is saved</span><button class="btn" data-act="exitPreview">Exit</button></div>' : '');
+  function endPreview() {
+    if (!S.preview) return;
+    endContest();
+    sess = null;
+    st = S.endPreview();
   }
 
   // ---------------------------------------------------------------- helpers
@@ -120,6 +128,7 @@
     }
   }
   function checkBadges() {
+    if (S.preview) return; // nothing is earned in a grown-up preview
     let any = false;
     for (const b of MQ.BADGES) {
       if (!st.badges[b.id] && b.test(st)) {
@@ -148,6 +157,7 @@
   // ---------------------------------------------------------------- profiles
   // "Who's exploring?" — one card per child. Each child has their own grade track and progress.
   function who() {
+    endPreview();
     const list = S.profiles();
     if (!list.length) return newExplorer();
     sess = null;
@@ -277,6 +287,7 @@
     if ($('#ob-buddy')) k.buddyName = $('#ob-buddy').value.trim() || 'Pip';
   }
   function openProfile(id) {
+    endPreview();
     st = S.open(id);
     if (!st) return who();
     sess = null;
@@ -453,13 +464,13 @@
       const n = (sess.missBy[p.topic] = (sess.missBy[p.topic] || 0) + 1);
       if (n >= 2 && !sess.tipNext.includes(p.topic)) sess.tipNext.push(p.topic);
     }
-    if (r === 'fixed') {
+    if (r === 'fixed' && !S.preview) {
       addGems(FIX_REWARD);
       sess.fixedNow++;
       later(() => toast(`🛠️ Mistake fixed for good! <b>+${FIX_REWARD} 💎</b>`, 'gold'), 700);
     }
     const g = st.goal || {}, n = (st.days[U.dateKey()] || {}).a || 0;
-    if (g.perDay && n === g.perDay) later(() => toast(`🎯 Daily goal reached: <b>${n}</b> problems today!`, 'gold'), 1200);
+    if (g.perDay && n === g.perDay && !S.preview) later(() => toast(`🎯 Daily goal reached: <b>${n}</b> problems today!`, 'gold'), 1200);
     return r;
   }
   const sessDone = () => (sess.mode === 'fixit' ? !sess.queue.length : !!sess.goal && sess.correct >= sess.goal);
@@ -914,7 +925,7 @@
     }
     if (sess.mode === 'check') {
       saveCheck();
-      return modal(`<div class="mtitle">Take a break?</div><p>Your answers are saved. Next time you can continue from question ${sess.answered + 1}, or start over.</p>
+      return modal(`<div class="mtitle">Take a break?</div><p>${S.preview ? 'This is a preview: the check is not saved.' : `Your answers are saved. Next time you can continue from question ${sess.answered + 1}, or start over.`}</p>
         <div class="row"><button class="btn ghost" data-act="closeModal">Keep going</button><button class="btn" data-act="leave">Save and stop</button></div>`);
     }
     modal(`<div class="mtitle">Leave this ${sess.mode === 'daily' ? 'quest' : 'level'}?</div><p>You will need to start it again to ${sess.mode === 'daily' ? 'finish the quest' : 'discover the creature'}.</p>
@@ -1079,8 +1090,10 @@
   function cgtypes() {
     render(header(st.grade === 'k' ? 'Brain Games' : 'CogAT practice', 'prep') + `<main class="prep">
       <p class="lead">Pick a kind of question. They get harder as you get them right, and every answer is explained.</p>
+      ${levelRow()}
       ${MQ.COGAT_BATTERIES.map((b) => `<section><h2>${b.icon} ${b.id}</h2><div class="kgtypes">${b.topics.map(typeTile).join('')}</div></section>`).join('')}
     </main>`);
+    cur = 'cgtypes';
   }
   function contestCard() {
     if (st.grade === 'k') {
@@ -1111,6 +1124,12 @@
     const T = MQ.TOPICS[t], fix = Object.values(st.review).filter((r) => r.topic === t).length, m = mastery(t);
     return `<button class="tile type" data-act="kgPractice" data-arg="${t}"><span class="ti">${T.icon}</span><b>${T.name}</b><small>${T.desc || ''}</small>${m.lv || fix ? `<span class="tstat">${m.lv ? MASTERY[m.lv][0] + ' ' + m.acc + '%' : ''}${fix ? ' · 🔧 ' + fix : ''}</span>` : ''}</button>`;
   };
+  // In a grown-up preview, Practice by type can start at any level.
+  const levelRow = () => {
+    if (!S.preview) return '';
+    const cur = ui.pvD || 'auto';
+    return `<div class="pvlevels"><span>👀 Start at level:</span><div class="segs six">${['auto', 1, 2, 3, 4, 5].map((d) => `<button class="seg ${String(cur) === String(d) ? 'sel' : ''}" data-act="pvLevel" data-arg="${d}" aria-pressed="${String(cur) === String(d)}">${d === 'auto' ? '🎯<b>Auto</b>' : `${D_ICONS[d]}<b>${d}</b>`}</button>`).join('')}</div></div>`;
+  };
   const infoBtn = (k) => `<button class="infobtn" data-act="info" data-arg="${k}" aria-label="What is this test?" title="What is this test?">i</button>`;
   function logicCard() {
     const k = st.grade === 'k', kind = k ? 'logick' : 'logic', last = myContests(kind).slice(-1)[0];
@@ -1129,14 +1148,18 @@
     const k = st.grade === 'k';
     render(header('Logic Lab', 'prep') + `<main class="prep">
       <p class="lead">Pick a kind of puzzle. ${k ? 'Every puzzle is read aloud.' : 'They get harder as you get them right, up to the Advanced levels 4 and 5.'} Every answer is explained.</p>
-      <div class="kgtypes">${(k ? MQ.LOGIC_K : MQ.LOGIC_TOPICS).map(typeTile).join('')}</div>
+      ${levelRow()}
+      <div class="kgtypes">${(k && !S.preview ? MQ.LOGIC_K : MQ.LOGIC_TOPICS).map(typeTile).join('')}</div>
     </main>`);
+    cur = 'lgtypes';
   }
   function kgtypes() {
     render(header('Kangaroo practice', 'prep') + `<main class="prep">
       <p class="lead">Pick a kind of puzzle. Problems get harder as you get them right, and every one has an explanation.</p>
+      ${levelRow()}
       <div class="kgtypes">${MQ.KANGAROO_TOPICS.map(typeTile).join('')}</div>
     </main>`);
+    cur = 'kgtypes';
   }
   function startContest(arg) {
     const [kind, timed] = arg.split(':');
@@ -1171,7 +1194,7 @@
     saveContest();
     const r = root();
     r.className = 'is-contest';
-    r.innerHTML = `<div class="contest">
+    r.innerHTML = previewBar() + `<div class="contest">
       <header class="playbar"><button class="iconbtn" data-act="ctQuit" aria-label="Stop">✕</button>
         <span class="ptitle">${CT_TITLE[ct.kind]}</span>
         ${ct.timed ? `<span class="stat timer ${ct.left <= 300 ? 'low' : ''}" id="ct-timer">⏱ ${clock(ct.left)}</span>` : ct.soft ? `<span class="stat timer soft" id="ct-timer" title="Time used">⏱ ${clock(ct.used)}</span>` : ''}</header>
@@ -1251,7 +1274,7 @@
   }
   function contestQuit() {
     saveContest();
-    modal(`<div class="mtitle">Take a break?</div><p>Your answers are saved. Next time you can continue where you stopped${ct && ct.timed ? ' (the clock waits for you)' : ''}, or start over.</p>
+    modal(`<div class="mtitle">Take a break?</div><p>${S.preview ? 'This is a preview: the test is not saved.' : `Your answers are saved. Next time you can continue where you stopped${ct && ct.timed ? ' (the clock waits for you)' : ''}, or start over.`}</p>
       <div class="row"><button class="btn ghost" data-act="closeModal">Keep going</button><button class="btn" data-act="ctLeave">Save and stop</button></div>`);
   }
 
@@ -1571,6 +1594,9 @@
       <section><h2>Recent mistakes</h2>
         <p class="muted">Every mistake (in games and in tests) is saved as a skill to practice. Fresh questions of that skill come back in later games and tests, and in the 🛠️ Fix-it Lab; after 3 right answers on different days it counts as fixed. Now in repair: <b>${Object.keys(st.review).length}</b> · fixed so far: <b>${s.fixed || 0}</b>.</p>
         ${mist ? `<ul class="mist">${mist}</ul>` : '<p class="muted">No mistakes recorded yet.</p>'}</section>
+      <section><h2>👀 Look at every level</h2>
+        <p class="muted">Open every world, level and test-prep level to see the questions ${esc(st.name)} will meet later. In the preview nothing is saved: no stars, creatures, crystals, statistics, mistakes or test results, and nothing is unlocked for ${esc(st.name)}. It ends when you tap <b>Exit</b>, come back here, or switch explorer.</p>
+        <div class="row left"><button class="btn" data-act="startPreview">Start preview 👀</button></div></section>
       <section class="settings"><h2>Daily goal</h2>
         <p class="muted">A small daily target works better than long sessions now and then. The home screen shows a ring for today and the days of the week.</p>
         <div class="label">Problems per day</div>
@@ -1648,6 +1674,7 @@
     if (scr === 'new') { ui.newKid = null; return newExplorer(); }
     if (scr === 'family') { ui.fam = null; return family(); }
     if (!st) return who();
+    if (scr === 'parent' && S.preview) { endPreview(); toast('Preview ended'); }
     endContest();
     ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
@@ -1731,9 +1758,24 @@
     kgPractice: (a) => {
       const T = MQ.TOPICS[a];
       if (!T) return prep();
-      const top = T.logic && st.grade === 'k' ? 2 : 5; // kindergarten logic stays at levels 1–2
-      startSession({ mode: 'trainer', topics: [a], auto: true, d: [2, 2], autoD: Math.min(2, top - 1) || 1, maxD: top, goal: 0, timer: 0, kgTopic: a,
+      const top = T.logic && st.grade === 'k' && !S.preview ? 2 : 5; // kindergarten logic stays at levels 1–2
+      const fixed = S.preview && ui.pvD && ui.pvD !== 'auto' ? +ui.pvD : 0; // a grown-up picked the level
+      startSession({ mode: 'trainer', topics: [a], auto: !fixed, d: fixed ? [fixed, fixed] : [2, 2], autoD: Math.min(2, top - 1) || 1, maxD: top, goal: 0, timer: 0, kgTopic: a,
         revFit: (r) => familyOf(r.topic) === familyOf(a) && r.d <= top });
+    },
+    pvLevel: (a) => { ui.pvD = a; keepScroll({ cgtypes, kgtypes, lgtypes }[cur] || prep); },
+    startPreview: () => {
+      st = S.startPreview();
+      ui = {};
+      toast('👀 Preview: every level is open, nothing is saved');
+      go('map');
+    },
+    exitPreview: () => {
+      const wasPlaying = !!(sess || ct);
+      endPreview();
+      ui = {};
+      toast(wasPlaying ? 'Preview ended. Nothing was saved.' : 'Preview ended');
+      go('home');
     },
     startFixit: () => startFixit(),
     info: (a) => {

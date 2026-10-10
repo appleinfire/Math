@@ -103,6 +103,34 @@ MQ.state = null;
   MQ.state = null;
 }
 
+// Grown-up preview: a copy with every world open; nothing is written, uploaded or merged into the copy.
+{
+  const mem = {};
+  globalThis.localStorage = { getItem: (k) => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = String(v); }, removeItem: (k) => { delete mem[k]; } };
+  S.init();
+  const kid = S.create({ name: 'Ann', grade: 'g2', companion: '🦊', buddyName: 'Pip' });
+  kid.crystals = 7;
+  S.save();
+  const uploads = [];
+  S.onChange((type, id) => uploads.push(id));
+  const before = JSON.stringify(mem);
+  const pv = S.startPreview();
+  assert.ok(S.preview && pv !== kid && pv.settings.unlockAll && MQ.state === pv);
+  pv.crystals = 999; pv.levels['tide-0'] = { stars: 3 };
+  S.record({ topic: 'add20', d: 2, text: 'q', answer: 1 }, false, '3');
+  S.save(); S.setPaused('check', { x: 1 }); S.update(kid.id, { name: 'X' });
+  assert.strictEqual(S.paused('check'), null);
+  assert.strictEqual(JSON.stringify(mem), before, 'nothing is written during a preview');
+  assert.strictEqual(uploads.length, 0, 'nothing is uploaded during a preview');
+  assert.strictEqual(S.raw(kid.id).crystals, 7, 'cloud upload reads the stored profile, not the preview copy');
+  assert.ok(S.applyRemote(Object.assign(JSON.parse(JSON.stringify(kid)), { rev: kid.rev + 5, crystals: 12 })));
+  assert.strictEqual(pv.crystals, 999, 'remote changes go to the stored profile, not the preview copy');
+  const back = S.endPreview();
+  assert.ok(!S.preview && back.crystals === 12 && !back.settings.unlockAll && !back.levels['tide-0'] && !Object.keys(back.review).length, 'ending the preview brings back the real profile');
+  delete globalThis.localStorage;
+  MQ.state = null;
+}
+
 const merged = S.mergeProfiles(erased, a);
 assert.deepStrictEqual(merged.creatures, {}, 'an erase wins over older progress');
 // …but progress made after the erase on another device is kept.
