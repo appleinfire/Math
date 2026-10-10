@@ -26,10 +26,14 @@
     creatures: {}, // id: { got, from }
     badges: {}, // id: date
     eggsHatched: 0,
-    stats: { attempts: 0, correct: 0, bestStreak: 0, topics: {}, d5: 0, lightning60: 0, lightning120: 0, endlessBest: 0 },
+    stats: { attempts: 0, correct: 0, bestStreak: 0, topics: {}, d5: 0, lightning60: 0, lightning120: 0, endlessBest: 0, fixed: 0 },
     daily: { last: '', streak: 0, best: 0 },
-    days: {}, // 'YYYY-MM-DD': { a, c }
+    days: {}, // 'YYYY-MM-DD': { a, c } — answers and first-try right answers, kept for two years
+    months: {}, // 'YYYY-MM': { topic: [answers, right] } — long-term accuracy per topic
     mistakes: [],
+    review: {}, // 'topic|d': { topic, d, box, due, miss, last } — mistakes to practice again (see S.miss / S.hit)
+    goal: { perDay: 0, days: 5 }, // daily goal set by a grown-up: problems per day (0 = off), days per week
+    tips: {}, // topic: date a strategy tip was last shown
     tests: { checks: [], contests: [] }, // Placement Check and mock contest results (newest last)
     seen: {}, // test-prep topic: recently shown question keys (oldest first), so retakes bring new questions
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
@@ -183,7 +187,7 @@
     const max = (x, y) => Math.max(x || 0, y || 0);
     out.xp = max(nw.xp, old.xp);
     out.eggsHatched = max(nw.eggsHatched, old.eggsHatched);
-    for (const k of ['attempts', 'correct', 'bestStreak', 'd5', 'lightning60', 'lightning120', 'endlessBest']) out.stats[k] = max(nw.stats[k], old.stats[k]);
+    for (const k of ['attempts', 'correct', 'bestStreak', 'd5', 'lightning60', 'lightning120', 'endlessBest', 'fixed']) out.stats[k] = max(nw.stats[k], old.stats[k]);
     for (const [t, v] of Object.entries(old.stats.topics || {})) if (!out.stats.topics[t] || out.stats.topics[t].a < v.a) out.stats.topics[t] = v;
     out.days = Object.assign({}, old.days);
     for (const [d, v] of Object.entries(nw.days || {})) out.days[d] = { a: max(v.a, (old.days[d] || {}).a), c: max(v.c, (old.days[d] || {}).c) };
@@ -205,6 +209,16 @@
       const keys = [...((old.seen || {})[t] || []), ...((nw.seen || {})[t] || [])];
       out.seen[t] = keys.filter((k, i) => keys.lastIndexOf(k) === i).slice(-S.SEEN_MAX);
     }
+    // monthly accuracy: each cell keeps the copy with more answers
+    out.months = JSON.parse(JSON.stringify(old.months || {}));
+    for (const [m, ts] of Object.entries(nw.months || {})) {
+      const o = (out.months[m] = out.months[m] || {});
+      for (const [t, v] of Object.entries(ts)) if (!o[t] || o[t][0] < v[0]) o[t] = v.slice();
+    }
+    // mistakes to practice: the copy that was practiced more recently wins for each skill
+    out.review = Object.assign({}, old.review || {});
+    for (const [k, v] of Object.entries(nw.review || {})) if (!out.review[k] || (v.last || '') >= (out.review[k].last || '')) out.review[k] = v;
+    out.tips = Object.assign({}, old.tips || {}, nw.tips || {});
     out.rev = max(nw.rev, old.rev);
     return out;
   };
@@ -237,7 +251,44 @@
   };
   S.raw = (id) => (MQ.state && MQ.state.id === id ? MQ.state : readProfile(id) || memory[id]);
 
-  // Record one answered problem (first-try result) for statistics.
+  // ---------- mistakes to practice again ----------
+  // A first-try mistake puts the skill (topic + difficulty) in box 0, due today. A first-try right answer on a
+  // due skill moves it up a box: next try 1 day later, then 3 days later; the third right answer fixes it.
+  // So a mistake counts as fixed after three right answers on three different days. A new mistake starts over.
+  S.REVIEW_GAP = [0, 1, 3];
+  S.REVIEW_MAX = 80;
+  const addDays = (key, n) => { const d = new Date(key + 'T12:00:00'); d.setDate(d.getDate() + n); return MQ.U.dateKey(d); };
+  S.addDays = addDays;
+  S.rkey = (topic, d) => topic + '|' + d;
+  S.miss = (topic, d) => {
+    const st = MQ.state, today = MQ.U.dateKey(), k = S.rkey(topic, d);
+    const r = (st.review[k] = st.review[k] || { topic, d, box: 0, due: today, miss: 0, last: today });
+    Object.assign(r, { box: 0, due: today, last: today, miss: r.miss + 1 });
+    const keys = Object.keys(st.review);
+    if (keys.length > S.REVIEW_MAX) { // forget the skills missed longest ago
+      keys.sort((a, b) => (st.review[a].last < st.review[b].last ? -1 : 1));
+      for (const x of keys.slice(0, keys.length - S.REVIEW_MAX)) delete st.review[x];
+    }
+  };
+  S.hit = (topic, d) => {
+    const st = MQ.state, today = MQ.U.dateKey(), k = S.rkey(topic, d), r = st.review[k];
+    if (!r || r.due > today) return null;
+    r.box++;
+    r.last = today;
+    if (r.box >= S.REVIEW_GAP.length) { delete st.review[k]; st.stats.fixed = (st.stats.fixed || 0) + 1; return 'fixed'; }
+    r.due = addDays(today, S.REVIEW_GAP[r.box]);
+    return 'up';
+  };
+  // Skills to practice today (optionally only those that fit), the oldest and most-missed first.
+  S.dueReview = (fit = () => true) => {
+    const st = MQ.state, today = MQ.U.dateKey();
+    return Object.values((st && st.review) || {})
+      .filter((r) => r.due <= today && MQ.TOPICS[r.topic] && fit(r))
+      .sort((a, b) => (a.due !== b.due ? (a.due < b.due ? -1 : 1) : b.miss - a.miss));
+  };
+
+  // Record one answered problem (first-try result) for statistics and the mistakes to practice again.
+  // Returns 'fixed' when this answer fixed an old mistake, 'up' when it moved one closer to fixed.
   S.record = (p, firstTry, given) => {
     const st = MQ.state;
     const t = (st.stats.topics[p.topic] = st.stats.topics[p.topic] || { a: 0, c: 0, byD: {} });
@@ -249,12 +300,21 @@
     const dd = (st.days[day] = st.days[day] || { a: 0, c: 0 });
     dd.a++;
     if (firstTry) dd.c++;
+    const mk = day.slice(0, 7), mt = ((st.months[mk] = st.months[mk] || {})[p.topic] = st.months[mk][p.topic] || [0, 0]);
+    mt[0]++;
+    if (firstTry) mt[1]++;
     if (!firstTry && given !== undefined) {
-      st.mistakes.unshift({ topic: p.topic, d: p.d, text: p.text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 140), given: String(given), answer: String(p.answer), date: day });
+      st.mistakes.unshift({ topic: p.topic, d: p.d, text: p.text.replace(/<li>/g, ' • ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 140), given: String(given), answer: String(p.answer), date: day });
       st.mistakes.length = Math.min(st.mistakes.length, 40);
     }
     const keys = Object.keys(st.days).sort();
-    while (keys.length > 90) delete st.days[keys.shift()];
+    while (keys.length > 730) delete st.days[keys.shift()];
+    const months = Object.keys(st.months).sort();
+    while (months.length > 36) delete st.months[months.shift()];
+    if (!p.d) return null;
+    if (firstTry) return S.hit(p.topic, p.d);
+    S.miss(p.topic, p.d);
+    return null;
   };
 
   MQ.store = S;

@@ -436,21 +436,21 @@
     return pick([kg_count, kg_balance, kg_cubes, kg_mirror, kg_pattern])(1);
   }
 
-  const T = (name, icon, gen) => ({ name, icon, std: 'Math Kangaroo style', gen, track: 'prep', kangaroo: true });
+  const T = (name, icon, gen, desc) => ({ name, icon, std: 'Math Kangaroo style', gen, track: 'prep', kangaroo: true, desc });
   Object.assign(MQ.TOPICS, {
-    kg_count: T('Count the shapes', '🔺', kg_count),
-    kg_balance: T('Balance scales', '⚖️', kg_balance),
-    kg_order: T('Who is taller?', '📏', kg_order),
-    kg_calendar: T('Calendar puzzles', '📅', kg_calendar),
-    kg_coins: T('Coin puzzles', '🪙', kg_coins),
-    kg_paths: T('Paths on a grid', '🧭', kg_paths),
-    kg_mirror: T('Flip and turn', '🪞', kg_mirror),
-    kg_cubes: T('Cube towers', '🧊', kg_cubes),
-    kg_pattern: T('What comes next?', '🔢', kg_pattern),
-    kg_digits: T('Hidden digits', '🕵️', kg_digits),
-    kg_age: T('Age puzzles', '🎂', kg_age),
-    kg_bank: T('Kangaroo classics', '🦘', kg_bank),
-    kg_joey: Object.assign(T('Joey puzzles', '🐣', kg_joey), { std: 'Puzzles for K' }),
+    kg_count: T('Count the shapes', '🔺', kg_count, 'Count squares and triangles hidden in a picture, including the big ones made of small ones.'),
+    kg_balance: T('Balance scales', '⚖️', kg_balance, 'Read balance scales to find which thing is heavier or how many weigh the same.'),
+    kg_order: T('Who is taller?', '📏', kg_order, 'Compare heights and ages from clues: who is biggest, who is smallest, how old?'),
+    kg_calendar: T('Calendar puzzles', '📅', kg_calendar, 'Days of the week and dates: what day will it be after so many days?'),
+    kg_coins: T('Coin puzzles', '🪙', kg_coins, 'Money puzzles with coins: amounts, change and sharing.'),
+    kg_paths: T('Paths on a grid', '🧭', kg_paths, 'Moves and routes on a grid: where do you end up, which way is shortest?'),
+    kg_mirror: T('Flip and turn', '🪞', kg_mirror, 'Picture a shape flipped in a mirror or turned around.'),
+    kg_cubes: T('Cube towers', '🧊', kg_cubes, 'Count the cubes in towers, including the ones you can’t see.'),
+    kg_pattern: T('What comes next?', '🔢', kg_pattern, 'Find the rule in a row of numbers or pictures and continue it.'),
+    kg_digits: T('Hidden digits', '🕵️', kg_digits, 'Find the missing digits in a sum, like a detective.'),
+    kg_age: T('Age puzzles', '🎂', kg_age, 'Ages now, before and later: puzzles about how old people are.'),
+    kg_bank: T('Kangaroo classics', '🦘', kg_bank, 'A mix of classic contest puzzles written by hand.'),
+    kg_joey: Object.assign(T('Joey puzzles', '🐣', kg_joey, 'Picture puzzles for kindergarten.'), { std: 'Puzzles for K' }),
   });
   MQ.KANGAROO_TOPICS = ['kg_count', 'kg_balance', 'kg_order', 'kg_calendar', 'kg_coins', 'kg_paths', 'kg_mirror', 'kg_cubes', 'kg_pattern', 'kg_digits', 'kg_age', 'kg_bank'];
   MQ.KANGAROO_BANK = BANK;

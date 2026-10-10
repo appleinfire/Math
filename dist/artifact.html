@@ -608,6 +608,81 @@ svg.vis.abacus { max-height: 160px; }
 /* Unfinished test on a test card */
 .tc-resume { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0; padding: 10px 12px; border-radius: 14px; background: #fff6e0; box-shadow: inset 0 0 0 2px #ffcf6b; }
 .tc-resume span { font-size: 0.95rem; }
+
+/* ⓘ: what is this test? */
+.tc-head > div { flex: 1; min-width: 0; }
+.infobtn { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 0; padding: 0; background: #eef1ff; color: #4a50a8; box-shadow: inset 0 0 0 2px #b9bef0; font: italic 800 1.05rem Georgia, 'Times New Roman', serif; }
+.infobtn:active { transform: scale(0.92); }
+.infobox { text-align: left; margin: 8px 0 4px; }
+.infobox h3 { font-family: var(--display); font-weight: 600; font-size: 1rem; margin: 12px 0 2px; }
+.infobox p { margin: 0; font-size: 0.95rem; line-height: 1.4; }
+
+/* Practice-by-type tiles with a short description */
+.tile.type { text-align: left; align-items: flex-start; }
+.tile.type small { font-size: 0.8rem; line-height: 1.3; }
+.tile .tstat { font-size: 0.8rem; font-weight: 800; color: var(--ink); }
+
+/* Review questions and strategy tips */
+.dchip.rv { background: #dcf3e3; color: #23703f; margin-right: 6px; }
+.tipcard { background: var(--sun-soft); color: #6b4706; border-radius: 14px; padding: 9px 12px; margin-bottom: 10px; font-weight: 700; font-size: 0.95rem; line-height: 1.35; text-align: left; box-shadow: inset 0 0 0 2px var(--sun); animation: pop 0.4s; }
+.tipcard b { margin-right: 4px; }
+
+/* Logic puzzles: numbered clues */
+.clues { text-align: left; margin: 8px 0 10px; padding-left: 1.4em; display: flex; flex-direction: column; gap: 4px; font-size: 0.98em; }
+
+/* Home: Fix-it Lab, progress, daily goal */
+.t-fixit.hot { box-shadow: inset 0 0 0 3px #3c9d5d, 0 4px 0 #2b7b46; background: #e6f6ec; }
+.t-progress { box-shadow: inset 0 0 0 2px var(--line), 0 3px 0 var(--line); }
+.goal { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 18px; padding: 10px 14px; box-shadow: inset 0 0 0 2px var(--line); margin: 10px 0 4px; }
+.goal .ring { --p: 0; flex: none; width: 62px; height: 62px; border-radius: 50%; display: grid; place-content: center; text-align: center; line-height: 1;
+  background: radial-gradient(closest-side, var(--card) 76%, transparent 78%), conic-gradient(var(--teal) calc(var(--p) * 1%), #e3e9ee 0); }
+.goal .ring b { font-family: var(--display); font-weight: 600; font-size: 1.2rem; }
+.goal .ring small { font-size: 0.68rem; color: var(--ink-soft); font-weight: 800; }
+.goal-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.goal-t small { color: var(--ink-soft); font-weight: 800; font-size: 0.8rem; }
+.wdots { display: flex; gap: 4px; margin-top: 2px; }
+.wdots i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 0.68rem; font-weight: 900; background: #eef2f5; color: var(--ink-soft); }
+.wdots i.on { background: var(--teal); color: #ffffff; }
+.wdots i.now { box-shadow: 0 0 0 2px var(--ink); }
+
+/* Fix-it Lab */
+.fixit { display: flex; flex-direction: column; gap: 14px; }
+.fxlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.fx { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 14px; padding: 10px 12px; box-shadow: inset 0 0 0 2px var(--line); }
+.fx.due { box-shadow: inset 0 0 0 2px #3c9d5d; }
+.fx-ic { font-size: 1.6rem; }
+.fx-n { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.fx-n small { color: var(--ink-soft); font-weight: 700; }
+.fx-box { display: flex; gap: 4px; }
+.fx-box i { width: 14px; height: 14px; border-radius: 50%; background: #e3e9ee; box-shadow: inset 0 0 0 2px #c9d3dc; }
+.fx-box i.on { background: #3c9d5d; box-shadow: none; }
+
+/* My Progress */
+.progress { display: flex; flex-direction: column; gap: 14px; }
+.progtop { display: flex; flex-direction: column; gap: 10px; }
+.segs.four { grid-template-columns: repeat(4, 1fr); }
+.psel { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+.psel .field { padding: 8px 10px; font-size: 1rem; }
+.pchart { margin: 6px 0 0; background: var(--card); border-radius: 16px; padding: 8px; box-shadow: inset 0 0 0 1px var(--line); }
+.pchart svg { width: 100%; max-width: 460px; height: auto; display: block; margin: 0 auto; }
+.pchart figcaption { font-size: 0.78rem; color: var(--ink-soft); font-weight: 700; text-align: center; margin-top: 2px; }
+.pchart .cdot:hover circle:last-of-type { r: 6; }
+.verdict { margin: 4px 0; font-weight: 800; }
+.verdict.up { color: var(--good); }
+.verdict.down { color: #a4561a; }
+.skills { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 6px; }
+.skill { border: 0; text-align: left; background: var(--card); border-radius: 14px; padding: 8px 10px; box-shadow: inset 0 0 0 2px var(--line); display: grid; grid-template-columns: auto 1fr; column-gap: 8px; align-items: center; }
+.skill .sk-m { grid-row: span 2; font-size: 1.4rem; }
+.skill .sk-n { font-weight: 800; font-size: 0.9rem; line-height: 1.2; }
+.skill small { color: var(--ink-soft); font-weight: 700; font-size: 0.75rem; }
+.skill.m0 { opacity: 0.75; }
+.skill.m3 { box-shadow: inset 0 0 0 2px #f0c35a; }
+.skill.m4 { box-shadow: inset 0 0 0 2px #e0a21b; background: #fff8e6; }
+.sumgrid.two { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 480px) {
+  .segs.four .seg { padding: 8px 2px; }
+  .wdots i { width: 19px; height: 19px; }
+}
 </style>
 <div id="app"><p style="padding:40px;text-align:center">Loading Math Expedition…</p></div>
   <script>
@@ -2969,21 +3044,21 @@ svg.vis.abacus { max-height: 160px; }
     return pick([kg_count, kg_balance, kg_cubes, kg_mirror, kg_pattern])(1);
   }
 
-  const T = (name, icon, gen) => ({ name, icon, std: 'Math Kangaroo style', gen, track: 'prep', kangaroo: true });
+  const T = (name, icon, gen, desc) => ({ name, icon, std: 'Math Kangaroo style', gen, track: 'prep', kangaroo: true, desc });
   Object.assign(MQ.TOPICS, {
-    kg_count: T('Count the shapes', '🔺', kg_count),
-    kg_balance: T('Balance scales', '⚖️', kg_balance),
-    kg_order: T('Who is taller?', '📏', kg_order),
-    kg_calendar: T('Calendar puzzles', '📅', kg_calendar),
-    kg_coins: T('Coin puzzles', '🪙', kg_coins),
-    kg_paths: T('Paths on a grid', '🧭', kg_paths),
-    kg_mirror: T('Flip and turn', '🪞', kg_mirror),
-    kg_cubes: T('Cube towers', '🧊', kg_cubes),
-    kg_pattern: T('What comes next?', '🔢', kg_pattern),
-    kg_digits: T('Hidden digits', '🕵️', kg_digits),
-    kg_age: T('Age puzzles', '🎂', kg_age),
-    kg_bank: T('Kangaroo classics', '🦘', kg_bank),
-    kg_joey: Object.assign(T('Joey puzzles', '🐣', kg_joey), { std: 'Puzzles for K' }),
+    kg_count: T('Count the shapes', '🔺', kg_count, 'Count squares and triangles hidden in a picture, including the big ones made of small ones.'),
+    kg_balance: T('Balance scales', '⚖️', kg_balance, 'Read balance scales to find which thing is heavier or how many weigh the same.'),
+    kg_order: T('Who is taller?', '📏', kg_order, 'Compare heights and ages from clues: who is biggest, who is smallest, how old?'),
+    kg_calendar: T('Calendar puzzles', '📅', kg_calendar, 'Days of the week and dates: what day will it be after so many days?'),
+    kg_coins: T('Coin puzzles', '🪙', kg_coins, 'Money puzzles with coins: amounts, change and sharing.'),
+    kg_paths: T('Paths on a grid', '🧭', kg_paths, 'Moves and routes on a grid: where do you end up, which way is shortest?'),
+    kg_mirror: T('Flip and turn', '🪞', kg_mirror, 'Picture a shape flipped in a mirror or turned around.'),
+    kg_cubes: T('Cube towers', '🧊', kg_cubes, 'Count the cubes in towers, including the ones you can’t see.'),
+    kg_pattern: T('What comes next?', '🔢', kg_pattern, 'Find the rule in a row of numbers or pictures and continue it.'),
+    kg_digits: T('Hidden digits', '🕵️', kg_digits, 'Find the missing digits in a sum, like a detective.'),
+    kg_age: T('Age puzzles', '🎂', kg_age, 'Ages now, before and later: puzzles about how old people are.'),
+    kg_bank: T('Kangaroo classics', '🦘', kg_bank, 'A mix of classic contest puzzles written by hand.'),
+    kg_joey: Object.assign(T('Joey puzzles', '🐣', kg_joey, 'Picture puzzles for kindergarten.'), { std: 'Puzzles for K' }),
   });
   MQ.KANGAROO_TOPICS = ['kg_count', 'kg_balance', 'kg_order', 'kg_calendar', 'kg_coins', 'kg_paths', 'kg_mirror', 'kg_cubes', 'kg_pattern', 'kg_digits', 'kg_age', 'kg_bank'];
   MQ.KANGAROO_BANK = BANK;
@@ -3363,23 +3438,447 @@ svg.vis.abacus { max-height: 160px; }
     return EC(`🔊 <b>${q}</b>`, ans, shuffle([ans, ...wrong]), { say: q, hint: 'Listen to the question again with 🔊.', explain: `${ans} — ${q.replace(/\?$/, '')}.` });
   }
 
-  const T = (name, icon, battery, gen) => ({ name, icon, std: 'CogAT style · ' + battery, gen, track: 'prep', cogat: true, battery });
+  const T = (name, icon, battery, gen, desc) => ({ name, icon, std: 'CogAT style · ' + battery, gen, track: 'prep', cogat: true, battery, desc });
   Object.assign(MQ.TOPICS, {
-    cg_picanalogy: T('Picture Analogies', '🔗', 'Verbal', cg_picanalogy),
-    cg_sentence: T('Sentence Completion', '👂', 'Verbal', cg_sentence),
-    cg_picclass: T('Picture Classification', '🗂️', 'Verbal', cg_picclass),
-    cg_numanalogy: T('Number Analogies', '🔢', 'Quantitative', cg_numanalogy),
-    cg_numpuzzle: T('Number Puzzles', '🧮', 'Quantitative', cg_numpuzzle),
-    cg_numseries: T('Number Series', '🧿', 'Quantitative', cg_numseries),
-    cg_matrix: T('Figure Matrices', '🔲', 'Nonverbal', cg_matrix),
-    cg_classify: T('Figure Classification', '🔷', 'Nonverbal', cg_classify),
-    cg_folding: T('Paper Folding', '📄', 'Nonverbal', cg_folding),
+    cg_picanalogy: T('Picture Analogies', '🔗', 'Verbal', cg_picanalogy, 'This goes with that, so what goes with this? Find the pair that matches the first pair.'),
+    cg_sentence: T('Sentence Completion', '👂', 'Verbal', cg_sentence, 'Listen to a question and pick the picture that answers it.'),
+    cg_picclass: T('Picture Classification', '🗂️', 'Verbal', cg_picclass, 'Three pictures belong together. Find the one that belongs with them.'),
+    cg_numanalogy: T('Number Analogies', '🔢', 'Quantitative', cg_numanalogy, 'Find the number rule in the first pairs and use it on the last one.'),
+    cg_numpuzzle: T('Number Puzzles', '🧮', 'Quantitative', cg_numpuzzle, 'Each animal stands for a number. Find the number that makes it true.'),
+    cg_numseries: T('Number Series', '🧿', 'Quantitative', cg_numseries, 'Find the pattern in a row of numbers and pick what comes next.'),
+    cg_matrix: T('Figure Matrices', '🔲', 'Nonverbal', cg_matrix, 'Find how the shapes change across a row and pick the missing one.'),
+    cg_classify: T('Figure Classification', '🔷', 'Nonverbal', cg_classify, 'Three shapes are alike in some way. Find another one that is alike too.'),
+    cg_folding: T('Paper Folding', '📄', 'Nonverbal', cg_folding, 'Fold paper, punch holes, then imagine where the holes are when it is opened.'),
   });
   MQ.COGAT_BATTERIES = [
     { id: 'Verbal', icon: '💬', topics: ['cg_picanalogy', 'cg_sentence', 'cg_picclass'] },
     { id: 'Quantitative', icon: '🔢', topics: ['cg_numanalogy', 'cg_numpuzzle', 'cg_numseries'] },
     { id: 'Nonverbal', icon: '🔷', topics: ['cg_matrix', 'cg_classify', 'cg_folding'] },
   ];
+})();
+</script>
+  <script>
+// Logic Lab: reasoning puzzles that school math topics do not cover, and that Math Kangaroo and CogAT reward.
+//   lg_order      who is tallest / where everyone stands in a line, from clues
+//   lg_whois      who has which pet (or fruit, shirt, sport): cross out what is impossible
+//   lg_truth      Yes / No / Can't tell: all, some, none, if…then, only
+//   lg_situation  everyday situations: what happens next, why, what must be true, best plan
+//   lg_count      counting all the ways and "to be sure" (worst case) puzzles
+//   lg_liars      truth-tellers and fibbers
+// Every puzzle is a choice question with an explanation. Clue puzzles are built from a hidden answer and
+// checked by trying every possibility, so each one has exactly one solution.
+(function () {
+  const MQ = (globalThis.MQ = globalThis.MQ || {});
+  const U = MQ.U;
+  const { C } = MQ.G;
+  const { rnd, pick, chance, shuffle } = U;
+
+  const KIDS = ['Ann', 'Ben', 'Cara', 'Dan', 'Eva', 'Finn', 'Gia', 'Hugo', 'Iris', 'Jack', 'Kira', 'Liam', 'Mia', 'Noah', 'Owen', 'Pia'];
+  const kids = (n) => U.sample(KIDS, n);
+  const list = (clues) => `<ol class="clues">${clues.map((c) => `<li>${c}</li>`).join('')}</ol>`;
+  const speech = (...parts) => parts.join(' ');
+  // All orderings of an array (n ≤ 5).
+  function perms(a) {
+    if (a.length <= 1) return [a.slice()];
+    const out = [];
+    a.forEach((x, i) => { for (const p of perms([...a.slice(0, i), ...a.slice(i + 1)])) out.push([x, ...p]); });
+    return out;
+  }
+  // Keep adding true clues until exactly one world fits, then drop clues that are not needed.
+  function enough(worlds, clues, holds, minClues = 1) {
+    const fit = (cs) => worlds.filter((w) => cs.every((c) => holds(c, w)));
+    const used = [];
+    for (const c of clues) {
+      if (fit(used).length === 1) break;
+      if (fit([...used, c]).length < fit(used).length) used.push(c);
+    }
+    if (fit(used).length !== 1) return null;
+    for (let i = used.length - 1; i >= 0; i--) {
+      if (used.length <= minClues) break;
+      const less = used.filter((_, k) => k !== i);
+      if (fit(less).length === 1) used.splice(i, 1);
+    }
+    return used;
+  }
+  const ORD = ['first', 'second', 'third', 'fourth', 'fifth'];
+
+  // ---------------- 1. Order from clues ----------------
+  const SCALES = [
+    { more: 'taller', less: 'shorter', most: 'tallest', least: 'shortest', kind: 'tall' },
+    { more: 'older', less: 'younger', most: 'oldest', least: 'youngest', kind: 'old' },
+    { more: 'faster', less: 'slower', most: 'fastest', least: 'slowest', kind: 'fast' },
+    { more: 'heavier', less: 'lighter', most: 'heaviest', least: 'lightest', kind: 'heavy' },
+  ];
+  function lg_order(d) {
+    if (d <= 3) { // compare: rank 0 is the most
+      const n = d === 3 ? 4 : 3, sc = d === 1 ? SCALES[0] : pick(SCALES), names = kids(n);
+      const worlds = perms(names);
+      const truth = names; // names[0] is the most
+      const pairs = [];
+      for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) pairs.push([truth[i], truth[j]]);
+      const cands = shuffle(pairs).map(([a, b]) => (d === 1 || chance(0.5) ? { a, b, t: `${a} is ${sc.more} than ${b}.` } : { a, b, t: `${b} is ${sc.less} than ${a}.` }));
+      const used = enough(worlds, cands, (c, w) => w.indexOf(c.a) < w.indexOf(c.b), n - 1);
+      if (!used) return lg_order(d);
+      let q, ans;
+      const r = d === 1 ? pick([0, n - 1]) : d === 2 ? rnd(0, 2) : rnd(0, 3);
+      if (r === 0) { q = `Who is the ${sc.most}?`; ans = truth[0]; }
+      else if (r === n - 1) { q = `Who is the ${sc.least}?`; ans = truth[n - 1]; }
+      else { q = n === 3 ? `Who is in the middle (not the ${sc.most} and not the ${sc.least})?` : `Who is the ${ORD[r]} ${sc.most}?`; ans = truth[r]; }
+      const order = truth.join(', ');
+      return C(`${list(used.map((c) => c.t))}${q}`, ans, shuffle(names), {
+        wordy: true, say: speech(...used.map((c) => c.t), q),
+        hint: `Put the names in a row from ${sc.most} to ${sc.least}, one clue at a time.`,
+        explain: `From ${sc.most} to ${sc.least}: ${order}.`,
+      });
+    }
+    // standing in a line, front to back
+    const n = d === 4 ? 4 : 5, names = kids(n), truth = shuffle(names), worlds = perms(names);
+    const pos = (w, x) => w.indexOf(x);
+    const cands = [];
+    for (const a of names) for (const b of names) {
+      if (a === b) continue;
+      if (pos(truth, a) === pos(truth, b) + 1) cands.push({ t: `${a} is right behind ${b}.`, f: (w) => pos(w, a) === pos(w, b) + 1 });
+      if (pos(truth, a) < pos(truth, b)) cands.push({ t: `${a} is somewhere in front of ${b}.`, f: (w) => pos(w, a) < pos(w, b) });
+    }
+    for (const a of names) {
+      if (pos(truth, a) !== 0) cands.push({ t: `${a} is not first.`, f: (w) => pos(w, a) !== 0 });
+      if (pos(truth, a) !== n - 1) cands.push({ t: `${a} is not last.`, f: (w) => pos(w, a) !== n - 1 });
+    }
+    if (chance(0.6)) { const a = truth[0]; cands.push({ t: `${a} is first in line.`, f: (w) => w[0] === a, first: a }); }
+    if (d === 5) for (let i = 1; i < n - 1; i++) {
+      const [x, m, y] = [truth[i - 1], truth[i], truth[i + 1]];
+      cands.push({ t: `${m} stands between ${x} and ${y}.`, f: (w) => Math.abs(pos(w, x) - pos(w, y)) === 2 && pos(w, m) === (pos(w, x) + pos(w, y)) / 2 });
+    }
+    const used = enough(worlds, shuffle(cands), (c, w) => c.f(w), 3);
+    if (!used || used.length > (d === 4 ? 5 : 6)) return lg_order(d);
+    const named = used.filter((c) => c.first).map((c) => c.first);
+    const r = pick(U.range(1, n - 1).filter((i) => !named.includes(truth[i])));
+    const q = `Who is ${ORD[r]} in line?`;
+    return C(`${n} kids stand in a line, one behind the other.${list(used.map((c) => c.t))}${q}`, truth[r], shuffle(names), {
+      wordy: true, say: speech(`${n} kids stand in a line.`, ...used.map((c) => c.t), q),
+      hint: 'Draw the line with empty spots. Start with the clue that tells you the most.',
+      explain: `From front to back: ${truth.join(', ')}.`,
+    });
+  }
+
+  // ---------------- 2. Who has what ----------------
+  const SETS = [
+    { items: [['cat', '🐱'], ['dog', '🐶'], ['fish', '🐟'], ['bird', '🐦']], intro: 'Each kid has a different pet.', pos: (p, i) => `${p} has the ${i}.`, neg: (p, i) => `${p} does not have the ${i}.`, who: (i) => `Who has the ${i}?`, what: (p) => `Which pet does ${p} have?` },
+    { items: [['apple', '🍎'], ['banana', '🍌'], ['pear', '🍐'], ['orange', '🍊']], intro: 'Each kid eats a different fruit.', pos: (p, i) => `${p} eats the ${i}.`, neg: (p, i) => `${p} does not eat the ${i}.`, who: (i) => `Who eats the ${i}?`, what: (p) => `Which fruit does ${p} eat?` },
+    { items: [['red shirt', '🔴'], ['blue shirt', '🔵'], ['green shirt', '🟢'], ['yellow shirt', '🟡']], intro: 'Each kid wears a different shirt.', pos: (p, i) => `${p} wears the ${i}.`, neg: (p, i) => `${p} does not wear the ${i}.`, who: (i) => `Who wears the ${i}?`, what: (p) => `Which shirt does ${p} wear?` },
+    { items: [['soccer', '⚽'], ['tennis', '🎾'], ['basketball', '🏀'], ['baseball', '⚾']], intro: 'Each kid plays a different sport.', pos: (p, i) => `${p} plays ${i}.`, neg: (p, i) => `${p} does not play ${i}.`, who: (i) => `Who plays ${i}?`, what: (p) => `Which sport does ${p} play?` },
+  ];
+  function lg_whois(d) {
+    const n = d <= 3 ? 3 : 4, set = pick(SETS), names = kids(n), items = U.sample(set.items, n);
+    const truth = shuffle(items.map((_, i) => i)); // truth[k] = item index of kid k
+    const worlds = perms(items.map((_, i) => i));
+    const cands = [];
+    names.forEach((p, k) => items.forEach(([it, em], i) => {
+      if (truth[k] === i) cands.push({ t: `${em} ${set.pos(p, it)}`, pos: true, k, i });
+      else cands.push({ t: `${em} ${set.neg(p, it)}`, pos: false, k, i });
+    }));
+    const pool = shuffle(cands), posOk = d <= 3 ? 1 : 0; // harder levels give only "does not" clues
+    const ordered = [...pool.filter((c) => c.pos).slice(0, posOk), ...pool.filter((c) => !c.pos)];
+    const used = enough(worlds, ordered, (c, w) => (w[c.k] === c.i) === c.pos, 2);
+    if (!used || used.length > (n === 3 ? 4 : 7)) return lg_whois(d);
+    const told = new Set(used.filter((c) => c.pos).map((c) => c.k));
+    const k = pick(names.map((_, i) => i).filter((i) => !told.has(i)));
+    const [it, em] = items[truth[k]];
+    const solved = names.map((p, i) => `${p}: ${items[truth[i]][1]} ${items[truth[i]][0]}`).join(', ');
+    const clueText = shuffle(used).map((c) => c.t);
+    const base = { wordy: true, hint: 'Make a little table: kids down the side, things across the top. Cross out every "does not".', explain: solved + '.' };
+    if (chance(0.5)) {
+      const q = set.who(it);
+      return C(`${set.intro}${list(clueText)}${em} ${q}`, names[k], shuffle(names), Object.assign(base, { say: speech(set.intro, ...clueText, q) }));
+    }
+    const q = set.what(names[k]);
+    const labels = items.map(([x, e]) => `${e} ${x}`);
+    return C(`${set.intro}${list(clueText)}${q}`, `${em} ${it}`, shuffle(labels), Object.assign(base, { say: speech(set.intro, ...clueText, q) }));
+  }
+
+  // ---------------- 3. Yes / No / Can't tell ----------------
+  const YNC = ['Yes', 'No', "Can't tell"];
+  const yn = (text, ans, explain, hint) => C(text, ans, YNC, { wordy: true, explain, hint: hint || 'Use only what the sentences say, not what usually happens.' });
+  const THINGS = [['balls', 'ball'], ['marbles', 'marble'], ['socks', 'sock'], ['cookies', 'cookie'], ['crayons', 'crayon'], ['blocks', 'block'], ['buttons', 'button'], ['shells', 'shell']];
+  const BOXES = ['box', 'bag', 'basket', 'jar', 'drawer'];
+  const COLORS = ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'white'];
+  const RULES = [
+    { rule: 'If it rains, {N} takes an umbrella.', isIf: 'It is raining.', notIf: 'It is not raining.', isThen: '{N} took an umbrella.', notThen: '{N} did not take an umbrella.', qIf: 'Is it raining?', qThen: 'Does {N} take an umbrella?' },
+    { rule: 'If the bell rings, the robot dances.', isIf: 'The bell is ringing.', notIf: 'The bell is not ringing.', isThen: 'The robot is dancing.', notThen: 'The robot is not dancing.', qIf: 'Is the bell ringing?', qThen: 'Does the robot dance?' },
+    { rule: 'If {N} wears the blue cap, {N} plays soccer.', isIf: '{N} is wearing the blue cap.', notIf: '{N} is not wearing the blue cap.', isThen: '{N} is playing soccer.', notThen: '{N} is not playing soccer.', qIf: 'Is {N} wearing the blue cap?', qThen: 'Does {N} play soccer?' },
+    { rule: 'If it is Tuesday, {N} goes swimming.', isIf: 'Today is Tuesday.', notIf: 'Today is not Tuesday.', isThen: '{N} went swimming today.', notThen: '{N} did not go swimming today.', qIf: 'Is today Tuesday?', qThen: 'Does {N} go swimming today?' },
+    { rule: 'If the parrot sees a banana, it sings.', isIf: 'The parrot sees a banana.', notIf: 'The parrot does not see a banana.', isThen: 'The parrot is singing.', notThen: 'The parrot is not singing.', qIf: 'Does the parrot see a banana?', qThen: 'Does the parrot sing?' },
+    { rule: 'If {N} plays the drum, the baby wakes up.', isIf: '{N} is playing the drum.', notIf: '{N} is not playing the drum.', isThen: 'The baby woke up.', notThen: 'The baby did not wake up.', qIf: 'Is {N} playing the drum?', qThen: 'Does the baby wake up?' },
+    { rule: 'If it snows, the school is closed.', isIf: 'It is snowing.', notIf: 'It is not snowing.', isThen: 'The school is closed.', notThen: 'The school is open.', qIf: 'Is it snowing?', qThen: 'Is the school closed?' },
+    { rule: 'If the green light is on, the toy train moves.', isIf: 'The green light is on.', notIf: 'The green light is off.', isThen: 'The toy train is moving.', notThen: 'The toy train is not moving.', qIf: 'Is the green light on?', qThen: 'Does the toy train move?' },
+    { rule: 'If {N} finds a shell, {N} puts it in a bucket.', isIf: '{N} found a shell.', notIf: '{N} did not find a shell.', isThen: 'There is a shell in the bucket.', notThen: 'The bucket is empty.', qIf: 'Did {N} find a shell?', qThen: 'Is there a shell in the bucket?' },
+  ];
+  const WORDS = ['bloops', 'zibs', 'razzles', 'fips', 'gloms', 'wugs', 'snorks', 'tazzles', 'mibs', 'quorps', 'dax', 'blicks'];
+  const CREATURES = ['Zog', 'Mip', 'Tib', 'Quark', 'Bix', 'Lulu', 'Pim', 'Rook'];
+  const one = (w) => (w.endsWith('x') ? w : w.slice(0, -1)); // bloops → bloop, dax → dax
+  function lg_truth(d) {
+    const N = pick(KIDS), [pl, sg] = pick(THINGS), box = pick(BOXES), [p, p2] = U.sample(COLORS, 2);
+    const f = (s) => s.replace(/\{N\}/g, N);
+    const forms = [];
+    if (d <= 2) { // all / none
+    forms.push(() => yn(`All the ${pl} in the ${box} are ${p}. ${N} takes a ${sg} from the ${box}. Is it ${p}?`, 'Yes', `Every ${sg} in the ${box} is ${p}, so this one is too.`));
+    forms.push(() => yn(`None of the ${pl} in the ${box} are ${p}. ${N} takes a ${sg} from the ${box}. Is it ${p}?`, 'No', `No ${sg} in the ${box} is ${p}.`));
+    forms.push(() => yn(`All the ${pl} in the ${box} are ${p}. Is there a ${p2} ${sg} in the ${box}?`, 'No', `They are all ${p}, so none can be ${p2}.`));
+    }
+    if (d === 2) { // some, and turning a sentence around
+      forms.push(() => yn(`Some of the ${pl} in the ${box} are ${p}. ${N} takes a ${sg} from the ${box}. Is it ${p}?`, "Can't tell", `Only some are ${p}: ${N} may have picked a ${p} one or a different one.`));
+      forms.push(() => yn(`All the ${pl} in the ${box} are ${p}. ${N} has a ${p} ${sg}. Did it come from the ${box}?`, "Can't tell", `${p[0].toUpperCase() + p.slice(1)} ${pl} can be in other places too.`));
+      forms.push(() => yn(`The ${box} has only ${p} ${pl} and ${p2} ${pl}. ${N} takes one that is not ${p}. Is it ${p2}?`, 'Yes', `There are only two colors. Not ${p} means ${p2}.`));
+    }
+    if (d === 3) { // if… then
+      const r = pick(RULES), rule = f(r.rule);
+      forms.push(() => yn(`${rule} ${f(r.isIf)} ${f(r.qThen)}`, 'Yes', `The rule says exactly this: ${rule}`, 'Read the "if" part and the "then" part separately.'));
+      forms.push(() => yn(`${rule} ${f(r.notThen)} ${f(r.qIf)}`, 'No', `If the "if" part were true, the "then" part would have happened. It did not, so the "if" part is not true.`, 'Read the "if" part and the "then" part separately.'));
+      forms.push(() => yn(`${rule} ${f(r.isThen)} ${f(r.qIf)}`, "Can't tell", `The rule does not say this is the only reason. It could have happened for another reason.`, 'Read the "if" part and the "then" part separately.'));
+      forms.push(() => yn(`${rule} ${f(r.notIf)} ${f(r.qThen)}`, "Can't tell", `The rule only tells what happens when the "if" part is true. Here it is not, so we don't know.`, 'Read the "if" part and the "then" part separately.'));
+    }
+    if (d === 4) { // made-up words, so only the sentences count
+      const [A, B, Cw] = U.sample(WORDS, 3), Z = pick(CREATURES);
+      const art = (w) => ('aeiou'.includes(w[0]) ? 'an ' : 'a ') + one(w);
+      const H = 'These are made-up words. Use only the sentences: draw circles inside circles if it helps.';
+      forms.push(() => yn(`All ${A} are ${B}. All ${B} are ${Cw}. Is every ${one(A)} ${art(Cw)}?`, 'Yes', `${A} are inside ${B}, and ${B} are inside ${Cw}.`, H));
+      forms.push(() => yn(`All ${A} are ${B}. All ${B} are ${Cw}. Is every ${one(Cw)} ${art(A)}?`, "Can't tell", `There may be ${Cw} that are not ${A}.`, H));
+      forms.push(() => yn(`All ${A} are ${B}. No ${B} are ${Cw}. Can ${art(A)} be ${art(Cw)}?`, 'No', `Every ${one(A)} is ${art(B)}, and no ${one(B)} is ${art(Cw)}.`, H));
+      forms.push(() => yn(`All ${A} are ${B}. ${Z} is ${art(A)}. Is ${Z} ${art(B)}?`, 'Yes', `${Z} is ${art(A)}, and all ${A} are ${B}.`, H));
+      forms.push(() => yn(`All ${A} are ${B}. ${Z} is ${art(B)}. Is ${Z} ${art(A)}?`, "Can't tell", `Some ${B} may not be ${A}.`, H));
+      forms.push(() => yn(`No ${A} are ${B}. ${Z} is ${art(B)}. Is ${Z} ${art(A)}?`, 'No', `${Z} is ${art(B)}, and no ${one(B)} can be ${art(A)}.`, H));
+      forms.push(() => yn(`Some ${A} are ${B}. All ${B} are ${Cw}. Is every ${one(A)} ${art(Cw)}?`, "Can't tell", `Only the ${A} that are ${B} must be ${Cw}. We know nothing about the other ${A}.`, H));
+    }
+    if (d === 5) { // only, except, either… or, longer chains
+      const [A, B, Cw, D] = U.sample(WORDS, 4), Z = pick(CREATURES), M = pick(KIDS.filter((k) => k !== N));
+      const art = (w) => ('aeiou'.includes(w[0]) ? 'an ' : 'a ') + one(w);
+      forms.push(() => yn(`Only kids with a ticket can ride the train. ${N} is riding the train. Does ${N} have a ticket?`, 'Yes', 'Nobody without a ticket can ride, so a rider must have one.'));
+      forms.push(() => yn(`Only kids with a ticket can ride the train. ${N} has a ticket. Is ${N} riding the train?`, "Can't tell", `A ticket lets ${N} ride, but ${N} may not be riding.`));
+      forms.push(() => yn(`Every kid in the club has a cat or a dog, or both. ${N} is in the club and has no cat. Does ${N} have a dog?`, 'Yes', `${N} must have one of them, and it is not a cat.`));
+      forms.push(() => yn(`Not all ${A} are ${B}. ${Z} is ${art(A)}. Is ${Z} ${art(B)}?`, "Can't tell", `Some ${A} are ${B} and some are not. ${Z} could be either.`));
+      forms.push(() => yn(`All ${A} are ${B}, except ${Z}. ${Z} is ${art(A)}. Is ${Z} ${art(B)}?`, 'No', `${Z} is the one ${one(A)} that is not ${art(B)}.`));
+      forms.push(() => yn(`All ${A} are ${B}. All ${B} are ${Cw}. All ${Cw} are ${D}. ${Z} is ${art(A)}. Is ${Z} ${art(D)}?`, 'Yes', `${A} → ${B} → ${Cw} → ${D}: each one is inside the next.`));
+      forms.push(() => yn(`No ${A} are ${B}. All ${Cw} are ${A}. Can ${art(Cw)} be ${art(B)}?`, 'No', `Every ${one(Cw)} is ${art(A)}, and no ${one(A)} is ${art(B)}.`));
+      forms.push(() => yn(`${N} always wins at checkers against ${M}. ${M} always wins against Pat. Did ${N} play Pat today?`, "Can't tell", `The sentences say nothing about a game today between ${N} and Pat.`));
+      forms.push(() => yn(`Everyone who finished the puzzle got a star. ${M} did not get a star. Did ${M} finish the puzzle?`, 'No', `If ${M} had finished, ${M} would have a star.`));
+    }
+    return pick(forms)();
+  }
+
+  // ---------------- 4. Everyday situations ----------------
+  // [question, answer, three wrong answers, explanation]. {N} and {M} are kids' names.
+  const SIT = {
+    1: [
+      ['{N} leaves an ice cream in the hot sun. What will happen to it?', 'It will melt', ['It will grow bigger', 'It will turn into a cake', 'It will get colder'], 'Heat makes ice cream melt.'],
+      ['{N} plants a seed and waters it every day. What will happen?', 'A plant will grow', ['The seed will fly away', 'The seed will turn into a rock', 'The seed will get smaller every day'], 'Seeds need water to grow into plants.'],
+      ['It is raining hard. {N} wants to go outside. What should {N} take?', 'An umbrella', ['Sunglasses', 'A sled', 'A swimsuit'], 'An umbrella keeps you dry in the rain.'],
+      ['{N} drops a glass cup on a hard floor. What will most likely happen?', 'It will break', ['It will bounce like a ball', 'It will float up', 'It will grow'], 'Glass is hard but breaks easily.'],
+      ['{N} sees the sun going down and the sky getting dark. What comes next?', 'Night', ['Morning', 'Lunch time', 'Noon'], 'After the sun goes down, it is night.'],
+      ['{N} puts on a coat, a hat and mittens. What is the weather most likely like?', 'Cold', ['Hot', 'Warm', 'Very sunny and hot'], 'We wear warm clothes when it is cold.'],
+      ['{N}’s puppy has an empty bowl and keeps looking at it. What does the puppy most likely want?', 'Food', ['A bath', 'A book', 'A hat'], 'An empty food bowl means the puppy is hungry.'],
+      ['{N} has wet hands after washing them. What should {N} use?', 'A towel', ['A pillow', 'A spoon', 'A crayon'], 'A towel dries your hands.'],
+      ['The ground is wet and there are puddles everywhere. What most likely happened?', 'It rained', ['It was very hot and dry', 'The wind blew the puddles in', 'Nothing happened'], 'Rain makes the ground wet and leaves puddles.'],
+      ['{N} lets go of a balloon filled with helium. Where will it go?', 'Up into the sky', ['Down to the ground', 'Into a hole', 'Under the table'], 'Helium balloons float up.'],
+      ['{N} is the last one in line. How many kids are behind {N}?', 'None', ['One', 'Two', 'All of them'], 'Last means nobody is behind.'],
+      ['{N} forgot to put the milk back in the fridge, and it stayed out all day. What is most likely true?', 'The milk is warm now', ['The milk is frozen', 'The milk turned into juice', 'The milk is colder than before'], 'Things left out of the fridge warm up.'],
+    ],
+    2: [
+      ['{N} put on socks, then shoes. Then {N} tied the laces. What did {N} do first?', 'Put on socks', ['Put on shoes', 'Tied the laces', 'Took off the shoes'], 'The first thing in the story was putting on socks.'],
+      ['{N} wakes up, brushes teeth, eats breakfast, then goes to school. What does {N} do just before going to school?', 'Eats breakfast', ['Wakes up', 'Brushes teeth', 'Goes to bed'], 'Breakfast is the step right before school.'],
+      ['A cake needs 30 minutes in the oven. {N} took it out after 5 minutes. What is most likely true?', 'The cake is not ready yet', ['The cake is burnt', 'The cake is baked just right', 'The cake is frozen'], '5 minutes is much less than 30 minutes.'],
+      ['{N}’s toy car runs on batteries. The batteries are empty. What happens when {N} turns it on?', 'It does not move', ['It goes faster', 'It flies', 'It plays music'], 'Without power the car cannot move.'],
+      ['{N}’s shoes are muddy and wet. Where has {N} most likely been?', 'Outside in the rain', ['Reading in the library', 'Sleeping in bed', 'Sitting on the couch'], 'Mud and water are outside, especially after rain.'],
+      ['The library opens at 10 o’clock. {N} gets there at 9 o’clock. What will {N} have to do?', 'Wait 1 hour', ['Go in right away', 'Wait 10 hours', 'Wait 9 hours'], 'From 9 to 10 o’clock is 1 hour.'],
+      ['{N} and {M} sit on a seesaw. {N} is much heavier. What will happen?', '{N}’s side goes down', ['{M}’s side goes down', 'It stays flat', 'Both sides go up'], 'The heavier side of a seesaw goes down.'],
+      ['{N} fills a cup to the very top with water and then drops in a big ice cube. What happens?', 'Some water spills over', ['The cup gets emptier', 'Nothing changes', 'The water gets hot'], 'The ice cube takes up room, so water spills.'],
+      ['{N} has 3 cookies and gives all of them away. How many cookies does {N} have now?', 'None', ['3', '6', '1'], 'Giving all of them away leaves none.'],
+      ['A store is closed on Sundays. Today is Sunday. Can {N} buy milk at that store today?', 'No, the store is closed', ['Yes, any time', 'Only in the morning', 'Only if it rains'], 'Closed on Sundays means no shopping today.'],
+      ['{N} sees fresh footprints in the snow going to the front door. What can {N} tell?', 'Someone walked to the door', ['It is summer', 'Nobody has been there', 'The door is made of snow'], 'Footprints show that someone walked there.'],
+      ['{N} is in bed with a cold and a high fever. What is the best thing to do?', 'Rest and see a doctor', ['Run a race', 'Go swimming in a cold lake', 'Stay up all night'], 'When you are sick, your body needs rest and a doctor’s help.'],
+    ],
+    3: [
+      ['{N} is older than {M}. {M} is 7 years old. Which could be {N}’s age?', '9', ['5', '6', '7'], 'Older than 7 means more than 7. Only 9 is more than 7.'],
+      ['Every kid in {N}’s class has a backpack. {M} is in {N}’s class. What must be true?', '{M} has a backpack', ['{M} has two backpacks', '{M} has no backpack', '{M}’s backpack is red'], 'Every kid in the class has one, and {M} is in the class.'],
+      ['{N} must be at school at 8:00. The walk takes 20 minutes. What is the latest time {N} can leave home?', '7:40', ['8:20', '8:00', '7:50'], '20 minutes before 8:00 is 7:40.'],
+      ['{N} had a red, a blue and a green crayon. {N} lost the red one and gave away the blue one. Which crayon does {N} have now?', 'Green', ['Red', 'Blue', 'None'], 'Red is lost, blue is given away, green is left.'],
+      ['A bus comes every 15 minutes. One just left as {N} arrived. What is the longest {N} will wait?', '15 minutes', ['1 hour', '5 minutes', 'No time at all'], 'The next bus comes 15 minutes after the last one.'],
+      ['{N} is on page 20 of a book. Yesterday {N} was on page 10. What happened?', '{N} read 10 pages since yesterday', ['{N} read 30 pages', '{N} went backwards', '{N} did not read'], 'From page 10 to page 20 is 10 pages.'],
+      ['There are 4 chairs and 6 kids. Everyone wants to sit. What is the problem?', '2 kids will have no chair', ['There are 2 extra chairs', 'Everyone has a chair', '4 kids will have no chair'], '6 kids − 4 chairs = 2 kids without a chair.'],
+      ['{N} wants to make a sandwich. What should {N} do first?', 'Get the bread', ['Eat the sandwich', 'Wash the plate after eating', 'Cut the sandwich in half'], 'You need bread before you can make the sandwich.'],
+      ['People outside have umbrellas and the street is wet. What should {N} wear to go out?', 'A raincoat', ['A swimsuit', 'Shorts and sandals', 'Only sunglasses'], 'Umbrellas and a wet street mean it is raining.'],
+      ['{N} has $5. A toy costs $8. What can {N} do to buy it?', 'Save $3 more', ['Buy it now', 'Save $8 more', 'Give away the $5'], '$8 − $5 = $3 more is needed.'],
+      ['{N} turns on a lamp, but it does not light. The lamp is plugged in. What is a good next step?', 'Check the light bulb', ['Paint the lamp', 'Close the window', 'Water the lamp'], 'A burnt-out bulb is a common reason a plugged-in lamp does not light.'],
+      ['{N}’s birthday is in 3 days. Today is Monday. On which day is the birthday?', 'Thursday', ['Wednesday', 'Friday', 'Tuesday'], 'Tuesday, Wednesday, Thursday: 3 days after Monday.'],
+    ],
+    4: [
+      ['{N} and {M} each picked a number. {N}’s number is 2 more than {M}’s. Together they make 10. What is {N}’s number?', '6', ['4', '5', '8'], '6 + 4 = 10, and 6 is 2 more than 4.'],
+      ['Three friends sit on a bench. {N} is not on the left end. {M} is in the middle. Where is {N}?', 'On the right end', ['On the left end', 'In the middle', 'Not on the bench'], '{M} takes the middle and {N} is not on the left, so {N} is on the right.'],
+      ['{N} only eats apples that are red. {N} is eating an apple. What color is it?', 'Red', ['Green', 'Yellow', 'It could be any color'], '{N} eats only red apples.'],
+      ['{N} walks 5 blocks north, then 5 blocks south. Where is {N} now?', 'Back where {N} started', ['10 blocks north', '5 blocks south of the start', '5 blocks east'], 'Walking back the same distance brings you to the start.'],
+      ['A frog climbs 3 steps up a ladder, then slides 1 step down. It does this twice. On which step is it now?', 'Step 4', ['Step 6', 'Step 2', 'Step 5'], 'Each time it gets 3 − 1 = 2 steps higher: 2 + 2 = 4.'],
+      ['{N}’s team played 9 games, with no ties, and won more games than it lost. Which could be true?', 'They won 5 games', ['They won 4 games', 'They lost 5 games', 'They won 3 games'], 'Won 5 and lost 4: more wins than losses. The others have more losses.'],
+      ['In a race {N} finished before {M} but after Pat. Who won of the three?', 'Pat', ['{N}', '{M}', 'Nobody'], 'Pat was before {N}, and {N} was before {M}.'],
+      ['A box has only red and blue balls, and it is not empty. {N} says truthfully: “There is no red ball in the box.” What do we know?', 'All the balls are blue', ['All the balls are red', 'Some are red and some are blue', 'The box is empty'], 'No red balls, and only red or blue are possible.'],
+      ['Yesterday was Friday. What day will it be tomorrow?', 'Sunday', ['Saturday', 'Monday', 'Thursday'], 'Yesterday Friday → today Saturday → tomorrow Sunday.'],
+      ['{N} stands in a line with 3 kids in front and 3 kids behind. How many kids are in the line?', '7', ['6', '3', '8'], '3 in front + {N} + 3 behind = 7. Don’t forget {N}!'],
+      ['A cat, a dog and a bird are in three different rooms: the kitchen, the hall and the garden. The bird is not in the garden and not in the hall. Where is the bird?', 'The kitchen', ['The garden', 'The hall', 'We can’t tell'], 'The only room left for the bird is the kitchen.'],
+      ['{N} is taller than {M}, and {M} is taller than Pat. Is Pat taller than {N}?', 'No, Pat is the shortest', ['Yes', 'They are the same height', 'We can’t tell'], '{N} > {M} > Pat, so Pat is shorter than {N}.'],
+    ],
+    5: [
+      ['It takes 5 minutes to boil 1 egg. How long does it take to boil 3 eggs in the same pot at the same time?', '5 minutes', ['15 minutes', '10 minutes', '3 minutes'], 'They all boil together, so it still takes 5 minutes.'],
+      ['A log is cut into 4 pieces. Each cut takes 2 minutes. How long does all the cutting take?', '6 minutes', ['8 minutes', '4 minutes', '2 minutes'], '4 pieces need only 3 cuts: 3 × 2 = 6 minutes.'],
+      ['{N} has 2 brothers and 2 sisters. How many children are in the family?', '5', ['4', '6', '3'], '2 brothers + 2 sisters + {N} = 5.'],
+      ['The day before yesterday was Monday. What day is it today?', 'Wednesday', ['Tuesday', 'Thursday', 'Saturday'], 'Monday → Tuesday (yesterday) → Wednesday (today).'],
+      ['There are 10 kids in a room. 6 like soccer and 7 like basketball. Everyone likes at least one. How many like both?', '3', ['1', '13', '4'], '6 + 7 = 13, but there are only 10 kids, so 3 were counted twice.'],
+      ['A snail climbs a 5-foot wall. Every day it goes up 2 feet, and every night it slides down 1 foot. On which day does it reach the top?', 'Day 4', ['Day 5', 'Day 3', 'Day 2'], 'Mornings it starts at 0, 1, 2, 3 feet. On day 4 it climbs from 3 to 5 feet.'],
+      ['{N} is 6. {M} is twice as old as {N}. How old will {M} be in 2 years?', '14', ['12', '16', '8'], '{M} is 12 now, and 12 + 2 = 14.'],
+      ['Which is heavier: a pound of feathers or a pound of rocks?', 'They weigh the same', ['The rocks', 'The feathers', 'We can’t tell'], 'A pound is a pound!'],
+      ['At the first bus stop, 3 people got off and 2 got on. Now there are 9 people on the bus. How many were on it before the stop?', '10', ['9', '8', '14'], 'Go backwards: 9 − 2 + 3 = 10.'],
+      ['In a photo there are 2 dads and 2 sons, but only 3 people. How can that be?', 'Grandpa, dad and son', ['Two dads and one son', 'It is impossible', 'Two sons and one baby'], 'The dad in the middle is also a son of the grandpa.'],
+      ['Eight kids stand in a circle. Each kid holds hands with the kid on each side. How many pairs of hands are joined?', '8', ['16', '7', '4'], 'In a circle there are as many joins as kids: 8.'],
+      ['{N} wrote all the numbers from 1 to 20. How many times did {N} write the digit 1?', '12', ['11', '10', '2'], '1, 10, 11 (twice), 12–19 (8 times): 1 + 1 + 2 + 8 = 12.'],
+    ],
+  };
+  function lg_situation(d) {
+    const [N, M] = kids(2);
+    const f = (s) => s.replace(/\{N\}/g, N).replace(/\{M\}/g, M);
+    const [q, ans, wrong, ex] = pick(SIT[d]);
+    const text = f(q), choices = shuffle([ans, ...wrong].map(f));
+    return C(text, f(ans), choices, { wordy: true, say: text, hint: 'Picture it in your head. What makes the most sense?', explain: f(ex) });
+  }
+
+  // ---------------- 5. Counting the ways, and "to be sure" ----------------
+  const PAIRS = [
+    ['shirts', 'pairs of shorts', 'outfit of one shirt and one pair of shorts'],
+    ['hats', 'scarves', 'set of one hat and one scarf'],
+    ['kinds of bread', 'kinds of cheese', 'sandwich with one bread and one cheese'],
+    ['ice cream flavors', 'kinds of cones', 'ice cream with one flavor in one cone'],
+    ['cups', 'straws', 'drink with one cup and one straw'],
+  ];
+  const nc = (text, ans, near, o) => C(text, ans, U.numChoices(ans, near, 4).sort((a, b) => a - b), Object.assign({ wordy: true, say: text }, o));
+  const games = (n) => (n * (n - 1)) / 2;
+  function lg_count(d) {
+    const N = pick(KIDS);
+    const outfits = (lo, hi) => {
+      const [a1, b1, what] = pick(PAIRS), a = rnd(lo, hi), b = rnd(lo, hi);
+      return nc(`${N} has ${a} ${a1} and ${b} ${b1}. How many different kinds of ${what} can ${N} make?`, a * b, [a + b, a * b + 1, a * b - 1, a + b + 1], { hint: `For each one of the ${a1}, count how many ${b1} go with it.`, explain: `${a} × ${b} = ${a * b}: each of the ${a} ${a1} goes with ${b} ${b1}.` });
+    };
+    const shake = (n) => nc(`${n} friends meet, and every two of them shake hands once. How many handshakes are there?`, games(n), [n, n * (n - 1), games(n) + 1, n + 1], { hint: 'Let the first friend shake everyone’s hand, then the second friend shakes hands with the rest…', explain: `${U.range(1, n - 1).reverse().join(' + ')} = ${games(n)}.` });
+    const lineup = (n) => { const names = kids(n), ans = [1, 1, 2, 6, 24][n]; return nc(`${names.join(', ')} line up for a photo. In how many different orders can they stand?`, ans, [n * n, n + 1, ans - 1, ans + 2, ans * 2], { hint: 'How many kids can be first? Then how many can be second?', explain: `${U.range(1, n).reverse().join(' × ')} = ${ans}.` }); };
+    const digits = (k, rep) => {
+      const ds = U.sample([1, 2, 3, 4, 5, 6, 7, 8, 9], k).sort((a, b) => a - b), ans = rep ? k * k : k * (k - 1);
+      return nc(`Use the digits ${ds.join(', ')} to make two-digit numbers${rep ? ' (a digit may be used twice, like ' + ds[0] + ds[0] + ')' : ' (each digit at most once in a number)'}. How many different numbers can you make?`, ans, [k * k, k * (k - 1), k * 2, ans + 1], { hint: 'Pick the tens digit first, then count the ones digits that can go with it.', explain: `${k} choices for the tens × ${rep ? k : k - 1} for the ones = ${ans}.` });
+    };
+    const league = (n) => nc(`${n} teams play a tournament. Every team plays every other team once. How many games are played?`, games(n), [n, n * (n - 1), games(n) + 1, games(n) - 1], { hint: 'Count the games of the first team, then the new games of the second team…', explain: `${U.range(1, n - 1).reverse().join(' + ')} = ${games(n)}.` });
+    if (d === 1) return outfits(2, 3);
+    if (d === 2) return pick([() => outfits(2, 4), () => shake(3), () => nc(`${N} has a red, a blue and a green balloon and gives one balloon to each of 2 friends. How many balloons are left?`, 1, [0, 2, 3], { explain: '3 − 2 = 1.' })])();
+    if (d === 3) return pick([() => lineup(3), () => shake(4), () => digits(3, false), () => digits(3, true), () => {
+      const n = 2;
+      return nc(`${N} has ${n} hats, ${n} shirts and ${n} pairs of pants. How many different outfits of a hat, a shirt and pants can ${N} make?`, 8, [6, 4, 9, 7], { explain: '2 × 2 × 2 = 8.', hint: 'First count hat-and-shirt sets, then add the pants.' });
+    }])();
+    const socks = () => {
+      const r = rnd(3, 9), b = rnd(3, 9), [c1, c2] = U.sample(['red', 'blue', 'green', 'black', 'white'], 2), kind = rnd(1, 3);
+      const intro = `A drawer has ${r} ${c1} socks and ${b} ${c2} socks. ${N} takes socks without looking.`;
+      if (kind === 1) return nc(`${intro} How many must ${N} take to be sure to have 2 socks of the same color?`, 3, [2, 4, r + 1, b + 1], { hint: 'Think of the unluckiest way it could go.', explain: 'The first 2 could be different colors. The 3rd always matches one of them.' });
+      if (kind === 2) return nc(`${intro} How many must ${N} take to be sure to get a ${c1} sock?`, b + 1, [b, r, r + 1, b + 2], { hint: 'Think of the unluckiest way it could go.', explain: `Unluckiest: all ${b} ${c2} socks come first. The next one must be ${c1}: ${b} + 1 = ${b + 1}.` });
+      return nc(`${intro} How many must ${N} take to be sure to get 2 ${c1} socks?`, b + 2, [b + 1, 2, r + 2, b + 3], { hint: 'Think of the unluckiest way it could go.', explain: `Unluckiest: all ${b} ${c2} socks come first, then 2 ${c1}: ${b} + 2 = ${b + 2}.` });
+    };
+    if (d === 4) return pick([socks, () => shake(5), () => league(rnd(4, 6)), () => digits(4, false)])();
+    const colors3 = () => {
+      const k = rnd(1, 2), cs = U.sample(['red', 'blue', 'green', 'yellow'], 3), ns = [rnd(4, 8), rnd(4, 8), rnd(4, 8)];
+      const intro = `A bag has ${ns[0]} ${cs[0]}, ${ns[1]} ${cs[1]} and ${ns[2]} ${cs[2]} marbles. ${N} takes marbles without looking.`;
+      if (k === 1) return nc(`${intro} How many must ${N} take to be sure to have 3 marbles of the same color?`, 7, [3, 4, 6, 9], { hint: 'Unluckiest: as many as possible without 3 of one color.', explain: '2 of each color is 6 marbles with no 3 the same. The 7th makes 3 of one color.' });
+      const sorted = ns.slice().sort((a, b) => b - a), ans = sorted[0] + sorted[1] + 1;
+      return nc(`${intro} How many must ${N} take to be sure to have at least one marble of every color?`, ans, [3, ans - 1, ans + 1, sorted[0] + 1], { hint: 'Unluckiest: the two biggest colors come out first.', explain: `${sorted[0]} + ${sorted[1]} marbles could miss one color. One more: ${ans}.` });
+    };
+    return pick([colors3, () => lineup(4), () => {
+      const a = rnd(2, 3), b = rnd(2, 3), c = rnd(2, 4);
+      return nc(`A café has ${a} kinds of soup, ${b} kinds of sandwiches and ${c} kinds of juice. A lunch is one soup, one sandwich and one juice. How many different lunches are there?`, a * b * c, [a + b + c, a * b + c, a * b * c + 1, a * b * c - 1], { explain: `${a} × ${b} × ${c} = ${a * b * c}.`, hint: 'Count soup-and-sandwich pairs, then multiply by the juices.' });
+    }, () => league(rnd(5, 7))])();
+  }
+
+  // ---------------- 6. Truth-tellers and fibbers ----------------
+  const FACTS = [['I have a dog.', 'Does {N} have a dog?'], ['I ate an apple today.', 'Did {N} eat an apple today?'], ['My bike is red.', 'Is {N}’s bike red?'], ['I can whistle.', 'Can {N} whistle?'], ['I have a sister.', 'Does {N} have a sister?'], ['I saw a rainbow.', 'Did {N} see a rainbow?'], ['My hat is new.', 'Is {N}’s hat new?']];
+  const PLACES = ['under the bed', 'in the box', 'in the closet', 'behind the couch'];
+  const YN = ['Yes', 'No', "Can't tell"];
+  // Statements a person can make about the group; truth(w) tells whether it is true in world w (true = truth-teller).
+  function statements(names, s) {
+    const out = [], o = names.map((_, i) => i).filter((i) => i !== s);
+    for (const x of o) {
+      out.push({ t: `“${names[x]} tells the truth.”`, f: (w) => w[x] });
+      out.push({ t: `“${names[x]} is a fibber.”`, f: (w) => !w[x] });
+      out.push({ t: `“${names[x]} and I are the same kind.”`, f: (w) => w[x] === w[s] });
+      out.push({ t: `“${names[x]} and I are different kinds.”`, f: (w) => w[x] !== w[s] });
+    }
+    if (names.length === 2) {
+      out.push({ t: '“We are both fibbers.”', f: (w) => !w[0] && !w[1] });
+      out.push({ t: '“At least one of us is a fibber.”', f: (w) => !w[0] || !w[1] });
+    } else {
+      for (let k = 0; k <= 3; k++) out.push({ t: `“Exactly ${k} of us ${k === 1 ? 'tells' : 'tell'} the truth.”`, f: (w) => w.filter(Boolean).length === k });
+      out.push({ t: '“At least one of us is a fibber.”', f: (w) => w.some((x) => !x) });
+    }
+    return out;
+  }
+  const RULE_TF = 'A truth-teller always tells the truth. A fibber always fibs.';
+  function lg_liars(d) {
+    const [N, M] = kids(2);
+    if (d === 1) {
+      const [fact, q] = pick(FACTS), honest = chance(0.5), qq = q.replace('{N}', N);
+      const text = `${N} ${honest ? 'always tells the truth' : 'always fibs (never tells the truth)'}. ${N} says: “${fact}” ${qq}`;
+      return C(text, honest ? 'Yes' : 'No', YN, { wordy: true, say: text, hint: honest ? 'If someone always tells the truth, what they say is true.' : 'If someone always fibs, the opposite of what they say is true.', explain: honest ? `${N} tells the truth, so it is true.` : `${N} always fibs, so it is not true.` });
+    }
+    if (d === 2) {
+      if (chance(0.5)) {
+        const [p1, p2] = U.sample(PLACES, 2), honest = chance(0.5);
+        const text = `The ball is either ${p1} or ${p2}. ${N} ${honest ? 'always tells the truth' : 'always fibs'}. ${N} says: “The ball is ${p1}.” Where is the ball?`;
+        const ans = honest ? p1 : p2;
+        return C(text, ans.replace(/^./, (c) => c.toUpperCase()), PLACES.map((x) => x.replace(/^./, (c) => c.toUpperCase())), { wordy: true, say: text, hint: 'There are only two places. Is what was said true or false?', explain: honest ? `${N} tells the truth: ${p1}.` : `${N} fibs, so it is not ${p1}. It must be ${p2}.` });
+      }
+      // One of them ate the cookie; work out who from one sentence.
+      const speakerHonest = chance(0.5), speaker = speakerHonest ? N : M, other = speakerHonest ? M : N;
+      const claims = [[`I ate it.`, (e) => e === speaker], [`I did not eat it.`, (e) => e !== speaker], [`${other} ate it.`, (e) => e === other], [`${other} did not eat it.`, (e) => e !== other]];
+      const [claim, holds] = pick(claims);
+      const eater = [N, M].find((e) => holds(e) === speakerHonest);
+      const text = `${N} always tells the truth and ${M} always fibs. One of them ate the cookie. ${speaker} says: “${claim}” Who ate the cookie?`;
+      return C(text, eater, [N, M, 'Both', 'Nobody'], { wordy: true, say: text, hint: `Does ${speaker} tell the truth or fib? Then what really happened?`, explain: speakerHonest ? `${N} tells the truth, so “${claim}” is true: ${eater} ate it.` : `${M} fibs, so “${claim}” is false: ${eater} ate it.` });
+    }
+    // d3–5: find the only possible truth-tellers
+    const n = d === 5 ? 3 : 2, names = kids(n);
+    for (let tries = 0; tries < 200; tries++) {
+      const truth = names.map(() => chance(0.5));
+      const worlds = [];
+      for (let m = 0; m < 1 << n; m++) worlds.push(names.map((_, i) => !!(m & (1 << i))));
+      const said = names.map((_, s) => {
+        return pick(statements(names, s).filter((st) => st.f(truth) === truth[s]));
+      });
+      if (d === 3 || (d === 5 && chance(0.4))) said[rnd(0, n - 1)] = null; // someone says nothing
+      const fits = worlds.filter((w) => said.every((st, s) => !st || st.f(w) === w[s]));
+      if (fits.length !== 1) continue;
+      const lines = names.map((p, s) => (said[s] ? `${p} says: ${said[s].t}` : `${p} says nothing.`));
+      const check = names.map((p, s) => (said[s] ? `${p} ${truth[s] ? 'tells the truth, and' : 'fibs, and'} ${said[s].t} is ${truth[s] ? 'true' : 'false'}.` : `${p} ${truth[s] ? 'tells the truth' : 'fibs'}.`)).join(' ');
+      const intro = `${RULE_TF} ${names.join(n === 2 ? ' and ' : ', ')} are each a truth-teller or a fibber.`;
+      if (n === 2) {
+        const label = (w) => (w[0] && w[1] ? 'Both' : !w[0] && !w[1] ? 'Neither' : w[0] ? `Only ${names[0]}` : `Only ${names[1]}`);
+        const q = 'Who tells the truth?';
+        return C(`${intro}${list(lines)}${q}`, label(truth), [`Only ${names[0]}`, `Only ${names[1]}`, 'Both', 'Neither'], { wordy: true, say: speech(intro, ...lines, q), hint: 'Try it: suppose the first one tells the truth. Does everything fit? Then try the other way.', explain: check });
+      }
+      const k = truth.filter(Boolean).length, q = 'How many of them tell the truth?';
+      return C(`${intro}${list(lines)}${q}`, k, [0, 1, 2, 3], { wordy: true, say: speech(intro, ...lines, q), hint: 'Try each possibility and look for the one where nobody breaks their rule.', explain: check });
+    }
+    return lg_liars(4);
+  }
+
+  const T = (name, icon, gen, desc) => ({ name, icon, std: 'Logic', gen, track: 'prep', logic: true, desc });
+  Object.assign(MQ.TOPICS, {
+    lg_order: T('Who is first?', '🥇', lg_order, 'Put kids in order from clues: tallest to shortest, or front to back in a line.'),
+    lg_whois: T('Who has what?', '🕵️', lg_whois, 'Each kid has a different thing. Cross out what is impossible to find out who has what.'),
+    lg_truth: T('Yes, No or Can’t tell', '🤔', lg_truth, 'Use only what the sentences say: all, some, none, if… then.'),
+    lg_situation: T('Think it through', '💭', lg_situation, 'Everyday situations: what happens next, why it happened, what must be true.'),
+    lg_count: T('Count the ways', '🔀', lg_count, 'Count all the outfits, handshakes or orders, and “how many to be sure” puzzles.'),
+    lg_liars: T('Truth or fib?', '🤥', lg_liars, 'Some people always tell the truth, others always fib. Work out who is who.'),
+  });
+  MQ.LOGIC_TOPICS = ['lg_order', 'lg_whois', 'lg_truth', 'lg_situation', 'lg_count', 'lg_liars'];
+  MQ.LOGIC_K = ['lg_order', 'lg_whois', 'lg_truth', 'lg_situation']; // kindergarten: levels 1–2, read aloud
 })();
 </script>
   <script>
@@ -3587,7 +4086,81 @@ svg.vis.abacus { max-height: 160px; }
     { id: 'egg', icon: '🥚', name: 'Hatchling', desc: 'Hatch your first egg', test: (s) => s.eggsHatched >= 1 },
     { id: 'ahead', icon: '🧠', name: 'Big Brain', desc: 'Solve 25 challenge-level problems', test: (s) => (s.stats.d5 || 0) >= 25 },
     { id: 'sky', icon: '🌠', name: 'Summit Explorer', desc: 'Befriend the guardian of the last world', test: (s) => { const w = MQ.trackWorlds(s); return !!s.levels[w[w.length - 1].id + '-5']; } },
+    { id: 'fix10', icon: '🛠️', name: 'Fixer', desc: 'Fix 10 mistakes in the Fix-it Lab', test: (s) => (s.stats.fixed || 0) >= 10 },
+    { id: 'fix50', icon: '🔧', name: 'Comeback Champion', desc: 'Fix 50 mistakes', test: (s) => (s.stats.fixed || 0) >= 50 },
+    { id: 'goal', icon: '🎯', name: 'Goal Getter', desc: 'Reach the daily goal enough days in one week', test: (s) => MQ.goalWeeks(s).some((w) => w.met) },
+    { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];
+
+  // Daily goal (set by a grown-up): weeks from Monday to Sunday, how many days reached the goal.
+  MQ.weekStart = (key) => { const d = new Date(key + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return MQ.U.dateKey(d); };
+  MQ.goalWeeks = (s) => {
+    const g = s.goal || {};
+    if (!g.perDay) return [];
+    const weeks = {};
+    for (const [k, v] of Object.entries(s.days || {})) {
+      const w = (weeks[MQ.weekStart(k)] = weeks[MQ.weekStart(k)] || { start: MQ.weekStart(k), days: 0 });
+      if ((v.a || 0) >= g.perDay) w.days++;
+    }
+    return Object.values(weeks).map((w) => Object.assign(w, { met: w.days >= (g.days || 5) }));
+  };
+
+  // Strategy tips: shown before the next question after a child misses the same kind of problem twice,
+  // and in the Fix-it Lab. Short, concrete, in a child's words.
+  MQ.TIPS = {
+    add20: ['Make a ten: 8 + 5 → 8 + 2 = 10, then 10 + 3 = 13.', 'Use doubles: 6 + 7 is 6 + 6 and one more = 13.', 'For take-away, count up: 13 − 9 → from 9 to 10 is 1, from 10 to 13 is 3, so 4.'],
+    place: ['Read the digits by their places: 352 = 3 hundreds, 5 tens, 2 ones.', 'To compare numbers, look at the hundreds first, then the tens, then the ones.'],
+    add100: ['Add the tens first, then the ones: 34 + 25 → 30 + 20 = 50, 4 + 5 = 9, so 59.', 'If the ones make more than 10, trade 10 ones for 1 ten.'],
+    sub100: ['Jump back by tens, then by ones: 72 − 25 → 72 − 20 = 52, 52 − 5 = 47.', 'Check by adding: your answer + the number you took away should give the start.'],
+    arrays: ['Even numbers split into pairs with none left over. Look at the ones digit: 0, 2, 4, 6, 8 are even.', 'An array is rows × columns: count one row, then skip-count the rows.'],
+    time: ['The short hand shows the hour, the long hand shows the minutes.', 'Each number on the clock is 5 minutes for the long hand: count by 5s.'],
+    money: ['Start with the coins worth the most, then count on: quarters, dimes, nickels, pennies.', 'Quarter 25¢, dime 10¢, nickel 5¢, penny 1¢. A dime is small but worth more than a nickel!'],
+    shapes: ['Count the sides and the corners. Triangles 3, quadrilaterals 4, pentagons 5, hexagons 6.', 'Halves are 2 equal parts, thirds are 3, fourths are 4. The parts must be the same size.'],
+    measure: ['Line up the object with 0 on the ruler, not with the end of the ruler.', 'Longer units mean a smaller number: 1 foot is 12 inches.'],
+    data: ['Read the title and the labels first. Then find the bar or row the question asks about.', '“How many more” means find both numbers and subtract.'],
+    big: ['Line up hundreds, tens and ones. Add or subtract each place, starting with the ones.', 'Estimate first: 398 + 205 is about 400 + 200 = 600.'],
+    words: ['Read the question twice. What do you know? What do you need to find?', 'Draw a quick picture or a bar model. “In all” often means add, “left” or “more than” often means subtract.'],
+    mult: ['Multiplication is equal groups: 4 × 3 is 4 groups of 3 = 3 + 3 + 3 + 3.', 'Division is sharing equally: 12 ÷ 3 means 12 shared into 3 equal groups.'],
+    logic: ['Look at how much the numbers change each time. Is the jump always the same?', 'Try a number, check it, then fix it: guess and check is a real strategy!'],
+    k_count: ['Touch each thing once while you count. Move it or mark it so you don’t count it twice.', 'The last number you say tells how many.'],
+    k_numbers: ['Say the numbers out loud in order. Which comes just before? Just after?'],
+    k_compare: ['Match them up one to one. The group with some left over has more.'],
+    k_add: ['Start with the bigger number and count on with your fingers.', 'Adding means putting together. Count all of them.'],
+    k_sub: ['Taking away means some go away. Start with all of them, cover the ones that leave, count what is left.'],
+    k_teen: ['A ten frame holds 10. Teen numbers are 10 and some more ones: 14 is 10 and 4.'],
+    k_shapes: ['Count the sides and the corners. Flat shapes lie on paper, solid shapes you can hold.'],
+    k_measure: ['Put the things side by side, with their ends lined up at the same start.'],
+    k_words: ['Listen to the story again and act it out with your fingers or toys.'],
+    k_patterns: ['Say the pattern out loud: red, blue, red, blue… what comes next?'],
+    kg_count: ['Count small shapes first, then shapes made of 2 pieces, then bigger ones. Write the number for each size.'],
+    kg_balance: ['If the scale is level, both sides weigh the same. Take the same thing off both sides to make it simpler.'],
+    kg_order: ['Draw a line from tallest to shortest (or oldest to youngest) and place each person as you read the clue.'],
+    kg_calendar: ['Every 7 days it is the same day of the week again. Count the leftover days after the full weeks.'],
+    kg_coins: ['Make a list of the coins and add them in an organized way, biggest first.'],
+    kg_paths: ['Trace the route with your finger and count each step. Mark where you have already been.'],
+    kg_mirror: ['In a mirror, left and right swap but up and down stay. Turning moves every part around the middle.'],
+    kg_cubes: ['Count the cubes layer by layer, and remember the ones hidden underneath that hold the others up.'],
+    kg_pattern: ['Look at the jumps between the numbers. Do they stay the same, or grow by a rule?'],
+    kg_digits: ['Start with the ones column: which digit makes the ones work? Then move to the tens.'],
+    kg_age: ['Everybody gets older by the same amount. The difference between two ages never changes.'],
+    kg_bank: ['Read slowly and draw the puzzle. Check your answer against every sentence before you choose.'],
+    kg_joey: ['Listen to the question again with 🔊 and point to each picture.'],
+    cg_picanalogy: ['Say how the first two pictures go together in a sentence, like “a bird lives in a nest”. Then use the same sentence for the next one.'],
+    cg_sentence: ['Listen to the whole question. Then look at every picture before you choose.'],
+    cg_picclass: ['Find what the three pictures have in common: what they are, what they do, or where they belong.'],
+    cg_numanalogy: ['Find the rule in the first pair: add, take away, or double? Then do the same to the last one.'],
+    cg_numpuzzle: ['Find what the animal must be to make both sides equal. Check by putting your number back in.'],
+    cg_numseries: ['Look at how each step changes from the one before. The same change comes next.'],
+    cg_matrix: ['Look across the row: what changes and what stays the same? Then look down the column too.'],
+    cg_classify: ['Check shape, color, size and number. The rule is what ALL three share.'],
+    cg_folding: ['Each fold doubles the holes. Unfold in your head one fold at a time, like a mirror.'],
+    lg_order: ['Draw a line or a ladder. Put names on it as you read each clue, and erase guesses that don’t fit.'],
+    lg_whois: ['Make a table: names down the side, things across the top. Put ✗ for every “does not”. A row with one empty box gives the answer.'],
+    lg_truth: ['Use only what the sentences say. If something could go either way, the answer is “Can’t tell”.', '“If A, then B” does not mean “if B, then A”.'],
+    lg_situation: ['Make a picture in your head. Which answer makes sense with ALL the facts?'],
+    lg_count: ['Make an organized list so you don’t miss any or count any twice.', 'For “to be sure”, imagine the unluckiest way it could happen.'],
+    lg_liars: ['Pretend one person tells the truth and see if everything fits. If something breaks, try the other way.'],
+  };
 
   MQ.SAY = {
     hello: ['Ready for an adventure?', 'Let’s discover something amazing today!', 'Your brain is a muscle. Let’s train it!', 'I packed snacks and a magnifying glass!'],
@@ -3886,11 +4459,20 @@ svg.vis.abacus { max-height: 160px; }
     avoid.add(U.qkey(best));
     return best;
   };
-  P.newContest = (kind) => {
+  // review: skills the child got wrong before ({ topic, d }, most urgent first). Kangaroo and Logic tests swap a few
+  // questions for fresh ones of those skills, in the same section, so the test keeps its size and point values.
+  // (CogAT, Brain Games and Joey tests already ask every question type at every level they use.)
+  P.REVIEW_IN_CONTEST = 3;
+  const bandOf = (d) => (d <= 2 ? 3 : d === 3 ? 4 : 5);
+  P.newContest = (kind, review = []) => {
     const avoid = new Set();
     const make = (topic, d) => P.fresh(topic, d, avoid);
     const items = [];
-    if (kind === 'joey') {
+    if (kind === 'logic' || kind === 'logick') {
+      // Logic Lab challenge: every kind of logic puzzle, the easier round first.
+      const [topics, levels] = kind === 'logic' ? [MQ.LOGIC_TOPICS, [4, 5]] : [MQ.LOGIC_K, [1, 2]];
+      levels.forEach((d, r) => { for (const t of U.shuffle(topics)) items.push({ p: make(t, d), pts: 1, sec: r ? 'Round 2' : 'Round 1' }); });
+    } else if (kind === 'joey') {
       for (let i = 0; i < 12; i++) items.push({ p: make('kg_joey', 1), pts: 1 });
     } else if (kind === 'cogat' || kind === 'cogatk') {
       // CogAT style: battery by battery, each question type in a row, getting harder within the type.
@@ -3901,6 +4483,18 @@ svg.vis.abacus { max-height: 160px; }
         const topics = U.shuffle(MQ.KANGAROO_TOPICS);
         for (let i = 0; i < 8; i++) items.push({ p: make(topics[i % topics.length], pts === 3 ? U.rnd(1, 2) : pts === 4 ? 3 : U.rnd(4, 5)), pts });
       }
+    }
+    const family = kind === 'kangaroo' ? MQ.KANGAROO_TOPICS : kind === 'logic' ? MQ.LOGIC_TOPICS : kind === 'logick' ? MQ.LOGIC_K : [];
+    const maxD = kind === 'logick' ? 2 : 5;
+    for (const r of review.filter((x) => family.includes(x.topic) && x.d <= maxD).slice(0, P.REVIEW_IN_CONTEST)) {
+      // the same type if it is in the test, otherwise any question of the same section
+      const fits = (it) => !it.rv && (kind === 'kangaroo' ? it.pts === bandOf(r.d) : true);
+      let at = items.findIndex((it) => fits(it) && it.p.topic === r.topic);
+      if (at < 0) at = items.findIndex(fits);
+      if (at < 0) continue;
+      const p = make(r.topic, r.d);
+      p.review = true;
+      items[at] = Object.assign({}, items[at], { p, rv: true });
     }
     return { kind, items, answers: items.map(() => null), flags: items.map(() => false), i: 0, seconds: kind === 'kangaroo' ? P.KANGAROO_MINUTES * 60 : 0, started: Date.now() };
   };
@@ -3921,12 +4515,65 @@ svg.vis.abacus { max-height: 160px; }
       right: graded.filter((g) => g.ok).length, blank: graded.filter((g) => g.given === null).length, n: graded.length,
       sections, types, minutes: Math.max(1, Math.round((Date.now() - ct.started) / 60000)), timed: !!ct.timed,
       items: graded.map((g) => ({
-        t: g.it.p.topic, pts: g.it.pts, sec: g.it.sec || '', ok: g.ok,
+        t: g.it.p.topic, d: g.it.p.d, pts: g.it.pts, sec: g.it.sec || '', ok: g.ok, rv: !!g.it.rv,
         q: String(g.it.p.text).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160),
         g: g.given === null ? '' : g.given, a: g.it.p.answer, e: g.it.p.explain || '',
         letterG: g.given === null ? '' : 'ABCDE'[g.it.p.choices.indexOf(g.given)], letterA: 'ABCDE'[g.it.p.choices.indexOf(g.it.p.answer)],
       })),
     };
+  };
+
+  // ---------- what each test is, for the ⓘ buttons ----------
+  P.INFO = {
+    check: {
+      title: 'Placement Check', icon: '🎯',
+      what: 'A practice version of the i-Ready Diagnostic in math: an adaptive test where the next question gets harder after a right answer and easier after a wrong one.',
+      where: 'Many California schools give the i-Ready Diagnostic three times a year (fall, winter, spring). Teachers use it to see each child’s level and to choose lessons.',
+      checks: 'Four areas of school math: Numbers & Operations, Algebra & Algebraic Thinking, Measurement & Data, and Geometry. The result is a level such as “Mid 2nd”, compared with where most kids are at that time of year.',
+      how: 'Take a check about a week before the school test, or every couple of months to see growth. No hints during the check. Afterwards, “Practice these” trains the two weakest areas, and the mistakes come back in Fix-it Lab.',
+    },
+    kangaroo: {
+      title: 'Math Kangaroo', icon: '🦘',
+      what: 'An international math contest with thinking puzzles, not drills. Levels 1–2 take the same paper: 24 puzzles in 75 minutes, answers A–E.',
+      where: 'Held once a year in March at test centers across the US (Math Kangaroo USA). Kids sign up through a local center, often a school or a library.',
+      checks: 'Logic, counting, shapes and patterns, careful reading. Puzzles are worth 3, 4 or 5 points, and a wrong answer costs nothing.',
+      how: 'Try a mock contest with the clock once in a while, and use “Practice by type” for the kinds of puzzles that went wrong. Missed puzzle types come back in the next mock contest.',
+    },
+    joey: {
+      title: 'Joey Puzzles', icon: '🐣',
+      what: 'Picture brain teasers in the style of Math Kangaroo, made easier for kindergarten.',
+      where: 'Math Kangaroo starts in 1st grade; these puzzles get a kindergartner used to the style early.',
+      checks: 'Counting, comparing, simple patterns and shapes, and listening carefully to the question.',
+      how: 'Play the 12 puzzles with a grown-up nearby. Every question can be read aloud with 🔊. There is no clock.',
+    },
+    cogat: {
+      title: 'CogAT practice', icon: '🧠',
+      what: 'Practice for the Cognitive Abilities Test (CogAT), which measures reasoning, not what was taught in class.',
+      where: 'Eureka Union School District gives the CogAT to every 2nd grader as one part of GATE screening. Many other districts use it for gifted programs too.',
+      checks: 'Three parts: Verbal (picture analogies, sentence completion, picture classification), Quantitative (number analogies, number puzzles, number series) and Nonverbal (figure matrices, figure classification, paper folding).',
+      how: 'Short sessions of “Practice by type” work best; a full 45-question test now and then shows progress in each part. Real CogAT percentiles cannot be estimated from practice.',
+    },
+    cogatk: {
+      title: 'Brain Games', icon: '🧠',
+      what: 'Picture thinking puzzles in the style of the CogAT, made for kindergarten.',
+      where: 'Eureka Union gives the CogAT in 2nd grade; these games build the same kinds of thinking early.',
+      checks: 'Seeing patterns, things that go together, and how shapes change.',
+      how: 'Play a few puzzles at a time. Every question is read aloud.',
+    },
+    logic: {
+      title: 'Logic Lab', icon: '🧩',
+      what: 'Logic puzzles in words: put people in order from clues, find who has what, decide what must be true, count all the ways, and catch the fibber.',
+      where: 'Not a school test, but the same thinking is in Math Kangaroo, CogAT and the word problems on i-Ready, and it helps in reading too.',
+      checks: 'Careful reading, using only what is said, trying possibilities and checking them. Levels 4–5 are advanced puzzles for kids who want more.',
+      how: 'Use “Practice by type” (it gets harder as answers are right, and every answer is explained). The 12-puzzle challenge mixes all types at the advanced levels.',
+    },
+    logick: {
+      title: 'Logic Lab', icon: '🧩',
+      what: 'First logic puzzles: who is tallest, who has which pet, yes or no, and what happens next.',
+      where: 'Not a school test. It builds the careful thinking used in all later math.',
+      checks: 'Listening to clues and putting them together.',
+      how: 'Play with a grown-up: every puzzle is read aloud, and drawing the clues on paper helps.',
+    },
   };
 
   MQ.prep = P;
@@ -3961,10 +4608,14 @@ svg.vis.abacus { max-height: 160px; }
     creatures: {}, // id: { got, from }
     badges: {}, // id: date
     eggsHatched: 0,
-    stats: { attempts: 0, correct: 0, bestStreak: 0, topics: {}, d5: 0, lightning60: 0, lightning120: 0, endlessBest: 0 },
+    stats: { attempts: 0, correct: 0, bestStreak: 0, topics: {}, d5: 0, lightning60: 0, lightning120: 0, endlessBest: 0, fixed: 0 },
     daily: { last: '', streak: 0, best: 0 },
-    days: {}, // 'YYYY-MM-DD': { a, c }
+    days: {}, // 'YYYY-MM-DD': { a, c } — answers and first-try right answers, kept for two years
+    months: {}, // 'YYYY-MM': { topic: [answers, right] } — long-term accuracy per topic
     mistakes: [],
+    review: {}, // 'topic|d': { topic, d, box, due, miss, last } — mistakes to practice again (see S.miss / S.hit)
+    goal: { perDay: 0, days: 5 }, // daily goal set by a grown-up: problems per day (0 = off), days per week
+    tips: {}, // topic: date a strategy tip was last shown
     tests: { checks: [], contests: [] }, // Placement Check and mock contest results (newest last)
     seen: {}, // test-prep topic: recently shown question keys (oldest first), so retakes bring new questions
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
@@ -4118,7 +4769,7 @@ svg.vis.abacus { max-height: 160px; }
     const max = (x, y) => Math.max(x || 0, y || 0);
     out.xp = max(nw.xp, old.xp);
     out.eggsHatched = max(nw.eggsHatched, old.eggsHatched);
-    for (const k of ['attempts', 'correct', 'bestStreak', 'd5', 'lightning60', 'lightning120', 'endlessBest']) out.stats[k] = max(nw.stats[k], old.stats[k]);
+    for (const k of ['attempts', 'correct', 'bestStreak', 'd5', 'lightning60', 'lightning120', 'endlessBest', 'fixed']) out.stats[k] = max(nw.stats[k], old.stats[k]);
     for (const [t, v] of Object.entries(old.stats.topics || {})) if (!out.stats.topics[t] || out.stats.topics[t].a < v.a) out.stats.topics[t] = v;
     out.days = Object.assign({}, old.days);
     for (const [d, v] of Object.entries(nw.days || {})) out.days[d] = { a: max(v.a, (old.days[d] || {}).a), c: max(v.c, (old.days[d] || {}).c) };
@@ -4140,6 +4791,16 @@ svg.vis.abacus { max-height: 160px; }
       const keys = [...((old.seen || {})[t] || []), ...((nw.seen || {})[t] || [])];
       out.seen[t] = keys.filter((k, i) => keys.lastIndexOf(k) === i).slice(-S.SEEN_MAX);
     }
+    // monthly accuracy: each cell keeps the copy with more answers
+    out.months = JSON.parse(JSON.stringify(old.months || {}));
+    for (const [m, ts] of Object.entries(nw.months || {})) {
+      const o = (out.months[m] = out.months[m] || {});
+      for (const [t, v] of Object.entries(ts)) if (!o[t] || o[t][0] < v[0]) o[t] = v.slice();
+    }
+    // mistakes to practice: the copy that was practiced more recently wins for each skill
+    out.review = Object.assign({}, old.review || {});
+    for (const [k, v] of Object.entries(nw.review || {})) if (!out.review[k] || (v.last || '') >= (out.review[k].last || '')) out.review[k] = v;
+    out.tips = Object.assign({}, old.tips || {}, nw.tips || {});
     out.rev = max(nw.rev, old.rev);
     return out;
   };
@@ -4172,7 +4833,44 @@ svg.vis.abacus { max-height: 160px; }
   };
   S.raw = (id) => (MQ.state && MQ.state.id === id ? MQ.state : readProfile(id) || memory[id]);
 
-  // Record one answered problem (first-try result) for statistics.
+  // ---------- mistakes to practice again ----------
+  // A first-try mistake puts the skill (topic + difficulty) in box 0, due today. A first-try right answer on a
+  // due skill moves it up a box: next try 1 day later, then 3 days later; the third right answer fixes it.
+  // So a mistake counts as fixed after three right answers on three different days. A new mistake starts over.
+  S.REVIEW_GAP = [0, 1, 3];
+  S.REVIEW_MAX = 80;
+  const addDays = (key, n) => { const d = new Date(key + 'T12:00:00'); d.setDate(d.getDate() + n); return MQ.U.dateKey(d); };
+  S.addDays = addDays;
+  S.rkey = (topic, d) => topic + '|' + d;
+  S.miss = (topic, d) => {
+    const st = MQ.state, today = MQ.U.dateKey(), k = S.rkey(topic, d);
+    const r = (st.review[k] = st.review[k] || { topic, d, box: 0, due: today, miss: 0, last: today });
+    Object.assign(r, { box: 0, due: today, last: today, miss: r.miss + 1 });
+    const keys = Object.keys(st.review);
+    if (keys.length > S.REVIEW_MAX) { // forget the skills missed longest ago
+      keys.sort((a, b) => (st.review[a].last < st.review[b].last ? -1 : 1));
+      for (const x of keys.slice(0, keys.length - S.REVIEW_MAX)) delete st.review[x];
+    }
+  };
+  S.hit = (topic, d) => {
+    const st = MQ.state, today = MQ.U.dateKey(), k = S.rkey(topic, d), r = st.review[k];
+    if (!r || r.due > today) return null;
+    r.box++;
+    r.last = today;
+    if (r.box >= S.REVIEW_GAP.length) { delete st.review[k]; st.stats.fixed = (st.stats.fixed || 0) + 1; return 'fixed'; }
+    r.due = addDays(today, S.REVIEW_GAP[r.box]);
+    return 'up';
+  };
+  // Skills to practice today (optionally only those that fit), the oldest and most-missed first.
+  S.dueReview = (fit = () => true) => {
+    const st = MQ.state, today = MQ.U.dateKey();
+    return Object.values((st && st.review) || {})
+      .filter((r) => r.due <= today && MQ.TOPICS[r.topic] && fit(r))
+      .sort((a, b) => (a.due !== b.due ? (a.due < b.due ? -1 : 1) : b.miss - a.miss));
+  };
+
+  // Record one answered problem (first-try result) for statistics and the mistakes to practice again.
+  // Returns 'fixed' when this answer fixed an old mistake, 'up' when it moved one closer to fixed.
   S.record = (p, firstTry, given) => {
     const st = MQ.state;
     const t = (st.stats.topics[p.topic] = st.stats.topics[p.topic] || { a: 0, c: 0, byD: {} });
@@ -4184,12 +4882,21 @@ svg.vis.abacus { max-height: 160px; }
     const dd = (st.days[day] = st.days[day] || { a: 0, c: 0 });
     dd.a++;
     if (firstTry) dd.c++;
+    const mk = day.slice(0, 7), mt = ((st.months[mk] = st.months[mk] || {})[p.topic] = st.months[mk][p.topic] || [0, 0]);
+    mt[0]++;
+    if (firstTry) mt[1]++;
     if (!firstTry && given !== undefined) {
-      st.mistakes.unshift({ topic: p.topic, d: p.d, text: p.text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 140), given: String(given), answer: String(p.answer), date: day });
+      st.mistakes.unshift({ topic: p.topic, d: p.d, text: p.text.replace(/<li>/g, ' • ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 140), given: String(given), answer: String(p.answer), date: day });
       st.mistakes.length = Math.min(st.mistakes.length, 40);
     }
     const keys = Object.keys(st.days).sort();
-    while (keys.length > 90) delete st.days[keys.shift()];
+    while (keys.length > 730) delete st.days[keys.shift()];
+    const months = Object.keys(st.months).sort();
+    while (months.length > 36) delete st.months[months.shift()];
+    if (!p.d) return null;
+    if (firstTry) return S.hit(p.topic, p.d);
+    S.miss(p.topic, p.d);
+    return null;
   };
 
   MQ.store = S;
@@ -4365,6 +5072,11 @@ svg.vis.abacus { max-height: 160px; }
     return U.comma(p.answer) + (p.unit ? ' ' + p.unit : '');
   };
   const gradeChip = (g) => `<span class="gchip g-${g}">${MQ.track(g).label}</span>`;
+  const pct = (c, a) => (a ? Math.round((c / a) * 100) : 0); // accuracy everywhere = right on the first try / answered
+  const FIX_REWARD = 3;
+  // The group a topic belongs to: a school track ('k', 'g2') or a test-prep family. Review questions stay in their group.
+  const familyOf = (t) => { const T = MQ.TOPICS[t]; return !T ? '' : t === 'kg_joey' ? 'joey' : T.kangaroo ? 'kangaroo' : T.cogat ? 'cogat' : T.logic ? 'logic' : T.track; };
+  const PAUSE_KINDS = ['check', 'kangaroo', 'joey', 'cogat', 'cogatk', 'logic', 'logick'];
 
   // ---------------------------------------------------------------- voice
   const voiceOn = () => st.settings.voice !== false && MQ.canSpeak() && !(sess && sess.timer);
@@ -4549,7 +5261,7 @@ svg.vis.abacus { max-height: 160px; }
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
-    const redraw = { home, map, journal, badges, prep, world: () => world(arg) }[scr];
+    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg) }[scr];
     if (redraw) redraw();
   }
   function newExplorer() {
@@ -4607,6 +5319,9 @@ svg.vis.abacus { max-height: 160px; }
     const have = all.filter((c) => st.creatures[c.id]).length, total = all.length;
     const dailyDone = st.daily.last === U.dateKey();
     const badgeCount = Object.keys(st.badges).length;
+    const toFix = S.dueReview().length, inRepair = Object.keys(st.review).length;
+    const week = progressData('1m', 'all').pts.slice(-1)[0];
+    const weekAcc = week && week.t > -7 ? week.y + '% right this week' : 'Accuracy and skills';
     let cont;
     if (nu) {
       const lvObj = nu.w.levels[nu.li];
@@ -4627,19 +5342,36 @@ svg.vis.abacus { max-height: 160px; }
         <div class="hello-r">${gemPill()}<button class="pill switch" data-act="go" data-arg="who">👥 ${S.profiles().length > 1 ? 'Switch' : 'Add / switch'}</button></div>
       </header>
       <div class="buddy"><span class="buddy-e">${st.companion}</span><div class="bubble" id="bubble">${esc(st.buddyName)}: ${esc(U.pick(MQ.SAY.hello))}</div></div>
+      ${goalStrip()}
       ${cont}
       <div class="tiles">
         <button class="tile t-map" data-act="go" data-arg="map"><span class="ti">🗺️</span><b>Expedition Map</b><small>${WORLDS().length} worlds · ${WORLDS().length * 6} levels</small></button>
         <button class="tile t-endless" data-act="go" data-arg="trainer"><span class="ti">♾️</span><b>Endless Training</b><small>Pick topics & difficulty</small></button>
         <button class="tile t-daily ${dailyDone ? 'done' : ''}" data-act="daily"><span class="ti">${dailyDone ? '✅' : '📅'}</span><b>Daily Quest</b><small>${dailyDone ? 'Done today · 🔥 ' + st.daily.streak : '+' + DAILY_REWARD + ' 💎 · streak ' + st.daily.streak}</small></button>
+        <button class="tile t-fixit ${toFix ? 'hot' : ''}" data-act="go" data-arg="fixit"><span class="ti">🛠️</span><b>Fix-it Lab</b><small>${toFix ? `${toFix} to fix today` : inRepair ? 'All done today ✓' : 'No mistakes to fix'}</small></button>
         <button class="tile t-journal" data-act="go" data-arg="journal"><span class="ti">📔</span><b>Field Journal</b><small>${have} / ${total} creatures</small></button>
         <button class="tile t-hatch" data-act="go" data-arg="hatch"><span class="ti">🥚</span><b>Hatchery</b><small>Rare eggs · ${MQ.EGG_PRICE} 💎</small></button>
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
-        <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>${['check', 'kangaroo', 'joey', 'cogat', 'cogatk'].some((k) => S.paused(k)) ? '⏸️ You have an unfinished test: tap to continue' : 'Placement Check in the style of i-Ready' + (myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : '')}</small></span></button>
+        <button class="tile t-progress" data-act="go" data-arg="progress"><span class="ti">📈</span><b>My Progress</b><small>${weekAcc}</small></button>
+        <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>${PAUSE_KINDS.some((k) => S.paused(k)) ? '⏸️ You have an unfinished test: tap to continue' : 'Placement Check in the style of i-Ready' + (myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : '')}</small></span></button>
       </div>
       <footer class="foot">${syncLine()}<button class="linkbtn" data-act="go" data-arg="parent">For grown-ups</button></footer>
     </main>`);
     cur = 'home';
+  }
+
+  // The daily goal a grown-up set: a ring for today and a dot for each day of this week.
+  function goalStrip() {
+    const g = st.goal || {};
+    if (!g.perDay) return '';
+    const today = U.dateKey(), n = (st.days[today] || {}).a || 0, mon = MQ.weekStart(today);
+    const days = U.range(0, 6).map((i) => S.addDays(mon, i));
+    const met = days.filter((k) => ((st.days[k] || {}).a || 0) >= g.perDay).length;
+    const dots = days.map((k, i) => `<i class="${((st.days[k] || {}).a || 0) >= g.perDay ? 'on' : ''} ${k === today ? 'now' : ''}" title="${'MTWTFSS'[i]}">${'MTWTFSS'[i]}</i>`).join('');
+    return `<div class="goal" role="group" aria-label="Daily goal">
+      <span class="ring" style="--p:${Math.min(100, pct(n, g.perDay))}"><b>${Math.min(n, 999)}</b><small>/ ${g.perDay}</small></span>
+      <span class="goal-t"><b>${n >= g.perDay ? 'Today’s goal reached! 🎉' : `Today’s goal: ${g.perDay - n} more ${g.perDay - n === 1 ? 'problem' : 'problems'}`}</b>
+        <small>This week: ${met} of ${g.days} goal days</small><span class="wdots">${dots}</span></span></div>`;
   }
 
   // ---------------------------------------------------------------- map & world
@@ -4684,6 +5416,8 @@ svg.vis.abacus { max-height: 160px; }
       if (sess.resumeP) { const p = sess.resumeP; sess.resumeP = null; return p; } // back where the child stopped
       return MQ.prep.next(sess.eng);
     }
+    const rv = reviewProblem();
+    if (rv) return rv;
     const topic = U.pick(sess.topics);
     const d = sess.auto ? sess.autoD : U.rnd(sess.d[0], sess.d[1]);
     if (MQ.TOPICS[topic].track === 'prep') { // test-prep practice: prefer questions not seen in earlier attempts
@@ -4700,17 +5434,62 @@ svg.vis.abacus { max-height: 160px; }
     }
     return p;
   }
+  // Mistakes come back: a fresh question of a skill the child got wrong before (same topic and level).
+  // Fix-it Lab asks only those; levels, training, practice by type ask one every 4th question, the Daily Quest 2 of 5.
+  // Never in a Placement Check (it would change the level estimate) or a Lightning round.
+  function reviewProblem() {
+    if (sess.mode === 'fixit') { const r = sess.queue.shift(); return r ? makeReview(r) : null; }
+    if (!sess.revFit || sess.timer) return null;
+    const k = sess.asked;
+    if (!(sess.mode === 'daily' ? k === 1 || k === 3 : k % 4 === 3)) return null;
+    const r = S.dueReview((x) => sess.revFit(x) && !sess.revUsed.includes(S.rkey(x.topic, x.d)))[0];
+    return r ? makeReview(r) : null;
+  }
+  function makeReview(r) {
+    sess.revUsed.push(S.rkey(r.topic, r.d));
+    const p = MQ.TOPICS[r.topic].track === 'prep' ? MQ.prep.fresh(r.topic, r.d, new Set(sess.recent)) : MQ.makeProblem(r.topic, r.d);
+    p.review = true;
+    return p;
+  }
+  // A strategy tip before the next question of a topic missed twice in this session (once a day per topic),
+  // and on Fix-it Lab questions.
+  function tipFor(p) {
+    const t = p.topic, today = U.dateKey();
+    if (sess.mode === 'check' || !MQ.TIPS[t] || st.tips[t] === today) return '';
+    if (!sess.tipNext.includes(t) && sess.mode !== 'fixit') return '';
+    sess.tipNext = sess.tipNext.filter((x) => x !== t);
+    st.tips[t] = today;
+    return U.pick(MQ.TIPS[t]);
+  }
+  // Every answer of a game goes through here: statistics, mistakes to practice, tips, rewards for fixing.
+  function rec(p, first, given) {
+    const r = S.record(p, first, given);
+    if (!first) {
+      const n = (sess.missBy[p.topic] = (sess.missBy[p.topic] || 0) + 1);
+      if (n >= 2 && !sess.tipNext.includes(p.topic)) sess.tipNext.push(p.topic);
+    }
+    if (r === 'fixed') {
+      addGems(FIX_REWARD);
+      sess.fixedNow++;
+      later(() => toast(`🛠️ Mistake fixed for good! <b>+${FIX_REWARD} 💎</b>`, 'gold'), 700);
+    }
+    const g = st.goal || {}, n = (st.days[U.dateKey()] || {}).a || 0;
+    if (g.perDay && n === g.perDay) later(() => toast(`🎯 Daily goal reached: <b>${n}</b> problems today!`, 'gold'), 1200);
+    return r;
+  }
+  const sessDone = () => (sess.mode === 'fixit' ? !sess.queue.length : !!sess.goal && sess.correct >= sess.goal);
   function startSession(cfg) {
     remember('play');
-    sess = Object.assign({ correct: 0, firstTry: 0, mistakes: 0, streak: 0, best: 0, answered: 0, earned: 0, recent: [], tries: 0, p: null, input: '', autoD: 2, up: 0, down: 0, left: cfg.timer || 0, locked: false }, cfg);
-    const color = sess.world ? sess.world.color : sess.mode === 'daily' ? '#e09a2b' : sess.mode === 'check' ? '#5b63c9' : '#ff6b5b';
+    sess = Object.assign({ correct: 0, firstTry: 0, mistakes: 0, streak: 0, best: 0, answered: 0, earned: 0, recent: [], tries: 0, p: null, input: '', autoD: 2, maxD: 5, up: 0, down: 0, left: cfg.timer || 0, locked: false,
+      asked: 0, revUsed: [], missBy: {}, tipNext: [], fixedNow: 0 }, cfg);
+    const color = sess.world ? sess.world.color : sess.mode === 'daily' ? '#e09a2b' : sess.mode === 'check' ? '#5b63c9' : sess.mode === 'fixit' ? '#3c9d5d' : '#ff6b5b';
     render(`<div class="play" style="--wc:${color}">
       <header class="playbar"><button class="iconbtn" data-act="quit" aria-label="Stop">✕</button><div class="pstatus" id="pstatus"></div>${gemPill()}</header>
       <div class="buddy small"><span class="buddy-e">${st.companion}</span><div class="bubble" id="bubble"></div></div>
       <section class="pcard" id="pcard"></section>
       <div id="answer" class="answer"></div>
     </div>`, 'is-play');
-    say(sess.mode === 'level' ? `${st.buddyName}: Get ${sess.goal} right to discover a creature!` : sess.timer ? `${st.buddyName}: Lightning round! Go go go! ⚡` : sess.mode === 'daily' ? `${st.buddyName}: Today’s quest — 5 mixed puzzles!` : `${st.buddyName}: Let’s train! Every 5 in a row opens a chest. 🎁`);
+    say(sess.mode === 'level' ? `${st.buddyName}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${st.buddyName}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${st.buddyName}: Lightning round! Go go go! ⚡` : sess.mode === 'daily' ? `${st.buddyName}: Today’s quest — 5 mixed puzzles!` : `${st.buddyName}: Let’s train! Every 5 in a row opens a chest. 🎁`);
     nextProblem();
     if (sess.timer) sess.interval = setInterval(tick, 1000);
   }
@@ -4729,6 +5508,8 @@ svg.vis.abacus { max-height: 160px; }
       el.innerHTML = `<span class="stat">🔥 <b>${sess.streak}</b></span><span class="stat">✓ <b>${sess.correct}</b></span>` +
         (sess.timer ? `<span class="stat timer ${sess.left <= 10 ? 'low' : ''}">⏱ <b>${m}:${s}</b></span>` : '') +
         `<span class="stat dchip d${sess.auto ? sess.autoD : sess.d[1]}">${sess.auto ? 'Auto · ' + D_NAMES[sess.autoD] : D_NAMES[sess.d[1]]}</span>`;
+    } else if (sess.mode === 'fixit') {
+      el.innerHTML = `<span class="ptitle">🛠️ Fix-it Lab</span><span class="cprog"><span style="width:${pct(sess.answered, sess.total)}%"></span></span><span class="stat">${Math.min(sess.answered + 1, sess.total)} / ${sess.total}</span>`;
     } else if (sess.mode === 'check') {
       const total = MQ.prep.total(sess.eng), done = sess.answered;
       el.innerHTML = `<span class="ptitle">🎯 Placement Check</span><span class="cprog"><span style="width:${Math.round((done / total) * 100)}%"></span></span><span class="stat">${Math.min(done + 1, total)} / ${total}</span>`;
@@ -4739,6 +5520,7 @@ svg.vis.abacus { max-height: 160px; }
   }
   function nextProblem() {
     sess.p = pickProblem();
+    sess.asked++;
     if (sess.mode !== 'check' && MQ.TOPICS[sess.p.topic] && MQ.TOPICS[sess.p.topic].track === 'prep') { S.markSeen(sess.p.topic, U.qkey(sess.p)); S.save(); }
     sess.pending = null;
     sess.tries = 0;
@@ -4752,8 +5534,9 @@ svg.vis.abacus { max-height: 160px; }
     const p = sess.p, T = MQ.TOPICS[p.topic];
     const card = $('#pcard');
     // In a Placement Check the difficulty is not shown (it would give the level away).
-    const chip = sess.mode === 'check' ? '' : `<span class="dchip d${p.d}">${D_ICONS[p.d]} ${D_NAMES[p.d]}</span>`;
-    card.innerHTML = `<div class="pmeta"><span>${T.icon} ${T.name}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="speak" aria-label="Read the question aloud">🔊</button>' : ''}${chip}</span></div>
+    const chip = sess.mode === 'check' ? '' : `${p.review ? '<span class="dchip rv" title="A question like one you missed before">🔁 Review</span>' : ''}<span class="dchip d${p.d}">${D_ICONS[p.d]} ${D_NAMES[p.d]}</span>`;
+    const tip = tipFor(p);
+    card.innerHTML = `${tip ? `<div class="tipcard"><b>💡 Tip</b> ${esc(tip)}</div>` : ''}<div class="pmeta"><span>${T.icon} ${T.name}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="speak" aria-label="Read the question aloud">🔊</button>' : ''}${chip}</span></div>
       <div class="ptext ${p.big ? 'eq' : ''} ${p.wordy ? 'wordy' : ''}">${p.text}</div>
       ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
       ${p.kind === 'num' ? `<div class="display" id="display"><span class="dval" id="dval"></span>${p.unit ? `<span class="unit">${p.unit}</span>` : ''}</div>` : ''}
@@ -4769,7 +5552,7 @@ svg.vis.abacus { max-height: 160px; }
     redrawAnswer();
     showInput();
     status();
-    if (st.settings.readAloud) MQ.speak(p.say || MQ.toSpeech(p.text));
+    if (st.settings.readAloud) MQ.speak((tip ? 'Tip: ' + MQ.toSpeech(tip) + ' ' : '') + (p.say || MQ.toSpeech(p.text)));
   }
   // The answer area for each question format.
   //   num: number pad · choice: buttons · multi: tap every right answer · order: tap cards in order · line: tap the number line
@@ -4875,15 +5658,17 @@ svg.vis.abacus { max-height: 160px; }
     sess.answered++;
     if (ok) sess.correct++;
     MQ.prep.answer(sess.eng, sess.p, ok, Array.isArray(given) ? given.join(', ') : given);
+    S.record(sess.p, ok, Array.isArray(given) ? given.join(', ') : given); // statistics and mistakes to practice, no feedback
+    S.save();
     MQ.sfx('tap');
     status();
     later(MQ.prep.done(sess.eng) ? finishCheck : nextProblem, 220);
   }
   function autoAdjust(good) {
-    if (!sess.auto) return;
+    if (!sess.auto || sess.p.review) return; // a review question keeps its own level
     if (good) {
       sess.down = 0;
-      if (++sess.up >= 4 && sess.autoD < 5) { sess.autoD++; sess.up = 0; later(() => toast(`${D_ICONS[sess.autoD]} Leveling up to <b>${D_NAMES[sess.autoD]}</b>!`), 300); }
+      if (++sess.up >= 4 && sess.autoD < sess.maxD) { sess.autoD++; sess.up = 0; later(() => toast(`${D_ICONS[sess.autoD]} Leveling up to <b>${D_NAMES[sess.autoD]}</b>!`), 300); }
     } else {
       sess.up = 0;
       if (++sess.down >= 2 && sess.autoD > 1) { sess.autoD--; sess.down = 0; }
@@ -4892,7 +5677,7 @@ svg.vis.abacus { max-height: 160px; }
   function right(btn) {
     const p = sess.p, first = sess.tries === 0;
     sess.locked = true;
-    S.record(p, first);
+    rec(p, first);
     sess.correct++;
     sess.answered++;
     st.stats.correct++;
@@ -4916,7 +5701,7 @@ svg.vis.abacus { max-height: 160px; }
     if (btn) btn.classList.add('right');
     slots().forEach((el) => el.classList.add('right'));
     markPicks(true);
-    const done = sess.goal && sess.correct >= sess.goal;
+    const done = sessDone();
     $('#feedback').innerHTML = `<div class="fb ok"><span>✓ ${msg}</span>${sess.timer ? '' : `<button class="btn next" data-act="advance">${done ? 'Finish ★' : 'Next →'}</button>`}</div>`;
     say(`${st.buddyName}: ${msg}`);
     S.save();
@@ -4947,7 +5732,7 @@ svg.vis.abacus { max-height: 160px; }
     card.classList.add('shake');
     if (sess.timer) { // lightning: no second chance, keep moving
       sess.locked = true;
-      S.record(p, false, given);
+      rec(p, false, given);
       sess.answered++;
       sess.streak = 0;
       if (btn) btn.classList.add('nope');
@@ -4978,15 +5763,15 @@ svg.vis.abacus { max-height: 160px; }
   function reveal(given, btn) {
     const p = sess.p;
     sess.locked = true;
-    S.record(p, false, given);
+    rec(p, false, given);
     sess.answered++;
     if (btn) btn.classList.add('nope');
     document.querySelectorAll('.choice').forEach((b, i) => { if (p.choices && p.choices[i] === p.answer) b.classList.add('right'); });
     if (p.kind === 'num') slots().forEach((el) => { el.textContent = p.answer; el.classList.add('shown'); });
     markPicks(false);
-    $('#feedback').innerHTML = `<div class="fb reveal"><div>The answer is <b>${fmtAnswer(p)}</b>.</div>${p.explain ? `<div class="explain">${p.explain}</div>` : ''}<button class="btn" data-act="advance">Next →</button></div>`;
+    $('#feedback').innerHTML = `<div class="fb reveal"><div>The answer is <b>${fmtAnswer(p)}</b>.</div>${p.explain ? `<div class="explain">${p.explain}</div>` : ''}<button class="btn" data-act="advance">${sessDone() ? 'Finish ✓' : 'Next →'}</button></div>`;
     say(`${st.buddyName}: ${U.pick(MQ.SAY.reveal)}`);
-    sess.pending = nextProblem; // waits for the Next button
+    sess.pending = sessDone() ? finish : nextProblem; // waits for the Next button
     if (voiceOn()) { const a = spokenAnswer(p); MQ.speak(U.pick(MQ.SAY.voiceReveal) + (a ? ` The answer is ${a}.` : ' Look at the green answer.')); }
     S.save();
     status();
@@ -4994,6 +5779,7 @@ svg.vis.abacus { max-height: 160px; }
   function finish() {
     if (sess.mode === 'level') finishLevel();
     else if (sess.mode === 'daily') finishDaily();
+    else if (sess.mode === 'fixit') finishFixit();
     else finishTrainer();
   }
 
@@ -5062,7 +5848,7 @@ svg.vis.abacus { max-height: 160px; }
     if (sess.timer === 120 && sess.correct > (st.stats.lightning120 || 0)) { st.stats.lightning120 = sess.correct; record = 'New 2-minute record!'; }
     if (!sess.timer && sess.best > (st.stats.endlessBest || 0)) { st.stats.endlessBest = sess.best; if (sess.best >= 5) record = 'New best streak!'; }
     S.save();
-    const acc = sess.answered ? Math.round((sess.firstTry / sess.answered) * 100) : 0;
+    const acc = pct(sess.firstTry, sess.answered);
     render(`<main class="result" style="--wc:#ff6b5b;--wt:#ffe3dd">
       <div class="bigemoji">${sess.timer ? '⚡' : '♾️'}</div>
       <h1 class="title">${sess.timer ? 'Time!' : 'Training done!'}</h1>
@@ -5071,18 +5857,70 @@ svg.vis.abacus { max-height: 160px; }
         <div><b>${sess.correct}</b><small>correct</small></div>
         <div><b>${acc}%</b><small>first try</small></div>
         <div><b>${sess.best}</b><small>best streak</small></div>
-        <div><b>+${sess.earned}</b><small>💎 earned</small></div>
+        <div><b>+${sess.earned + sess.fixedNow * FIX_REWARD}</b><small>💎 earned</small></div>
       </div>
+      ${sess.fixedNow ? `<div class="unlock">🛠️ ${sess.fixedNow} old ${sess.fixedNow === 1 ? 'mistake' : 'mistakes'} fixed for good!</div>` : ''}
       <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button>${sess.kgTopic
-        ? `<button class="btn ghost" data-act="go" data-arg="${MQ.TOPICS[sess.kgTopic].cogat ? 'cgtypes' : 'kgtypes'}">Other types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
+        ? `<button class="btn ghost" data-act="go" data-arg="${MQ.TOPICS[sess.kgTopic].cogat ? 'cgtypes' : MQ.TOPICS[sess.kgTopic].logic ? 'lgtypes' : 'kgtypes'}">Other types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
         : '<button class="btn ghost" data-act="go" data-arg="trainer">Change settings</button><button class="btn" data-act="startTrainer">Play again</button>'}</div></main>`);
     if (sess.correct) { MQ.sfx('reward'); if (record) MQ.confetti(); }
     if (st.settings.voice !== false && sess.correct) MQ.speak(`You got ${sess.correct} right! ${record ? 'A new record!' : 'Great training!'}`);
     later(checkBadges, 1200);
   }
 
+  // ---------------------------------------------------------------- Fix-it Lab
+  const whenStr = (key) => { const n = U.daysBetween(U.dateKey(), key); return n <= 0 ? 'today' : n === 1 ? 'tomorrow' : fmtDate(key).replace(/, \d{4}$/, ''); };
+  function fixit() {
+    const today = U.dateKey();
+    const all = Object.values(st.review).filter((r) => MQ.TOPICS[r.topic]).sort((a, b) => (a.due !== b.due ? (a.due < b.due ? -1 : 1) : b.miss - a.miss));
+    const due = all.filter((r) => r.due <= today);
+    const rows = all.map((r) => {
+      const T = MQ.TOPICS[r.topic], now = r.due <= today;
+      return `<li class="fx ${now ? 'due' : ''}"><span class="fx-ic">${T.icon}</span><span class="fx-n"><b>${T.name}</b><small>${D_NAMES[r.d]} · ${now ? 'ready to practice' : 'next try ' + whenStr(r.due)}${r.miss > 1 ? ` · missed ${r.miss} times` : ''}</small></span>
+        <span class="fx-box" role="img" aria-label="${r.box} of 3 right">${[0, 1, 2].map((i) => `<i class="${i < r.box ? 'on' : ''}"></i>`).join('')}</span></li>`;
+    }).join('');
+    render(header('Fix-it Lab') + `<main class="fixit">
+      <p class="lead">Mistakes help your brain grow! Here are the kinds of problems that went wrong. Get a new one right on 3 different days and it is fixed for good: <b>+${FIX_REWARD} 💎</b> each.</p>
+      ${due.length ? `<button class="btn big" data-act="startFixit">Fix ${Math.min(10, due.length)} now ▶</button>`
+        : all.length ? '<div class="unlock">✅ All done for today! Come back tomorrow for the next tries.</div>' : '<div class="unlock">🎉 Nothing to fix. When a problem goes wrong, it shows up here.</div>'}
+      ${all.length ? `<ul class="fxlist">${rows}</ul>` : ''}
+      <p class="muted small">Mistakes from every game and test come here. Similar questions also come back in levels, training, the Daily Quest and practice tests. Fixed so far: <b>${st.stats.fixed || 0}</b>.</p>
+    </main>`);
+    cur = 'fixit';
+  }
+  function startFixit() {
+    const queue = S.dueReview().slice(0, 10);
+    if (!queue.length) return fixit();
+    startSession({ mode: 'fixit', queue, total: queue.length, topics: [], d: [1, 1], goal: 0 });
+  }
+  function finishFixit() {
+    if (!sess) return home();
+    const fixed = sess.fixedNow, left = S.dueReview().length;
+    S.save();
+    render(`<main class="result" style="--wc:#3c9d5d;--wt:#dcf3e3">
+      <div class="bigemoji">🛠️</div>
+      <h1 class="title">${fixed ? `${fixed} ${fixed === 1 ? 'mistake' : 'mistakes'} fixed for good!` : 'Great practice!'}</h1>
+      <div class="sumgrid three">
+        <div><b>${sess.firstTry} / ${sess.answered}</b><small>right first try</small></div>
+        <div><b>${fixed}</b><small>fixed for good</small></div>
+        <div><b>+${fixed * FIX_REWARD}</b><small>💎 earned</small></div>
+      </div>
+      <p class="muted">Each right answer moves a mistake one step closer to fixed. Three right answers on different days fix it.</p>
+      <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button><button class="btn ghost" data-act="go" data-arg="fixit">Fix-it Lab</button>${left ? `<button class="btn" data-act="startFixit">Keep fixing (${left})</button>` : ''}</div></main>`);
+    MQ.sfx('reward');
+    if (fixed) MQ.confetti(80);
+    if (st.settings.voice !== false) MQ.speak(fixed ? 'You fixed old mistakes! Great job!' : 'Great practice!');
+    later(checkBadges, 1200);
+  }
+
   function quit() {
     if (!sess) return home();
+    if (sess.mode === 'fixit') {
+      if (sess.answered === 0) return go('fixit');
+      clearTimers();
+      sess.locked = true;
+      return finishFixit();
+    }
     if (sess.mode === 'trainer') {
       if (sess.answered === 0) return go('trainer');
       clearTimers();
@@ -5123,7 +5961,7 @@ svg.vis.abacus { max-height: 160px; }
     render(header('Test Prep') + `<main class="prep">
       <p class="lead">Get ready for the tests you take at school.</p>
       <article class="testcard" style="--pc:#5b63c9">
-        <div class="tc-head"><span class="tc-ic">🎯</span><div><b>Placement Check</b><small>In the style of i-Ready · ${total} questions · about ${st.grade === 'k' ? 15 : 25} minutes</small></div></div>
+        <div class="tc-head"><span class="tc-ic">🎯</span><div><b>Placement Check</b><small>In the style of i-Ready · ${total} questions · about ${st.grade === 'k' ? 15 : 25} minutes</small></div>${infoBtn('check')}</div>
         <p>Questions about numbers, algebra, measurement and shapes. They get harder or easier as you answer, like i-Ready at school. No hints this time: just do your best, and make your best guess if you are not sure.</p>
         ${last ? `<div class="tc-last">Last check, ${fmtDate(last.date)}: <b>${P().label(last.overall)}</b> · ${P().status(last.overall, last.expected).icon} ${P().status(last.overall, last.expected).text} <button class="linkbtn" data-act="viewCheck" data-arg="${last.id}">See results</button></div>` : ''}
         ${resumeBox('check')}
@@ -5131,6 +5969,7 @@ svg.vis.abacus { max-height: 160px; }
       </article>
       ${historyChart(checks)}
       ${contestCard()}
+      ${logicCard()}
     </main>`);
     cur = 'prep';
   }
@@ -5242,7 +6081,7 @@ svg.vis.abacus { max-height: 160px; }
     const k = st.grade === 'k', kind = k ? 'cogatk' : 'cogat', last = myContests(kind).slice(-1)[0];
     const n = k ? 18 : 45;
     return `<article class="testcard" style="--pc:#7a5cc9">
-      <div class="tc-head"><span class="tc-ic">🧠</span><div><b>${k ? 'Brain Games' : 'CogAT practice'}</b><small>${k ? 'Thinking puzzles in the style of CogAT' : 'GATE screening · Eureka Union tests every 2nd grader'} · ${n} questions</small></div></div>
+      <div class="tc-head"><span class="tc-ic">🧠</span><div><b>${k ? 'Brain Games' : 'CogAT practice'}</b><small>${k ? 'Thinking puzzles in the style of CogAT' : 'GATE screening · Eureka Union tests every 2nd grader'} · ${n} questions</small></div>${infoBtn(kind)}</div>
       <p>${k ? 'Picture puzzles about patterns, shapes and things that go together. Every question is read aloud.' : 'Three parts like the real CogAT: <b>Verbal</b> (pictures that go together), <b>Quantitative</b> (number puzzles) and <b>Nonverbal</b> (shapes and paper folding). Pictures only, every question can be read aloud.'}</p>
       ${last ? `<div class="tc-last">Last practice test, ${fmtDate(last.date)}: <b>${last.right} of ${last.n}</b> right <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
       ${resumeBox(kind)}
@@ -5255,14 +6094,14 @@ svg.vis.abacus { max-height: 160px; }
   function cgtypes() {
     render(header(st.grade === 'k' ? 'Brain Games' : 'CogAT practice', 'prep') + `<main class="prep">
       <p class="lead">Pick a kind of question. They get harder as you get them right, and every answer is explained.</p>
-      ${MQ.COGAT_BATTERIES.map((b) => `<section><h2>${b.icon} ${b.id}</h2><div class="kgtypes">${b.topics.map((t) => `<button class="tile" data-act="kgPractice" data-arg="${t}"><span class="ti">${MQ.TOPICS[t].icon}</span><b>${MQ.TOPICS[t].name}</b></button>`).join('')}</div></section>`).join('')}
+      ${MQ.COGAT_BATTERIES.map((b) => `<section><h2>${b.icon} ${b.id}</h2><div class="kgtypes">${b.topics.map(typeTile).join('')}</div></section>`).join('')}
     </main>`);
   }
   function contestCard() {
     if (st.grade === 'k') {
       const last = myContests('joey').slice(-1)[0];
       return cogatCard() + `<article class="testcard" style="--pc:#e0a21b">
-        <div class="tc-head"><span class="tc-ic">🐣</span><div><b>Joey Puzzles</b><small>Brain teasers like Math Kangaroo, made for kindergarten · 12 puzzles</small></div></div>
+        <div class="tc-head"><span class="tc-ic">🐣</span><div><b>Joey Puzzles</b><small>Brain teasers like Math Kangaroo, made for kindergarten · 12 puzzles</small></div>${infoBtn('joey')}</div>
         <p>Picture puzzles with 5 answers to choose from. Every question can be read aloud. No clock: take your time and think!</p>
         ${last ? `<div class="tc-last">Last time: <b>${last.right} of ${last.n}</b> ${'⭐'.repeat(Math.round((last.right / last.n) * 3))}</div>` : ''}
         ${resumeBox('joey')}
@@ -5271,7 +6110,7 @@ svg.vis.abacus { max-height: 160px; }
     }
     const last = myContests('kangaroo').slice(-1)[0];
     return cogatCard() + `<article class="testcard" style="--pc:#d4703a">
-      <div class="tc-head"><span class="tc-ic">🦘</span><div><b>Math Kangaroo</b><small>Contest for grades 1–2 every March · 24 puzzles · 75 minutes</small></div></div>
+      <div class="tc-head"><span class="tc-ic">🦘</span><div><b>Math Kangaroo</b><small>Contest for grades 1–2 every March · 24 puzzles · 75 minutes</small></div>${infoBtn('kangaroo')}</div>
       <p>Logic and thinking puzzles with answers A–E. The first 8 are worth 3 points, the next 8 are worth 4, the last 8 are worth 5. There is no penalty for a wrong answer, so always make a guess.</p>
       ${last ? `<div class="tc-last">Last mock contest, ${fmtDate(last.date)}: <b>${last.score} / ${last.max}</b> points <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
       ${resumeBox('kangaroo')}
@@ -5282,10 +6121,36 @@ svg.vis.abacus { max-height: 160px; }
       </div>
     </article>`;
   }
+  // One kind of test-prep question, with a line about what it is and a 🔧 when it has mistakes to fix.
+  const typeTile = (t) => {
+    const T = MQ.TOPICS[t], fix = Object.values(st.review).filter((r) => r.topic === t).length, m = mastery(t);
+    return `<button class="tile type" data-act="kgPractice" data-arg="${t}"><span class="ti">${T.icon}</span><b>${T.name}</b><small>${T.desc || ''}</small>${m.lv || fix ? `<span class="tstat">${m.lv ? MASTERY[m.lv][0] + ' ' + m.acc + '%' : ''}${fix ? ' · 🔧 ' + fix : ''}</span>` : ''}</button>`;
+  };
+  const infoBtn = (k) => `<button class="infobtn" data-act="info" data-arg="${k}" aria-label="What is this test?" title="What is this test?">i</button>`;
+  function logicCard() {
+    const k = st.grade === 'k', kind = k ? 'logick' : 'logic', last = myContests(kind).slice(-1)[0];
+    return `<article class="testcard" style="--pc:#2f8f83">
+      <div class="tc-head"><span class="tc-ic">🧩</span><div><b>Logic Lab</b><small>${k ? 'First logic puzzles · read aloud · 8 in a set' : 'Thinking puzzles in words · Advanced challenge of 12'}</small></div>${infoBtn(kind)}</div>
+      <p>${k ? 'Who is tallest? Who has the cat? Yes or no? Listen to the clues and put them together.' : 'Put people in order from clues, find who has what, decide what must be true, count all the ways, and catch the fibber. Levels 4–5 are the Advanced section.'}</p>
+      ${last ? `<div class="tc-last">Last time, ${fmtDate(last.date)}: <b>${last.right} of ${last.n}</b> right <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
+      ${resumeBox(kind)}
+      <div class="row left">
+        <button class="btn ${pausedInfo(kind) ? 'ghost' : ''}" data-act="startContest" data-arg="${kind}">${pausedInfo(kind) ? 'Start over' : (k ? 'Play 8 puzzles' : 'Advanced challenge') + ' ▶'}</button>
+        <button class="btn ghost" data-act="go" data-arg="lgtypes">Practice by type</button>
+      </div>
+    </article>`;
+  }
+  function lgtypes() {
+    const k = st.grade === 'k';
+    render(header('Logic Lab', 'prep') + `<main class="prep">
+      <p class="lead">Pick a kind of puzzle. ${k ? 'Every puzzle is read aloud.' : 'They get harder as you get them right, up to the Advanced levels 4 and 5.'} Every answer is explained.</p>
+      <div class="kgtypes">${(k ? MQ.LOGIC_K : MQ.LOGIC_TOPICS).map(typeTile).join('')}</div>
+    </main>`);
+  }
   function kgtypes() {
     render(header('Kangaroo practice', 'prep') + `<main class="prep">
       <p class="lead">Pick a kind of puzzle. Problems get harder as you get them right, and every one has an explanation.</p>
-      <div class="kgtypes">${MQ.KANGAROO_TOPICS.map((t) => `<button class="tile" data-act="kgPractice" data-arg="${t}"><span class="ti">${MQ.TOPICS[t].icon}</span><b>${MQ.TOPICS[t].name}</b></button>`).join('')}</div>
+      <div class="kgtypes">${MQ.KANGAROO_TOPICS.map(typeTile).join('')}</div>
     </main>`);
   }
   function startContest(arg) {
@@ -5293,7 +6158,7 @@ svg.vis.abacus { max-height: 160px; }
     if (confirmRestart(kind, 'startContest', arg)) return;
     S.clearPaused(kind);
     remember('contest');
-    ct = P().newContest(kind);
+    ct = P().newContest(kind, S.dueReview());
     ct.timed = !!timed;
     ct.left = ct.timed ? ct.seconds : 0;
     ct.soft = kind === 'cogat'; // CogAT: a clock that only shows the time used, never stops the test
@@ -5303,7 +6168,8 @@ svg.vis.abacus { max-height: 160px; }
     if (ct.timed || ct.soft) ct.interval = setInterval(contestTick, 1000);
   }
   const clock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-  const CT_TITLE = { kangaroo: '🦘 Math Kangaroo', joey: '🐣 Joey Puzzles', cogat: '🧠 CogAT practice', cogatk: '🧠 Brain Games' };
+  const CT_TITLE = { kangaroo: '🦘 Math Kangaroo', joey: '🐣 Joey Puzzles', cogat: '🧠 CogAT practice', cogatk: '🧠 Brain Games', logic: '🧩 Logic challenge', logick: '🧩 Logic puzzles' };
+  const KID_TESTS = ['joey', 'cogatk', 'logick']; // kindergarten tests: no flags, stars instead of a score
   function contestTick() {
     if (!ct) return;
     if (ct.soft) { ct.used++; const el = $('#ct-timer'); if (el) el.textContent = '⏱ ' + clock(ct.used); if (ct.used % 10 === 0) saveContest(); return; }
@@ -5315,7 +6181,7 @@ svg.vis.abacus { max-height: 160px; }
   }
   // Draw the contest without render(), so the clock keeps running between questions.
   function contestView() {
-    const i = ct.i, it = ct.items[i], p = it.p, n = ct.items.length, joey = ct.kind === 'joey' || ct.kind === 'cogatk', kangaroo = ct.kind === 'kangaroo';
+    const i = ct.i, it = ct.items[i], p = it.p, n = ct.items.length, joey = KID_TESTS.includes(ct.kind), kangaroo = ct.kind === 'kangaroo';
     if (!it.seen) { it.seen = true; S.markSeen(p.topic, U.qkey(p)); S.save(); }
     saveContest();
     const r = root();
@@ -5326,7 +6192,7 @@ svg.vis.abacus { max-height: 160px; }
         ${ct.timed ? `<span class="stat timer ${ct.left <= 300 ? 'low' : ''}" id="ct-timer">⏱ ${clock(ct.left)}</span>` : ct.soft ? `<span class="stat timer soft" id="ct-timer" title="Time used">⏱ ${clock(ct.used)}</span>` : ''}</header>
       <nav class="ctnav" aria-label="Questions">${ct.items.map((x, k) => `<button class="ctdot ${k === i ? 'cur' : ''} ${ct.answers[k] !== null ? 'ans' : ''} ${ct.flags[k] ? 'flag' : ''} p${x.pts}" data-act="ctGo" data-arg="${k}" aria-label="Question ${k + 1}">${k + 1}</button>`).join('')}</nav>
       <section class="pcard">
-        <div class="pmeta"><span>Question ${i + 1} of ${n}${kangaroo ? ` · <b>${it.pts} points</b>` : it.sec ? ` · ${it.sec} · ${MQ.TOPICS[p.topic].name}` : ''}</span><span class="pmeta-r">${ct.flags[i] ? '🚩' : ''}${MQ.canSpeak() ? '<button class="speak" data-act="ctSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
+        <div class="pmeta"><span>Question ${i + 1} of ${n}${kangaroo ? ` · <b>${it.pts} points</b>` : it.sec ? ` · ${it.sec} · ${MQ.TOPICS[p.topic].name}` : ''}${it.rv ? ' · 🔁 Review' : ''}</span><span class="pmeta-r">${ct.flags[i] ? '🚩' : ''}${MQ.canSpeak() ? '<button class="speak" data-act="ctSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
         <div class="ptext ${p.big ? 'eq' : ''} ${p.wordy ? 'wordy' : ''}">${p.text}</div>
         ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
       </section>
@@ -5349,6 +6215,8 @@ svg.vis.abacus { max-height: 160px; }
         <div class="row"><button class="btn ghost" data-act="closeModal">Keep working</button><button class="btn" data-act="ctFinishNow">Finish</button></div>`);
     }
     closeModal();
+    // every answered question counts in the statistics and brings mistakes back later (blanks were not tried)
+    ct.items.forEach((it, k) => { if (ct.answers[k] !== null) S.record(it.p, ct.answers[k] === it.p.answer, ct.answers[k]); });
     const res = P().scoreContest(ct);
     S.clearPaused(ct.kind);
     endContest();
@@ -5356,7 +6224,7 @@ svg.vis.abacus { max-height: 160px; }
     list.push(res);
     while (list.length > 12) list.shift();
     list.slice(0, -3).forEach((c) => { delete c.items; });
-    const kids = res.kind === 'joey' || res.kind === 'cogatk';
+    const kids = KID_TESTS.includes(res.kind);
     addGems(kids ? 15 : 25);
     S.save();
     contestResult(res, true);
@@ -5370,20 +6238,23 @@ svg.vis.abacus { max-height: 160px; }
     joey: { title: 'Joey Puzzles', color: '#e0a21b', more: '', note: 'Original puzzles in the style of Math Kangaroo, made for kindergarten.' },
     cogat: { title: 'CogAT practice', color: '#7a5cc9', more: 'cgtypes', note: 'Original questions in the style of CogAT; not affiliated with the publisher. Percentiles cannot be estimated from practice, so this shows how many were right in each part.' },
     cogatk: { title: 'Brain Games', color: '#7a5cc9', more: 'cgtypes', note: 'Original thinking puzzles in the style of CogAT.' },
+    logic: { title: 'Logic challenge', color: '#2f8f83', more: 'lgtypes', note: 'Original logic puzzles. Every answer is explained in the review.' },
+    logick: { title: 'Logic puzzles', color: '#2f8f83', more: 'lgtypes', note: 'Original logic puzzles for kindergarten, read aloud.' },
   };
   function contestResult(res, fresh) {
-    const info = CT_INFO[res.kind] || CT_INFO.kangaroo, kangaroo = res.kind === 'kangaroo', kids = res.kind === 'joey' || res.kind === 'cogatk';
+    const info = CT_INFO[res.kind] || CT_INFO.kangaroo, kangaroo = res.kind === 'kangaroo', kids = KID_TESTS.includes(res.kind);
     const tile = (label, s) => (s ? `<div><b>${s.right} / ${s.n}</b><small>${label}</small></div>` : '');
     const tiles = kangaroo ? [3, 4, 5].map((p) => tile(`${p}-point puzzles`, res.sections[p])).join('')
-      : res.kind.startsWith('cogat') ? MQ.COGAT_BATTERIES.map((b) => tile(`${b.icon} ${b.id}`, res.sections[b.id])).join('') : '';
-    const typeRows = res.kind.startsWith('cogat') && res.types ? `<section class="pr-domains">${Object.entries(res.types).map(([t, s]) => `<div class="pr-dom"><span class="pd-name">${MQ.TOPICS[t].icon} ${MQ.TOPICS[t].name}</span><span class="lbar"><span class="lfill" style="width:${Math.round((s.right / s.n) * 100)}%"></span></span><span class="pd-lv">${s.right} of ${s.n}</span></div>`).join('')}</section>` : '';
+      : res.kind.startsWith('cogat') ? MQ.COGAT_BATTERIES.map((b) => tile(`${b.icon} ${b.id}`, res.sections[b.id])).join('')
+      : res.kind.startsWith('logic') ? ['Round 1', 'Round 2'].map((r) => tile(r, res.sections[r])).join('') : '';
+    const typeRows = (res.kind.startsWith('cogat') || res.kind.startsWith('logic')) && res.types ? `<section class="pr-domains">${Object.entries(res.types).map(([t, s]) => `<div class="pr-dom"><span class="pd-name">${MQ.TOPICS[t].icon} ${MQ.TOPICS[t].name}</span><span class="lbar"><span class="lfill" style="width:${Math.round((s.right / s.n) * 100)}%"></span></span><span class="pd-lv">${s.right} of ${s.n}</span></div>`).join('')}</section>` : '';
     render(header(info.title, 'prep') + `<main class="presult">
       <div class="pr-hero" style="box-shadow: inset 0 0 0 3px ${info.color}, 0 5px 0 ${info.color}">
         ${fresh ? `<div class="pr-done">Finished! +${kids ? 15 : 25} 💎</div>` : `<div class="pr-done muted">${fmtDate(res.date)}</div>`}
         <div class="pr-level">${kangaroo ? `${res.score} / ${res.max}` : `${res.right} of ${res.n}`}</div>
         <div class="muted">${kangaroo ? `points · ${res.right} of ${res.n} right${res.blank ? ` · ${res.blank} blank` : ''}${res.timed ? ` · ${res.minutes} min` : ''}` : kids ? 'solved ' + '⭐'.repeat(Math.max(1, Math.round((res.right / res.n) * 3))) : `right · ${res.minutes} min${res.blank ? ` · ${res.blank} blank` : ''}`}</div>
       </div>
-      ${tiles ? `<div class="sumgrid three">${tiles}</div>` : ''}
+      ${tiles ? `<div class="sumgrid ${res.kind.startsWith('logic') ? 'two' : 'three'}">${tiles}</div>` : ''}
       ${typeRows}
       ${res.items ? `<section><h2>Review</h2><ol class="rlist">${res.items.map((it, k) => `<li class="${it.ok ? 'ok' : 'no'}">
         <span class="rmark">${it.ok ? '✓' : '✗'}</span><div><div class="rq"><b>${k + 1}.</b> ${esc(it.q)}${kangaroo ? ` <span class="dchip">${it.pts} pts</span>` : ''}</div>
@@ -5454,7 +6325,8 @@ svg.vis.abacus { max-height: 160px; }
     const t = st.trainer;
     t.topics = t.topics.filter((x) => MQ.TOPICS[x] && MQ.TOPICS[x].track === st.grade);
     if (!t.topics.length) return trainer();
-    startSession({ mode: 'trainer', topics: t.topics.slice(), auto: t.diff === 'auto', d: t.diff === 'auto' ? [2, 2] : [+t.diff, +t.diff], goal: 0, timer: t.mode === 'l60' ? 60 : t.mode === 'l120' ? 120 : 0 });
+    startSession({ mode: 'trainer', topics: t.topics.slice(), auto: t.diff === 'auto', d: t.diff === 'auto' ? [2, 2] : [+t.diff, +t.diff], goal: 0, timer: t.mode === 'l60' ? 60 : t.mode === 'l120' ? 120 : 0,
+      revFit: (r) => familyOf(r.topic) === st.grade });
   }
   function startDaily() {
     // Mix of topics from worlds that are open, at a level that stretches a little.
@@ -5462,7 +6334,7 @@ svg.vis.abacus { max-height: 160px; }
     const core = track().core;
     WORLDS().forEach((w, i) => { if (worldOpen(i) && i < WORLDS().length - 1) w.levels.forEach((l) => l.topics.forEach((t) => core.includes(t) && topics.add(t))); });
     if (topics.size < 3) core.slice(0, 5).forEach((t) => topics.add(t));
-    startSession({ mode: 'daily', topics: [...topics], d: track().daily, goal: 5 });
+    startSession({ mode: 'daily', topics: [...topics], d: track().daily, goal: 5, revFit: (r) => familyOf(r.topic) === st.grade });
   }
 
   // ---------------------------------------------------------------- journal, hatchery, badges
@@ -5522,6 +6394,154 @@ svg.vis.abacus { max-height: 160px; }
     cur = 'badges';
   }
 
+  // ---------------------------------------------------------------- progress
+  const prog = () => (ui.prog = ui.prog || { range: '3m', topic: 'all' });
+  const keepScroll = (fn) => { const y = window.scrollY; fn(); window.scrollTo(0, y); };
+  const RANGES = { '1m': ['1 month', 30], '3m': ['3 months', 91], '6m': ['6 months', 182], all: ['All', 3650] };
+  const MONTHS = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ');
+  const shortDay = (k) => MONTHS[+k.slice(5, 7) - 1] + ' ' + +k.slice(8, 10);
+  const shortMonth = (ym, withYear) => MONTHS[+ym.slice(5, 7) - 1] + (withYear ? ' ’' + ym.slice(2, 4) : '');
+  // Answers in the chosen range, grouped by week (or by month for long ranges and for one topic).
+  function progressData(range, topic) {
+    const today = U.dateKey(), from = S.addDays(today, -RANGES[range][1] + 1);
+    const buckets = {};
+    let a = 0, c = 0, active = 0, monthly;
+    if (topic === 'all') {
+      const days = Object.entries(st.days).filter(([k, v]) => k >= from && v.a).sort();
+      monthly = days.length > 0 && U.daysBetween(days[0][0], today) > 200;
+      for (const [k, v] of days) {
+        const key = monthly ? k.slice(0, 7) : MQ.weekStart(k);
+        const b = (buckets[key] = buckets[key] || { key, a: 0, c: 0 });
+        b.a += v.a; b.c += v.c; a += v.a; c += v.c; active++;
+      }
+    } else {
+      monthly = true;
+      for (const [m, ts] of Object.entries(st.months)) {
+        const v = ts[topic];
+        if (m < from.slice(0, 7) || !v || !v[0]) continue;
+        buckets[m] = { key: m, a: v[0], c: v[1] };
+        a += v[0]; c += v[1];
+      }
+    }
+    const keys = Object.keys(buckets).sort();
+    const years = new Set(keys.map((k) => k.slice(0, 4))).size > 1;
+    const pts = keys.map((k) => {
+      const b = buckets[k], day = monthly ? k + '-15' : k;
+      return { t: U.daysBetween(today, day), a: b.a, c: b.c, y: pct(b.c, b.a), label: monthly ? shortMonth(k, years) : shortDay(k), tip: `${monthly ? shortMonth(k, true) : 'Week of ' + shortDay(k)}: ${pct(b.c, b.a)}% right (${b.c} of ${b.a})` };
+    });
+    return { pts, a, c, active, monthly };
+  }
+  // Weighted straight-line trend through the points: how much accuracy changed from the first point to the last.
+  function trend(pts) {
+    const use = pts.filter((p) => p.a >= 3);
+    if (use.length < 3) return null;
+    let sw = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
+    for (const p of use) { const w = Math.min(p.a, 40); sw += w; sx += w * p.t; sy += w * p.y; sxx += w * p.t * p.t; sxy += w * p.t * p.y; }
+    const den = sw * sxx - sx * sx;
+    if (!den) return null;
+    const m = (sw * sxy - sx * sy) / den, b0 = (sy - m * sx) / sw;
+    const t0 = use[0].t, t1 = use[use.length - 1].t;
+    return { t0, t1, y0: b0 + m * t0, y1: b0 + m * t1, change: Math.round(m * (t1 - t0)) };
+  }
+  function verdict(tr, range) {
+    if (!tr) return '<p class="verdict">📊 Keep practicing: after a few more weeks this shows if accuracy is going up.</p>';
+    const span = RANGES[range][1] > 400 ? 'since the start' : 'over ' + RANGES[range][0];
+    if (tr.change >= 3) return `<p class="verdict up">📈 Getting better: about <b>+${tr.change}</b> points of accuracy ${span}.</p>`;
+    if (tr.change <= -3) return `<p class="verdict down">📉 Accuracy is down about <b>${-tr.change}</b> points ${span}. Harder levels can do that; Fix-it Lab and easier practice help.</p>`;
+    return `<p class="verdict">➡️ Steady ${span}: about the same accuracy.</p>`;
+  }
+  // One series, one axis: a line with dots (hover or long-press a dot for the numbers).
+  function lineChart(pts, o) {
+    if (!pts.length) return '';
+    const W = 340, H = o.h || 170, L = 36, R = 12, T = 12, B = 24, PW = W - L - R, PH = H - T - B;
+    const ts = pts.map((p) => p.t), tmin = Math.min(...ts), tmax = Math.max(...ts);
+    const x = (t) => L + (tmax === tmin ? PW / 2 : ((t - tmin) / (tmax - tmin)) * PW);
+    const y = (v) => T + PH - ((v - o.min) / (o.max - o.min)) * PH;
+    const font = 'font-size="10" fill="#5b6885" font-family="Nunito, sans-serif" font-weight="700"';
+    let g = o.ticks.map((v) => `<line x1="${L}" y1="${y(v)}" x2="${L + PW}" y2="${y(v)}" stroke="#e3e9ee"/><text x="${L - 6}" y="${y(v) + 3.5}" text-anchor="end" ${font}>${o.fmt(v)}</text>`).join('');
+    const every = Math.ceil(pts.length / 6);
+    g += pts.map((p, i) => ((pts.length - 1 - i) % every === 0 ? `<text x="${x(p.t)}" y="${H - 6}" text-anchor="middle" ${font}>${p.label}</text>` : '')).join('');
+    if (o.trend) g += `<line x1="${x(o.trend.t0)}" y1="${y(o.trend.y0)}" x2="${x(o.trend.t1)}" y2="${y(o.trend.y1)}" stroke="#9aa6b8" stroke-width="2" stroke-dasharray="5 4"/>`;
+    if (pts.length > 1) g += `<polyline points="${pts.map((p) => `${x(p.t)},${y(p.y)}`).join(' ')}" fill="none" stroke="${o.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    g += pts.map((p) => `<g class="cdot"><circle cx="${x(p.t)}" cy="${y(p.y)}" r="12" fill="transparent"/><circle cx="${x(p.t)}" cy="${y(p.y)}" r="4.5" fill="${o.color}" stroke="#ffffff" stroke-width="2"/><title>${esc(p.tip)}</title></g>`).join('');
+    return `<figure class="pchart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria)}">${g}</svg>${o.caption ? `<figcaption>${o.caption}</figcaption>` : ''}</figure>`;
+  }
+  function barChart(pts, o) {
+    if (!pts.length) return '';
+    const W = 340, H = 110, L = 36, R = 12, T = 10, B = 22, PW = W - L - R, PH = H - T - B;
+    const max = Math.max(...pts.map((p) => p.a)), n = pts.length, slot = PW / n, bw = Math.max(3, Math.min(26, slot - 2));
+    const font = 'font-size="10" fill="#5b6885" font-family="Nunito, sans-serif" font-weight="700"';
+    const every = Math.ceil(n / 6);
+    let g = `<line x1="${L}" y1="${T + PH}" x2="${L + PW}" y2="${T + PH}" stroke="#c9d3dc"/><text x="${L - 6}" y="${T + 4}" text-anchor="end" ${font}>${max}</text><text x="${L - 6}" y="${T + PH}" text-anchor="end" ${font}>0</text>`;
+    g += pts.map((p, i) => {
+      const h = Math.max(2, (p.a / max) * PH), cx = L + slot * i + slot / 2;
+      return `<g><rect x="${cx - bw / 2}" y="${T + PH - h}" width="${bw}" height="${h}" rx="3" fill="#8fd3c9"/><rect x="${cx - slot / 2}" y="${T}" width="${slot}" height="${PH}" fill="transparent"/><title>${esc(p.tipA)}</title></g>` +
+        ((n - 1 - i) % every === 0 ? `<text x="${cx}" y="${H - 6}" text-anchor="middle" ${font}>${p.label}</text>` : '');
+    }).join('');
+    return `<figure class="pchart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria)}">${g}</svg></figure>`;
+  }
+  // Skill map: how well each topic is mastered, from first-try accuracy at each difficulty.
+  const MASTERY = [['○', 'not started'], ['🌱', 'started'], ['🌿', 'practicing'], ['⭐', 'solid'], ['🏆', 'mastered']];
+  function mastery(t) {
+    const s = st.stats.topics[t];
+    if (!s || !s.a) return { lv: 0, passed: 0, acc: 0, a: 0 };
+    let passed = 0; // highest difficulty answered right at least 80% of the time (5 tries or more)
+    for (let d = 1; d <= 5; d++) { const b = s.byD[d]; if (b && b.a >= 5 && b.c / b.a >= 0.8) passed = d; }
+    return { lv: passed >= 5 ? 4 : passed >= 3 ? 3 : passed >= 1 ? 2 : 1, passed, acc: pct(s.c, s.a), a: s.a };
+  }
+  function skillMap() {
+    const cell = (t) => {
+      const T = MQ.TOPICS[t], m = mastery(t), fix = Object.values(st.review).filter((r) => r.topic === t).length;
+      return `<button class="skill m${m.lv}" data-act="practiceTopic" data-arg="${t}" title="${esc(T.name)}: ${MASTERY[m.lv][1]}${m.a ? ', ' + m.acc + '% right' : ''}">
+        <span class="sk-m">${MASTERY[m.lv][0]}</span><span class="sk-n">${T.icon} ${T.name}</span><small>${m.a ? `${m.acc}% · ${m.passed ? D_NAMES[m.passed] : 'warming up'}` : 'tap to try'}${fix ? ' · 🔧' + fix : ''}</small></button>`;
+    };
+    const prepDone = Object.keys(MQ.TOPICS).filter((t) => MQ.TOPICS[t].track === 'prep' && (st.stats.topics[t] || {}).a);
+    return `<section><h2>Skill map</h2>
+      <p class="muted small">${MASTERY.slice(1).map(([i, n]) => `${i} ${n}`).join(' · ')}. ⭐ means 4 of 5 right at 🏕️ Ranger level, 🏆 at 🐉 Legend level. Tap a skill to practice it.</p>
+      <div class="skills">${[...track().core, ...track().ahead].map(cell).join('')}</div>
+      ${prepDone.length ? `<h3>Test prep skills</h3><div class="skills">${prepDone.map(cell).join('')}</div>` : ''}</section>`;
+  }
+  // Practice tests over time, as % right.
+  function testCharts() {
+    const kinds = st.grade === 'k' ? [['joey', '🐣 Joey Puzzles'], ['cogatk', '🧠 Brain Games'], ['logick', '🧩 Logic puzzles']] : [['kangaroo', '🦘 Math Kangaroo (% of points)'], ['cogat', '🧠 CogAT practice'], ['logic', '🧩 Logic challenge']];
+    const today = U.dateKey();
+    const out = kinds.map(([k, name]) => {
+      const list = myContests(k);
+      if (list.length < 2) return '';
+      const pts = list.map((c) => { const y = k === 'kangaroo' ? pct(c.score, c.max) : pct(c.right, c.n); return { t: U.daysBetween(today, c.date), y, a: 1, label: shortDay(c.date), tip: `${fmtDate(c.date)}: ${y}%` }; });
+      return `<h3>${name}</h3>` + lineChart(pts, { min: 0, max: 100, ticks: [0, 50, 100], fmt: (v) => v + '%', color: '#7a5cc9', aria: name + ' results over time', h: 140 });
+    }).join('');
+    const checks = myChecks();
+    return checks.length > 1 || out ? `<section><h2>Practice tests over time</h2>${checks.length > 1 ? '<h3>🎯 Placement Check</h3>' + historyChart(checks) : ''}${out}</section>` : '';
+  }
+  // The part shared by "My Progress" and the grown-ups page: range, topic, numbers, charts.
+  function progressBlock() {
+    const pr = prog();
+    if (pr.topic !== 'all' && !MQ.TOPICS[pr.topic]) pr.topic = 'all';
+    const data = progressData(pr.range, pr.topic), tr = trend(data.pts);
+    const topics = Object.keys(st.stats.topics).filter((t) => MQ.TOPICS[t] && st.stats.topics[t].a).sort((a, b) => (familyOf(a) === familyOf(b) ? 0 : familyOf(a) === st.grade ? -1 : 1));
+    const unit = data.monthly ? 'month' : 'week';
+    const pts = data.pts.map((p) => Object.assign(p, { tipA: `${p.tip.split(':')[0]}: ${p.a} problems` }));
+    return `<div class="progtop">
+        <div class="segs four">${Object.entries(RANGES).map(([k, [n]]) => `<button class="seg ${pr.range === k ? 'sel' : ''}" data-act="progRange" data-arg="${k}" aria-pressed="${pr.range === k}"><b>${n}</b></button>`).join('')}</div>
+        <label class="psel">Topic <select class="field" data-act="progTopic" aria-label="Topic"><option value="all">All topics</option>${topics.map((t) => `<option value="${t}" ${pr.topic === t ? 'selected' : ''}>${MQ.TOPICS[t].icon} ${esc(MQ.TOPICS[t].name)}</option>`).join('')}</select></label>
+      </div>
+      <section class="kpis">
+        <div><b>${data.c}</b><small>right first try</small></div>
+        <div><b>${data.a - data.c}</b><small>not yet</small></div>
+        <div><b>${pct(data.c, data.a)}%</b><small>accuracy</small></div>
+        <div><b>${pr.topic === 'all' ? data.active : data.a}</b><small>${pr.topic === 'all' ? 'days practiced' : 'problems'}</small></div>
+      </section>
+      ${data.a ? `<section><h2>Accuracy by ${unit}</h2>${verdict(tr, pr.range)}
+        ${lineChart(pts, { min: 0, max: 100, ticks: [0, 25, 50, 75, 100], fmt: (v) => v + '%', color: '#2bb3a3', trend: tr, aria: `Accuracy by ${unit}`, caption: `Share of problems right on the first try, by ${unit}${tr ? '. Dashed line: the trend' : ''}. Tap a dot for the numbers.` })}
+        <h3>Problems per ${unit}</h3>${barChart(pts, { aria: `Problems per ${unit}` })}</section>`
+        : '<p class="muted">No answers in this time range yet.</p>'}`;
+  }
+  function progress() {
+    render(header('My Progress') + `<main class="progress">${progressBlock()}${skillMap()}${testCharts()}</main>`);
+    cur = 'progress';
+  }
+
   // ---------------------------------------------------------------- grown-ups
   function parentGate() {
     ui.gate = { a: U.rnd(13, 29), b: U.rnd(6, 9) };
@@ -5535,7 +6555,7 @@ svg.vis.abacus { max-height: 160px; }
   }
   function parent() {
     const s = st.stats;
-    const acc = s.attempts ? Math.round((U.sum(Object.values(s.topics).map((t) => t.c)) / s.attempts) * 100) : 0;
+    const acc = pct(U.sum(Object.values(s.topics).map((t) => t.c)), s.attempts);
     const days = U.range(0, 13).map((i) => { const d = new Date(); d.setDate(d.getDate() - (13 - i)); const k = U.dateKey(d); return { k, n: (st.days[k] || {}).a || 0, wd: 'SMTWTFS'[d.getDay()] }; });
     const maxN = Math.max(10, ...days.map((d) => d.n));
     const active = days.filter((d) => d.n > 0).length;
@@ -5559,10 +6579,20 @@ svg.vis.abacus { max-height: 160px; }
         <div><b>${active}/14</b><small>active days</small></div>
         <div><b>${s.bestStreak}</b><small>best streak</small></div>
       </section>
+      <section><h2>Progress over time</h2>${progressBlock()}</section>
       <section><h2>Last 14 days</h2><div class="days">${days.map((d) => `<div class="day" title="${d.k}: ${d.n}"><span style="height:${Math.round((d.n / maxN) * 100)}%"></span><small>${d.wd}</small></div>`).join('')}</div></section>
       <section><h2>Topics</h2><p class="muted">Green ≥ 85% first-try accuracy, yellow 65–84%, red below 65%: a good topic to practice in Endless Training.</p>
         <div class="tablewrap"><table class="topics"><thead><tr><th>Topic · standard</th><th>Tries</th><th>Accuracy</th><th>Highest level</th></tr></thead><tbody>${rows}</tbody></table></div></section>
-      <section><h2>Recent mistakes</h2>${mist ? `<ul class="mist">${mist}</ul>` : '<p class="muted">No mistakes recorded yet.</p>'}</section>
+      <section><h2>Recent mistakes</h2>
+        <p class="muted">Every mistake (in games and in tests) is saved as a skill to practice. Fresh questions of that skill come back in later games and tests, and in the 🛠️ Fix-it Lab; after 3 right answers on different days it counts as fixed. Now in repair: <b>${Object.keys(st.review).length}</b> · fixed so far: <b>${s.fixed || 0}</b>.</p>
+        ${mist ? `<ul class="mist">${mist}</ul>` : '<p class="muted">No mistakes recorded yet.</p>'}</section>
+      <section class="settings"><h2>Daily goal</h2>
+        <p class="muted">A small daily target works better than long sessions now and then. The home screen shows a ring for today and the days of the week.</p>
+        <div class="label">Problems per day</div>
+        <div class="chips">${[0, 10, 20, 30, 50].map((n) => `<button class="chip ${(st.goal.perDay || 0) === n ? 'sel' : ''}" data-act="setGoal" data-arg="perDay:${n}" aria-pressed="${(st.goal.perDay || 0) === n}">${n ? n : 'Off'}</button>`).join('')}</div>
+        <div class="label">Days per week</div>
+        <div class="chips">${[3, 4, 5, 6, 7].map((n) => `<button class="chip ${(st.goal.days || 5) === n ? 'sel' : ''}" data-act="setGoal" data-arg="days:${n}" aria-pressed="${(st.goal.days || 5) === n}">${n}</button>`).join('')}</div>
+      </section>
       <section class="settings"><h2>Settings</h2>
         <label class="toggle"><input type="checkbox" id="set-sound" data-act="setting" data-arg="sound" ${st.settings.sound ? 'checked' : ''}> Sound effects</label>
         <label class="toggle"><input type="checkbox" id="set-unlock" data-act="setting" data-arg="unlockAll" ${st.settings.unlockAll ? 'checked' : ''}> Unlock all worlds (skip ahead to match what is taught in class)</label>
@@ -5634,7 +6664,7 @@ svg.vis.abacus { max-height: 160px; }
     if (scr === 'family') { ui.fam = null; return family(); }
     if (!st) return who();
     endContest();
-    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, parent: parentGate }[scr] || home)();
+    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
 
   const ACTIONS = {
@@ -5676,7 +6706,12 @@ svg.vis.abacus { max-height: 160px; }
       if (self) return who();
       parent();
     },
-    startLevel: (a) => { const [wid, i] = a.split(':'); const w = WORLDS().find((x) => x.id === wid); const lv = w.levels[+i]; startSession({ mode: 'level', world: w, li: +i, level: lv, topics: lv.topics, d: lv.d, goal: lv.goal }); },
+    startLevel: (a) => {
+      const [wid, i] = a.split(':'), w = WORLDS().find((x) => x.id === wid), lv = w.levels[+i];
+      // review questions in a level: only topics of this world and the worlds before it
+      const known = new Set(WORLDS().slice(0, worldIndex(wid) + 1).flatMap((x) => x.levels.flatMap((l) => l.topics)));
+      startSession({ mode: 'level', world: w, li: +i, level: lv, topics: lv.topics, d: lv.d, goal: lv.goal, revFit: (r) => known.has(r.topic) });
+    },
     daily: () => startDaily(),
     key: (a) => key(a),
     submit: () => submit(),
@@ -5708,7 +6743,38 @@ svg.vis.abacus { max-height: 160px; }
     resumeTest: (a) => resumeTest(a),
     restartTest: (a) => { const [kind, act, arg] = a.split('|'); closeModal(); ui.restartOk = kind; ACTIONS[act](arg); },
     viewContest: (a) => { const c = (st.tests.contests || []).find((x) => x.id === a); c ? contestResult(c, false) : prep(); },
-    kgPractice: (a) => { if (!MQ.TOPICS[a]) return prep(); startSession({ mode: 'trainer', topics: [a], auto: true, d: [2, 2], goal: 0, timer: 0, kgTopic: a }); },
+    kgPractice: (a) => {
+      const T = MQ.TOPICS[a];
+      if (!T) return prep();
+      const top = T.logic && st.grade === 'k' ? 2 : 5; // kindergarten logic stays at levels 1–2
+      startSession({ mode: 'trainer', topics: [a], auto: true, d: [2, 2], autoD: Math.min(2, top - 1) || 1, maxD: top, goal: 0, timer: 0, kgTopic: a,
+        revFit: (r) => familyOf(r.topic) === familyOf(a) && r.d <= top });
+    },
+    startFixit: () => startFixit(),
+    info: (a) => {
+      const x = P().INFO[a];
+      if (!x) return;
+      modal(`<div class="mtitle">${x.icon} ${x.title}</div><div class="infobox">
+        <h3>What is it?</h3><p>${x.what}</p><h3>Where is it used?</h3><p>${x.where}</p>
+        <h3>What does it check?</h3><p>${x.checks}</p><h3>How to practice here</h3><p>${x.how}</p></div>
+        <div class="row"><button class="btn" data-act="closeModal">Got it</button></div>`);
+    },
+    practiceTopic: (a) => {
+      const T = MQ.TOPICS[a];
+      if (!T) return;
+      if (T.track === 'prep') return ACTIONS.kgPractice(a);
+      st.trainer = { topics: [a], diff: Math.min(5, mastery(a).passed + 1), mode: 'endless' };
+      S.save();
+      startTrainer();
+    },
+    progRange: (a) => { prog().range = a; keepScroll(cur === 'progress' ? progress : parent); },
+    progTopic: (a) => { prog().topic = a; keepScroll(cur === 'progress' ? progress : parent); },
+    setGoal: (a, el) => {
+      const [k, v] = a.split(':');
+      st.goal = Object.assign({ perDay: 0, days: 5 }, st.goal, { [k]: +v });
+      S.save();
+      el.parentNode.querySelectorAll('.chip').forEach((b) => { b.classList.toggle('sel', b === el); b.setAttribute('aria-pressed', b === el); });
+    },
     startCheck: () => startCheck(),
     viewCheck: (a) => { const c = myChecks().find((x) => x.id === a); c ? checkResult(c, false) : prep(); },
     reviewCheck: (a) => { const c = myChecks().find((x) => x.id === a); c && c.items ? reviewCheck(c) : prep(); },
@@ -5774,12 +6840,12 @@ svg.vis.abacus { max-height: 160px; }
     document.addEventListener('click', (e) => {
       const el = e.target.closest('[data-act]');
       if (!el || el.disabled) return;
-      if (el.type === 'checkbox') return; // handled on change
+      if (el.type === 'checkbox' || el.tagName === 'SELECT') return; // handled on change
       act(el.dataset.act, el.dataset.arg, el);
     });
     document.addEventListener('change', (e) => {
-      const el = e.target.closest('input[type=checkbox][data-act]');
-      if (el) act(el.dataset.act, el.dataset.arg, el);
+      const el = e.target.closest('input[type=checkbox][data-act], select[data-act]');
+      if (el) act(el.dataset.act, el.tagName === 'SELECT' ? el.value : el.dataset.arg, el);
     });
     window.addEventListener('popstate', onPop);
     try { if (useHistory) history.replaceState({ where: 'start' }, ''); } catch (e) { /* ignore */ }

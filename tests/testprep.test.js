@@ -2,7 +2,7 @@
 // Simulates children with a known level taking the Placement Check and checks the estimate is close.
 const path = require('path');
 const assert = require('assert');
-for (const f of ['util', 'visuals', 'generators', 'generators-k', 'puzzles', 'cogat', 'content', 'content-k', 'store', 'testprep']) require(path.join(__dirname, '..', 'js', f + '.js'));
+for (const f of ['util', 'visuals', 'generators', 'generators-k', 'puzzles', 'cogat', 'logic', 'content', 'content-k', 'store', 'testprep']) require(path.join(__dirname, '..', 'js', f + '.js'));
 const MQ = globalThis.MQ;
 const P = MQ.prep;
 
@@ -128,6 +128,34 @@ MQ.state.seen.__tiny = ['B', 'C', 'A'].map((t) => MQ.U.qkey({ text: t }));
 assert.strictEqual(P.fresh('__tiny', 1).text, 'B');
 assert.strictEqual(P.fresh('__tiny', 1, new Set([MQ.U.qkey({ text: 'B' })])).text, 'C', 'never repeats inside one attempt');
 delete MQ.TOPICS.__tiny;
+
+// Mistakes come back in mock tests: a few questions become fresh ones of the missed skills, in the right section,
+// and the test keeps its size and points.
+{
+  const review = [{ topic: 'kg_mirror', d: 5 }, { topic: 'kg_coins', d: 1 }, { topic: 'kg_age', d: 3 }, { topic: 'kg_paths', d: 2 }, { topic: 'add20', d: 2 }];
+  const ct = P.newContest('kangaroo', review);
+  assert.strictEqual(ct.items.length, 24);
+  for (const pts of [3, 4, 5]) assert.strictEqual(ct.items.filter((i) => i.pts === pts).length, 8, `8 puzzles worth ${pts}`);
+  const rv = ct.items.filter((i) => i.rv);
+  assert.strictEqual(rv.length, P.REVIEW_IN_CONTEST, 'at most 3 review puzzles, school topics never');
+  assert.ok(rv.some((i) => i.p.topic === 'kg_mirror' && i.p.d === 5 && i.pts === 5), 'a missed 5-point type comes back as a 5-point puzzle');
+  assert.ok(rv.some((i) => i.p.topic === 'kg_coins' && i.p.d === 1 && i.pts === 3));
+  assert.ok(rv.every((i) => i.p.review && i.p.choices.includes(i.p.answer)));
+  assert.strictEqual(P.newContest('kangaroo', []).items.filter((i) => i.rv).length, 0, 'no review without mistakes');
+  // Logic Lab challenge: every type at both levels; kindergarten keeps to levels 1–2 even for review.
+  const lg = P.newContest('logic', [{ topic: 'lg_liars', d: 2 }]);
+  assert.strictEqual(lg.items.length, 12);
+  assert.deepStrictEqual([...new Set(lg.items.map((i) => i.p.topic))].sort(), MQ.LOGIC_TOPICS.slice().sort());
+  assert.ok(lg.items.some((i) => i.rv && i.p.topic === 'lg_liars' && i.p.d === 2));
+  const lk = P.newContest('logick', [{ topic: 'lg_order', d: 4 }, { topic: 'lg_count', d: 1 }]);
+  assert.strictEqual(lk.items.length, 8);
+  assert.ok(lk.items.every((i) => i.p.d <= 2 && MQ.LOGIC_K.includes(i.p.topic)), 'kindergarten logic stays easy and on its own types');
+  const sc = P.scoreContest(Object.assign(lg, { answers: lg.items.map((i) => i.p.answer) }));
+  assert.strictEqual(sc.right, 12);
+  assert.deepStrictEqual(Object.keys(sc.sections).sort(), ['Round 1', 'Round 2']);
+  assert.ok(sc.items.every((i) => i.d >= 1), 'results remember the difficulty of every question');
+  for (const k of ['check', 'kangaroo', 'joey', 'cogat', 'cogatk', 'logic', 'logick']) assert.ok(P.INFO[k] && P.INFO[k].what && P.INFO[k].where && P.INFO[k].checks && P.INFO[k].how, 'info for ' + k);
+}
 MQ.state = null;
 
 console.log(`OK — Placement Check estimates are within one step in at least ${(worst * 100).toFixed(0)}% of simulated runs.`);

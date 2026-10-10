@@ -57,6 +57,11 @@
     return U.comma(p.answer) + (p.unit ? ' ' + p.unit : '');
   };
   const gradeChip = (g) => `<span class="gchip g-${g}">${MQ.track(g).label}</span>`;
+  const pct = (c, a) => (a ? Math.round((c / a) * 100) : 0); // accuracy everywhere = right on the first try / answered
+  const FIX_REWARD = 3;
+  // The group a topic belongs to: a school track ('k', 'g2') or a test-prep family. Review questions stay in their group.
+  const familyOf = (t) => { const T = MQ.TOPICS[t]; return !T ? '' : t === 'kg_joey' ? 'joey' : T.kangaroo ? 'kangaroo' : T.cogat ? 'cogat' : T.logic ? 'logic' : T.track; };
+  const PAUSE_KINDS = ['check', 'kangaroo', 'joey', 'cogat', 'cogatk', 'logic', 'logick'];
 
   // ---------------------------------------------------------------- voice
   const voiceOn = () => st.settings.voice !== false && MQ.canSpeak() && !(sess && sess.timer);
@@ -241,7 +246,7 @@
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
-    const redraw = { home, map, journal, badges, prep, world: () => world(arg) }[scr];
+    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg) }[scr];
     if (redraw) redraw();
   }
   function newExplorer() {
@@ -299,6 +304,9 @@
     const have = all.filter((c) => st.creatures[c.id]).length, total = all.length;
     const dailyDone = st.daily.last === U.dateKey();
     const badgeCount = Object.keys(st.badges).length;
+    const toFix = S.dueReview().length, inRepair = Object.keys(st.review).length;
+    const week = progressData('1m', 'all').pts.slice(-1)[0];
+    const weekAcc = week && week.t > -7 ? week.y + '% right this week' : 'Accuracy and skills';
     let cont;
     if (nu) {
       const lvObj = nu.w.levels[nu.li];
@@ -319,19 +327,36 @@
         <div class="hello-r">${gemPill()}<button class="pill switch" data-act="go" data-arg="who">👥 ${S.profiles().length > 1 ? 'Switch' : 'Add / switch'}</button></div>
       </header>
       <div class="buddy"><span class="buddy-e">${st.companion}</span><div class="bubble" id="bubble">${esc(st.buddyName)}: ${esc(U.pick(MQ.SAY.hello))}</div></div>
+      ${goalStrip()}
       ${cont}
       <div class="tiles">
         <button class="tile t-map" data-act="go" data-arg="map"><span class="ti">🗺️</span><b>Expedition Map</b><small>${WORLDS().length} worlds · ${WORLDS().length * 6} levels</small></button>
         <button class="tile t-endless" data-act="go" data-arg="trainer"><span class="ti">♾️</span><b>Endless Training</b><small>Pick topics & difficulty</small></button>
         <button class="tile t-daily ${dailyDone ? 'done' : ''}" data-act="daily"><span class="ti">${dailyDone ? '✅' : '📅'}</span><b>Daily Quest</b><small>${dailyDone ? 'Done today · 🔥 ' + st.daily.streak : '+' + DAILY_REWARD + ' 💎 · streak ' + st.daily.streak}</small></button>
+        <button class="tile t-fixit ${toFix ? 'hot' : ''}" data-act="go" data-arg="fixit"><span class="ti">🛠️</span><b>Fix-it Lab</b><small>${toFix ? `${toFix} to fix today` : inRepair ? 'All done today ✓' : 'No mistakes to fix'}</small></button>
         <button class="tile t-journal" data-act="go" data-arg="journal"><span class="ti">📔</span><b>Field Journal</b><small>${have} / ${total} creatures</small></button>
         <button class="tile t-hatch" data-act="go" data-arg="hatch"><span class="ti">🥚</span><b>Hatchery</b><small>Rare eggs · ${MQ.EGG_PRICE} 💎</small></button>
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
-        <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>${['check', 'kangaroo', 'joey', 'cogat', 'cogatk'].some((k) => S.paused(k)) ? '⏸️ You have an unfinished test: tap to continue' : 'Placement Check in the style of i-Ready' + (myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : '')}</small></span></button>
+        <button class="tile t-progress" data-act="go" data-arg="progress"><span class="ti">📈</span><b>My Progress</b><small>${weekAcc}</small></button>
+        <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>${PAUSE_KINDS.some((k) => S.paused(k)) ? '⏸️ You have an unfinished test: tap to continue' : 'Placement Check in the style of i-Ready' + (myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : '')}</small></span></button>
       </div>
       <footer class="foot">${syncLine()}<button class="linkbtn" data-act="go" data-arg="parent">For grown-ups</button></footer>
     </main>`);
     cur = 'home';
+  }
+
+  // The daily goal a grown-up set: a ring for today and a dot for each day of this week.
+  function goalStrip() {
+    const g = st.goal || {};
+    if (!g.perDay) return '';
+    const today = U.dateKey(), n = (st.days[today] || {}).a || 0, mon = MQ.weekStart(today);
+    const days = U.range(0, 6).map((i) => S.addDays(mon, i));
+    const met = days.filter((k) => ((st.days[k] || {}).a || 0) >= g.perDay).length;
+    const dots = days.map((k, i) => `<i class="${((st.days[k] || {}).a || 0) >= g.perDay ? 'on' : ''} ${k === today ? 'now' : ''}" title="${'MTWTFSS'[i]}">${'MTWTFSS'[i]}</i>`).join('');
+    return `<div class="goal" role="group" aria-label="Daily goal">
+      <span class="ring" style="--p:${Math.min(100, pct(n, g.perDay))}"><b>${Math.min(n, 999)}</b><small>/ ${g.perDay}</small></span>
+      <span class="goal-t"><b>${n >= g.perDay ? 'Today’s goal reached! 🎉' : `Today’s goal: ${g.perDay - n} more ${g.perDay - n === 1 ? 'problem' : 'problems'}`}</b>
+        <small>This week: ${met} of ${g.days} goal days</small><span class="wdots">${dots}</span></span></div>`;
   }
 
   // ---------------------------------------------------------------- map & world
@@ -376,6 +401,8 @@
       if (sess.resumeP) { const p = sess.resumeP; sess.resumeP = null; return p; } // back where the child stopped
       return MQ.prep.next(sess.eng);
     }
+    const rv = reviewProblem();
+    if (rv) return rv;
     const topic = U.pick(sess.topics);
     const d = sess.auto ? sess.autoD : U.rnd(sess.d[0], sess.d[1]);
     if (MQ.TOPICS[topic].track === 'prep') { // test-prep practice: prefer questions not seen in earlier attempts
@@ -392,17 +419,62 @@
     }
     return p;
   }
+  // Mistakes come back: a fresh question of a skill the child got wrong before (same topic and level).
+  // Fix-it Lab asks only those; levels, training, practice by type ask one every 4th question, the Daily Quest 2 of 5.
+  // Never in a Placement Check (it would change the level estimate) or a Lightning round.
+  function reviewProblem() {
+    if (sess.mode === 'fixit') { const r = sess.queue.shift(); return r ? makeReview(r) : null; }
+    if (!sess.revFit || sess.timer) return null;
+    const k = sess.asked;
+    if (!(sess.mode === 'daily' ? k === 1 || k === 3 : k % 4 === 3)) return null;
+    const r = S.dueReview((x) => sess.revFit(x) && !sess.revUsed.includes(S.rkey(x.topic, x.d)))[0];
+    return r ? makeReview(r) : null;
+  }
+  function makeReview(r) {
+    sess.revUsed.push(S.rkey(r.topic, r.d));
+    const p = MQ.TOPICS[r.topic].track === 'prep' ? MQ.prep.fresh(r.topic, r.d, new Set(sess.recent)) : MQ.makeProblem(r.topic, r.d);
+    p.review = true;
+    return p;
+  }
+  // A strategy tip before the next question of a topic missed twice in this session (once a day per topic),
+  // and on Fix-it Lab questions.
+  function tipFor(p) {
+    const t = p.topic, today = U.dateKey();
+    if (sess.mode === 'check' || !MQ.TIPS[t] || st.tips[t] === today) return '';
+    if (!sess.tipNext.includes(t) && sess.mode !== 'fixit') return '';
+    sess.tipNext = sess.tipNext.filter((x) => x !== t);
+    st.tips[t] = today;
+    return U.pick(MQ.TIPS[t]);
+  }
+  // Every answer of a game goes through here: statistics, mistakes to practice, tips, rewards for fixing.
+  function rec(p, first, given) {
+    const r = S.record(p, first, given);
+    if (!first) {
+      const n = (sess.missBy[p.topic] = (sess.missBy[p.topic] || 0) + 1);
+      if (n >= 2 && !sess.tipNext.includes(p.topic)) sess.tipNext.push(p.topic);
+    }
+    if (r === 'fixed') {
+      addGems(FIX_REWARD);
+      sess.fixedNow++;
+      later(() => toast(`🛠️ Mistake fixed for good! <b>+${FIX_REWARD} 💎</b>`, 'gold'), 700);
+    }
+    const g = st.goal || {}, n = (st.days[U.dateKey()] || {}).a || 0;
+    if (g.perDay && n === g.perDay) later(() => toast(`🎯 Daily goal reached: <b>${n}</b> problems today!`, 'gold'), 1200);
+    return r;
+  }
+  const sessDone = () => (sess.mode === 'fixit' ? !sess.queue.length : !!sess.goal && sess.correct >= sess.goal);
   function startSession(cfg) {
     remember('play');
-    sess = Object.assign({ correct: 0, firstTry: 0, mistakes: 0, streak: 0, best: 0, answered: 0, earned: 0, recent: [], tries: 0, p: null, input: '', autoD: 2, up: 0, down: 0, left: cfg.timer || 0, locked: false }, cfg);
-    const color = sess.world ? sess.world.color : sess.mode === 'daily' ? '#e09a2b' : sess.mode === 'check' ? '#5b63c9' : '#ff6b5b';
+    sess = Object.assign({ correct: 0, firstTry: 0, mistakes: 0, streak: 0, best: 0, answered: 0, earned: 0, recent: [], tries: 0, p: null, input: '', autoD: 2, maxD: 5, up: 0, down: 0, left: cfg.timer || 0, locked: false,
+      asked: 0, revUsed: [], missBy: {}, tipNext: [], fixedNow: 0 }, cfg);
+    const color = sess.world ? sess.world.color : sess.mode === 'daily' ? '#e09a2b' : sess.mode === 'check' ? '#5b63c9' : sess.mode === 'fixit' ? '#3c9d5d' : '#ff6b5b';
     render(`<div class="play" style="--wc:${color}">
       <header class="playbar"><button class="iconbtn" data-act="quit" aria-label="Stop">✕</button><div class="pstatus" id="pstatus"></div>${gemPill()}</header>
       <div class="buddy small"><span class="buddy-e">${st.companion}</span><div class="bubble" id="bubble"></div></div>
       <section class="pcard" id="pcard"></section>
       <div id="answer" class="answer"></div>
     </div>`, 'is-play');
-    say(sess.mode === 'level' ? `${st.buddyName}: Get ${sess.goal} right to discover a creature!` : sess.timer ? `${st.buddyName}: Lightning round! Go go go! ⚡` : sess.mode === 'daily' ? `${st.buddyName}: Today’s quest — 5 mixed puzzles!` : `${st.buddyName}: Let’s train! Every 5 in a row opens a chest. 🎁`);
+    say(sess.mode === 'level' ? `${st.buddyName}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${st.buddyName}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${st.buddyName}: Lightning round! Go go go! ⚡` : sess.mode === 'daily' ? `${st.buddyName}: Today’s quest — 5 mixed puzzles!` : `${st.buddyName}: Let’s train! Every 5 in a row opens a chest. 🎁`);
     nextProblem();
     if (sess.timer) sess.interval = setInterval(tick, 1000);
   }
@@ -421,6 +493,8 @@
       el.innerHTML = `<span class="stat">🔥 <b>${sess.streak}</b></span><span class="stat">✓ <b>${sess.correct}</b></span>` +
         (sess.timer ? `<span class="stat timer ${sess.left <= 10 ? 'low' : ''}">⏱ <b>${m}:${s}</b></span>` : '') +
         `<span class="stat dchip d${sess.auto ? sess.autoD : sess.d[1]}">${sess.auto ? 'Auto · ' + D_NAMES[sess.autoD] : D_NAMES[sess.d[1]]}</span>`;
+    } else if (sess.mode === 'fixit') {
+      el.innerHTML = `<span class="ptitle">🛠️ Fix-it Lab</span><span class="cprog"><span style="width:${pct(sess.answered, sess.total)}%"></span></span><span class="stat">${Math.min(sess.answered + 1, sess.total)} / ${sess.total}</span>`;
     } else if (sess.mode === 'check') {
       const total = MQ.prep.total(sess.eng), done = sess.answered;
       el.innerHTML = `<span class="ptitle">🎯 Placement Check</span><span class="cprog"><span style="width:${Math.round((done / total) * 100)}%"></span></span><span class="stat">${Math.min(done + 1, total)} / ${total}</span>`;
@@ -431,6 +505,7 @@
   }
   function nextProblem() {
     sess.p = pickProblem();
+    sess.asked++;
     if (sess.mode !== 'check' && MQ.TOPICS[sess.p.topic] && MQ.TOPICS[sess.p.topic].track === 'prep') { S.markSeen(sess.p.topic, U.qkey(sess.p)); S.save(); }
     sess.pending = null;
     sess.tries = 0;
@@ -444,8 +519,9 @@
     const p = sess.p, T = MQ.TOPICS[p.topic];
     const card = $('#pcard');
     // In a Placement Check the difficulty is not shown (it would give the level away).
-    const chip = sess.mode === 'check' ? '' : `<span class="dchip d${p.d}">${D_ICONS[p.d]} ${D_NAMES[p.d]}</span>`;
-    card.innerHTML = `<div class="pmeta"><span>${T.icon} ${T.name}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="speak" aria-label="Read the question aloud">🔊</button>' : ''}${chip}</span></div>
+    const chip = sess.mode === 'check' ? '' : `${p.review ? '<span class="dchip rv" title="A question like one you missed before">🔁 Review</span>' : ''}<span class="dchip d${p.d}">${D_ICONS[p.d]} ${D_NAMES[p.d]}</span>`;
+    const tip = tipFor(p);
+    card.innerHTML = `${tip ? `<div class="tipcard"><b>💡 Tip</b> ${esc(tip)}</div>` : ''}<div class="pmeta"><span>${T.icon} ${T.name}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="speak" aria-label="Read the question aloud">🔊</button>' : ''}${chip}</span></div>
       <div class="ptext ${p.big ? 'eq' : ''} ${p.wordy ? 'wordy' : ''}">${p.text}</div>
       ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
       ${p.kind === 'num' ? `<div class="display" id="display"><span class="dval" id="dval"></span>${p.unit ? `<span class="unit">${p.unit}</span>` : ''}</div>` : ''}
@@ -461,7 +537,7 @@
     redrawAnswer();
     showInput();
     status();
-    if (st.settings.readAloud) MQ.speak(p.say || MQ.toSpeech(p.text));
+    if (st.settings.readAloud) MQ.speak((tip ? 'Tip: ' + MQ.toSpeech(tip) + ' ' : '') + (p.say || MQ.toSpeech(p.text)));
   }
   // The answer area for each question format.
   //   num: number pad · choice: buttons · multi: tap every right answer · order: tap cards in order · line: tap the number line
@@ -567,15 +643,17 @@
     sess.answered++;
     if (ok) sess.correct++;
     MQ.prep.answer(sess.eng, sess.p, ok, Array.isArray(given) ? given.join(', ') : given);
+    S.record(sess.p, ok, Array.isArray(given) ? given.join(', ') : given); // statistics and mistakes to practice, no feedback
+    S.save();
     MQ.sfx('tap');
     status();
     later(MQ.prep.done(sess.eng) ? finishCheck : nextProblem, 220);
   }
   function autoAdjust(good) {
-    if (!sess.auto) return;
+    if (!sess.auto || sess.p.review) return; // a review question keeps its own level
     if (good) {
       sess.down = 0;
-      if (++sess.up >= 4 && sess.autoD < 5) { sess.autoD++; sess.up = 0; later(() => toast(`${D_ICONS[sess.autoD]} Leveling up to <b>${D_NAMES[sess.autoD]}</b>!`), 300); }
+      if (++sess.up >= 4 && sess.autoD < sess.maxD) { sess.autoD++; sess.up = 0; later(() => toast(`${D_ICONS[sess.autoD]} Leveling up to <b>${D_NAMES[sess.autoD]}</b>!`), 300); }
     } else {
       sess.up = 0;
       if (++sess.down >= 2 && sess.autoD > 1) { sess.autoD--; sess.down = 0; }
@@ -584,7 +662,7 @@
   function right(btn) {
     const p = sess.p, first = sess.tries === 0;
     sess.locked = true;
-    S.record(p, first);
+    rec(p, first);
     sess.correct++;
     sess.answered++;
     st.stats.correct++;
@@ -608,7 +686,7 @@
     if (btn) btn.classList.add('right');
     slots().forEach((el) => el.classList.add('right'));
     markPicks(true);
-    const done = sess.goal && sess.correct >= sess.goal;
+    const done = sessDone();
     $('#feedback').innerHTML = `<div class="fb ok"><span>✓ ${msg}</span>${sess.timer ? '' : `<button class="btn next" data-act="advance">${done ? 'Finish ★' : 'Next →'}</button>`}</div>`;
     say(`${st.buddyName}: ${msg}`);
     S.save();
@@ -639,7 +717,7 @@
     card.classList.add('shake');
     if (sess.timer) { // lightning: no second chance, keep moving
       sess.locked = true;
-      S.record(p, false, given);
+      rec(p, false, given);
       sess.answered++;
       sess.streak = 0;
       if (btn) btn.classList.add('nope');
@@ -670,15 +748,15 @@
   function reveal(given, btn) {
     const p = sess.p;
     sess.locked = true;
-    S.record(p, false, given);
+    rec(p, false, given);
     sess.answered++;
     if (btn) btn.classList.add('nope');
     document.querySelectorAll('.choice').forEach((b, i) => { if (p.choices && p.choices[i] === p.answer) b.classList.add('right'); });
     if (p.kind === 'num') slots().forEach((el) => { el.textContent = p.answer; el.classList.add('shown'); });
     markPicks(false);
-    $('#feedback').innerHTML = `<div class="fb reveal"><div>The answer is <b>${fmtAnswer(p)}</b>.</div>${p.explain ? `<div class="explain">${p.explain}</div>` : ''}<button class="btn" data-act="advance">Next →</button></div>`;
+    $('#feedback').innerHTML = `<div class="fb reveal"><div>The answer is <b>${fmtAnswer(p)}</b>.</div>${p.explain ? `<div class="explain">${p.explain}</div>` : ''}<button class="btn" data-act="advance">${sessDone() ? 'Finish ✓' : 'Next →'}</button></div>`;
     say(`${st.buddyName}: ${U.pick(MQ.SAY.reveal)}`);
-    sess.pending = nextProblem; // waits for the Next button
+    sess.pending = sessDone() ? finish : nextProblem; // waits for the Next button
     if (voiceOn()) { const a = spokenAnswer(p); MQ.speak(U.pick(MQ.SAY.voiceReveal) + (a ? ` The answer is ${a}.` : ' Look at the green answer.')); }
     S.save();
     status();
@@ -686,6 +764,7 @@
   function finish() {
     if (sess.mode === 'level') finishLevel();
     else if (sess.mode === 'daily') finishDaily();
+    else if (sess.mode === 'fixit') finishFixit();
     else finishTrainer();
   }
 
@@ -754,7 +833,7 @@
     if (sess.timer === 120 && sess.correct > (st.stats.lightning120 || 0)) { st.stats.lightning120 = sess.correct; record = 'New 2-minute record!'; }
     if (!sess.timer && sess.best > (st.stats.endlessBest || 0)) { st.stats.endlessBest = sess.best; if (sess.best >= 5) record = 'New best streak!'; }
     S.save();
-    const acc = sess.answered ? Math.round((sess.firstTry / sess.answered) * 100) : 0;
+    const acc = pct(sess.firstTry, sess.answered);
     render(`<main class="result" style="--wc:#ff6b5b;--wt:#ffe3dd">
       <div class="bigemoji">${sess.timer ? '⚡' : '♾️'}</div>
       <h1 class="title">${sess.timer ? 'Time!' : 'Training done!'}</h1>
@@ -763,18 +842,70 @@
         <div><b>${sess.correct}</b><small>correct</small></div>
         <div><b>${acc}%</b><small>first try</small></div>
         <div><b>${sess.best}</b><small>best streak</small></div>
-        <div><b>+${sess.earned}</b><small>💎 earned</small></div>
+        <div><b>+${sess.earned + sess.fixedNow * FIX_REWARD}</b><small>💎 earned</small></div>
       </div>
+      ${sess.fixedNow ? `<div class="unlock">🛠️ ${sess.fixedNow} old ${sess.fixedNow === 1 ? 'mistake' : 'mistakes'} fixed for good!</div>` : ''}
       <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button>${sess.kgTopic
-        ? `<button class="btn ghost" data-act="go" data-arg="${MQ.TOPICS[sess.kgTopic].cogat ? 'cgtypes' : 'kgtypes'}">Other types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
+        ? `<button class="btn ghost" data-act="go" data-arg="${MQ.TOPICS[sess.kgTopic].cogat ? 'cgtypes' : MQ.TOPICS[sess.kgTopic].logic ? 'lgtypes' : 'kgtypes'}">Other types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
         : '<button class="btn ghost" data-act="go" data-arg="trainer">Change settings</button><button class="btn" data-act="startTrainer">Play again</button>'}</div></main>`);
     if (sess.correct) { MQ.sfx('reward'); if (record) MQ.confetti(); }
     if (st.settings.voice !== false && sess.correct) MQ.speak(`You got ${sess.correct} right! ${record ? 'A new record!' : 'Great training!'}`);
     later(checkBadges, 1200);
   }
 
+  // ---------------------------------------------------------------- Fix-it Lab
+  const whenStr = (key) => { const n = U.daysBetween(U.dateKey(), key); return n <= 0 ? 'today' : n === 1 ? 'tomorrow' : fmtDate(key).replace(/, \d{4}$/, ''); };
+  function fixit() {
+    const today = U.dateKey();
+    const all = Object.values(st.review).filter((r) => MQ.TOPICS[r.topic]).sort((a, b) => (a.due !== b.due ? (a.due < b.due ? -1 : 1) : b.miss - a.miss));
+    const due = all.filter((r) => r.due <= today);
+    const rows = all.map((r) => {
+      const T = MQ.TOPICS[r.topic], now = r.due <= today;
+      return `<li class="fx ${now ? 'due' : ''}"><span class="fx-ic">${T.icon}</span><span class="fx-n"><b>${T.name}</b><small>${D_NAMES[r.d]} · ${now ? 'ready to practice' : 'next try ' + whenStr(r.due)}${r.miss > 1 ? ` · missed ${r.miss} times` : ''}</small></span>
+        <span class="fx-box" role="img" aria-label="${r.box} of 3 right">${[0, 1, 2].map((i) => `<i class="${i < r.box ? 'on' : ''}"></i>`).join('')}</span></li>`;
+    }).join('');
+    render(header('Fix-it Lab') + `<main class="fixit">
+      <p class="lead">Mistakes help your brain grow! Here are the kinds of problems that went wrong. Get a new one right on 3 different days and it is fixed for good: <b>+${FIX_REWARD} 💎</b> each.</p>
+      ${due.length ? `<button class="btn big" data-act="startFixit">Fix ${Math.min(10, due.length)} now ▶</button>`
+        : all.length ? '<div class="unlock">✅ All done for today! Come back tomorrow for the next tries.</div>' : '<div class="unlock">🎉 Nothing to fix. When a problem goes wrong, it shows up here.</div>'}
+      ${all.length ? `<ul class="fxlist">${rows}</ul>` : ''}
+      <p class="muted small">Mistakes from every game and test come here. Similar questions also come back in levels, training, the Daily Quest and practice tests. Fixed so far: <b>${st.stats.fixed || 0}</b>.</p>
+    </main>`);
+    cur = 'fixit';
+  }
+  function startFixit() {
+    const queue = S.dueReview().slice(0, 10);
+    if (!queue.length) return fixit();
+    startSession({ mode: 'fixit', queue, total: queue.length, topics: [], d: [1, 1], goal: 0 });
+  }
+  function finishFixit() {
+    if (!sess) return home();
+    const fixed = sess.fixedNow, left = S.dueReview().length;
+    S.save();
+    render(`<main class="result" style="--wc:#3c9d5d;--wt:#dcf3e3">
+      <div class="bigemoji">🛠️</div>
+      <h1 class="title">${fixed ? `${fixed} ${fixed === 1 ? 'mistake' : 'mistakes'} fixed for good!` : 'Great practice!'}</h1>
+      <div class="sumgrid three">
+        <div><b>${sess.firstTry} / ${sess.answered}</b><small>right first try</small></div>
+        <div><b>${fixed}</b><small>fixed for good</small></div>
+        <div><b>+${fixed * FIX_REWARD}</b><small>💎 earned</small></div>
+      </div>
+      <p class="muted">Each right answer moves a mistake one step closer to fixed. Three right answers on different days fix it.</p>
+      <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button><button class="btn ghost" data-act="go" data-arg="fixit">Fix-it Lab</button>${left ? `<button class="btn" data-act="startFixit">Keep fixing (${left})</button>` : ''}</div></main>`);
+    MQ.sfx('reward');
+    if (fixed) MQ.confetti(80);
+    if (st.settings.voice !== false) MQ.speak(fixed ? 'You fixed old mistakes! Great job!' : 'Great practice!');
+    later(checkBadges, 1200);
+  }
+
   function quit() {
     if (!sess) return home();
+    if (sess.mode === 'fixit') {
+      if (sess.answered === 0) return go('fixit');
+      clearTimers();
+      sess.locked = true;
+      return finishFixit();
+    }
     if (sess.mode === 'trainer') {
       if (sess.answered === 0) return go('trainer');
       clearTimers();
@@ -815,7 +946,7 @@
     render(header('Test Prep') + `<main class="prep">
       <p class="lead">Get ready for the tests you take at school.</p>
       <article class="testcard" style="--pc:#5b63c9">
-        <div class="tc-head"><span class="tc-ic">🎯</span><div><b>Placement Check</b><small>In the style of i-Ready · ${total} questions · about ${st.grade === 'k' ? 15 : 25} minutes</small></div></div>
+        <div class="tc-head"><span class="tc-ic">🎯</span><div><b>Placement Check</b><small>In the style of i-Ready · ${total} questions · about ${st.grade === 'k' ? 15 : 25} minutes</small></div>${infoBtn('check')}</div>
         <p>Questions about numbers, algebra, measurement and shapes. They get harder or easier as you answer, like i-Ready at school. No hints this time: just do your best, and make your best guess if you are not sure.</p>
         ${last ? `<div class="tc-last">Last check, ${fmtDate(last.date)}: <b>${P().label(last.overall)}</b> · ${P().status(last.overall, last.expected).icon} ${P().status(last.overall, last.expected).text} <button class="linkbtn" data-act="viewCheck" data-arg="${last.id}">See results</button></div>` : ''}
         ${resumeBox('check')}
@@ -823,6 +954,7 @@
       </article>
       ${historyChart(checks)}
       ${contestCard()}
+      ${logicCard()}
     </main>`);
     cur = 'prep';
   }
@@ -934,7 +1066,7 @@
     const k = st.grade === 'k', kind = k ? 'cogatk' : 'cogat', last = myContests(kind).slice(-1)[0];
     const n = k ? 18 : 45;
     return `<article class="testcard" style="--pc:#7a5cc9">
-      <div class="tc-head"><span class="tc-ic">🧠</span><div><b>${k ? 'Brain Games' : 'CogAT practice'}</b><small>${k ? 'Thinking puzzles in the style of CogAT' : 'GATE screening · Eureka Union tests every 2nd grader'} · ${n} questions</small></div></div>
+      <div class="tc-head"><span class="tc-ic">🧠</span><div><b>${k ? 'Brain Games' : 'CogAT practice'}</b><small>${k ? 'Thinking puzzles in the style of CogAT' : 'GATE screening · Eureka Union tests every 2nd grader'} · ${n} questions</small></div>${infoBtn(kind)}</div>
       <p>${k ? 'Picture puzzles about patterns, shapes and things that go together. Every question is read aloud.' : 'Three parts like the real CogAT: <b>Verbal</b> (pictures that go together), <b>Quantitative</b> (number puzzles) and <b>Nonverbal</b> (shapes and paper folding). Pictures only, every question can be read aloud.'}</p>
       ${last ? `<div class="tc-last">Last practice test, ${fmtDate(last.date)}: <b>${last.right} of ${last.n}</b> right <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
       ${resumeBox(kind)}
@@ -947,14 +1079,14 @@
   function cgtypes() {
     render(header(st.grade === 'k' ? 'Brain Games' : 'CogAT practice', 'prep') + `<main class="prep">
       <p class="lead">Pick a kind of question. They get harder as you get them right, and every answer is explained.</p>
-      ${MQ.COGAT_BATTERIES.map((b) => `<section><h2>${b.icon} ${b.id}</h2><div class="kgtypes">${b.topics.map((t) => `<button class="tile" data-act="kgPractice" data-arg="${t}"><span class="ti">${MQ.TOPICS[t].icon}</span><b>${MQ.TOPICS[t].name}</b></button>`).join('')}</div></section>`).join('')}
+      ${MQ.COGAT_BATTERIES.map((b) => `<section><h2>${b.icon} ${b.id}</h2><div class="kgtypes">${b.topics.map(typeTile).join('')}</div></section>`).join('')}
     </main>`);
   }
   function contestCard() {
     if (st.grade === 'k') {
       const last = myContests('joey').slice(-1)[0];
       return cogatCard() + `<article class="testcard" style="--pc:#e0a21b">
-        <div class="tc-head"><span class="tc-ic">🐣</span><div><b>Joey Puzzles</b><small>Brain teasers like Math Kangaroo, made for kindergarten · 12 puzzles</small></div></div>
+        <div class="tc-head"><span class="tc-ic">🐣</span><div><b>Joey Puzzles</b><small>Brain teasers like Math Kangaroo, made for kindergarten · 12 puzzles</small></div>${infoBtn('joey')}</div>
         <p>Picture puzzles with 5 answers to choose from. Every question can be read aloud. No clock: take your time and think!</p>
         ${last ? `<div class="tc-last">Last time: <b>${last.right} of ${last.n}</b> ${'⭐'.repeat(Math.round((last.right / last.n) * 3))}</div>` : ''}
         ${resumeBox('joey')}
@@ -963,7 +1095,7 @@
     }
     const last = myContests('kangaroo').slice(-1)[0];
     return cogatCard() + `<article class="testcard" style="--pc:#d4703a">
-      <div class="tc-head"><span class="tc-ic">🦘</span><div><b>Math Kangaroo</b><small>Contest for grades 1–2 every March · 24 puzzles · 75 minutes</small></div></div>
+      <div class="tc-head"><span class="tc-ic">🦘</span><div><b>Math Kangaroo</b><small>Contest for grades 1–2 every March · 24 puzzles · 75 minutes</small></div>${infoBtn('kangaroo')}</div>
       <p>Logic and thinking puzzles with answers A–E. The first 8 are worth 3 points, the next 8 are worth 4, the last 8 are worth 5. There is no penalty for a wrong answer, so always make a guess.</p>
       ${last ? `<div class="tc-last">Last mock contest, ${fmtDate(last.date)}: <b>${last.score} / ${last.max}</b> points <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
       ${resumeBox('kangaroo')}
@@ -974,10 +1106,36 @@
       </div>
     </article>`;
   }
+  // One kind of test-prep question, with a line about what it is and a 🔧 when it has mistakes to fix.
+  const typeTile = (t) => {
+    const T = MQ.TOPICS[t], fix = Object.values(st.review).filter((r) => r.topic === t).length, m = mastery(t);
+    return `<button class="tile type" data-act="kgPractice" data-arg="${t}"><span class="ti">${T.icon}</span><b>${T.name}</b><small>${T.desc || ''}</small>${m.lv || fix ? `<span class="tstat">${m.lv ? MASTERY[m.lv][0] + ' ' + m.acc + '%' : ''}${fix ? ' · 🔧 ' + fix : ''}</span>` : ''}</button>`;
+  };
+  const infoBtn = (k) => `<button class="infobtn" data-act="info" data-arg="${k}" aria-label="What is this test?" title="What is this test?">i</button>`;
+  function logicCard() {
+    const k = st.grade === 'k', kind = k ? 'logick' : 'logic', last = myContests(kind).slice(-1)[0];
+    return `<article class="testcard" style="--pc:#2f8f83">
+      <div class="tc-head"><span class="tc-ic">🧩</span><div><b>Logic Lab</b><small>${k ? 'First logic puzzles · read aloud · 8 in a set' : 'Thinking puzzles in words · Advanced challenge of 12'}</small></div>${infoBtn(kind)}</div>
+      <p>${k ? 'Who is tallest? Who has the cat? Yes or no? Listen to the clues and put them together.' : 'Put people in order from clues, find who has what, decide what must be true, count all the ways, and catch the fibber. Levels 4–5 are the Advanced section.'}</p>
+      ${last ? `<div class="tc-last">Last time, ${fmtDate(last.date)}: <b>${last.right} of ${last.n}</b> right <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
+      ${resumeBox(kind)}
+      <div class="row left">
+        <button class="btn ${pausedInfo(kind) ? 'ghost' : ''}" data-act="startContest" data-arg="${kind}">${pausedInfo(kind) ? 'Start over' : (k ? 'Play 8 puzzles' : 'Advanced challenge') + ' ▶'}</button>
+        <button class="btn ghost" data-act="go" data-arg="lgtypes">Practice by type</button>
+      </div>
+    </article>`;
+  }
+  function lgtypes() {
+    const k = st.grade === 'k';
+    render(header('Logic Lab', 'prep') + `<main class="prep">
+      <p class="lead">Pick a kind of puzzle. ${k ? 'Every puzzle is read aloud.' : 'They get harder as you get them right, up to the Advanced levels 4 and 5.'} Every answer is explained.</p>
+      <div class="kgtypes">${(k ? MQ.LOGIC_K : MQ.LOGIC_TOPICS).map(typeTile).join('')}</div>
+    </main>`);
+  }
   function kgtypes() {
     render(header('Kangaroo practice', 'prep') + `<main class="prep">
       <p class="lead">Pick a kind of puzzle. Problems get harder as you get them right, and every one has an explanation.</p>
-      <div class="kgtypes">${MQ.KANGAROO_TOPICS.map((t) => `<button class="tile" data-act="kgPractice" data-arg="${t}"><span class="ti">${MQ.TOPICS[t].icon}</span><b>${MQ.TOPICS[t].name}</b></button>`).join('')}</div>
+      <div class="kgtypes">${MQ.KANGAROO_TOPICS.map(typeTile).join('')}</div>
     </main>`);
   }
   function startContest(arg) {
@@ -985,7 +1143,7 @@
     if (confirmRestart(kind, 'startContest', arg)) return;
     S.clearPaused(kind);
     remember('contest');
-    ct = P().newContest(kind);
+    ct = P().newContest(kind, S.dueReview());
     ct.timed = !!timed;
     ct.left = ct.timed ? ct.seconds : 0;
     ct.soft = kind === 'cogat'; // CogAT: a clock that only shows the time used, never stops the test
@@ -995,7 +1153,8 @@
     if (ct.timed || ct.soft) ct.interval = setInterval(contestTick, 1000);
   }
   const clock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-  const CT_TITLE = { kangaroo: '🦘 Math Kangaroo', joey: '🐣 Joey Puzzles', cogat: '🧠 CogAT practice', cogatk: '🧠 Brain Games' };
+  const CT_TITLE = { kangaroo: '🦘 Math Kangaroo', joey: '🐣 Joey Puzzles', cogat: '🧠 CogAT practice', cogatk: '🧠 Brain Games', logic: '🧩 Logic challenge', logick: '🧩 Logic puzzles' };
+  const KID_TESTS = ['joey', 'cogatk', 'logick']; // kindergarten tests: no flags, stars instead of a score
   function contestTick() {
     if (!ct) return;
     if (ct.soft) { ct.used++; const el = $('#ct-timer'); if (el) el.textContent = '⏱ ' + clock(ct.used); if (ct.used % 10 === 0) saveContest(); return; }
@@ -1007,7 +1166,7 @@
   }
   // Draw the contest without render(), so the clock keeps running between questions.
   function contestView() {
-    const i = ct.i, it = ct.items[i], p = it.p, n = ct.items.length, joey = ct.kind === 'joey' || ct.kind === 'cogatk', kangaroo = ct.kind === 'kangaroo';
+    const i = ct.i, it = ct.items[i], p = it.p, n = ct.items.length, joey = KID_TESTS.includes(ct.kind), kangaroo = ct.kind === 'kangaroo';
     if (!it.seen) { it.seen = true; S.markSeen(p.topic, U.qkey(p)); S.save(); }
     saveContest();
     const r = root();
@@ -1018,7 +1177,7 @@
         ${ct.timed ? `<span class="stat timer ${ct.left <= 300 ? 'low' : ''}" id="ct-timer">⏱ ${clock(ct.left)}</span>` : ct.soft ? `<span class="stat timer soft" id="ct-timer" title="Time used">⏱ ${clock(ct.used)}</span>` : ''}</header>
       <nav class="ctnav" aria-label="Questions">${ct.items.map((x, k) => `<button class="ctdot ${k === i ? 'cur' : ''} ${ct.answers[k] !== null ? 'ans' : ''} ${ct.flags[k] ? 'flag' : ''} p${x.pts}" data-act="ctGo" data-arg="${k}" aria-label="Question ${k + 1}">${k + 1}</button>`).join('')}</nav>
       <section class="pcard">
-        <div class="pmeta"><span>Question ${i + 1} of ${n}${kangaroo ? ` · <b>${it.pts} points</b>` : it.sec ? ` · ${it.sec} · ${MQ.TOPICS[p.topic].name}` : ''}</span><span class="pmeta-r">${ct.flags[i] ? '🚩' : ''}${MQ.canSpeak() ? '<button class="speak" data-act="ctSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
+        <div class="pmeta"><span>Question ${i + 1} of ${n}${kangaroo ? ` · <b>${it.pts} points</b>` : it.sec ? ` · ${it.sec} · ${MQ.TOPICS[p.topic].name}` : ''}${it.rv ? ' · 🔁 Review' : ''}</span><span class="pmeta-r">${ct.flags[i] ? '🚩' : ''}${MQ.canSpeak() ? '<button class="speak" data-act="ctSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
         <div class="ptext ${p.big ? 'eq' : ''} ${p.wordy ? 'wordy' : ''}">${p.text}</div>
         ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
       </section>
@@ -1041,6 +1200,8 @@
         <div class="row"><button class="btn ghost" data-act="closeModal">Keep working</button><button class="btn" data-act="ctFinishNow">Finish</button></div>`);
     }
     closeModal();
+    // every answered question counts in the statistics and brings mistakes back later (blanks were not tried)
+    ct.items.forEach((it, k) => { if (ct.answers[k] !== null) S.record(it.p, ct.answers[k] === it.p.answer, ct.answers[k]); });
     const res = P().scoreContest(ct);
     S.clearPaused(ct.kind);
     endContest();
@@ -1048,7 +1209,7 @@
     list.push(res);
     while (list.length > 12) list.shift();
     list.slice(0, -3).forEach((c) => { delete c.items; });
-    const kids = res.kind === 'joey' || res.kind === 'cogatk';
+    const kids = KID_TESTS.includes(res.kind);
     addGems(kids ? 15 : 25);
     S.save();
     contestResult(res, true);
@@ -1062,20 +1223,23 @@
     joey: { title: 'Joey Puzzles', color: '#e0a21b', more: '', note: 'Original puzzles in the style of Math Kangaroo, made for kindergarten.' },
     cogat: { title: 'CogAT practice', color: '#7a5cc9', more: 'cgtypes', note: 'Original questions in the style of CogAT; not affiliated with the publisher. Percentiles cannot be estimated from practice, so this shows how many were right in each part.' },
     cogatk: { title: 'Brain Games', color: '#7a5cc9', more: 'cgtypes', note: 'Original thinking puzzles in the style of CogAT.' },
+    logic: { title: 'Logic challenge', color: '#2f8f83', more: 'lgtypes', note: 'Original logic puzzles. Every answer is explained in the review.' },
+    logick: { title: 'Logic puzzles', color: '#2f8f83', more: 'lgtypes', note: 'Original logic puzzles for kindergarten, read aloud.' },
   };
   function contestResult(res, fresh) {
-    const info = CT_INFO[res.kind] || CT_INFO.kangaroo, kangaroo = res.kind === 'kangaroo', kids = res.kind === 'joey' || res.kind === 'cogatk';
+    const info = CT_INFO[res.kind] || CT_INFO.kangaroo, kangaroo = res.kind === 'kangaroo', kids = KID_TESTS.includes(res.kind);
     const tile = (label, s) => (s ? `<div><b>${s.right} / ${s.n}</b><small>${label}</small></div>` : '');
     const tiles = kangaroo ? [3, 4, 5].map((p) => tile(`${p}-point puzzles`, res.sections[p])).join('')
-      : res.kind.startsWith('cogat') ? MQ.COGAT_BATTERIES.map((b) => tile(`${b.icon} ${b.id}`, res.sections[b.id])).join('') : '';
-    const typeRows = res.kind.startsWith('cogat') && res.types ? `<section class="pr-domains">${Object.entries(res.types).map(([t, s]) => `<div class="pr-dom"><span class="pd-name">${MQ.TOPICS[t].icon} ${MQ.TOPICS[t].name}</span><span class="lbar"><span class="lfill" style="width:${Math.round((s.right / s.n) * 100)}%"></span></span><span class="pd-lv">${s.right} of ${s.n}</span></div>`).join('')}</section>` : '';
+      : res.kind.startsWith('cogat') ? MQ.COGAT_BATTERIES.map((b) => tile(`${b.icon} ${b.id}`, res.sections[b.id])).join('')
+      : res.kind.startsWith('logic') ? ['Round 1', 'Round 2'].map((r) => tile(r, res.sections[r])).join('') : '';
+    const typeRows = (res.kind.startsWith('cogat') || res.kind.startsWith('logic')) && res.types ? `<section class="pr-domains">${Object.entries(res.types).map(([t, s]) => `<div class="pr-dom"><span class="pd-name">${MQ.TOPICS[t].icon} ${MQ.TOPICS[t].name}</span><span class="lbar"><span class="lfill" style="width:${Math.round((s.right / s.n) * 100)}%"></span></span><span class="pd-lv">${s.right} of ${s.n}</span></div>`).join('')}</section>` : '';
     render(header(info.title, 'prep') + `<main class="presult">
       <div class="pr-hero" style="box-shadow: inset 0 0 0 3px ${info.color}, 0 5px 0 ${info.color}">
         ${fresh ? `<div class="pr-done">Finished! +${kids ? 15 : 25} 💎</div>` : `<div class="pr-done muted">${fmtDate(res.date)}</div>`}
         <div class="pr-level">${kangaroo ? `${res.score} / ${res.max}` : `${res.right} of ${res.n}`}</div>
         <div class="muted">${kangaroo ? `points · ${res.right} of ${res.n} right${res.blank ? ` · ${res.blank} blank` : ''}${res.timed ? ` · ${res.minutes} min` : ''}` : kids ? 'solved ' + '⭐'.repeat(Math.max(1, Math.round((res.right / res.n) * 3))) : `right · ${res.minutes} min${res.blank ? ` · ${res.blank} blank` : ''}`}</div>
       </div>
-      ${tiles ? `<div class="sumgrid three">${tiles}</div>` : ''}
+      ${tiles ? `<div class="sumgrid ${res.kind.startsWith('logic') ? 'two' : 'three'}">${tiles}</div>` : ''}
       ${typeRows}
       ${res.items ? `<section><h2>Review</h2><ol class="rlist">${res.items.map((it, k) => `<li class="${it.ok ? 'ok' : 'no'}">
         <span class="rmark">${it.ok ? '✓' : '✗'}</span><div><div class="rq"><b>${k + 1}.</b> ${esc(it.q)}${kangaroo ? ` <span class="dchip">${it.pts} pts</span>` : ''}</div>
@@ -1146,7 +1310,8 @@
     const t = st.trainer;
     t.topics = t.topics.filter((x) => MQ.TOPICS[x] && MQ.TOPICS[x].track === st.grade);
     if (!t.topics.length) return trainer();
-    startSession({ mode: 'trainer', topics: t.topics.slice(), auto: t.diff === 'auto', d: t.diff === 'auto' ? [2, 2] : [+t.diff, +t.diff], goal: 0, timer: t.mode === 'l60' ? 60 : t.mode === 'l120' ? 120 : 0 });
+    startSession({ mode: 'trainer', topics: t.topics.slice(), auto: t.diff === 'auto', d: t.diff === 'auto' ? [2, 2] : [+t.diff, +t.diff], goal: 0, timer: t.mode === 'l60' ? 60 : t.mode === 'l120' ? 120 : 0,
+      revFit: (r) => familyOf(r.topic) === st.grade });
   }
   function startDaily() {
     // Mix of topics from worlds that are open, at a level that stretches a little.
@@ -1154,7 +1319,7 @@
     const core = track().core;
     WORLDS().forEach((w, i) => { if (worldOpen(i) && i < WORLDS().length - 1) w.levels.forEach((l) => l.topics.forEach((t) => core.includes(t) && topics.add(t))); });
     if (topics.size < 3) core.slice(0, 5).forEach((t) => topics.add(t));
-    startSession({ mode: 'daily', topics: [...topics], d: track().daily, goal: 5 });
+    startSession({ mode: 'daily', topics: [...topics], d: track().daily, goal: 5, revFit: (r) => familyOf(r.topic) === st.grade });
   }
 
   // ---------------------------------------------------------------- journal, hatchery, badges
@@ -1214,6 +1379,154 @@
     cur = 'badges';
   }
 
+  // ---------------------------------------------------------------- progress
+  const prog = () => (ui.prog = ui.prog || { range: '3m', topic: 'all' });
+  const keepScroll = (fn) => { const y = window.scrollY; fn(); window.scrollTo(0, y); };
+  const RANGES = { '1m': ['1 month', 30], '3m': ['3 months', 91], '6m': ['6 months', 182], all: ['All', 3650] };
+  const MONTHS = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ');
+  const shortDay = (k) => MONTHS[+k.slice(5, 7) - 1] + ' ' + +k.slice(8, 10);
+  const shortMonth = (ym, withYear) => MONTHS[+ym.slice(5, 7) - 1] + (withYear ? ' ’' + ym.slice(2, 4) : '');
+  // Answers in the chosen range, grouped by week (or by month for long ranges and for one topic).
+  function progressData(range, topic) {
+    const today = U.dateKey(), from = S.addDays(today, -RANGES[range][1] + 1);
+    const buckets = {};
+    let a = 0, c = 0, active = 0, monthly;
+    if (topic === 'all') {
+      const days = Object.entries(st.days).filter(([k, v]) => k >= from && v.a).sort();
+      monthly = days.length > 0 && U.daysBetween(days[0][0], today) > 200;
+      for (const [k, v] of days) {
+        const key = monthly ? k.slice(0, 7) : MQ.weekStart(k);
+        const b = (buckets[key] = buckets[key] || { key, a: 0, c: 0 });
+        b.a += v.a; b.c += v.c; a += v.a; c += v.c; active++;
+      }
+    } else {
+      monthly = true;
+      for (const [m, ts] of Object.entries(st.months)) {
+        const v = ts[topic];
+        if (m < from.slice(0, 7) || !v || !v[0]) continue;
+        buckets[m] = { key: m, a: v[0], c: v[1] };
+        a += v[0]; c += v[1];
+      }
+    }
+    const keys = Object.keys(buckets).sort();
+    const years = new Set(keys.map((k) => k.slice(0, 4))).size > 1;
+    const pts = keys.map((k) => {
+      const b = buckets[k], day = monthly ? k + '-15' : k;
+      return { t: U.daysBetween(today, day), a: b.a, c: b.c, y: pct(b.c, b.a), label: monthly ? shortMonth(k, years) : shortDay(k), tip: `${monthly ? shortMonth(k, true) : 'Week of ' + shortDay(k)}: ${pct(b.c, b.a)}% right (${b.c} of ${b.a})` };
+    });
+    return { pts, a, c, active, monthly };
+  }
+  // Weighted straight-line trend through the points: how much accuracy changed from the first point to the last.
+  function trend(pts) {
+    const use = pts.filter((p) => p.a >= 3);
+    if (use.length < 3) return null;
+    let sw = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
+    for (const p of use) { const w = Math.min(p.a, 40); sw += w; sx += w * p.t; sy += w * p.y; sxx += w * p.t * p.t; sxy += w * p.t * p.y; }
+    const den = sw * sxx - sx * sx;
+    if (!den) return null;
+    const m = (sw * sxy - sx * sy) / den, b0 = (sy - m * sx) / sw;
+    const t0 = use[0].t, t1 = use[use.length - 1].t;
+    return { t0, t1, y0: b0 + m * t0, y1: b0 + m * t1, change: Math.round(m * (t1 - t0)) };
+  }
+  function verdict(tr, range) {
+    if (!tr) return '<p class="verdict">📊 Keep practicing: after a few more weeks this shows if accuracy is going up.</p>';
+    const span = RANGES[range][1] > 400 ? 'since the start' : 'over ' + RANGES[range][0];
+    if (tr.change >= 3) return `<p class="verdict up">📈 Getting better: about <b>+${tr.change}</b> points of accuracy ${span}.</p>`;
+    if (tr.change <= -3) return `<p class="verdict down">📉 Accuracy is down about <b>${-tr.change}</b> points ${span}. Harder levels can do that; Fix-it Lab and easier practice help.</p>`;
+    return `<p class="verdict">➡️ Steady ${span}: about the same accuracy.</p>`;
+  }
+  // One series, one axis: a line with dots (hover or long-press a dot for the numbers).
+  function lineChart(pts, o) {
+    if (!pts.length) return '';
+    const W = 340, H = o.h || 170, L = 36, R = 12, T = 12, B = 24, PW = W - L - R, PH = H - T - B;
+    const ts = pts.map((p) => p.t), tmin = Math.min(...ts), tmax = Math.max(...ts);
+    const x = (t) => L + (tmax === tmin ? PW / 2 : ((t - tmin) / (tmax - tmin)) * PW);
+    const y = (v) => T + PH - ((v - o.min) / (o.max - o.min)) * PH;
+    const font = 'font-size="10" fill="#5b6885" font-family="Nunito, sans-serif" font-weight="700"';
+    let g = o.ticks.map((v) => `<line x1="${L}" y1="${y(v)}" x2="${L + PW}" y2="${y(v)}" stroke="#e3e9ee"/><text x="${L - 6}" y="${y(v) + 3.5}" text-anchor="end" ${font}>${o.fmt(v)}</text>`).join('');
+    const every = Math.ceil(pts.length / 6);
+    g += pts.map((p, i) => ((pts.length - 1 - i) % every === 0 ? `<text x="${x(p.t)}" y="${H - 6}" text-anchor="middle" ${font}>${p.label}</text>` : '')).join('');
+    if (o.trend) g += `<line x1="${x(o.trend.t0)}" y1="${y(o.trend.y0)}" x2="${x(o.trend.t1)}" y2="${y(o.trend.y1)}" stroke="#9aa6b8" stroke-width="2" stroke-dasharray="5 4"/>`;
+    if (pts.length > 1) g += `<polyline points="${pts.map((p) => `${x(p.t)},${y(p.y)}`).join(' ')}" fill="none" stroke="${o.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    g += pts.map((p) => `<g class="cdot"><circle cx="${x(p.t)}" cy="${y(p.y)}" r="12" fill="transparent"/><circle cx="${x(p.t)}" cy="${y(p.y)}" r="4.5" fill="${o.color}" stroke="#ffffff" stroke-width="2"/><title>${esc(p.tip)}</title></g>`).join('');
+    return `<figure class="pchart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria)}">${g}</svg>${o.caption ? `<figcaption>${o.caption}</figcaption>` : ''}</figure>`;
+  }
+  function barChart(pts, o) {
+    if (!pts.length) return '';
+    const W = 340, H = 110, L = 36, R = 12, T = 10, B = 22, PW = W - L - R, PH = H - T - B;
+    const max = Math.max(...pts.map((p) => p.a)), n = pts.length, slot = PW / n, bw = Math.max(3, Math.min(26, slot - 2));
+    const font = 'font-size="10" fill="#5b6885" font-family="Nunito, sans-serif" font-weight="700"';
+    const every = Math.ceil(n / 6);
+    let g = `<line x1="${L}" y1="${T + PH}" x2="${L + PW}" y2="${T + PH}" stroke="#c9d3dc"/><text x="${L - 6}" y="${T + 4}" text-anchor="end" ${font}>${max}</text><text x="${L - 6}" y="${T + PH}" text-anchor="end" ${font}>0</text>`;
+    g += pts.map((p, i) => {
+      const h = Math.max(2, (p.a / max) * PH), cx = L + slot * i + slot / 2;
+      return `<g><rect x="${cx - bw / 2}" y="${T + PH - h}" width="${bw}" height="${h}" rx="3" fill="#8fd3c9"/><rect x="${cx - slot / 2}" y="${T}" width="${slot}" height="${PH}" fill="transparent"/><title>${esc(p.tipA)}</title></g>` +
+        ((n - 1 - i) % every === 0 ? `<text x="${cx}" y="${H - 6}" text-anchor="middle" ${font}>${p.label}</text>` : '');
+    }).join('');
+    return `<figure class="pchart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria)}">${g}</svg></figure>`;
+  }
+  // Skill map: how well each topic is mastered, from first-try accuracy at each difficulty.
+  const MASTERY = [['○', 'not started'], ['🌱', 'started'], ['🌿', 'practicing'], ['⭐', 'solid'], ['🏆', 'mastered']];
+  function mastery(t) {
+    const s = st.stats.topics[t];
+    if (!s || !s.a) return { lv: 0, passed: 0, acc: 0, a: 0 };
+    let passed = 0; // highest difficulty answered right at least 80% of the time (5 tries or more)
+    for (let d = 1; d <= 5; d++) { const b = s.byD[d]; if (b && b.a >= 5 && b.c / b.a >= 0.8) passed = d; }
+    return { lv: passed >= 5 ? 4 : passed >= 3 ? 3 : passed >= 1 ? 2 : 1, passed, acc: pct(s.c, s.a), a: s.a };
+  }
+  function skillMap() {
+    const cell = (t) => {
+      const T = MQ.TOPICS[t], m = mastery(t), fix = Object.values(st.review).filter((r) => r.topic === t).length;
+      return `<button class="skill m${m.lv}" data-act="practiceTopic" data-arg="${t}" title="${esc(T.name)}: ${MASTERY[m.lv][1]}${m.a ? ', ' + m.acc + '% right' : ''}">
+        <span class="sk-m">${MASTERY[m.lv][0]}</span><span class="sk-n">${T.icon} ${T.name}</span><small>${m.a ? `${m.acc}% · ${m.passed ? D_NAMES[m.passed] : 'warming up'}` : 'tap to try'}${fix ? ' · 🔧' + fix : ''}</small></button>`;
+    };
+    const prepDone = Object.keys(MQ.TOPICS).filter((t) => MQ.TOPICS[t].track === 'prep' && (st.stats.topics[t] || {}).a);
+    return `<section><h2>Skill map</h2>
+      <p class="muted small">${MASTERY.slice(1).map(([i, n]) => `${i} ${n}`).join(' · ')}. ⭐ means 4 of 5 right at 🏕️ Ranger level, 🏆 at 🐉 Legend level. Tap a skill to practice it.</p>
+      <div class="skills">${[...track().core, ...track().ahead].map(cell).join('')}</div>
+      ${prepDone.length ? `<h3>Test prep skills</h3><div class="skills">${prepDone.map(cell).join('')}</div>` : ''}</section>`;
+  }
+  // Practice tests over time, as % right.
+  function testCharts() {
+    const kinds = st.grade === 'k' ? [['joey', '🐣 Joey Puzzles'], ['cogatk', '🧠 Brain Games'], ['logick', '🧩 Logic puzzles']] : [['kangaroo', '🦘 Math Kangaroo (% of points)'], ['cogat', '🧠 CogAT practice'], ['logic', '🧩 Logic challenge']];
+    const today = U.dateKey();
+    const out = kinds.map(([k, name]) => {
+      const list = myContests(k);
+      if (list.length < 2) return '';
+      const pts = list.map((c) => { const y = k === 'kangaroo' ? pct(c.score, c.max) : pct(c.right, c.n); return { t: U.daysBetween(today, c.date), y, a: 1, label: shortDay(c.date), tip: `${fmtDate(c.date)}: ${y}%` }; });
+      return `<h3>${name}</h3>` + lineChart(pts, { min: 0, max: 100, ticks: [0, 50, 100], fmt: (v) => v + '%', color: '#7a5cc9', aria: name + ' results over time', h: 140 });
+    }).join('');
+    const checks = myChecks();
+    return checks.length > 1 || out ? `<section><h2>Practice tests over time</h2>${checks.length > 1 ? '<h3>🎯 Placement Check</h3>' + historyChart(checks) : ''}${out}</section>` : '';
+  }
+  // The part shared by "My Progress" and the grown-ups page: range, topic, numbers, charts.
+  function progressBlock() {
+    const pr = prog();
+    if (pr.topic !== 'all' && !MQ.TOPICS[pr.topic]) pr.topic = 'all';
+    const data = progressData(pr.range, pr.topic), tr = trend(data.pts);
+    const topics = Object.keys(st.stats.topics).filter((t) => MQ.TOPICS[t] && st.stats.topics[t].a).sort((a, b) => (familyOf(a) === familyOf(b) ? 0 : familyOf(a) === st.grade ? -1 : 1));
+    const unit = data.monthly ? 'month' : 'week';
+    const pts = data.pts.map((p) => Object.assign(p, { tipA: `${p.tip.split(':')[0]}: ${p.a} problems` }));
+    return `<div class="progtop">
+        <div class="segs four">${Object.entries(RANGES).map(([k, [n]]) => `<button class="seg ${pr.range === k ? 'sel' : ''}" data-act="progRange" data-arg="${k}" aria-pressed="${pr.range === k}"><b>${n}</b></button>`).join('')}</div>
+        <label class="psel">Topic <select class="field" data-act="progTopic" aria-label="Topic"><option value="all">All topics</option>${topics.map((t) => `<option value="${t}" ${pr.topic === t ? 'selected' : ''}>${MQ.TOPICS[t].icon} ${esc(MQ.TOPICS[t].name)}</option>`).join('')}</select></label>
+      </div>
+      <section class="kpis">
+        <div><b>${data.c}</b><small>right first try</small></div>
+        <div><b>${data.a - data.c}</b><small>not yet</small></div>
+        <div><b>${pct(data.c, data.a)}%</b><small>accuracy</small></div>
+        <div><b>${pr.topic === 'all' ? data.active : data.a}</b><small>${pr.topic === 'all' ? 'days practiced' : 'problems'}</small></div>
+      </section>
+      ${data.a ? `<section><h2>Accuracy by ${unit}</h2>${verdict(tr, pr.range)}
+        ${lineChart(pts, { min: 0, max: 100, ticks: [0, 25, 50, 75, 100], fmt: (v) => v + '%', color: '#2bb3a3', trend: tr, aria: `Accuracy by ${unit}`, caption: `Share of problems right on the first try, by ${unit}${tr ? '. Dashed line: the trend' : ''}. Tap a dot for the numbers.` })}
+        <h3>Problems per ${unit}</h3>${barChart(pts, { aria: `Problems per ${unit}` })}</section>`
+        : '<p class="muted">No answers in this time range yet.</p>'}`;
+  }
+  function progress() {
+    render(header('My Progress') + `<main class="progress">${progressBlock()}${skillMap()}${testCharts()}</main>`);
+    cur = 'progress';
+  }
+
   // ---------------------------------------------------------------- grown-ups
   function parentGate() {
     ui.gate = { a: U.rnd(13, 29), b: U.rnd(6, 9) };
@@ -1227,7 +1540,7 @@
   }
   function parent() {
     const s = st.stats;
-    const acc = s.attempts ? Math.round((U.sum(Object.values(s.topics).map((t) => t.c)) / s.attempts) * 100) : 0;
+    const acc = pct(U.sum(Object.values(s.topics).map((t) => t.c)), s.attempts);
     const days = U.range(0, 13).map((i) => { const d = new Date(); d.setDate(d.getDate() - (13 - i)); const k = U.dateKey(d); return { k, n: (st.days[k] || {}).a || 0, wd: 'SMTWTFS'[d.getDay()] }; });
     const maxN = Math.max(10, ...days.map((d) => d.n));
     const active = days.filter((d) => d.n > 0).length;
@@ -1251,10 +1564,20 @@
         <div><b>${active}/14</b><small>active days</small></div>
         <div><b>${s.bestStreak}</b><small>best streak</small></div>
       </section>
+      <section><h2>Progress over time</h2>${progressBlock()}</section>
       <section><h2>Last 14 days</h2><div class="days">${days.map((d) => `<div class="day" title="${d.k}: ${d.n}"><span style="height:${Math.round((d.n / maxN) * 100)}%"></span><small>${d.wd}</small></div>`).join('')}</div></section>
       <section><h2>Topics</h2><p class="muted">Green ≥ 85% first-try accuracy, yellow 65–84%, red below 65%: a good topic to practice in Endless Training.</p>
         <div class="tablewrap"><table class="topics"><thead><tr><th>Topic · standard</th><th>Tries</th><th>Accuracy</th><th>Highest level</th></tr></thead><tbody>${rows}</tbody></table></div></section>
-      <section><h2>Recent mistakes</h2>${mist ? `<ul class="mist">${mist}</ul>` : '<p class="muted">No mistakes recorded yet.</p>'}</section>
+      <section><h2>Recent mistakes</h2>
+        <p class="muted">Every mistake (in games and in tests) is saved as a skill to practice. Fresh questions of that skill come back in later games and tests, and in the 🛠️ Fix-it Lab; after 3 right answers on different days it counts as fixed. Now in repair: <b>${Object.keys(st.review).length}</b> · fixed so far: <b>${s.fixed || 0}</b>.</p>
+        ${mist ? `<ul class="mist">${mist}</ul>` : '<p class="muted">No mistakes recorded yet.</p>'}</section>
+      <section class="settings"><h2>Daily goal</h2>
+        <p class="muted">A small daily target works better than long sessions now and then. The home screen shows a ring for today and the days of the week.</p>
+        <div class="label">Problems per day</div>
+        <div class="chips">${[0, 10, 20, 30, 50].map((n) => `<button class="chip ${(st.goal.perDay || 0) === n ? 'sel' : ''}" data-act="setGoal" data-arg="perDay:${n}" aria-pressed="${(st.goal.perDay || 0) === n}">${n ? n : 'Off'}</button>`).join('')}</div>
+        <div class="label">Days per week</div>
+        <div class="chips">${[3, 4, 5, 6, 7].map((n) => `<button class="chip ${(st.goal.days || 5) === n ? 'sel' : ''}" data-act="setGoal" data-arg="days:${n}" aria-pressed="${(st.goal.days || 5) === n}">${n}</button>`).join('')}</div>
+      </section>
       <section class="settings"><h2>Settings</h2>
         <label class="toggle"><input type="checkbox" id="set-sound" data-act="setting" data-arg="sound" ${st.settings.sound ? 'checked' : ''}> Sound effects</label>
         <label class="toggle"><input type="checkbox" id="set-unlock" data-act="setting" data-arg="unlockAll" ${st.settings.unlockAll ? 'checked' : ''}> Unlock all worlds (skip ahead to match what is taught in class)</label>
@@ -1326,7 +1649,7 @@
     if (scr === 'family') { ui.fam = null; return family(); }
     if (!st) return who();
     endContest();
-    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, parent: parentGate }[scr] || home)();
+    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
 
   const ACTIONS = {
@@ -1368,7 +1691,12 @@
       if (self) return who();
       parent();
     },
-    startLevel: (a) => { const [wid, i] = a.split(':'); const w = WORLDS().find((x) => x.id === wid); const lv = w.levels[+i]; startSession({ mode: 'level', world: w, li: +i, level: lv, topics: lv.topics, d: lv.d, goal: lv.goal }); },
+    startLevel: (a) => {
+      const [wid, i] = a.split(':'), w = WORLDS().find((x) => x.id === wid), lv = w.levels[+i];
+      // review questions in a level: only topics of this world and the worlds before it
+      const known = new Set(WORLDS().slice(0, worldIndex(wid) + 1).flatMap((x) => x.levels.flatMap((l) => l.topics)));
+      startSession({ mode: 'level', world: w, li: +i, level: lv, topics: lv.topics, d: lv.d, goal: lv.goal, revFit: (r) => known.has(r.topic) });
+    },
     daily: () => startDaily(),
     key: (a) => key(a),
     submit: () => submit(),
@@ -1400,7 +1728,38 @@
     resumeTest: (a) => resumeTest(a),
     restartTest: (a) => { const [kind, act, arg] = a.split('|'); closeModal(); ui.restartOk = kind; ACTIONS[act](arg); },
     viewContest: (a) => { const c = (st.tests.contests || []).find((x) => x.id === a); c ? contestResult(c, false) : prep(); },
-    kgPractice: (a) => { if (!MQ.TOPICS[a]) return prep(); startSession({ mode: 'trainer', topics: [a], auto: true, d: [2, 2], goal: 0, timer: 0, kgTopic: a }); },
+    kgPractice: (a) => {
+      const T = MQ.TOPICS[a];
+      if (!T) return prep();
+      const top = T.logic && st.grade === 'k' ? 2 : 5; // kindergarten logic stays at levels 1–2
+      startSession({ mode: 'trainer', topics: [a], auto: true, d: [2, 2], autoD: Math.min(2, top - 1) || 1, maxD: top, goal: 0, timer: 0, kgTopic: a,
+        revFit: (r) => familyOf(r.topic) === familyOf(a) && r.d <= top });
+    },
+    startFixit: () => startFixit(),
+    info: (a) => {
+      const x = P().INFO[a];
+      if (!x) return;
+      modal(`<div class="mtitle">${x.icon} ${x.title}</div><div class="infobox">
+        <h3>What is it?</h3><p>${x.what}</p><h3>Where is it used?</h3><p>${x.where}</p>
+        <h3>What does it check?</h3><p>${x.checks}</p><h3>How to practice here</h3><p>${x.how}</p></div>
+        <div class="row"><button class="btn" data-act="closeModal">Got it</button></div>`);
+    },
+    practiceTopic: (a) => {
+      const T = MQ.TOPICS[a];
+      if (!T) return;
+      if (T.track === 'prep') return ACTIONS.kgPractice(a);
+      st.trainer = { topics: [a], diff: Math.min(5, mastery(a).passed + 1), mode: 'endless' };
+      S.save();
+      startTrainer();
+    },
+    progRange: (a) => { prog().range = a; keepScroll(cur === 'progress' ? progress : parent); },
+    progTopic: (a) => { prog().topic = a; keepScroll(cur === 'progress' ? progress : parent); },
+    setGoal: (a, el) => {
+      const [k, v] = a.split(':');
+      st.goal = Object.assign({ perDay: 0, days: 5 }, st.goal, { [k]: +v });
+      S.save();
+      el.parentNode.querySelectorAll('.chip').forEach((b) => { b.classList.toggle('sel', b === el); b.setAttribute('aria-pressed', b === el); });
+    },
     startCheck: () => startCheck(),
     viewCheck: (a) => { const c = myChecks().find((x) => x.id === a); c ? checkResult(c, false) : prep(); },
     reviewCheck: (a) => { const c = myChecks().find((x) => x.id === a); c && c.items ? reviewCheck(c) : prep(); },
@@ -1466,12 +1825,12 @@
     document.addEventListener('click', (e) => {
       const el = e.target.closest('[data-act]');
       if (!el || el.disabled) return;
-      if (el.type === 'checkbox') return; // handled on change
+      if (el.type === 'checkbox' || el.tagName === 'SELECT') return; // handled on change
       act(el.dataset.act, el.dataset.arg, el);
     });
     document.addEventListener('change', (e) => {
-      const el = e.target.closest('input[type=checkbox][data-act]');
-      if (el) act(el.dataset.act, el.dataset.arg, el);
+      const el = e.target.closest('input[type=checkbox][data-act], select[data-act]');
+      if (el) act(el.dataset.act, el.tagName === 'SELECT' ? el.value : el.dataset.arg, el);
     });
     window.addEventListener('popstate', onPop);
     try { if (useHistory) history.replaceState({ where: 'start' }, ''); } catch (e) { /* ignore */ }

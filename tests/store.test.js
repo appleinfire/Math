@@ -57,6 +57,52 @@ for (const k of ['a', 'b', 'a', 'c']) S.markSeen('cg_folding', k);
 assert.deepStrictEqual(MQ.state.seen.cg_folding, ['b', 'a', 'c'], 'markSeen moves a repeat to the end');
 MQ.state = null;
 
+// Mistakes come back: a miss puts the skill in box 0 (due today); right answers on later days move it up;
+// the third right answer on a due day fixes it. A right answer before the due day changes nothing.
+{
+  const realKey = MQ.U.dateKey;
+  let today = '2026-10-10';
+  MQ.U.dateKey = (d) => (d ? realKey(d) : today);
+  const prob = (topic, d) => ({ topic, d, text: 'q', answer: 1 });
+  MQ.state = Object.assign(base(), { review: {}, months: {}, mistakes: [], tips: {}, goal: { perDay: 0, days: 5 } });
+  MQ.state.stats.fixed = 0;
+  S.record(prob('add20', 2), false, '7');
+  let r = MQ.state.review['add20|2'];
+  assert.deepStrictEqual([r.box, r.due, r.miss], [0, '2026-10-10', 1], 'a miss is due today');
+  assert.strictEqual(S.dueReview().length, 1);
+  assert.strictEqual(S.record(prob('add20', 2), true), 'up', 'right on the same day: one step');
+  assert.deepStrictEqual([r.box, r.due], [1, '2026-10-11']);
+  assert.strictEqual(S.record(prob('add20', 2), true), null, 'not due yet: no change');
+  assert.strictEqual(S.dueReview().length, 0);
+  today = '2026-10-11';
+  assert.strictEqual(S.record(prob('add20', 2), true), 'up');
+  assert.deepStrictEqual([r.box, r.due], [2, '2026-10-14']);
+  today = '2026-10-14';
+  assert.strictEqual(S.record(prob('add20', 3), true), null, 'another difficulty is another skill');
+  assert.strictEqual(S.record(prob('add20', 2), true), 'fixed');
+  assert.ok(!MQ.state.review['add20|2'] && MQ.state.stats.fixed === 1, 'fixed skills leave the list and are counted');
+  // A new mistake on a skill in progress starts it over.
+  S.record(prob('time', 3), false, '2');
+  S.record(prob('time', 3), true);
+  S.record(prob('time', 3), false, '4');
+  assert.deepStrictEqual([MQ.state.review['time|3'].box, MQ.state.review['time|3'].miss], [0, 2]);
+  // Long-term statistics: every answer counts in its month, per topic.
+  assert.deepStrictEqual(MQ.state.months['2026-10'].add20, [6, 5]);
+  // The list never grows without end.
+  for (let i = 0; i < 120; i++) S.miss('t' + i, 1);
+  assert.strictEqual(Object.keys(MQ.state.review).length, S.REVIEW_MAX);
+  // Merging: each skill keeps the copy practiced most recently; months keep the copy with more answers.
+  const ra = Object.assign(base(), { rev: 10, review: { 'add20|2': { topic: 'add20', d: 2, box: 2, due: '2026-10-20', miss: 1, last: '2026-10-17' }, 'time|1': { topic: 'time', d: 1, box: 0, due: '2026-10-01', miss: 1, last: '2026-10-01' } }, months: { '2026-10': { add20: [9, 7] } } });
+  const rb = Object.assign(base(), { rev: 20, review: { 'add20|2': { topic: 'add20', d: 2, box: 0, due: '2026-10-12', miss: 2, last: '2026-10-12' } }, months: { '2026-10': { add20: [4, 4], time: [2, 1] }, '2026-09': { time: [3, 3] } } });
+  const rm = S.mergeProfiles(ra, rb);
+  assert.strictEqual(rm.review['add20|2'].box, 2, 'the more recent practice wins');
+  assert.ok(rm.review['time|1'], 'skills from both devices are kept');
+  assert.deepStrictEqual(rm.months, { '2026-10': { add20: [9, 7], time: [2, 1] }, '2026-09': { time: [3, 3] } });
+  assert.deepStrictEqual(S.mergeProfiles(rb, ra).review, rm.review, 'review merge does not depend on order');
+  MQ.U.dateKey = realKey;
+  MQ.state = null;
+}
+
 const merged = S.mergeProfiles(erased, a);
 assert.deepStrictEqual(merged.creatures, {}, 'an erase wins over older progress');
 // …but progress made after the erase on another device is kept.

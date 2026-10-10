@@ -371,17 +371,17 @@
     return EC(`🔊 <b>${q}</b>`, ans, shuffle([ans, ...wrong]), { say: q, hint: 'Listen to the question again with 🔊.', explain: `${ans} — ${q.replace(/\?$/, '')}.` });
   }
 
-  const T = (name, icon, battery, gen) => ({ name, icon, std: 'CogAT style · ' + battery, gen, track: 'prep', cogat: true, battery });
+  const T = (name, icon, battery, gen, desc) => ({ name, icon, std: 'CogAT style · ' + battery, gen, track: 'prep', cogat: true, battery, desc });
   Object.assign(MQ.TOPICS, {
-    cg_picanalogy: T('Picture Analogies', '🔗', 'Verbal', cg_picanalogy),
-    cg_sentence: T('Sentence Completion', '👂', 'Verbal', cg_sentence),
-    cg_picclass: T('Picture Classification', '🗂️', 'Verbal', cg_picclass),
-    cg_numanalogy: T('Number Analogies', '🔢', 'Quantitative', cg_numanalogy),
-    cg_numpuzzle: T('Number Puzzles', '🧮', 'Quantitative', cg_numpuzzle),
-    cg_numseries: T('Number Series', '🧿', 'Quantitative', cg_numseries),
-    cg_matrix: T('Figure Matrices', '🔲', 'Nonverbal', cg_matrix),
-    cg_classify: T('Figure Classification', '🔷', 'Nonverbal', cg_classify),
-    cg_folding: T('Paper Folding', '📄', 'Nonverbal', cg_folding),
+    cg_picanalogy: T('Picture Analogies', '🔗', 'Verbal', cg_picanalogy, 'This goes with that, so what goes with this? Find the pair that matches the first pair.'),
+    cg_sentence: T('Sentence Completion', '👂', 'Verbal', cg_sentence, 'Listen to a question and pick the picture that answers it.'),
+    cg_picclass: T('Picture Classification', '🗂️', 'Verbal', cg_picclass, 'Three pictures belong together. Find the one that belongs with them.'),
+    cg_numanalogy: T('Number Analogies', '🔢', 'Quantitative', cg_numanalogy, 'Find the number rule in the first pairs and use it on the last one.'),
+    cg_numpuzzle: T('Number Puzzles', '🧮', 'Quantitative', cg_numpuzzle, 'Each animal stands for a number. Find the number that makes it true.'),
+    cg_numseries: T('Number Series', '🧿', 'Quantitative', cg_numseries, 'Find the pattern in a row of numbers and pick what comes next.'),
+    cg_matrix: T('Figure Matrices', '🔲', 'Nonverbal', cg_matrix, 'Find how the shapes change across a row and pick the missing one.'),
+    cg_classify: T('Figure Classification', '🔷', 'Nonverbal', cg_classify, 'Three shapes are alike in some way. Find another one that is alike too.'),
+    cg_folding: T('Paper Folding', '📄', 'Nonverbal', cg_folding, 'Fold paper, punch holes, then imagine where the holes are when it is opened.'),
   });
   MQ.COGAT_BATTERIES = [
     { id: 'Verbal', icon: '💬', topics: ['cg_picanalogy', 'cg_sentence', 'cg_picclass'] },

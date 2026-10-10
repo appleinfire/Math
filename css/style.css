@@ -599,3 +599,78 @@ svg.vis.abacus { max-height: 160px; }
 /* Unfinished test on a test card */
 .tc-resume { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0; padding: 10px 12px; border-radius: 14px; background: #fff6e0; box-shadow: inset 0 0 0 2px #ffcf6b; }
 .tc-resume span { font-size: 0.95rem; }
+
+/* ⓘ: what is this test? */
+.tc-head > div { flex: 1; min-width: 0; }
+.infobtn { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 0; padding: 0; background: #eef1ff; color: #4a50a8; box-shadow: inset 0 0 0 2px #b9bef0; font: italic 800 1.05rem Georgia, 'Times New Roman', serif; }
+.infobtn:active { transform: scale(0.92); }
+.infobox { text-align: left; margin: 8px 0 4px; }
+.infobox h3 { font-family: var(--display); font-weight: 600; font-size: 1rem; margin: 12px 0 2px; }
+.infobox p { margin: 0; font-size: 0.95rem; line-height: 1.4; }
+
+/* Practice-by-type tiles with a short description */
+.tile.type { text-align: left; align-items: flex-start; }
+.tile.type small { font-size: 0.8rem; line-height: 1.3; }
+.tile .tstat { font-size: 0.8rem; font-weight: 800; color: var(--ink); }
+
+/* Review questions and strategy tips */
+.dchip.rv { background: #dcf3e3; color: #23703f; margin-right: 6px; }
+.tipcard { background: var(--sun-soft); color: #6b4706; border-radius: 14px; padding: 9px 12px; margin-bottom: 10px; font-weight: 700; font-size: 0.95rem; line-height: 1.35; text-align: left; box-shadow: inset 0 0 0 2px var(--sun); animation: pop 0.4s; }
+.tipcard b { margin-right: 4px; }
+
+/* Logic puzzles: numbered clues */
+.clues { text-align: left; margin: 8px 0 10px; padding-left: 1.4em; display: flex; flex-direction: column; gap: 4px; font-size: 0.98em; }
+
+/* Home: Fix-it Lab, progress, daily goal */
+.t-fixit.hot { box-shadow: inset 0 0 0 3px #3c9d5d, 0 4px 0 #2b7b46; background: #e6f6ec; }
+.t-progress { box-shadow: inset 0 0 0 2px var(--line), 0 3px 0 var(--line); }
+.goal { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 18px; padding: 10px 14px; box-shadow: inset 0 0 0 2px var(--line); margin: 10px 0 4px; }
+.goal .ring { --p: 0; flex: none; width: 62px; height: 62px; border-radius: 50%; display: grid; place-content: center; text-align: center; line-height: 1;
+  background: radial-gradient(closest-side, var(--card) 76%, transparent 78%), conic-gradient(var(--teal) calc(var(--p) * 1%), #e3e9ee 0); }
+.goal .ring b { font-family: var(--display); font-weight: 600; font-size: 1.2rem; }
+.goal .ring small { font-size: 0.68rem; color: var(--ink-soft); font-weight: 800; }
+.goal-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.goal-t small { color: var(--ink-soft); font-weight: 800; font-size: 0.8rem; }
+.wdots { display: flex; gap: 4px; margin-top: 2px; }
+.wdots i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 0.68rem; font-weight: 900; background: #eef2f5; color: var(--ink-soft); }
+.wdots i.on { background: var(--teal); color: #ffffff; }
+.wdots i.now { box-shadow: 0 0 0 2px var(--ink); }
+
+/* Fix-it Lab */
+.fixit { display: flex; flex-direction: column; gap: 14px; }
+.fxlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.fx { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 14px; padding: 10px 12px; box-shadow: inset 0 0 0 2px var(--line); }
+.fx.due { box-shadow: inset 0 0 0 2px #3c9d5d; }
+.fx-ic { font-size: 1.6rem; }
+.fx-n { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.fx-n small { color: var(--ink-soft); font-weight: 700; }
+.fx-box { display: flex; gap: 4px; }
+.fx-box i { width: 14px; height: 14px; border-radius: 50%; background: #e3e9ee; box-shadow: inset 0 0 0 2px #c9d3dc; }
+.fx-box i.on { background: #3c9d5d; box-shadow: none; }
+
+/* My Progress */
+.progress { display: flex; flex-direction: column; gap: 14px; }
+.progtop { display: flex; flex-direction: column; gap: 10px; }
+.segs.four { grid-template-columns: repeat(4, 1fr); }
+.psel { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+.psel .field { padding: 8px 10px; font-size: 1rem; }
+.pchart { margin: 6px 0 0; background: var(--card); border-radius: 16px; padding: 8px; box-shadow: inset 0 0 0 1px var(--line); }
+.pchart svg { width: 100%; max-width: 460px; height: auto; display: block; margin: 0 auto; }
+.pchart figcaption { font-size: 0.78rem; color: var(--ink-soft); font-weight: 700; text-align: center; margin-top: 2px; }
+.pchart .cdot:hover circle:last-of-type { r: 6; }
+.verdict { margin: 4px 0; font-weight: 800; }
+.verdict.up { color: var(--good); }
+.verdict.down { color: #a4561a; }
+.skills { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 6px; }
+.skill { border: 0; text-align: left; background: var(--card); border-radius: 14px; padding: 8px 10px; box-shadow: inset 0 0 0 2px var(--line); display: grid; grid-template-columns: auto 1fr; column-gap: 8px; align-items: center; }
+.skill .sk-m { grid-row: span 2; font-size: 1.4rem; }
+.skill .sk-n { font-weight: 800; font-size: 0.9rem; line-height: 1.2; }
+.skill small { color: var(--ink-soft); font-weight: 700; font-size: 0.75rem; }
+.skill.m0 { opacity: 0.75; }
+.skill.m3 { box-shadow: inset 0 0 0 2px #f0c35a; }
+.skill.m4 { box-shadow: inset 0 0 0 2px #e0a21b; background: #fff8e6; }
+.sumgrid.two { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 480px) {
+  .segs.four .seg { padding: 8px 2px; }
+  .wdots i { width: 19px; height: 19px; }
+}
