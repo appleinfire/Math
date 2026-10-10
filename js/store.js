@@ -1,6 +1,6 @@
 // Saved progress, one profile per child, in localStorage on this device.
 //   math-expedition-profiles   → { active, order: [ids] }
-//   math-expedition-p-<id>     → that child's whole state (grade, progress, crystals, stats…)
+//   math-expedition-p-<id>     → that child's whole state (grade, progress, crystals, stats, farm…)
 // Profiles never share data: switching profile swaps the whole state object.
 // When the family is connected to the cloud (js/cloud.js), every change is reported through S.onChange
 // and changes from other devices come back through S.applyRemote / S.removeRemote.
@@ -239,6 +239,9 @@
     out.review = Object.assign({}, old.review || {});
     for (const [k, v] of Object.entries(nw.review || {})) if (!out.review[k] || (v.last || '') >= (out.review[k].last || '')) out.review[k] = v;
     out.tips = Object.assign({}, old.tips || {}, nw.tips || {});
+    // Sunny Farm: the copy changed last wins as a whole (money is spent, animals move), by the farm's own clock,
+    // so a device that only opened the farm can't replace a farm played on another device.
+    if (old.farm && (!nw.farm || (old.farm.t || 0) > (nw.farm.t || 0))) out.farm = JSON.parse(JSON.stringify(old.farm));
     out.rev = max(nw.rev, old.rev);
     return out;
   };

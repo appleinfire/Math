@@ -212,6 +212,11 @@
     { id: 'fix10', icon: '🛠️', name: 'Fixer', desc: 'Fix 10 mistakes in the Fix-it Lab', test: (s) => (s.stats.fixed || 0) >= 10 },
     { id: 'fix50', icon: '🔧', name: 'Comeback Champion', desc: 'Fix 50 mistakes', test: (s) => (s.stats.fixed || 0) >= 50 },
     { id: 'goal', icon: '🎯', name: 'Goal Getter', desc: 'Reach the daily goal enough days in one week', test: (s) => MQ.goalWeeks(s).some((w) => w.met) },
+    { id: 'farm1', icon: '🧺', name: 'Little Farmer', desc: 'Sell something at your Sunny Farm stand', test: (s) => !!s.farm && s.farm.stats.sold >= 1 },
+    { id: 'farm100', icon: '🏪', name: 'Shopkeeper', desc: 'Serve 100 customers at your farm stand', test: (s) => !!s.farm && s.farm.stats.tasks - s.farm.stats.jobs >= 100 },
+    { id: 'farm10', icon: '🚜', name: 'Real Farmer', desc: 'Reach farm level 10', test: (s) => !!s.farm && MQ.farm.level(s.farm.xp).level >= 10 },
+    { id: 'farm25', icon: '🌾', name: 'Farm Tycoon', desc: 'Reach farm level 25', test: (s) => !!s.farm && MQ.farm.level(s.farm.xp).level >= 25 },
+    { id: 'vip10', icon: '⭐', name: 'Challenge Champ', desc: 'Help 10 ⭐ challenge customers right on the first try', test: (s) => !!s.farm && s.farm.stats.vip >= 10 },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];
 

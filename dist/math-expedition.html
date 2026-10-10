@@ -700,6 +700,200 @@ svg.vis.abacus { max-height: 160px; }
 .apps { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin: 12px auto 0; font-size: 0.88rem; font-weight: 700; color: var(--ink-soft); }
 .appbtn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; background: var(--card); color: var(--ink); text-decoration: none; box-shadow: inset 0 0 0 2px var(--line); }
 .appbtn:active { transform: translateY(1px); }
+
+/* ---------- Sunny Farm (js/farm-ui.js) ---------- */
+.tile.t-farm { background: #f3fbe8; box-shadow: inset 0 0 0 3px #7fbf4d, 0 4px 0 #5d9a31; }
+.tile.t-farm.hot { background: #fff6d8; box-shadow: inset 0 0 0 3px var(--sun), 0 4px 0 #e39a22; }
+.pill.money { color: #2f6b1f; }
+.flevel { background: var(--card); border-radius: var(--r); padding: 12px 14px; box-shadow: inset 0 0 0 2px var(--line); display: flex; flex-direction: column; gap: 6px; }
+.flv { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.flv b { font-family: var(--display); font-weight: 600; font-size: 1.2rem; }
+.flv span { color: var(--ink-soft); font-size: 0.9rem; font-weight: 800; }
+.fbar { display: block; height: 12px; border-radius: 999px; background: #e7edf1; overflow: hidden; }
+.fbar span { display: block; height: 100%; border-radius: 999px; background: #7fbf4d; transition: width 0.4s; }
+.fbar.xp span { background: var(--sun); }
+.fgoal { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; border: 0; text-align: left; background: #fff8e6; border-radius: var(--r); padding: 10px 14px; box-shadow: inset 0 0 0 2px #f0c35a; }
+.fgoal-e { font-size: 2.2rem; flex: none; }
+.fgoal-t { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.fgoal-t small { color: var(--ink-soft); font-weight: 700; }
+.fstand { margin-top: 4px; background: #5d9a31; box-shadow: 0 4px 0 #3f7020; }
+.fstand:active { box-shadow: 0 1px 0 #3f7020; }
+.fbtns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+.fbtns .tile { padding: 10px; }
+.fbtns .tile small { font-size: 0.78rem; }
+.fhead { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.fhead .pill { margin-top: 12px; }
+.fbasket { display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; }
+.fe { font-size: 2.4rem; line-height: 1.1; }
+.fchip { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 999px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); font-weight: 900; font-size: 1.1rem; }
+.fchip small { color: var(--ink-soft); font-size: 0.78rem; }
+.fseeds, .fitems { display: flex; flex-direction: column; gap: 8px; text-align: left; margin-top: 10px; }
+.fseed, .fitem { display: flex; align-items: center; gap: 10px; border: 0; border-radius: 14px; background: var(--card); padding: 8px 12px; box-shadow: inset 0 0 0 2px var(--line); }
+.fseed:disabled { opacity: 0.55; cursor: not-allowed; }
+.fseed .fe, .fitem .fe { font-size: 1.9rem; flex: none; }
+.fseed-t, .fitem-t { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.25; }
+.fseed-t small, .fitem-t small { color: var(--ink-soft); font-weight: 700; font-size: 0.8rem; }
+.fprice { font-family: var(--display); font-weight: 600; font-size: 1.1rem; color: #2f6b1f; white-space: nowrap; }
+.fside { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
+.fside .btn { padding: 8px 14px; font-size: 0.95rem; }
+.fitem.locked { opacity: 0.6; }
+.fown, .flock { font-size: 0.8rem; font-weight: 800; color: var(--ink-soft); white-space: nowrap; }
+.fown { color: var(--good); }
+.ftabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.funlocks { list-style: none; padding: 0; margin: 10px 0; display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.funlocks li { background: var(--card); border-radius: 12px; padding: 8px 12px; box-shadow: inset 0 0 0 2px var(--line); font-weight: 700; }
+.funlocks li span { font-size: 1.3rem; }
+/* stand and paying */
+.pcard.vip { background: #fff5fb; }
+.fcust { display: flex; align-items: flex-start; gap: 12px; }
+.frow { font-size: 1.9rem; letter-spacing: 4px; text-align: center; }
+.ftag { display: inline-block; margin: 6px 4px 0; padding: 4px 12px; border-radius: 10px; background: #fff8e6; box-shadow: inset 0 0 0 2px #f0c35a; font-family: var(--display); font-weight: 600; font-size: 1.15rem; }
+.ftags { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 6px; }
+.ftags .ftag { margin: 0; }
+.fchange { margin-top: 10px; padding: 10px 14px; border-radius: 14px; background: #eef1ff; font-weight: 800; }
+.ftray { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; min-height: 70px; margin-top: 10px; padding: 8px; border-radius: 16px; background: #f4f0e6; box-shadow: inset 0 0 0 2px #e3d6b4; }
+.fpalette { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.fcoin { border: 0; background: none; padding: 0; line-height: 0; }
+.fcoin svg { height: 46px; width: auto; max-height: none; }
+.fcoin.big { background: var(--card); border-radius: 16px; padding: 6px; box-shadow: inset 0 0 0 2px var(--line), 0 4px 0 var(--line); }
+.fcoin.big svg { height: 56px; }
+.fcoin.big:active { transform: translateY(3px); box-shadow: inset 0 0 0 2px var(--line), 0 1px 0 var(--line); }
+@media (max-width: 480px) {
+  .fcoin.big svg { height: 48px; }
+}
+
+/* ---------- Sunny Farm scene (js/farm-scene.js) ---------- */
+.scene { position: relative; margin-top: 16px; border-radius: 22px; overflow: hidden; box-shadow: inset 0 0 0 3px #5d9a31, 0 5px 0 #4e8628; background: #8fd16a; }
+.scene button { touch-action: manipulation; }
+.sky { position: relative; height: 128px; background: linear-gradient(#7cc8f2, #c4ecff 80%); overflow: hidden; }
+.sun { position: absolute; top: 8px; right: 14px; font-size: 2.4rem; animation: sunspin 30s linear infinite; }
+.cloud { position: absolute; font-size: 2.2rem; opacity: 0.95; animation: drift 38s linear infinite; }
+.cloud.c1 { top: 10px; animation-delay: -8s; }
+.cloud.c2 { top: 34px; font-size: 1.6rem; animation-duration: 52s; animation-delay: -30s; }
+.rainbow { position: absolute; top: -6px; left: 28%; font-size: 5.2rem; opacity: 0.8; }
+.balloon { position: absolute; top: 14px; left: 12%; font-size: 1.8rem; animation: floaty 6s ease-in-out infinite; }
+.bird { position: absolute; top: 22px; font-size: 1.3rem; animation: fly 16s linear infinite; }
+.hills { position: absolute; left: 0; right: 0; bottom: 0; height: 52px; background: radial-gradient(ellipse 45% 100% at 20% 100%, #7cc35a 98%, transparent 100%), radial-gradient(ellipse 55% 90% at 78% 100%, #6db64c 98%, transparent 100%), linear-gradient(transparent 70%, #8fd16a 70%); }
+.hfence { position: absolute; left: 0; right: 0; bottom: 0; height: 14px; background: repeating-linear-gradient(90deg, #fffaf0 0 5px, transparent 5px 22px), linear-gradient(transparent 3px, #fffaf0 3px, #fffaf0 6px, transparent 6px); }
+.deco { position: absolute; bottom: 6px; line-height: 1; font-size: 2.3rem; }
+.sky .deco.d-tree { font-size: 2.8rem; }
+.sky .deco.d-cat { bottom: 4px; font-size: 1.4rem; }
+.spi { display: inline-flex; line-height: 0; }
+.spi svg, .deco svg { height: 1em; width: auto; }
+.sky .deco.d-barn svg { height: 52px; }
+.sky .deco.d-windmill svg { height: 74px; }
+.fitem .spi svg { height: 1.9rem; }
+.windmill .blades { transform-origin: 30px 40px; animation: sunspin 7s linear infinite; }
+.land { padding: 10px 10px 0; background: linear-gradient(#8fd16a, #7cc35a); display: flex; flex-direction: column; gap: 10px; }
+.flabel { position: absolute; left: 6px; bottom: 4px; font-size: 0.68rem; font-weight: 900; padding: 1px 7px; border-radius: 999px; background: rgba(255, 255, 255, 0.85); color: var(--ink); }
+.plus { font-size: 1.8rem; font-weight: 900; color: rgba(255, 255, 255, 0.9); }
+/* garden beds */
+.beds { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.fbed.soil { position: relative; flex: 1 1 88px; max-width: 150px; height: 82px; border: 0; border-radius: 14px; padding: 0; display: grid; place-items: center; background: repeating-linear-gradient(0deg, #9c6b3f 0 6px, #b07d4d 6px 16px); box-shadow: inset 0 0 0 3px #7c5130, 0 4px 0 #6a4426; }
+.fbed.soil.empty { background: repeating-linear-gradient(0deg, #a87850 0 6px, #ba8a5c 6px 16px); opacity: 0.9; }
+.fbed.soil.ready { box-shadow: inset 0 0 0 3px #5d9a31, 0 4px 0 #4e8628, 0 0 0 3px #ffe27a; }
+.fbed:active { transform: translateY(3px); }
+.plants { display: flex; gap: 2px; margin-bottom: 14px; }
+.plants i { font-style: normal; font-size: 1.25rem; line-height: 1; }
+.fbed.sprout .plants i { font-size: 1.6rem; }
+.fbed.ready .plants i { font-size: 1.75rem; animation: wiggle 1.4s ease-in-out infinite; animation-delay: calc(var(--k) * 0.15s); transform-origin: 50% 100%; }
+.fbed.ready .flabel { background: #fff27a; }
+.scarecrow { font-size: 2.6rem; line-height: 1; align-self: center; animation: wiggle 3s ease-in-out infinite; transform-origin: 50% 100%; }
+/* pens */
+.pens { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.fpen.pasture { position: relative; height: 104px; border: 0; border-radius: 16px; padding: 0; overflow: hidden; background: linear-gradient(#a6dc80, #93cf6a); box-shadow: inset 0 0 0 4px #c48c55, inset 0 0 0 6px #e3b783, 0 4px 0 #8a5a31; }
+.fpen.pasture::before { content: ''; position: absolute; left: 6px; right: 6px; top: 22px; height: 3px; background: rgba(196, 140, 85, 0.55); }
+.fpen.pasture.empty { display: grid; place-items: center; background: linear-gradient(#b5e095, #a3d77f); opacity: 0.85; }
+.fpen.pasture.ready { box-shadow: inset 0 0 0 4px #c48c55, inset 0 0 0 6px #e3b783, 0 4px 0 #8a5a31, 0 0 0 3px #ffe27a; }
+.fpen:active { transform: translateY(3px); }
+.walker { position: absolute; bottom: 14px; left: 8px; line-height: 1; font-size: 2.6rem; animation: wander var(--t) linear infinite; animation-delay: var(--dl); }
+.walker:not(.side) { animation-name: wander-front; }
+.s0 .walker { font-size: 1.7rem; }
+.s1 .walker { font-size: 2.1rem; }
+.bob { display: inline-block; animation: bob 0.5s ease-in-out infinite alternate; }
+.hungry .bob { animation-duration: 0.9s; }
+.bob.hop, .bee.hop { animation: hop 0.5s ease-out; }
+.hivebox { position: absolute; left: 10px; bottom: 12px; line-height: 0; }
+.hivebox svg { height: 44px; width: auto; }
+.bee { position: absolute; left: 40%; top: 40%; font-size: 1.2rem; animation: buzz 3.2s ease-in-out infinite; animation-delay: calc(var(--k) * -1.1s); }
+.loot { position: absolute; right: 30px; bottom: 10px; display: flex; gap: 1px; }
+.loot i { font-style: normal; font-size: 1.35rem; animation: wiggle 1.2s ease-in-out infinite; animation-delay: calc(var(--k) * 0.2s); }
+.trough { position: absolute; right: 8px; bottom: 10px; width: 24px; height: 12px; border-radius: 3px 3px 8px 8px; background: #8a5a31; }
+.trough.full::after { content: ''; position: absolute; left: 3px; right: 3px; top: -3px; height: 6px; border-radius: 4px; background: #e8c45a; }
+.pchip { position: absolute; top: 6px; right: 8px; font-size: 0.78rem; font-weight: 900; padding: 1px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.92); color: var(--ink); }
+.hungry .pchip { background: #ffe2dc; color: var(--bad); animation: bump 1.6s ease-in-out infinite; }
+.ready .pchip { background: #fff27a; }
+/* yard with the stand */
+.yard { position: relative; height: 96px; margin: 0 -10px; background: linear-gradient(#7cc35a, #6aae49); overflow: hidden; }
+.yard::before { content: ''; position: absolute; left: 0; right: 0; bottom: 18px; height: 16px; background: #d8b98a; opacity: 0.7; border-radius: 8px; }
+.yard .deco { bottom: 10px; font-size: 2.1rem; }
+.yard .deco.d-pond { width: 74px; height: 30px; bottom: 6px; border-radius: 50%; background: radial-gradient(#7fd0f2, #4aa8d8); display: grid; place-items: center; font-size: 1.4rem; }
+.yard .deco.d-pond { animation: none; }
+.ystand { position: absolute; left: 10px; bottom: 8px; width: 82px; height: 76px; border: 0; border-radius: 12px; background: #fff7e6; box-shadow: inset 0 0 0 3px #b07a46, 0 4px 0 #8a5a31; display: grid; place-items: end center; padding-bottom: 4px; }
+.ystand .awn { position: absolute; top: 0; left: 0; right: 0; height: 22px; border-radius: 12px 12px 4px 4px; background: repeating-linear-gradient(90deg, var(--aw, #ff7e6b) 0 12px, #ffffff 12px 24px); }
+.ystand .ye { font-size: 2rem; line-height: 1; }
+.ystand .badge { position: absolute; top: -2px; right: -4px; min-width: 24px; height: 24px; border-radius: 12px; display: grid; place-items: center; background: var(--coral); color: #ffffff; font-size: 0.8rem; box-shadow: 0 2px 0 var(--coral-dark); }
+.ystand:active { transform: translateY(3px); }
+.st1 { --aw: #f2a33a; } .st2 { --aw: #3fae6a; } .st3 { --aw: #4d8fe0; } .st4 { --aw: #9b59d0; } .st5 { --aw: #e04d7c; } .st9 { --aw: #6a5acd; }
+.dog { position: absolute; bottom: 10px; font-size: 1.8rem; animation: run 9s linear infinite; }
+.tractor { position: absolute; bottom: 14px; font-size: 2.4rem; animation: drive 16s linear infinite; }
+.fstore { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
+.fstore .btn { padding: 8px 14px; font-size: 0.95rem; }
+/* market stall above the customer */
+.stall { position: relative; margin: 10px 0 0; border-radius: 18px 18px 0 0; overflow: hidden; background: linear-gradient(#cfeeff, #e9f8ff); height: 116px; }
+.stall .awning { position: absolute; top: 0; left: 0; right: 0; height: 26px; background: repeating-linear-gradient(90deg, var(--aw, #ff7e6b) 0 22px, #ffffff 22px 44px); border-radius: 0 0 14px 14px; box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08); }
+.stall.m-pay { --aw: #4d8fe0; }
+.stall.vip { --aw: #b0569e; background: linear-gradient(#f6e4ff, #fff5fb); }
+.stall-in { position: absolute; inset: 26px 0 0; }
+.seller { position: absolute; left: 12px; bottom: 30px; font-size: 2.6rem; line-height: 1; }
+.counter { position: absolute; left: 0; right: 32%; bottom: 0; height: 36px; background: #c48c55; box-shadow: inset 0 4px 0 #e3b783; display: flex; align-items: flex-start; justify-content: flex-end; gap: 8px; padding: 0 10px; }
+.goods { display: flex; gap: 1px; margin-top: -24px; font-size: 1.6rem; line-height: 1; }
+.goods i { font-style: normal; }
+.goods.gone { opacity: 0; transition: opacity 0.3s 0.2s; }
+.goods .spi svg { height: 1.7rem; }
+.cashbox { margin-top: -22px; font-size: 1.6rem; line-height: 1; }
+.shopper { position: absolute; right: 8%; bottom: 4px; font-size: 3.2rem; line-height: 1; animation: walkin 0.9s ease-out both; }
+.shopper > span { display: inline-block; animation: bob 0.45s ease-in-out 2 alternate; }
+.shopper.vip::after { content: '⭐'; position: absolute; top: -8px; right: -10px; font-size: 1.3rem; animation: sunspin 4s linear infinite; }
+.shopper.happy > span { animation: hop 0.6s ease-out 2; }
+.shopper.sad > span { animation: shake 0.6s; }
+.stall + .pcard { border-radius: 0 0 22px 22px; }
+.fcoin.landing { visibility: hidden; }
+.flyer { position: fixed; z-index: 60; pointer-events: none; line-height: 1; }
+.flyer svg { height: 2.2em; width: auto; max-height: none; }
+/* the night between two days */
+.nightfx { position: fixed; inset: 0; z-index: 55; pointer-events: none; background: radial-gradient(ellipse at 50% 120%, #2b3f7a, #0c1633 70%); overflow: hidden; }
+.nightfx i { position: absolute; color: #fff6c9; font-style: normal; font-size: 0.9rem; animation: twinkle 0.8s ease-in-out infinite alternate; }
+.nightfx .moon { position: absolute; top: 14%; right: 18%; font-size: 4rem; }
+.nightfx .zzz { position: absolute; top: 40%; left: 50%; transform: translateX(-50%); color: #cfd8ff; font-family: var(--display); font-size: 2.2rem; letter-spacing: 0.3em; animation: floaty 1.6s ease-in-out infinite; }
+.nightfx .sunup { position: absolute; left: 50%; bottom: -80px; font-size: 5rem; transform: translateX(-50%); animation: sunup 2.4s ease-in both; }
+@keyframes drift { from { left: -15%; } to { left: 110%; } }
+@keyframes sunspin { to { transform: rotate(360deg); } }
+@keyframes floaty { 50% { transform: translateY(-10px); } }
+@keyframes fly { from { left: -10%; transform: translateY(0); } 50% { transform: translateY(16px); } to { left: 110%; transform: translateY(0); } }
+@keyframes wiggle { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+@keyframes bob { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+@keyframes hop { 0% { transform: translateY(0) scale(1); } 40% { transform: translateY(-22px) scale(1.15); } 100% { transform: translateY(0) scale(1); } }
+/* side-drawn animals face left: walking right they turn around */
+@keyframes wander { 0% { left: 8px; transform: scaleX(-1); } 44% { left: calc(100% - 3.4rem); transform: scaleX(-1); } 50% { left: calc(100% - 3.4rem); transform: scaleX(1); } 94% { left: 8px; transform: scaleX(1); } 100% { left: 8px; transform: scaleX(-1); } }
+@keyframes wander-front { 0%, 100% { left: 8px; } 50% { left: calc(100% - 3.4rem); } }
+@keyframes buzz { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(34px, -18px); } 50% { transform: translate(10px, 10px); } 75% { transform: translate(-22px, -8px); } }
+@keyframes run { 0% { left: 105%; transform: scaleX(1); } 45% { left: -10%; transform: scaleX(1); } 50% { left: -10%; transform: scaleX(-1); } 95% { left: 105%; transform: scaleX(-1); } 100% { left: 105%; transform: scaleX(1); } }
+@keyframes drive { 0% { left: 110%; } 60%, 100% { left: -20%; } }
+@keyframes walkin { from { transform: translateX(140%); } to { transform: translateX(0); } }
+@keyframes twinkle { from { opacity: 0.3; } to { opacity: 1; } }
+@keyframes sunup { 0%, 55% { bottom: -90px; } 100% { bottom: 30%; } }
+@media (max-width: 480px) {
+  .sky { height: 112px; }
+  .pens { grid-template-columns: repeat(2, 1fr); }
+  .fbed.soil { flex-basis: 70px; height: 76px; }
+  .stall { height: 104px; }
+  .shopper { font-size: 2.8rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene *, .stall * { animation: none !important; }
+  .walker { left: 30%; }
+}
 </style>
 </head>
 <body>
@@ -825,7 +1019,10 @@ svg.vis.abacus { max-height: 160px; }
     n: { v: 5, r: 22, fill: '#c9ced6', stroke: '#7f8792', name: 'nickel' },
     d: { v: 10, r: 17, fill: '#e1e5ea', stroke: '#8f97a2', name: 'dime' },
     q: { v: 25, r: 25, fill: '#d2d7de', stroke: '#7a828e', name: 'quarter' },
-    b: { v: 100, name: 'dollar' },
+    b: { v: 100, name: 'dollar', bill: '$1' },
+    f: { v: 500, name: 'five dollars', bill: '$5' },
+    t: { v: 1000, name: 'ten dollars', bill: '$10' },
+    w: { v: 2000, name: 'twenty dollars', bill: '$20' },
   };
   V.COIN = COIN;
   V.coins = (list, showValues = true) => {
@@ -833,12 +1030,13 @@ svg.vis.abacus { max-height: 160px; }
     let x = 6, y = 6, rowH = 58, items = '', w = 0;
     for (const k of list) {
       const c = COIN[k];
-      const iw = k === 'b' ? 100 : c.r * 2 + 10;
+      const iw = c.bill ? 100 : c.r * 2 + 10;
       if (x + iw > maxW) { x = 6; y += rowH; }
-      if (k === 'b') {
+      if (c.bill) {
+        const n = c.bill.slice(1);
         items += `<rect x="${x}" y="${y + 4}" width="94" height="46" rx="5" fill="#cfe7c6" stroke="#4d7d48" stroke-width="2.5"/>` +
-          `<ellipse cx="${x + 47}" cy="${y + 27}" rx="14" ry="16" fill="#e6f3df" stroke="#4d7d48" stroke-width="1.5"/>` +
-          text(x + 47, y + 33, '$1', 16, 'fill="#2f5a2b"') + text(x + 12, y + 18, '1', 10, 'fill="#2f5a2b"') + text(x + 82, y + 46, '1', 10, 'fill="#2f5a2b"');
+          `<ellipse cx="${x + 47}" cy="${y + 27}" rx="${n.length > 1 ? 18 : 14}" ry="16" fill="#e6f3df" stroke="#4d7d48" stroke-width="1.5"/>` +
+          text(x + 47, y + 33, c.bill, 16, 'fill="#2f5a2b"') + text(x + 12, y + 18, n, 10, 'fill="#2f5a2b"') + text(x + 82, y + 46, n, 10, 'fill="#2f5a2b"');
       } else {
         const cx = x + c.r + 5, cy = y + 27;
         items += `<circle cx="${cx}" cy="${cy}" r="${c.r}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="2.5"/>` +
@@ -4115,6 +4313,11 @@ svg.vis.abacus { max-height: 160px; }
     { id: 'fix10', icon: '🛠️', name: 'Fixer', desc: 'Fix 10 mistakes in the Fix-it Lab', test: (s) => (s.stats.fixed || 0) >= 10 },
     { id: 'fix50', icon: '🔧', name: 'Comeback Champion', desc: 'Fix 50 mistakes', test: (s) => (s.stats.fixed || 0) >= 50 },
     { id: 'goal', icon: '🎯', name: 'Goal Getter', desc: 'Reach the daily goal enough days in one week', test: (s) => MQ.goalWeeks(s).some((w) => w.met) },
+    { id: 'farm1', icon: '🧺', name: 'Little Farmer', desc: 'Sell something at your Sunny Farm stand', test: (s) => !!s.farm && s.farm.stats.sold >= 1 },
+    { id: 'farm100', icon: '🏪', name: 'Shopkeeper', desc: 'Serve 100 customers at your farm stand', test: (s) => !!s.farm && s.farm.stats.tasks - s.farm.stats.jobs >= 100 },
+    { id: 'farm10', icon: '🚜', name: 'Real Farmer', desc: 'Reach farm level 10', test: (s) => !!s.farm && MQ.farm.level(s.farm.xp).level >= 10 },
+    { id: 'farm25', icon: '🌾', name: 'Farm Tycoon', desc: 'Reach farm level 25', test: (s) => !!s.farm && MQ.farm.level(s.farm.xp).level >= 25 },
+    { id: 'vip10', icon: '⭐', name: 'Challenge Champ', desc: 'Help 10 ⭐ challenge customers right on the first try', test: (s) => !!s.farm && s.farm.stats.vip >= 10 },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];
 
@@ -4606,9 +4809,530 @@ svg.vis.abacus { max-height: 160px; }
 })();
 </script>
   <script>
+// Sunny Farm: a mini-game about real money. The child grows crops and raises animals, sells what the farm makes at
+// their own stand, and spends the money on seeds, feed, animals and upgrades. Every sale and every purchase is a
+// money problem with US coins and bills (2.MD.8 and beyond). This file holds the rules and the problems
+// (no screens, so it runs in the tests); js/farm-ui.js draws it.
+//
+// st.farm = { money (cents), xp, day, feed (bags), beds: [{ c: crop, g: days grown }], pens: [{ a: animal, g, fed, ready }],
+//             basket: { item: count }, owned: { decoration: true }, stand, goal, tier, streak, miss, stats }
+// Prices come in two scales: kindergarten in small cents ('k'), 2nd grade in dollars and cents ('g2').
+(function () {
+  const MQ = (globalThis.MQ = globalThis.MQ || {});
+  const U = MQ.U;
+  const F = {};
+  const gi = (g) => (g === 'k' ? 0 : 1); // index into [k, g2] price pairs
+
+  // ---------------------------------------------------------------- catalog
+  // Things to sell. price: [kindergarten, 2nd grade] in cents.
+  F.ITEMS = {
+    carrot: { e: '🥕', name: 'carrot', many: 'carrots', price: [1, 10] },
+    strawberry: { e: '🍓', name: 'strawberry', many: 'strawberries', price: [2, 20] },
+    tomato: { e: '🍅', name: 'tomato', many: 'tomatoes', price: [3, 25] },
+    corn: { e: '🌽', name: 'ear of corn', many: 'ears of corn', price: [3, 30] },
+    pumpkin: { e: '🎃', name: 'pumpkin', many: 'pumpkins', price: [6, 120] },
+    sunflower: { e: '🌻', name: 'sunflower', many: 'sunflowers', price: [4, 45] },
+    watermelon: { e: '🍉', name: 'watermelon', many: 'watermelons', price: [8, 150] },
+    blueberry: { e: '🫐', name: 'box of blueberries', many: 'boxes of blueberries', price: [5, 60] },
+    grapes: { e: '🍇', name: 'bunch of grapes', many: 'bunches of grapes', price: [9, 200] },
+    egg: { e: '🥚', name: 'egg', many: 'eggs', price: [2, 15] },
+    honey: { e: '🍯', name: 'jar of honey', many: 'jars of honey', price: [5, 85] },
+    goatmilk: { e: '🍼', name: 'bottle of goat milk', many: 'bottles of goat milk', price: [4, 60] },
+    wool: { e: '🧶', name: 'ball of wool', many: 'balls of wool', price: [6, 95] },
+    milk: { e: '🥛', name: 'glass of milk', many: 'glasses of milk', price: [5, 75] },
+    duckegg: { e: '🪺', name: 'duck egg', many: 'duck eggs', price: [3, 35] },
+    truffle: { e: '🍄', name: 'truffle', many: 'truffles', price: [9, 300] },
+    fluff: { e: '☁️', name: 'bag of alpaca fluff', many: 'bags of alpaca fluff', price: [9, 350] },
+    ride: { e: '🎟️', name: 'pony ride', many: 'pony rides', price: [10, 250] },
+  };
+  // Crops: plant a seed packet in a bed, wait `days` days, pick `yield` items.
+  F.CROPS = {
+    carrot: { lv: 1, days: 1, yield: 3, seed: [2, 15] },
+    strawberry: { lv: 2, days: 2, yield: 3, seed: [3, 30] },
+    tomato: { lv: 5, days: 2, yield: 4, seed: [5, 40] },
+    corn: { lv: 8, days: 3, yield: 5, seed: [6, 50] },
+    pumpkin: { lv: 12, days: 4, yield: 2, seed: [8, 100] },
+    sunflower: { lv: 16, days: 3, yield: 4, seed: [7, 60] },
+    watermelon: { lv: 22, days: 4, yield: 2, seed: [10, 150] },
+    blueberry: { lv: 28, days: 3, yield: 5, seed: [12, 120] },
+    grapes: { lv: 35, days: 5, yield: 4, seed: [20, 250] },
+  };
+  // Animals: fed every day they grow (baby → young → grown-up); a fed grown-up gives `per` items the next morning.
+  // grow: [days fed to be young, days fed to be grown-up]; eat: feed bags a day.
+  F.ANIMALS = {
+    chicken: { e: '🐔', baby: '🐣', name: 'Chicken', lv: 1, cost: [5, 50], eat: 1, grow: [1, 2], item: 'egg', per: 2 },
+    bees: { e: '🐝', baby: '🐝', name: 'Beehive', lv: 3, cost: [10, 150], eat: 1, grow: [1, 2], item: 'honey', per: 1 },
+    goat: { e: '🐐', baby: '🐐', name: 'Goat', lv: 6, cost: [15, 300], eat: 2, grow: [1, 3], item: 'goatmilk', per: 1 },
+    sheep: { e: '🐑', baby: '🐑', name: 'Sheep', lv: 10, cost: [20, 450], eat: 2, grow: [1, 3], item: 'wool', per: 1 },
+    cow: { e: '🐄', baby: '🐮', name: 'Cow', lv: 14, cost: [30, 800], eat: 4, grow: [2, 4], item: 'milk', per: 2 },
+    duck: { e: '🦆', baby: '🐥', name: 'Duck', lv: 18, cost: [25, 600], eat: 2, grow: [1, 2], item: 'duckegg', per: 2 },
+    pig: { e: '🐖', baby: '🐷', name: 'Pig', lv: 24, cost: [40, 1500], eat: 3, grow: [2, 4], item: 'truffle', per: 1 },
+    alpaca: { e: '🦙', baby: '🦙', name: 'Alpaca', lv: 30, cost: [60, 2500], eat: 4, grow: [2, 5], item: 'fluff', per: 1 },
+    pony: { e: '🐴', baby: '🐴', name: 'Pony', lv: 40, cost: [90, 4000], eat: 5, grow: [2, 5], item: 'ride', per: 1 },
+  };
+  F.FEED = { e: '🌾', price: [1, 5] }; // one bag
+  F.FEED_PACKS = [5, 20];
+  // More beds and pens: [unlock level, price k, price g2] for each one after the first ones.
+  F.BEDS = [[1, 0, 0], [1, 0, 0], [2, 5, 40], [4, 8, 80], [7, 12, 150], [11, 18, 250], [16, 25, 400], [21, 35, 600]];
+  F.PENS = [[1, 0, 0], [2, 6, 60], [5, 12, 150], [8, 20, 300], [12, 30, 500], [17, 45, 800], [23, 60, 1200], [30, 80, 2000]];
+  // The stand: a nicer stand brings tips for first-try right answers (part of the sale, at least 1¢).
+  F.STANDS = [
+    { e: '🪵', name: 'Wooden table', lv: 1, cost: [0, 0], tip: 0 },
+    { e: '🛒', name: 'Farm cart', lv: 4, cost: [15, 200], tip: 0.05 },
+    { e: '⛺', name: 'Market tent', lv: 9, cost: [30, 600], tip: 0.1 },
+    { e: '🏠', name: 'Farm shop', lv: 15, cost: [50, 1500], tip: 0.15 },
+    { e: '🏛️', name: 'Market hall', lv: 25, cost: [80, 4000], tip: 0.2 },
+    { e: '🏬', name: 'Supermarket', lv: 40, cost: [99, 10000], tip: 0.25 },
+  ];
+  F.DECOR = {
+    fence: { e: '🪵', name: 'Fence', lv: 2, cost: [5, 100] },
+    flowers: { e: '🌷', name: 'Tulips', lv: 3, cost: [6, 150] },
+    scarecrow: { e: '🧑‍🌾', name: 'Scarecrow', lv: 5, cost: [8, 250] },
+    birdhouse: { e: '🐦', name: 'Birdhouse', lv: 6, cost: [10, 300] },
+    tree: { e: '🌳', name: 'Apple tree', lv: 8, cost: [12, 500] },
+    pond: { e: '🦢', name: 'Pond with swans', lv: 9, cost: [15, 600] },
+    dog: { e: '🐕', name: 'Farm dog', lv: 11, cost: [18, 900] },
+    windmill: { e: '🌬️', name: 'Windmill', lv: 13, cost: [20, 1200] },
+    tractor: { e: '🚜', name: 'Tractor', lv: 15, cost: [40, 4000] },
+    barn: { e: '🛖', name: 'Red barn', lv: 19, cost: [35, 3000] },
+    cat: { e: '🐈', name: 'Barn cat', lv: 21, cost: [30, 2000] },
+    greenhouse: { e: '🪴', name: 'Greenhouse', lv: 26, cost: [50, 6000] },
+    balloon: { e: '🎈', name: 'Hot-air balloon', lv: 33, cost: [70, 8000] },
+    fountain: { e: '⛲', name: 'Fountain', lv: 36, cost: [80, 10000] },
+    rainbow: { e: '🌈', name: 'Rainbow arch', lv: 42, cost: [90, 15000] },
+    golden: { e: '🏆', name: 'Golden chicken statue', lv: 50, cost: [99, 20000] },
+  };
+  // Math tiers: which money problems customers bring. A tier opens with the farm level; the child climbs the open
+  // tiers by answering right (4 first-try right in a row → up, 2 misses → down). Tiers marked ahead are beyond
+  // the grade's standards (challenges to grow into); a ⭐ challenge customer brings one tier above the current one.
+  F.TIERS = {
+    k: [
+      { lv: 1, name: 'Pennies to 10', max: 10, coins: ['p'], types: ['collect', 'count', 'total'] },
+      { lv: 4, name: 'Nickels to 20', max: 20, coins: ['n', 'p'], types: ['count', 'collect', 'total', 'change', 'enough'], pay: [10] },
+      { lv: 12, name: 'Dimes to 50', max: 50, coins: ['d', 'n', 'p'], types: ['count', 'collect', 'change', 'giveChange', 'total'], pay: [10, 20, 25, 50], ahead: true },
+      { lv: 22, name: 'Quarters to 99', max: 99, coins: ['q', 'd', 'n', 'p'], types: ['count', 'collect', 'change', 'giveChange', 'two', 'enough'], pay: [25, 50, 100], ahead: true },
+    ],
+    g2: [
+      { lv: 1, name: 'Coins to 50¢', max: 60, coins: ['d', 'n', 'p'], types: ['count', 'collect', 'total', 'two'] },
+      { lv: 3, name: 'Quarters to 99¢', max: 99, coins: ['q', 'd', 'n', 'p'], types: ['count', 'collect', 'change', 'two', 'enough'], pay: [50, 100] },
+      { lv: 6, name: 'Dollars', max: 500, coins: ['b', 'q', 'd', 'n', 'p'], types: ['count', 'two', 'total', 'change', 'giveChange'], pay: [100, 200, 500] },
+      { lv: 10, name: 'Change from $5', max: 1000, coins: ['f', 'b', 'q', 'd', 'n', 'p'], types: ['change', 'giveChange', 'budget', 'collect', 'two'], pay: [100, 200, 500, 1000] },
+      { lv: 16, name: 'Big orders', max: 2000, coins: ['t', 'f', 'b', 'q', 'd', 'n', 'p'], types: ['multiply', 'change', 'budget', 'giveChange'], pay: [500, 1000, 2000], ahead: true },
+      { lv: 24, name: 'Deals & profit', max: 5000, coins: ['w', 't', 'f', 'b', 'q', 'd', 'n', 'p'], types: ['deal', 'profit', 'budget', 'multiply'], pay: [1000, 2000], ahead: true },
+    ],
+  };
+  F.tiers = (grade) => F.TIERS[grade === 'k' ? 'k' : 'g2'];
+  F.tierOpen = (fm, grade) => F.tiers(grade).filter((t) => t.lv <= F.level(fm.xp).level).length; // 1-based count
+  F.VIP_EVERY = 5; // every 5th customer is a ⭐ challenge customer
+
+  // ---------------------------------------------------------------- money words
+  F.COINV = { p: 1, n: 5, d: 10, q: 25, b: 100, f: 500, t: 1000, w: 2000 };
+  // Kindergarten counts everything in cents; 2nd grade writes $1.25 from a dollar up.
+  F.fmt = (c, grade) => (grade === 'k' ? c + '¢' : U.cents(c));
+  F.spoken = (c, grade) => {
+    if (grade === 'k' || c < 100) return c + (c === 1 ? ' cent' : ' cents');
+    const d = Math.floor(c / 100), r = c % 100;
+    return d + (d === 1 ? ' dollar' : ' dollars') + (r ? ' and ' + r + (r === 1 ? ' cent' : ' cents') : '');
+  };
+  const PAY_NAMES = { 5: ['a nickel', ['n']], 10: ['a dime', ['d']], 20: ['two dimes', ['d', 'd']], 25: ['a quarter', ['q']], 50: ['two quarters', ['q', 'q']], 100: ['a $1 bill', ['b']], 200: ['two $1 bills', ['b', 'b']], 500: ['a $5 bill', ['f']], 1000: ['a $10 bill', ['t']], 2000: ['a $20 bill', ['w']] };
+  F.payName = (x) => (PAY_NAMES[x] || [F.fmt(x, 'g2'), []])[0];
+  F.payCoins = (x) => (PAY_NAMES[x] || ['', F.fewest(x, Object.keys(F.COINV))])[1];
+  const byValue = (kinds) => kinds.slice().sort((a, b) => F.COINV[b] - F.COINV[a]);
+  F.sumCoins = (list) => U.sum(list.map((k) => F.COINV[k]));
+  // Fewest coins and bills for an amount (US money is greedy-safe).
+  F.fewest = (amt, kinds) => {
+    const out = [];
+    let rem = amt;
+    for (const k of byValue(kinds)) while (F.COINV[k] <= rem) { out.push(k); rem -= F.COINV[k]; }
+    return rem ? null : out;
+  };
+  // A natural-looking handful of coins for an amount: not always the fewest, at most 12 pieces.
+  F.coinsFor = (amt, kinds) => {
+    const ks = byValue(kinds);
+    for (let tries = 0; tries < 20; tries++) {
+      let rem = amt;
+      const out = [];
+      ks.forEach((k, i) => {
+        const v = F.COINV[k], most = Math.floor(rem / v);
+        const n = i === ks.length - 1 ? most : U.rnd(Math.ceil(most / 2), most);
+        for (let j = 0; j < n; j++) out.push(k);
+        rem -= n * v;
+      });
+      if (!rem && out.length <= 12) return out;
+    }
+    return F.fewest(amt, ks);
+  };
+
+  // ---------------------------------------------------------------- levels
+  // Farm level from XP: level L → L+1 takes 20 + 10·L XP (level 10 ≈ 650 XP, level 50 ≈ 13,000 XP). No top level.
+  F.need = (L) => 20 + 10 * L;
+  F.level = (xp) => {
+    let L = 1, from = 0;
+    while (xp >= from + F.need(L)) { from += F.need(L); L++; }
+    return { level: L, from, to: from + F.need(L) };
+  };
+  F.gift = (L, grade) => (grade === 'k' ? Math.max(2, Math.round(L / 2)) : 10 * L); // money gift for reaching level L
+  // Everything that opens at a level (for the level-up card and the "next level" hint).
+  F.unlocksAt = (L, grade) => {
+    const out = [];
+    for (const [id, c] of Object.entries(F.CROPS)) if (c.lv === L) out.push({ e: F.ITEMS[id].e, name: F.ITEMS[id].many + ' to plant' });
+    for (const a of Object.values(F.ANIMALS)) if (a.lv === L) out.push({ e: a.e, name: a.name });
+    F.BEDS.forEach((b, i) => { if (i >= 2 && b[0] === L) out.push({ e: '🟫', name: 'Garden bed ' + (i + 1) }); });
+    F.PENS.forEach((p, i) => { if (i >= 1 && p[0] === L) out.push({ e: '🏡', name: 'Animal pen ' + (i + 1) }); });
+    for (const s of F.STANDS) if (s.lv === L && L > 1) out.push({ e: s.e, name: s.name });
+    for (const d of Object.values(F.DECOR)) if (d.lv === L) out.push({ e: d.e, name: d.name });
+    F.tiers(grade).forEach((t) => { if (t.lv === L && L > 1) out.push({ e: t.ahead ? '⭐' : '🧮', name: 'New money problems: ' + t.name + (t.ahead ? ' (challenge)' : '') }); });
+    return out;
+  };
+
+  // ---------------------------------------------------------------- new farm
+  F.fresh = () => ({
+    money: 0, // set for the grade on first open (F.ensure)
+    started: false,
+    xp: 0,
+    day: 1,
+    feed: 3,
+    beds: [{ c: 'carrot', g: 1 }, { c: null, g: 0 }],
+    pens: [{ a: 'chicken', g: 0, fed: false, ready: 0 }],
+    basket: {},
+    owned: {},
+    stand: 0,
+    goal: '',
+    tier: 1,
+    streak: 0,
+    miss: 0,
+    customers: 0,
+    t: 0, // when the farm last changed (for merging copies from two devices)
+    stats: { sold: 0, earned: 0, spent: 0, tasks: 0, right: 0, vip: 0, jobs: 0 },
+  });
+  F.START_MONEY = [5, 30];
+  F.ensure = (st) => {
+    if (!st.farm) st.farm = F.fresh();
+    const fm = st.farm;
+    if (!fm.started) { fm.started = true; fm.money = F.START_MONEY[gi(st.grade)]; }
+    return fm;
+  };
+
+  // ---------------------------------------------------------------- farm actions
+  F.price = (id, grade) => F.ITEMS[id].price[gi(grade)];
+  F.seedPrice = (crop, grade) => F.CROPS[crop].seed[gi(grade)];
+  F.basketCount = (fm) => U.sum(Object.values(fm.basket));
+  F.basketValue = (fm, grade) => U.sum(Object.entries(fm.basket).map(([id, n]) => n * F.price(id, grade)));
+  F.cropStage = (bed) => {
+    if (!bed.c) return 'empty';
+    const c = F.CROPS[bed.c];
+    return bed.g >= c.days ? 'ready' : bed.g === 0 ? 'seed' : 'sprout';
+  };
+  F.animalStage = (pen) => {
+    const a = F.ANIMALS[pen.a];
+    return pen.g >= a.grow[1] ? 2 : pen.g >= a.grow[0] ? 1 : 0; // 0 baby, 1 young, 2 grown-up
+  };
+  F.plant = (fm, i, crop) => { fm.beds[i] = { c: crop, g: 0 }; };
+  F.harvest = (fm, i) => {
+    const bed = fm.beds[i];
+    if (F.cropStage(bed) !== 'ready') return 0;
+    const n = F.CROPS[bed.c].yield;
+    fm.basket[bed.c] = (fm.basket[bed.c] || 0) + n;
+    fm.beds[i] = { c: null, g: 0 };
+    return n;
+  };
+  F.collect = (fm, i) => {
+    const pen = fm.pens[i], n = pen.ready || 0;
+    if (!n) return 0;
+    const item = F.ANIMALS[pen.a].item;
+    fm.basket[item] = (fm.basket[item] || 0) + n;
+    pen.ready = 0;
+    return n;
+  };
+  F.feed = (fm, i) => {
+    const pen = fm.pens[i], eat = F.ANIMALS[pen.a].eat;
+    if (pen.fed) return 'fed';
+    if (fm.feed < eat) return 'nofeed';
+    fm.feed -= eat;
+    pen.fed = true;
+    return 'ok';
+  };
+  // Night: crops grow a day, fed animals grow and grown-ups make something. Returns what happened for the morning card.
+  F.nextDay = (fm) => {
+    const news = { ripe: [], made: [], grew: [], hungry: [] };
+    fm.beds.forEach((b) => {
+      if (!b.c || F.cropStage(b) === 'ready') return;
+      b.g++;
+      if (F.cropStage(b) === 'ready') news.ripe.push(b.c);
+    });
+    fm.pens.forEach((p) => {
+      if (!p.a) return;
+      if (!p.fed) { news.hungry.push(p.a); return; }
+      const before = F.animalStage(p);
+      if (before === 2) { const a = F.ANIMALS[p.a]; p.ready = Math.min(9, (p.ready || 0) + a.per); news.made.push([a.item, a.per]); }
+      p.g++;
+      if (F.animalStage(p) > before) news.grew.push([p.a, F.animalStage(p)]);
+      p.fed = false;
+    });
+    fm.day++;
+    return news;
+  };
+
+  // ---------------------------------------------------------------- the shop
+  // Every thing a farmer can buy, with its state for this farm: lock (level needed), owned, price.
+  F.shop = (fm, grade) => {
+    const L = F.level(fm.xp).level, g = gi(grade), out = [];
+    const freePen = fm.pens.some((p) => !p.a);
+    for (const n of F.FEED_PACKS) out.push({ id: 'feed:' + n, tab: 'animals', e: F.FEED.e, name: `${n} bags of feed`, price: n * F.FEED.price[g], lv: 1, note: `You have ${fm.feed} 🌾` });
+    for (const [id, a] of Object.entries(F.ANIMALS)) out.push({ id: 'animal:' + id, tab: 'animals', e: a.e, name: a.name, price: a.cost[g], lv: a.lv, note: `${F.ITEMS[a.item].e} ${F.fmt(F.price(a.item, grade), grade)} each · eats ${a.eat} 🌾 a day`, blocked: !freePen && 'Needs an empty pen' });
+    const nb = fm.beds.length, np = fm.pens.length;
+    if (nb < F.BEDS.length) out.push({ id: 'bed', tab: 'farm', e: '🟫', name: 'Garden bed ' + (nb + 1), price: F.BEDS[nb][1 + g], lv: F.BEDS[nb][0], note: 'Grow more crops' });
+    if (np < F.PENS.length) out.push({ id: 'pen', tab: 'farm', e: '🏡', name: 'Animal pen ' + (np + 1), price: F.PENS[np][1 + g], lv: F.PENS[np][0], note: 'Room for one more animal' });
+    const ns = F.STANDS[fm.stand + 1];
+    if (ns) out.push({ id: 'stand', tab: 'farm', e: ns.e, name: ns.name, price: ns.cost[g], lv: ns.lv, note: `Customers tip ${Math.round(ns.tip * 100)}% for right answers` });
+    for (const [id, d] of Object.entries(F.DECOR)) out.push({ id: 'decor:' + id, tab: 'decor', e: d.e, name: d.name, price: d.cost[g], lv: d.lv, owned: !!fm.owned[id] });
+    for (const x of out) x.locked = x.lv > L;
+    return out;
+  };
+  F.shopItem = (fm, grade, id) => F.shop(fm, grade).find((x) => x.id === id) || null;
+  // Apply a paid purchase. Returns a short line for the toast.
+  F.buy = (fm, grade, id) => {
+    const x = F.shopItem(fm, grade, id);
+    if (!x || x.locked || x.owned || x.blocked || fm.money < x.price) return null;
+    fm.money -= x.price;
+    fm.stats.spent += x.price;
+    const [kind, arg] = id.split(':');
+    if (kind === 'animal') { const i = fm.pens.findIndex((p) => !p.a); fm.pens[i] = { a: arg, g: 0, fed: false, ready: 0 }; }
+    else if (kind === 'feed') fm.feed += +arg;
+    else if (kind === 'bed') fm.beds.push({ c: null, g: 0 });
+    else if (kind === 'pen') fm.pens.push({ a: null, g: 0, fed: false, ready: 0 });
+    else if (kind === 'stand') fm.stand++;
+    else if (kind === 'decor') fm.owned[arg] = true;
+    if (fm.goal === id) fm.goal = '';
+    return x;
+  };
+  // Seed packets are bought from an empty bed.
+  F.buySeed = (fm, grade, i, crop) => {
+    const price = F.seedPrice(crop, grade);
+    if (fm.money < price || fm.beds[i].c || F.CROPS[crop].lv > F.level(fm.xp).level) return false;
+    fm.money -= price;
+    fm.stats.spent += price;
+    F.plant(fm, i, crop);
+    return true;
+  };
+  F.goalItem = (fm, grade) => (fm.goal ? F.shopItem(fm, grade, fm.goal) : null);
+
+  // ---------------------------------------------------------------- XP
+  // Returns the levels reached (empty when none), after paying each level's gift.
+  F.addXp = (fm, n, grade) => {
+    const before = F.level(fm.xp).level;
+    fm.xp += n;
+    const after = F.level(fm.xp).level, ups = [];
+    for (let L = before + 1; L <= after; L++) { fm.money += F.gift(L, grade); ups.push(L); }
+    return ups;
+  };
+  // Adaptive tier: 4 first-try right in a row → one tier up (if open), 2 misses → down.
+  F.adapt = (fm, grade, firstTry) => {
+    if (firstTry) { fm.streak++; fm.miss = 0; } else { fm.miss++; fm.streak = 0; }
+    const open = F.tierOpen(fm, grade);
+    if (fm.streak >= 4 && fm.tier < open) { fm.tier++; fm.streak = 0; return 'up'; }
+    if (fm.miss >= 2 && fm.tier > 1) { fm.tier--; fm.miss = 0; return 'down'; }
+    if (fm.tier > open) fm.tier = open;
+    return null;
+  };
+  // Every money problem counts in the child's daily totals (daily goal, My Progress).
+  F.record = (st, firstTry) => {
+    const day = U.dateKey(), dd = (st.days[day] = st.days[day] || { a: 0, c: 0 });
+    dd.a++;
+    st.stats.attempts++;
+    if (firstTry) { dd.c++; st.stats.correct++; }
+    st.lastPlayed = day;
+  };
+
+  // ---------------------------------------------------------------- customers & problems
+  F.PEOPLE = [['🐻', 'Bruno'], ['🐰', 'Hazel'], ['🦊', 'Felix'], ['🐼', 'Mei'], ['🦉', 'Olive'], ['🐸', 'Ribbit'], ['🐨', 'Kip'], ['🐯', 'Tess'], ['🐹', 'Peanut'], ['🦔', 'Spike'], ['🐧', 'Pablo'], ['🦝', 'Rocky'], ['🐿️', 'Nutmeg'], ['🦌', 'Fern'], ['🐭', 'Pip'], ['🦫', 'Bucky']];
+  F.VIPS = [['🦁', 'Mayor Leo'], ['🦄', 'Princess Luna'], ['🐘', 'Chef Ellie'], ['🦒', 'Professor Gigi'], ['🐳', 'Captain Blue']];
+  const plural = (id, n) => (n === 1 ? F.ITEMS[id].name : F.ITEMS[id].many);
+  const things = (id, n) => `${n} ${F.ITEMS[id].e} ${plural(id, n)}`;
+  // Choices for an amount of money: the answer and near misses (a coin off, a dime off, a dollar off).
+  F.moneyChoices = (ans, grade) => {
+    const near = [ans + 10, ans - 10, ans + 5, ans - 5, ans + 25, ans - 25, ans + 100, ans - 100, ans + 1, ans - 1].filter((x) => x > 0 && x !== ans);
+    const picks = new Set([ans]);
+    for (const x of U.shuffle(near)) { if (picks.size >= 4) break; picks.add(x); }
+    return U.shuffle([...picks]).map((x) => F.fmt(x, grade));
+  };
+  // Number pad for amounts in cents under a dollar; buttons for dollar amounts (typing $3.45 is hard on a pad).
+  function ask(p, ans, grade) {
+    if (grade === 'k' || ans < 100) return Object.assign(p, { kind: 'num', answer: ans, unit: '¢' });
+    const choices = F.moneyChoices(ans, grade);
+    return Object.assign(p, { kind: 'choice', answer: F.fmt(ans, grade), choices });
+  }
+  const tag = (id, grade) => `<span class="ftag">${F.ITEMS[id].e} ${F.fmt(F.price(id, grade), grade)}</span>`;
+  const row = (id, n) => `<div class="frow" aria-hidden="true">${Array(Math.min(n, 12)).fill(F.ITEMS[id].e).join('')}</div>`;
+
+  // One problem. ctx: { grade, tier (object), stock: { item: count } }. Returns null when the stock can't make it.
+  // Every problem has: kind (num | choice | coins), text, answer, hint, explain, sale { item: count } and total (cents
+  // the customer pays for the sale).
+  F.problem = (type, ctx) => {
+    const { grade, tier, stock } = ctx;
+    const fmt = (c) => F.fmt(c, grade);
+    const items = Object.keys(stock).filter((id) => stock[id] > 0);
+    const P = (id) => F.price(id, grade);
+    // an item and how many, with the total at most `max`
+    const pickSale = (minQ, maxQ, max) => {
+      const ok = U.shuffle(items).map((id) => {
+        const top = Math.min(maxQ, stock[id], Math.floor(max / P(id)));
+        return top >= minQ ? [id, U.rnd(minQ, top)] : null;
+      }).filter(Boolean);
+      return ok[0] || null;
+    };
+    const kinds = tier.coins;
+    if (type === 'total') {
+      const s = pickSale(2, grade === 'k' ? 3 : 4, tier.max);
+      if (!s) return null;
+      const [id, q] = s, T = q * P(id);
+      return ask({ type, text: `wants <b>${things(id, q)}</b>. One costs <b>${fmt(P(id))}</b>. How much is that in all?`, visual: row(id, q) + tag(id, grade), hint: `Add ${fmt(P(id))} ${q} times: ${Array(q).fill(P(id)).join(' + ')}.`, explain: `${Array(q).fill(fmt(P(id))).join(' + ')} = ${fmt(T)}`, sale: { [id]: q }, total: T }, T, grade);
+    }
+    if (type === 'count') {
+      const s = pickSale(1, 3, tier.max);
+      if (!s) return null;
+      const [id, q] = s, T = q * P(id), coins = F.coinsFor(T, kinds);
+      if (!coins) return null;
+      const names = grade !== 'k' && tier !== F.tiers(grade)[0];
+      return ask({ type, text: `buys <b>${things(id, q)}</b> and pays with these. How much money is it?`, visual: MQ.V.coins(coins, !names), hint: 'Start with the money worth the most, then count on.', explain: `${coins.map((k) => fmt(F.COINV[k])).join(' + ')} = ${fmt(T)}`, sale: { [id]: q }, total: T }, T, grade);
+    }
+    if (type === 'collect') {
+      const s = pickSale(1, 3, tier.max);
+      if (!s) return null;
+      const [id, q] = s, T = q * P(id);
+      if (!F.fewest(T, kinds)) return null;
+      return { type, kind: 'coins', target: T, coinKinds: kinds, text: `buys <b>${things(id, q)}</b> for <b>${fmt(T)}</b>. Help them pay: tap coins to make <b>${fmt(T)}</b>.`, hint: 'Start with the biggest coin that fits, then add smaller ones.', explain: `One way: ${F.fewest(T, kinds).map((k) => fmt(F.COINV[k])).join(' + ')} = ${fmt(T)}`, sale: { [id]: q }, total: T };
+    }
+    if (type === 'change' || type === 'giveChange') {
+      const s = pickSale(1, 3, Math.max(...tier.pay) - 1);
+      if (!s) return null;
+      const [id, q] = s, T = q * P(id);
+      const over = tier.pay.filter((x) => x > T);
+      if (!over.length) return null;
+      const X = over[0] - T < 5 && over[1] ? U.pick(over.slice(0, 2)) : over[0];
+      const C = X - T;
+      const steps = `Count up from ${fmt(T)} to ${fmt(X)}.`;
+      const base = { type, text: `buys <b>${things(id, q)}</b> for <b>${fmt(T)}</b> and pays with <b>${F.payName(X)}</b>. `, visual: MQ.V.coins(F.payCoins(X), true), hint: steps, explain: `${fmt(X)} − ${fmt(T)} = ${fmt(C)}`, sale: { [id]: q }, total: T };
+      if (type === 'change') return ask(Object.assign(base, { text: base.text + 'How much change do you give back?' }), C, grade);
+      const ck = kinds.filter((k) => F.COINV[k] < X);
+      if (!F.fewest(C, ck)) return null;
+      return Object.assign(base, { kind: 'coins', target: C, coinKinds: ck, text: base.text + 'Tap coins to give the right change.', explain: `${fmt(X)} − ${fmt(T)} = ${fmt(C)}. One way: ${F.fewest(C, ck).map((k) => fmt(F.COINV[k])).join(' + ')}` });
+    }
+    if (type === 'enough') {
+      const s = pickSale(1, 2, tier.max);
+      if (!s) return null;
+      const [id, q] = s, T = q * P(id);
+      const off = U.pick([-3, -2, -1, 0, 1, 2, 5]) * (T >= 20 ? 5 : 1);
+      const H = Math.max(1, T + off);
+      const coins = F.coinsFor(H, kinds);
+      if (!coins) return null;
+      const yes = H >= T;
+      return { type, kind: 'choice', choices: ['Yes, enough', 'No, not enough'], answer: yes ? 'Yes, enough' : 'No, not enough', text: `wants <b>${things(id, q)}</b> for <b>${fmt(T)}</b>. These coins are in their pocket. Do they have enough?`, visual: MQ.V.coins(coins, true), hint: `Count the coins, then compare with ${fmt(T)}.`, explain: `The coins make ${fmt(H)}. ${fmt(H)} is ${H > T ? 'more than' : H === T ? 'the same as' : 'less than'} ${fmt(T)}, so ${yes ? 'yes, it is enough' : 'it is not enough'}.`, sale: { [id]: q }, total: T, noPay: !yes };
+    }
+    if (type === 'two' || type === 'budget') {
+      const two = U.shuffle(items).filter((id) => P(id) < tier.max).slice(0, type === 'budget' && tier.pay.length > 1 && items.length > 2 ? 3 : 2);
+      if (two.length < 2) return null;
+      const T = U.sum(two.map(P));
+      const list = two.map((id) => `${F.ITEMS[id].e} ${F.ITEMS[id].name} (${fmt(P(id))})`).join(' and ');
+      const sale = {};
+      two.forEach((id) => (sale[id] = 1));
+      if (type === 'two') {
+        if (T > tier.max) return null;
+        return ask({ type, text: `wants <b>${list}</b>. How much is that in all?`, visual: `<div class="ftags">${two.map((id) => tag(id, grade)).join('<b>+</b>')}</div>`, hint: grade === 'k' ? 'Count on from the bigger price.' : 'Add the dollars, then the cents. 100¢ make a dollar.', explain: `${two.map((id) => fmt(P(id))).join(' + ')} = ${fmt(T)}`, sale, total: T }, T, grade);
+      }
+      const over = (tier.pay || []).filter((x) => x > T);
+      if (!over.length) return null;
+      const H = over[0];
+      return ask({ type, text: `has <b>${fmt(H)}</b> and buys <b>${list}</b>. How much money will they have left?`, visual: `<div class="ftags">${two.map((id) => tag(id, grade)).join('<b>+</b>')}</div>`, hint: `First add the prices. Then count up from the total to ${fmt(H)}.`, explain: `${two.map((id) => fmt(P(id))).join(' + ')} = ${fmt(T)}; ${fmt(H)} − ${fmt(T)} = ${fmt(H - T)}`, sale, total: T }, H - T, grade);
+    }
+    if (type === 'multiply') {
+      const s = pickSale(3, 9, tier.max);
+      if (!s) return null;
+      const [id, q] = s, T = q * P(id);
+      return ask({ type, text: `orders <b>${things(id, q)}</b> at <b>${fmt(P(id))}</b> each. How much is the order?`, visual: row(id, q) + tag(id, grade), hint: `${q} × ${fmt(P(id))}: find 2 × first, then keep adding, or split ${fmt(P(id))} into dollars and cents.`, explain: `${q} × ${fmt(P(id))} = ${fmt(T)}`, sale: { [id]: q }, total: T }, T, grade);
+    }
+    if (type === 'deal') {
+      const s = pickSale(2, 6, tier.max * 2);
+      if (!s) return null;
+      const id = s[0], one = P(id), dealP = 2 * one - (one >= 50 ? 10 * U.rnd(1, 3) : U.rnd(1, 3) * 5);
+      if (dealP <= one) return null;
+      const qs = [4, 6].filter((n) => n <= stock[id]);
+      const q = qs.length ? U.pick(qs) : 2;
+      if (q > stock[id]) return null;
+      const T = (q / 2) * dealP;
+      return ask({ type, text: `likes today’s deal: <b>2 ${F.ITEMS[id].many} for ${fmt(dealP)}</b> (one is ${fmt(one)}) and takes <b>${things(id, q)}</b>. How much do they pay?`, visual: row(id, q) + tag(id, grade), hint: `${q} ${F.ITEMS[id].many} is ${q / 2} pairs. Each pair costs ${fmt(dealP)}.`, explain: `${q / 2} × ${fmt(dealP)} = ${fmt(T)} (without the deal it would be ${fmt(q * one)})`, sale: { [id]: q }, total: T }, T, grade);
+    }
+    if (type === 'profit') {
+      const crops = Object.keys(F.CROPS).filter((c) => items.includes(c) || F.CROPS[c].lv <= 8);
+      const c = U.pick(crops), seed = F.seedPrice(c, grade), y = F.CROPS[c].yield, T = y * P(c);
+      const s = pickSale(1, 2, tier.max);
+      if (!s) return null;
+      return ask({ type, text: `asks a farmer question: a packet of ${F.ITEMS[c].e} seeds costs <b>${fmt(seed)}</b> and gives <b>${y} ${F.ITEMS[c].many}</b> that sell for <b>${fmt(P(c))}</b> each. How much <b>profit</b> is that? Then they buy ${things(s[0], s[1])}.`, hint: `Profit = money you get − money you spent. First ${y} × ${fmt(P(c))}.`, explain: `${y} × ${fmt(P(c))} = ${fmt(T)}; ${fmt(T)} − ${fmt(seed)} = ${fmt(T - seed)} profit`, sale: { [s[0]]: s[1] }, total: s[1] * P(s[0]) }, T - seed, grade);
+    }
+    return null;
+  };
+  const FALLBACK = ['count', 'collect', 'total', 'two'];
+  // The next customer: a problem of the child's tier (one tier up for a ⭐ challenge customer).
+  // stock: what can be sold (the basket; odd jobs use a pretend crate). Returns null when nothing can be sold.
+  F.customer = (fm, grade, { stock, vip = false, jobs = false } = {}) => {
+    const all = F.tiers(grade);
+    const ti = Math.min(all.length, Math.max(1, fm.tier) + (vip ? 1 : 0));
+    const tier = all[ti - 1];
+    if (!Object.values(stock).some((n) => n > 0)) return null;
+    const types = U.shuffle(tier.types).concat(FALLBACK);
+    for (const type of types) {
+      const p = F.problem(type, { grade, tier, stock });
+      if (!p) continue;
+      const who = vip ? U.pick(F.VIPS) : U.pick(F.PEOPLE);
+      return Object.assign(p, { who, vip, jobs, tier: ti, ahead: !!tier.ahead });
+    }
+    // nothing fits the tier (e.g. only expensive items): count the money for one item
+    const id = Object.keys(stock).find((k) => stock[k] > 0), T = F.price(id, grade);
+    const coins = F.coinsFor(T, all[all.length - 1].coins);
+    return ask({ type: 'count', who: U.pick(F.PEOPLE), vip, jobs, tier: ti, text: `buys <b>${things(id, 1)}</b> and pays with these. How much money is it?`, visual: MQ.V.coins(coins, false), hint: 'Start with the money worth the most, then count on.', explain: `${coins.map((k) => F.fmt(F.COINV[k], grade)).join(' + ')} = ${F.fmt(T, grade)}`, sale: { [id]: 1 }, total: T }, T, grade);
+  };
+  // Odd jobs: helping at the big Farmers' Market with things the farm doesn't grow yet. Pays a small wage.
+  F.jobStock = (fm) => {
+    const L = F.level(fm.xp).level, stock = {};
+    for (const [id, c] of Object.entries(F.CROPS)) if (c.lv <= L + 6) stock[id] = 9;
+    for (const a of Object.values(F.ANIMALS)) if (a.lv <= L + 6) stock[a.item] = 9;
+    return stock;
+  };
+  F.wage = (tier, grade) => (grade === 'k' ? (tier >= 3 ? 2 : 1) : 5 * tier);
+  F.tip = (fm, total) => (F.STANDS[fm.stand].tip ? Math.max(1, Math.round(total * F.STANDS[fm.stand].tip)) : 0);
+  F.VIP_TIP = (grade, total) => Math.max(grade === 'k' ? 2 : 10, Math.round(total * 0.5));
+
+  // Is this answer right? (coins: the picked coins make the target exactly)
+  F.isRight = (p, given) => (p.kind === 'coins' ? F.sumCoins(given) === p.target : String(given) === String(p.answer));
+  // A customer was served: take the items, get paid (plus a tip for a first-try right answer), earn XP.
+  F.serve = (fm, grade, p, firstTry, solved) => {
+    const res = { paid: 0, tip: 0, xp: 0, ups: [] };
+    if (p.jobs) {
+      res.paid = solved ? (firstTry ? F.wage(p.tier, grade) : Math.ceil(F.wage(p.tier, grade) / 2)) : 0;
+      fm.stats.jobs++;
+    } else if (!p.noPay) {
+      for (const [id, n] of Object.entries(p.sale)) { fm.basket[id] = Math.max(0, (fm.basket[id] || 0) - n); if (!fm.basket[id]) delete fm.basket[id]; fm.stats.sold += n; }
+      res.paid = p.total;
+      if (firstTry) res.tip = p.vip ? F.VIP_TIP(grade, p.total) : F.tip(fm, p.total);
+    }
+    fm.money += res.paid + res.tip;
+    fm.stats.earned += res.paid + res.tip;
+    fm.stats.tasks++;
+    if (firstTry) fm.stats.right++;
+    if (p.vip && firstTry) fm.stats.vip++;
+    fm.customers++;
+    res.xp = (firstTry ? 5 : solved ? 2 : 1) + (p.vip && firstTry ? 5 : 0) + (p.ahead && firstTry ? 2 : 0);
+    res.ups = F.addXp(fm, res.xp, grade);
+    return res;
+  };
+
+  MQ.farm = F;
+})();
+</script>
+  <script>
 // Saved progress, one profile per child, in localStorage on this device.
 //   math-expedition-profiles   → { active, order: [ids] }
-//   math-expedition-p-<id>     → that child's whole state (grade, progress, crystals, stats…)
+//   math-expedition-p-<id>     → that child's whole state (grade, progress, crystals, stats, farm…)
 // Profiles never share data: switching profile swaps the whole state object.
 // When the family is connected to the cloud (js/cloud.js), every change is reported through S.onChange
 // and changes from other devices come back through S.applyRemote / S.removeRemote.
@@ -4847,6 +5571,9 @@ svg.vis.abacus { max-height: 160px; }
     out.review = Object.assign({}, old.review || {});
     for (const [k, v] of Object.entries(nw.review || {})) if (!out.review[k] || (v.last || '') >= (out.review[k].last || '')) out.review[k] = v;
     out.tips = Object.assign({}, old.tips || {}, nw.tips || {});
+    // Sunny Farm: the copy changed last wins as a whole (money is spent, animals move), by the farm's own clock,
+    // so a device that only opened the farm can't replace a farm played on another device.
+    if (old.farm && (!nw.farm || (old.farm.t || 0) > (nw.farm.t || 0))) out.farm = JSON.parse(JSON.stringify(old.farm));
     out.rev = max(nw.rev, old.rev);
     return out;
   };
@@ -4986,6 +5713,7 @@ svg.vis.abacus { max-height: 160px; }
     crack: () => { tone(180, 0, 0.08, 'square', 0.06); tone(140, 0.05, 0.08, 'square', 0.05); },
     hatch: () => [440, 554, 659, 880, 1108].forEach((f, i) => tone(f, i * 0.1, 0.35, 'sine', 0.16)),
     tick: () => tone(1200, 0, 0.03, 'square', 0.03),
+    coin: () => { tone(1320, 0, 0.06, 'square', 0.04); tone(1760, 0.05, 0.14, 'square', 0.04); },
   };
   MQ.sfx = (name) => {
     if (!MQ.state || !MQ.state.settings.sound) return;
@@ -5060,6 +5788,706 @@ svg.vis.abacus { max-height: 160px; }
 })();
 </script>
   <script>
+// Sunny Farm pictures: the farm scene (sky, garden beds, pens with animals walking around, a yard with the stand and
+// decorations), the market stall above each customer, and small animations (things flying to the basket, coins
+// flying to the money, a night passing). Made of emoji, CSS and a few inline SVGs: no image files.
+// Everything moving is turned off when the device asks for reduced motion.
+(function () {
+  const MQ = globalThis.MQ, F = MQ.farm, U = MQ.U;
+  const esc = U.esc;
+  const S = {};
+  const reduced = () => typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  S.reduced = reduced;
+
+  // ---------------------------------------------------------------- sprites without a good emoji
+  const SVG = {
+    windmill: `<svg class="sp windmill" viewBox="0 0 60 92" aria-hidden="true"><polygon points="22,40 38,40 45,90 15,90" fill="#f1e4c6" stroke="#8a6b46" stroke-width="2"/><rect x="25" y="70" width="10" height="20" rx="4" fill="#8a6b46"/><rect x="26" y="52" width="8" height="8" fill="#9fd3f0" stroke="#8a6b46" stroke-width="1.5"/><g class="blades">${[0, 90, 180, 270].map((r) => `<g transform="rotate(${r} 30 40)"><rect x="28.5" y="4" width="3" height="36" fill="#7a5532"/><rect x="31.5" y="6" width="9" height="26" fill="#fffaf0" stroke="#7a5532" stroke-width="1.2"/></g>`).join('')}</g><circle cx="30" cy="40" r="3.5" fill="#5b3d22"/></svg>`,
+    barn: `<svg class="sp barn" viewBox="0 0 80 66" aria-hidden="true"><polygon points="2,28 40,3 78,28" fill="#8e2b23"/><rect x="8" y="26" width="64" height="38" fill="#cf4330" stroke="#8e2b23" stroke-width="2"/><rect x="28" y="36" width="24" height="28" fill="#fff4e6" stroke="#8e2b23" stroke-width="2"/><path d="M28 36 L52 64 M52 36 L28 64" stroke="#8e2b23" stroke-width="2.5"/><rect x="34" y="13" width="12" height="9" fill="#fff4e6" stroke="#8e2b23" stroke-width="2"/></svg>`,
+    hive: `<svg class="sp hive" viewBox="0 0 40 40" aria-hidden="true"><ellipse cx="20" cy="31" rx="15" ry="7" fill="#e9a425"/><ellipse cx="20" cy="22" rx="12.5" ry="6.5" fill="#f2b83a"/><ellipse cx="20" cy="14" rx="9" ry="5.5" fill="#f7c95a"/><ellipse cx="20" cy="7.5" rx="5" ry="4" fill="#fad77a"/><ellipse cx="20" cy="31" rx="4" ry="3.5" fill="#6b4210"/></svg>`,
+  };
+  // The shop and the scene use these pictures for the windmill and the barn.
+  S.icon = (id, e) => (SVG[id] ? `<span class="spi">${SVG[id]}</span>` : e);
+
+  // Animals that are drawn from the side (they turn around when they walk the other way).
+  const SIDE = new Set(['🐔', '🐐', '🐑', '🐄', '🦆', '🐖', '🦙', '🐎', '🐓']);
+  const WALK = { pony: '🐎' }; // a whole pony instead of the 🐴 head
+  // Where each decoration stands: sky (floats), hill (on the horizon, left %), yard (in front, left %).
+  const SPOTS = {
+    rainbow: ['sky'], balloon: ['sky'], birdhouse: ['sky'],
+    tree: ['hill', 3], greenhouse: ['hill', 24], barn: ['hill', 58], cat: ['hill', 66], windmill: ['hill', 82],
+    fence: ['fence'], scarecrow: ['bed'],
+    flowers: ['yard', 30], pond: ['yard', 46], fountain: ['yard', 64], golden: ['yard', 78], dog: ['run'], tractor: ['drive'],
+  };
+
+  // ---------------------------------------------------------------- the farm scene
+  function bedHtml(b, i) {
+    const s = F.cropStage(b);
+    if (s === 'empty') return `<button class="fbed soil empty" data-act="fBed" data-arg="${i}" aria-label="Empty garden bed: plant seeds"><span class="plus">＋</span><span class="flabel">Plant</span></button>`;
+    const c = F.CROPS[b.c], it = F.ITEMS[b.c], left = c.days - b.g;
+    const n = Math.min(c.yield, 4);
+    const sprite = s === 'ready' ? it.e : s === 'seed' ? '🌱' : '🌿';
+    const plants = Array.from({ length: s === 'ready' ? n : 3 }, (_, k) => `<i style="--k:${k}">${sprite}</i>`).join('');
+    const label = s === 'ready' ? `Pick ${c.yield}!` : `${left} ${left === 1 ? 'day' : 'days'}`;
+    return `<button class="fbed soil ${s}" data-act="fBed" data-arg="${i}" aria-label="${esc(it.many)}: ${s === 'ready' ? 'ripe, tap to pick' : `ready in ${label}`}"><span class="plants">${plants}</span><span class="flabel">${s === 'ready' ? label : it.e + ' ' + label}</span></button>`;
+  }
+  function penHtml(p, i) {
+    if (!p.a) return `<button class="fpen pasture empty" data-act="go" data-arg="farm:shop" aria-label="Empty pen: buy an animal in the shop"><span class="plus">＋</span><span class="flabel">Buy an animal</span></button>`;
+    const a = F.ANIMALS[p.a], sg = F.animalStage(p), it = F.ITEMS[a.item];
+    const state = p.ready ? 'ready' : p.fed ? 'fed' : 'hungry';
+    const age = ['Baby', 'Young', 'Grown-up'][sg];
+    const chip = p.ready ? `${it.e}×${p.ready}` : p.fed ? '❤️' : `🌾 ${a.eat}`;
+    const loot = p.ready ? `<span class="loot">${Array.from({ length: Math.min(p.ready, 5) }, (_, k) => `<i style="--k:${k}">${it.e}</i>`).join('')}</span>` : '';
+    let who;
+    if (p.a === 'bees') {
+      who = `<span class="hivebox">${SVG.hive}</span>${Array.from({ length: sg + 1 }, (_, k) => `<span class="bee" style="--k:${k}">🐝</span>`).join('')}`;
+    } else {
+      const e = sg === 0 ? a.baby : WALK[p.a] || a.e;
+      const t = 7 + ((i * 3) % 5); // each animal walks at its own pace
+      who = `<span class="walker ${SIDE.has(e) ? 'side' : ''}" style="--t:${t}s;--dl:-${(i * 2.3) % t}s"><span class="bob">${e}</span></span>`;
+    }
+    const label = `${a.name}, ${age.toLowerCase()}: ${p.ready ? `${p.ready} ${it.many} to collect` : p.fed ? 'fed' : `hungry, eats ${a.eat} feed`}`;
+    return `<button class="fpen pasture ${state} s${sg} a-${p.a}" data-act="fPen" data-arg="${i}" aria-label="${esc(label)}">${who}${loot}<span class="trough ${p.fed ? 'full' : ''}"></span><span class="pchip">${chip}</span><span class="flabel">${age}</span></button>`;
+  }
+  S.farm = (fm, grade) => {
+    const has = (id) => !!fm.owned[id];
+    const at = (zone) => Object.keys(fm.owned).filter((id) => F.DECOR[id] && (SPOTS[id] || [])[0] === zone);
+    const sky = [];
+    if (has('rainbow')) sky.push('<span class="rainbow">🌈</span>');
+    if (has('balloon')) sky.push('<span class="balloon">🎈</span>');
+    if (has('birdhouse')) sky.push('<span class="bird">🐦</span>');
+    const hill = at('hill').map((id) => `<span class="deco d-${id}" style="left:${SPOTS[id][1]}%" title="${esc(F.DECOR[id].name)}">${S.icon(id, F.DECOR[id].e)}</span>`).join('');
+    const yard = at('yard').map((id) => `<span class="deco d-${id}" style="left:${SPOTS[id][1]}%" title="${esc(F.DECOR[id].name)}">${F.DECOR[id].e}</span>`).join('');
+    const stand = F.STANDS[fm.stand], n = F.basketCount(fm);
+    return `<section class="scene" aria-label="Your farm">
+      <div class="sky">
+        <span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>${sky.join('')}
+        <div class="hills"></div>${hill}${has('fence') ? '<div class="hfence"></div>' : ''}
+      </div>
+      <div class="land">
+        <div class="beds">${fm.beds.map(bedHtml).join('')}${has('scarecrow') ? '<span class="scarecrow" title="Scarecrow">🧑‍🌾</span>' : ''}</div>
+        <div class="pens">${fm.pens.map(penHtml).join('')}</div>
+        <div class="yard">
+          <button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
+          ${yard}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}
+        </div>
+      </div>
+    </section>`;
+  };
+
+  // ---------------------------------------------------------------- the stall above a customer
+  // mode: market (your stand), jobs (the big market), pay (the farm shop, where the child is the buyer).
+  S.stall = ({ mode, stand = 0, seller, shopper, goods = '', vip = false }) => `<div class="stall st${stand} m-${mode} ${vip ? 'vip' : ''}" aria-hidden="true">
+      <div class="awning"></div>
+      <div class="stall-in">
+        <span class="seller">${seller}</span>
+        <div class="counter"><span class="goods" id="goods">${goods}</span><span class="cashbox" id="cashbox">💰</span></div>
+        <span class="shopper ${vip ? 'vip' : ''}" id="shopper"><span>${shopper}</span></span>
+      </div>
+    </div>`;
+  S.goods = (sale) => Object.entries(sale || {}).map(([id, n]) => Array.from({ length: Math.min(n, 6) }, () => `<i>${F.ITEMS[id].e}</i>`).join('')).join('');
+
+  // ---------------------------------------------------------------- animations
+  const box = (x) => (!x ? null : x.getBoundingClientRect ? x.getBoundingClientRect() : x);
+  // Something flies from one place to another along an arc (a harvested carrot to the basket, coins to the money).
+  S.fly = (html, from, to, { delay = 0, dur = 650, size = '1.9rem', land } = {}) => {
+    const a = box(from), b = box(typeof to === 'string' ? document.querySelector(to) : to);
+    if (reduced() || !a || !b || !document.body.animate) { if (land) land(); return; }
+    const el = document.createElement('div');
+    el.className = 'flyer';
+    el.style.fontSize = size;
+    el.innerHTML = html;
+    el.style.left = a.left + a.width / 2 + 'px';
+    el.style.top = a.top + a.height / 2 + 'px';
+    document.body.appendChild(el);
+    const dx = b.left + b.width / 2 - (a.left + a.width / 2), dy = b.top + b.height / 2 - (a.top + a.height / 2);
+    const anim = el.animate([
+      { transform: 'translate(-50%, -50%) scale(0.8)', opacity: 0 },
+      { transform: 'translate(-50%, -50%) scale(1.1)', opacity: 1, offset: 0.1 },
+      { transform: `translate(calc(-50% + ${dx / 2}px), calc(-50% + ${dy / 2 - 70}px)) scale(1.25)`, offset: 0.55 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.55)`, opacity: 0.9 },
+    ], { duration: dur, delay, easing: 'ease-in-out', fill: 'both' });
+    anim.onfinish = () => { el.remove(); if (land) land(); };
+  };
+  // A few things fly one after another.
+  S.flyMany = (html, n, from, to, opts = {}) => { for (let k = 0; k < n; k++) S.fly(html, from, to, Object.assign({}, opts, { delay: (opts.delay || 0) + k * 110 })); };
+  // Hearts (or anything) float up from a spot.
+  S.burst = (el, html = '❤️', n = 3) => {
+    const r = box(el);
+    if (reduced() || !r || !document.body.animate) return;
+    for (let k = 0; k < n; k++) {
+      const d = document.createElement('div');
+      d.className = 'flyer';
+      d.innerHTML = html;
+      d.style.left = r.left + r.width * (0.3 + 0.2 * k) + 'px';
+      d.style.top = r.top + r.height * 0.4 + 'px';
+      document.body.appendChild(d);
+      d.animate([{ transform: 'translate(-50%, 0) scale(0.6)', opacity: 0 }, { transform: 'translate(-50%, -20px) scale(1)', opacity: 1, offset: 0.25 }, { transform: `translate(calc(-50% + ${(k - 1) * 14}px), -70px) scale(1.1)`, opacity: 0 }], { duration: 900, delay: k * 120, easing: 'ease-out', fill: 'both' }).onfinish = () => d.remove();
+    }
+  };
+  // A number counts up (or down) to its new value: the money pill after a sale.
+  S.roll = (el, from, to, show, dur = 650) => {
+    if (!el) return;
+    if (reduced() || from === to || typeof requestAnimationFrame === 'undefined') { el.textContent = show(to); return; }
+    const t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / dur);
+      el.textContent = show(Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))));
+      if (k < 1 && el.isConnected) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  // The night passes: the screen goes dark with a moon and stars, then the sun comes up.
+  // dark() runs in the middle (redraw the farm there), done() at the end.
+  S.night = (dark, done) => {
+    if (reduced() || !document.body.animate) { dark(); done(); return; }
+    const o = document.createElement('div');
+    o.className = 'nightfx';
+    o.innerHTML = '<span class="moon">🌙</span>' + Array.from({ length: 14 }, (_, k) => `<i style="left:${(k * 37) % 100}%;top:${(k * 23) % 60 + 5}%;animation-delay:${(k % 5) * 0.15}s">✦</i>`).join('') + '<span class="zzz">Z z z</span><span class="sunup">☀️</span>';
+    document.body.appendChild(o);
+    o.animate([{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.7 }, { opacity: 0 }], { duration: 2400, easing: 'ease-in-out', fill: 'both' }).onfinish = () => { o.remove(); done(); };
+    setTimeout(dark, 900);
+  };
+
+  MQ.farmScene = S;
+})();
+</script>
+  <script>
+// Sunny Farm screens: the farm, the shop, the stand (customers bring money problems), odd jobs and paying with coins.
+// Rules and problems are in js/farm.js. The app shell (js/app.js) lends render, toast, modal and routing via MQ.app.kit.
+(function () {
+  const MQ = globalThis.MQ, U = MQ.U, F = MQ.farm, V = MQ.V, SC = MQ.farmScene;
+  const esc = U.esc;
+  const K = () => MQ.app.kit;
+  const st = () => K().state();
+  const fm = () => F.ensure(st());
+  const grade = () => st().grade;
+  const fmt = (c) => F.fmt(c, grade());
+  const $ = (sel) => document.querySelector(sel);
+  const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+  const save = () => { fm().t = Date.now(); MQ.store.save(); };
+  let fs = null; // the stand, odd jobs or a payment in progress
+  let tab = 'animals'; // shop tab
+  let autoNext = null;
+
+  const moneyPill = () => `<span class="pill money" aria-label="farm money">💰 <b id="fmoney">${fmt(fm().money)}</b></span>`;
+  function header(title, back = 'home') {
+    return `<header class="bar"><button class="iconbtn" data-act="go" data-arg="${back}" aria-label="Back">←</button><h1>${title}</h1>${moneyPill()}</header>`;
+  }
+  function bumpMoney(from) {
+    const m = $('#fmoney');
+    if (!m) return;
+    SC.roll(m, from === undefined ? fm().money : from, fm().money, fmt);
+    m.parentNode.classList.remove('bump');
+    void m.offsetWidth;
+    m.parentNode.classList.add('bump');
+  }
+  // XP for farm work; a new farm level shows what it opened.
+  function xp(n) {
+    const ups = F.addXp(fm(), n, grade());
+    if (ups.length) levelUp(ups);
+    return ups;
+  }
+  function levelUp(ups) {
+    const L = ups[ups.length - 1];
+    const got = ups.flatMap((x) => F.unlocksAt(x, grade()));
+    const gift = U.sum(ups.map((x) => F.gift(x, grade())));
+    MQ.sfx('streak');
+    MQ.confetti(90);
+    K().modal(`<div class="bigemoji">🎉</div><div class="mtitle">Farm level ${L}!</div>
+      <p>Gift: <b>+${fmt(gift)}</b></p>
+      ${got.length ? `<p class="muted">New on your farm:</p><ul class="funlocks">${got.map((x) => `<li><span>${x.e}</span> ${esc(x.name)}</li>`).join('')}</ul>` : `<p class="muted">Keep going: something new opens at level ${nextUnlockLevel(L)}.</p>`}
+      <div class="row"><button class="btn" data-act="closeModal">Yay!</button></div>`);
+    if (st().settings.voice !== false) MQ.speak(`Farm level ${L}!`);
+    K().checkBadges();
+  }
+  const nextUnlockLevel = (L) => { for (let x = L + 1; x < L + 60; x++) if (F.unlocksAt(x, grade()).length) return x; return L + 1; };
+
+  // ---------------------------------------------------------------- the farm
+  function tipLine() { return `<div class="buddy small"><span class="buddy-e">${st().companion}</span><div class="bubble">${esc(st().buddyName)}: ${tipText()}</div></div>`; }
+  function tipText() {
+    const f = fm();
+    const cheapest = Math.min(...Object.entries(F.CROPS).filter(([, c]) => c.lv <= F.level(f.xp).level).map(([id]) => F.seedPrice(id, grade())));
+    const hungry = f.pens.filter((p) => p.a && !p.fed);
+    let t;
+    if (f.beds.some((b) => F.cropStage(b) === 'ready')) t = 'Your crops are ripe! Tap them to pick them.';
+    else if (f.pens.some((p) => p.ready)) t = 'Your animals made something! Tap them to collect it.';
+    else if (hungry.length && f.feed >= F.ANIMALS[hungry[0].a].eat) t = 'Feed your animals before bed, so they grow and make things to sell.';
+    else if (hungry.length) t = 'Out of feed! Buy feed 🌾 in the shop.';
+    else if (F.basketCount(f)) t = 'Your basket is full of good things. Open the stand and sell them!';
+    else if (f.beds.some((b) => !b.c) && f.money >= cheapest) t = 'An empty garden bed! Tap it to plant seeds.';
+    else if (f.beds.some((b) => b.c) || f.pens.some((p) => p.a && p.fed)) t = 'All done for today. Tap 🌙 Sleep to start a new day.';
+    else t = 'Need money? Do odd jobs at the big market.';
+    return t;
+  }
+  function goalBar() {
+    const g = F.goalItem(fm(), grade());
+    if (!g) return '';
+    const have = Math.min(fm().money, g.price), pctv = g.price ? Math.round((have / g.price) * 100) : 100;
+    const left = g.price - fm().money;
+    return `<button class="fgoal" data-act="go" data-arg="farm:shop" aria-label="Saving goal">
+      <span class="fgoal-e">${g.e}</span><span class="fgoal-t"><b>Saving for: ${esc(g.name)}</b>
+      <span class="fbar"><span style="width:${pctv}%"></span></span>
+      <small>${left > 0 ? `${fmt(fm().money)} of ${fmt(g.price)} · ${fmt(left)} to go` : g.locked ? `You have enough! It opens at farm level ${g.lv}.` : 'You have enough! Buy it in the shop 🎉'}${left > 0 && g.locked ? ` · opens at level ${g.lv}` : ''}</small></span></button>`;
+  }
+  function main() {
+    const f = fm(), g = grade();
+    const lv = F.level(f.xp), pctv = Math.round(((f.xp - lv.from) / (lv.to - lv.from)) * 100);
+    const tiers = F.tiers(g), tier = tiers[Math.min(f.tier, tiers.length) - 1];
+    const n = F.basketCount(f);
+    const basket = Object.entries(f.basket).filter(([, c]) => c > 0).map(([id, c]) => `<span class="fchip">${F.ITEMS[id].e} ${c} <small>× ${fmt(F.price(id, g))}</small></span>`).join('') || '<span class="muted">Empty. Pick crops and collect from animals.</span>';
+    const hungry = f.pens.some((p) => p.a && !p.fed), ready = f.pens.some((p) => p.ready);
+    K().render(header('🌻 Sunny Farm') + `<main class="farm">
+      <section class="flevel">
+        <div class="flv"><b>Farm level ${lv.level}</b><span>Day ${f.day} · ${F.STANDS[f.stand].e} ${esc(F.STANDS[f.stand].name)}</span></div>
+        <div class="fbar xp" role="progressbar" aria-valuenow="${pctv}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pctv}%"></span></div>
+        <small class="muted">${f.xp - lv.from} / ${lv.to - lv.from} XP to level ${lv.level + 1} · Money problems: ${tier.ahead ? '⭐ ' : ''}${esc(tier.name)}</small>
+      </section>
+      ${goalBar()}
+      ${tipLine()}
+      <button class="btn big fstand" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Open the stand ${n ? `· ${n} to sell` : '· basket is empty'}</button>
+      <div class="fbtns">
+        <button class="tile" data-act="go" data-arg="farm:shop"><span class="ti">🛒</span><b>Shop</b><small>Animals, feed, more</small></button>
+        <button class="tile" data-act="fJobs"><span class="ti">🧹</span><b>Odd jobs</b><small>Earn at the big market</small></button>
+        <button class="tile" data-act="fSleep"><span class="ti">🌙</span><b>Sleep</b><small>Start day ${f.day + 1}</small></button>
+      </div>
+      ${SC.farm(f, g)}
+      <div class="fstore">
+        <span class="pill" id="ffeed">🌾 ${f.feed} feed</span>
+        ${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}${ready ? '<button class="btn ghost" data-act="fCollectAll">🧺 Collect all</button>' : ''}
+      </div>
+      <h2>🧺 Basket</h2>
+      <div class="fbasket" id="fbasket">${basket}</div>
+      <p class="muted center">Sold ${f.stats.sold} things · earned ${fmt(f.stats.earned)} in all</p>
+    </main>`, 'is-farm');
+    K().setCur('farm');
+  }
+
+  function bed(i, el) {
+    const f = fm(), b = f.beds[i];
+    if (!b) return;
+    const s = F.cropStage(b);
+    if (s === 'ready') {
+      const crop = b.c, n = F.harvest(f, i), from = el && el.getBoundingClientRect();
+      MQ.sfx('correct');
+      xp(1);
+      save();
+      redraw();
+      SC.flyMany(F.ITEMS[crop].e, n, from, '#fbasket');
+      return;
+    }
+    if (s !== 'empty') {
+      const c = F.CROPS[b.c];
+      return K().modal(`<div class="bigemoji">${s === 'seed' ? '🌱' : '🌿'}</div><div class="mtitle">${esc(F.ITEMS[b.c].many)}</div><p>Ready in ${c.days - b.g} ${c.days - b.g === 1 ? 'day' : 'days'}. Tap 🌙 Sleep to make the night pass.</p><div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
+    }
+    plantPicker(i);
+  }
+  function plantPicker(i) {
+    const f = fm(), g = grade(), L = F.level(f.xp).level;
+    const rows = Object.entries(F.CROPS).map(([id, c]) => {
+      const it = F.ITEMS[id], price = F.seedPrice(id, g), locked = c.lv > L, poor = f.money < price;
+      return `<button class="fseed" data-act="fPlant" data-arg="${i}:${id}" ${locked || poor ? 'disabled' : ''}>
+        <span class="fe">${locked ? '🔒' : it.e}</span><span class="fseed-t"><b>${esc(it.many)}</b>
+        <small>${locked ? `Opens at farm level ${c.lv}` : `${c.yield} in ${c.days} ${c.days === 1 ? 'day' : 'days'} · sell ${fmt(F.price(id, g))} each`}</small></span>
+        <span class="fprice">${fmt(price)}</span></button>`;
+    }).join('');
+    K().modal(`<div class="mtitle">Plant seeds</div><p class="muted">You have ${fmt(f.money)}.</p><div class="fseeds">${rows}</div><div class="row"><button class="btn ghost" data-act="closeModal">Not now</button></div>`);
+  }
+  const penEl = (i) => document.querySelector(`.fpen[data-arg="${i}"]`);
+  function pen(i, el) {
+    const f = fm(), p = f.pens[i];
+    if (!p || !p.a) return;
+    if (p.ready) {
+      const it = F.ITEMS[F.ANIMALS[p.a].item], n = F.collect(f, i), from = el && el.getBoundingClientRect();
+      MQ.sfx('correct');
+      xp(1);
+      save();
+      redraw();
+      SC.flyMany(it.e, n, from, '#fbasket');
+      return;
+    }
+    const r = F.feed(f, i);
+    if (r === 'ok') {
+      MQ.sfx('tap');
+      const from = $('#ffeed') && $('#ffeed').getBoundingClientRect();
+      save();
+      redraw();
+      const to = penEl(i);
+      SC.fly('🌾', from, to, { land: () => { MQ.sfx('correct'); SC.burst(penEl(i)); hop(i); } });
+      return;
+    }
+    if (r === 'nofeed') return K().modal(`<div class="bigemoji">🌾</div><div class="mtitle">Not enough feed</div><p>${esc(F.ANIMALS[p.a].name)} eats ${F.ANIMALS[p.a].eat} 🌾 a day. You have ${f.feed}.</p><div class="row"><button class="btn ghost" data-act="closeModal">Later</button><button class="btn" data-act="go" data-arg="farm:shop">Buy feed</button></div>`);
+    const a = F.ANIMALS[p.a], sg = F.animalStage(p);
+    K().modal(`<div class="bigemoji">${sg ? a.e : a.baby}</div><div class="mtitle">${esc(a.name)}</div><p>${sg < 2 ? `Grows up after ${a.grow[1] - p.g} more fed ${a.grow[1] - p.g === 1 ? 'day' : 'days'}. Then it gives ${a.per} ${F.ITEMS[a.item].e} every day it is fed.` : `Gives ${a.per} ${F.ITEMS[a.item].e} every morning after a day it was fed.`}</p><p class="muted">Already fed today. Tap 🌙 Sleep for a new day.</p><div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
+  }
+  // a quick happy jump of the animal in pen i
+  function hop(i) {
+    const w = penEl(i) && penEl(i).querySelector('.bob, .bee');
+    if (!w) return;
+    w.classList.remove('hop');
+    void w.offsetWidth;
+    w.classList.add('hop');
+  }
+  function feedAll() {
+    const f = fm(), from = $('#ffeed') && $('#ffeed').getBoundingClientRect(), fedNow = [];
+    let short = 0;
+    f.pens.forEach((p, i) => { if (!p.a || p.fed) return; F.feed(f, i) === 'ok' ? fedNow.push(i) : short++; });
+    if (fedNow.length) MQ.sfx('tap');
+    if (short) K().toast(`Not enough feed for ${short} more ${short === 1 ? 'animal' : 'animals'}: buy 🌾 in the shop.`);
+    save();
+    redraw();
+    fedNow.forEach((i, k) => SC.fly('🌾', from, penEl(i), { delay: k * 140, land: () => { SC.burst(penEl(i), '❤️', 2); hop(i); } }));
+  }
+  function collectAll() {
+    const f = fm(), got = [];
+    f.pens.forEach((p, i) => { if (p.ready) { const r = penEl(i).getBoundingClientRect(), e = F.ITEMS[F.ANIMALS[p.a].item].e; got.push([r, e, F.collect(f, i)]); } });
+    const n = U.sum(got.map((x) => x[2]));
+    MQ.sfx('correct');
+    xp(n);
+    save();
+    redraw();
+    got.forEach(([r, e, c], k) => SC.flyMany(e, c, r, '#fbasket', { delay: k * 200 }));
+  }
+  function sleep() {
+    if ($('.nightfx')) return;
+    const f = fm(), news = F.nextDay(f);
+    save();
+    MQ.sfx('tick');
+    SC.night(() => redraw(), () => morning(f, news));
+  }
+  function morning(f, news) {
+    if (fs || !$('.scene')) return; // left the farm during the night
+    const lines = [];
+    const count = (arr) => { const m = {}; arr.forEach((x) => (m[x] = (m[x] || 0) + 1)); return m; };
+    for (const [c, n] of Object.entries(count(news.ripe))) lines.push(`${F.ITEMS[c].e} ${n > 1 ? n + ' beds of ' + esc(F.ITEMS[c].many) : esc(cap(F.ITEMS[c].many))} are ripe`);
+    const made = {};
+    news.made.forEach(([it, n]) => (made[it] = (made[it] || 0) + n));
+    for (const [it, n] of Object.entries(made)) lines.push(`${F.ITEMS[it].e} +${n} ${esc(n === 1 ? F.ITEMS[it].name : F.ITEMS[it].many)} to collect`);
+    for (const [a, sg] of news.grew) lines.push(`${F.ANIMALS[a].e} Your ${esc(F.ANIMALS[a].name.toLowerCase())} ${sg === 2 ? 'is all grown up!' : 'got bigger'}`);
+    for (const [a, n] of Object.entries(count(news.hungry))) lines.push(`${F.ANIMALS[a].e} ${n > 1 ? n + ' ' : ''}${esc(F.ANIMALS[a].name.toLowerCase())}${n > 1 ? 's were' : ' was'} hungry and didn’t grow. Feed animals before bed!`);
+    MQ.sfx('reward');
+    K().modal(`<div class="bigemoji">☀️</div><div class="mtitle">Good morning! Day ${f.day}</div>
+      ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : '<p>A quiet night on the farm.</p>'}
+      <div class="row"><button class="btn" data-act="closeModal">Let’s go!</button></div>`);
+  }
+  function redraw() { if (fs) return; main(); }
+
+  // ---------------------------------------------------------------- shop
+  const TABS = [['animals', '🐔 Animals & feed'], ['farm', '🏡 Farm'], ['decor', '✨ Decorations']];
+  function shop() {
+    const f = fm(), list = F.shop(f, grade()).filter((x) => x.tab === tab);
+    const rows = list.map((x) => {
+      // things to save up for: too expensive now, or not open yet (a goal for later levels)
+      const goal = f.goal === x.id ? '<span class="fown">⭐ Goal</span>' : `<button class="btn ghost" data-act="fGoal" data-arg="${x.id}">⭐ Save up</button>`;
+      let btn;
+      if (x.owned) btn = '<span class="fown">✓ Yours</span>';
+      else if (x.locked) btn = `<span class="flock">🔒 Level ${x.lv}</span>${x.tab === 'animals' && x.id.startsWith('feed') ? '' : goal}`;
+      else if (x.blocked) btn = `<span class="flock">${esc(x.blocked)}</span>`;
+      else if (f.money >= x.price) btn = `<button class="btn" data-act="fBuy" data-arg="${x.id}">Buy</button>`;
+      else btn = goal;
+      return `<div class="fitem ${x.locked ? 'locked' : ''}"><span class="fe">${x.id.startsWith('decor:') ? SC.icon(x.id.slice(6), x.e) : x.e}</span>
+        <span class="fitem-t"><b>${esc(x.name)}</b>${x.note ? `<small>${esc(x.note)}</small>` : ''}</span>
+        <span class="fside"><span class="fprice">${x.owned ? '' : fmt(x.price)}</span>${btn}</span></div>`;
+    }).join('');
+    K().render(header('🛒 Farm Shop', 'farm') + `<main class="farm">
+      <div class="ftabs" role="tablist">${TABS.map(([id, n]) => `<button class="chip ${tab === id ? 'sel' : ''}" role="tab" aria-selected="${tab === id}" data-act="fTab" data-arg="${id}">${n}</button>`).join('')}</div>
+      ${goalBar()}
+      <p class="muted">You pay with coins and bills, like in a real store. Tap ⭐ Save up to make something your goal.</p>
+      <div class="fitems">${rows}</div>
+    </main>`, 'is-farm');
+    K().setCur('farm:shop');
+  }
+
+  // ---------------------------------------------------------------- playing: stand, odd jobs, paying
+  // Money to tap when paying: kindergarten pennies, nickels, dimes (and quarters for big prices); 2nd grade
+  // coins and $1 bills, plus $5, $10, $20 bills for big prices.
+  function payKinds(price) {
+    if (grade() === 'k') return price >= 25 ? ['q', 'd', 'n', 'p'] : ['d', 'n', 'p'];
+    const k = ['b', 'q', 'd', 'n', 'p'];
+    if (price >= 300) k.unshift('f');
+    if (price >= 1000) k.unshift('t', 'w');
+    return k;
+  }
+  function startPay(price, what, done, icon = '') {
+    fs = { mode: 'pay', what, done, icon, n: 0, earned: 0, tips: 0, xp: 0 };
+    const p = { kind: 'coins', pay: true, target: price, coinKinds: payKinds(price), text: `Pay <b>${fmt(price)}</b> for ${what}. Tap your coins${grade() === 'k' ? '' : ' and bills'}, then tap Pay.`, hint: 'Start with the biggest money that fits, then add smaller coins.', explain: `One way: ${F.fewest(price, payKinds(price)).map((k) => fmt(F.COINV[k])).join(' + ')} = ${fmt(price)}`, total: price };
+    show(p);
+  }
+  function startMarket() {
+    if (!F.basketCount(fm())) return K().toast('The basket is empty');
+    fs = { mode: 'market', n: 0, earned: 0, tips: 0, xp: 0, sold: {} };
+    nextCustomer();
+  }
+  function startJobs() {
+    fs = { mode: 'jobs', n: 0, earned: 0, tips: 0, xp: 0 };
+    nextCustomer();
+  }
+  function nextCustomer() {
+    clearTimeout(autoNext);
+    const f = fm(), jobs = fs.mode === 'jobs';
+    const vip = !jobs && (f.customers + 1) % F.VIP_EVERY === 0;
+    const p = F.customer(f, grade(), { stock: jobs ? F.jobStock(f) : f.basket, vip, jobs });
+    if (!p) return summary(true);
+    show(p);
+  }
+  function show(p) {
+    Object.assign(fs, { p, tries: 0, input: '', tray: [], locked: false, step: 'main', pick: null });
+    const f = fm(), tiers = F.tiers(grade()), tier = tiers[(p.tier || f.tier) - 1];
+    const status = fs.mode === 'pay' ? '🛒 Paying' : fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : `🏪 Customer ${fs.n + 1} · +${fmt(fs.earned + fs.tips)}`;
+    const label = fs.mode === 'pay' ? '🛒 Farm Shop' : p.vip ? '⭐ Challenge customer · big tip' : `🧮 ${esc(tier.name)}${tier.ahead ? ' ⭐' : ''}`;
+    const intro = fs.mode === 'jobs' ? '<small class="muted">At the big Farmers’ Market:</small><br>' : '';
+    const stall = fs.mode === 'pay'
+      ? SC.stall({ mode: 'pay', seller: '🧑‍🌾', shopper: st().companion, goods: fs.icon || '🛍️' })
+      : SC.stall({ mode: fs.mode, stand: fs.mode === 'jobs' ? 9 : f.stand, seller: st().companion, shopper: p.who[0], goods: SC.goods(p.sale), vip: p.vip });
+    K().render(`<div class="play fplay" style="--wc:${p.vip ? '#b0569e' : '#e0a21b'}">
+      <header class="playbar"><button class="iconbtn" data-act="fQuit" aria-label="Stop">✕</button><div class="pstatus">${status}</div>${moneyPill()}</header>
+      ${stall}
+      <section class="pcard enter ${p.vip ? 'vip' : ''}" id="pcard">
+        <div class="pmeta"><span>${label}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="fSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
+        <div class="fcust"><div class="ptext wordy">${intro}${p.who ? `<b>${esc(p.who[1])}</b> ` : ''}${p.text}</div></div>
+        ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
+        <div id="fstep"></div>
+        <div class="feedback" id="feedback" aria-live="polite"></div>
+      </section>
+      <div class="answer" id="fanswer"></div>
+    </div>`, 'is-play is-farmplay');
+    drawAnswer();
+    if (st().settings.readAloud) speakIt();
+  }
+  const speakIt = () => { const p = fs && fs.p; if (p) MQ.speak(((p.who ? p.who[1] + ' ' : '') + MQ.toSpeech(p.text)).replace(/\$(\d+)\.(\d\d)/g, (_, d, c) => F.spoken(+d * 100 + +c, 'g2')).replace(/(\d+)¢/g, '$1 cents')); };
+  // the problem being answered now (paying too much asks for the change)
+  const cur = () => (fs.step === 'change' ? fs.change : fs.p);
+  function drawAnswer() {
+    const p = cur(), box = $('#fanswer'), step = $('#fstep');
+    if (!box) return;
+    let top = fs.step === 'change' ? `<div class="fchange">${fs.change.text}</div>` : '';
+    if (p.kind === 'num') {
+      top += `<div class="display"><span class="dval ${fs.input ? 'filled' : ''}" id="dval">${fs.input || '?'}</span><span class="unit">¢</span></div>`;
+      box.innerHTML = fs.locked ? lockedHtml() : `<div class="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((k) => `<button class="key" data-act="fKey" data-arg="${k}">${k}</button>`).join('')}<button class="key alt" data-act="fKey" data-arg="back" aria-label="Delete">⌫</button><button class="key" data-act="fKey" data-arg="0">0</button><button class="key go" data-act="fCheck">Check</button></div>`;
+    } else if (p.kind === 'choice') {
+      box.innerHTML = fs.locked ? lockedHtml() : `<div class="choices n${p.choices.length}">${p.choices.map((c, i) => `<button class="choice" data-act="fChoose" data-arg="${i}">${esc(c)}</button>`).join('')}</div>`;
+    } else {
+      const tray = fs.tray.length ? fs.tray.map((k, i) => `<button class="fcoin" data-act="fUncoin" data-arg="${i}" aria-label="Take back ${V.COIN[k].name}" ${fs.locked ? 'disabled' : ''}>${V.coins([k], true)}</button>`).join('') : `<span class="muted">${p.pay ? 'Your money goes here' : 'Tap coins below'}</span>`;
+      top += `<div class="ftray" aria-label="Picked money">${tray}</div>`;
+      box.innerHTML = fs.locked ? lockedHtml() : `<div class="fpalette">${p.coinKinds.map((k) => `<button class="fcoin big" data-act="fCoin" data-arg="${k}" aria-label="${V.COIN[k].name}">${V.coins([k], true)}</button>`).join('')}</div>
+        <div class="row"><button class="btn ghost" data-act="fClear" ${fs.tray.length ? '' : 'disabled'}>Clear</button><button class="btn" data-act="fCheck" ${fs.tray.length ? '' : 'disabled'}>${p.pay ? 'Pay' : 'Done'} ✓</button></div>`;
+    }
+    step.innerHTML = top;
+  }
+  const lockedHtml = () => `<div class="row"><button class="btn big" data-act="fNext">${fs.mode === 'pay' ? 'Back to the farm' : 'Next customer'} →</button></div>`;
+  function feedback(html, cls) {
+    const el = $('#feedback');
+    if (el) el.innerHTML = `<div class="fb ${cls}">${html}</div>`;
+  }
+  function check(given) {
+    if (!fs || fs.locked) return;
+    const p = cur();
+    // Paying: too much money is fine in 2nd grade (then: how much change?); kindergarten pays the exact amount.
+    if (p.pay && p.kind === 'coins') {
+      const sum = F.sumCoins(given);
+      if (sum > p.target && grade() !== 'k' && fs.tries < 2) {
+        const C = sum - p.target;
+        fs.paid = sum;
+        fs.change = Object.assign({ text: `You gave <b>${fmt(sum)}</b>. How much <b>change</b> do you get back?`, hint: `Count up from ${fmt(p.target)} to ${fmt(sum)}.`, explain: `${fmt(sum)} − ${fmt(p.target)} = ${fmt(C)}` }, C < 100 ? { kind: 'num', answer: C } : { kind: 'choice', answer: fmt(C), choices: F.moneyChoices(C, grade()) });
+        fs.step = 'change';
+        fs.input = '';
+        MQ.sfx('coin');
+        return drawAnswer();
+      }
+    }
+    if (F.isRight(p, given)) return right();
+    fs.tries++;
+    MQ.sfx('wrong');
+    const card = $('#pcard');
+    if (card) { card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake'); }
+    if (fs.tries < 2) {
+      let h = p.hint;
+      if (p.kind === 'coins') h = (F.sumCoins(given) > p.target ? 'That’s too much. ' : 'Not enough yet. ') + h;
+      feedback(`💡 ${h}`, 'hint');
+      fs.input = '';
+      if (p.kind === 'coins') fs.tray = [];
+      return drawAnswer();
+    }
+    reveal();
+  }
+  function right() {
+    const first = fs.tries === 0;
+    MQ.sfx('correct');
+    if (fs.mode === 'pay') return paid(first, true);
+    finish(first, true, '');
+  }
+  function reveal() {
+    const p = cur();
+    const ans = p.kind === 'coins' ? '' : `The answer is <b>${esc(String(p.kind === 'num' ? p.answer + '¢' : p.answer))}</b>. `;
+    if (fs.mode === 'pay') return paid(false, false, `${ans}${esc(p.explain)}`);
+    finish(false, false, `${ans}<span class="explain">${esc(p.explain)}</span>`);
+  }
+  // A customer or an odd job is done.
+  function finish(first, solved, shown) {
+    const f = fm(), p = fs.p, before = f.money;
+    const r = F.serve(f, grade(), p, first, solved);
+    F.record(st(), first);
+    const move = F.adapt(f, grade(), first);
+    fs.n++;
+    fs.earned += r.paid;
+    fs.tips += r.tip;
+    fs.xp += r.xp;
+    if (!p.jobs && !p.noPay) for (const [id, n] of Object.entries(p.sale)) fs.sold[id] = (fs.sold[id] || 0) + n;
+    save();
+    fs.locked = true;
+    const thanks = p.noPay ? `${esc(p.who[1])} will come back with more money.` : p.jobs ? `You earned <b>${fmt(r.paid)}</b>.` : `${esc(p.who[1])} paid <b>${fmt(r.paid)}</b>${r.tip ? ` and tipped <b>${fmt(r.tip)}</b>` : ''}.`;
+    if (solved) feedback(`${first ? U.pick(['Great job!', 'Thank you, farmer!', 'Perfect!', 'You got it!']) : 'Got it!'} ${thanks}${move === 'up' ? '<br>⬆️ Harder money problems unlocked!' : ''}`, 'ok');
+    else feedback(`${shown}<br>${thanks}`, 'reveal');
+    drawAnswer();
+    // the customer takes the things and pays: goods fly to them, coins fly to the money
+    const shopper = $('#shopper');
+    if (shopper) shopper.classList.add(p.noPay ? 'sad' : 'happy');
+    if (!p.jobs && !p.noPay && $('#goods')) { $('#goods').querySelectorAll('i').forEach((g, k) => SC.fly(g.textContent, g, shopper, { delay: k * 90, dur: 500 })); $('#goods').classList.add('gone'); }
+    if (r.paid + r.tip) {
+      const coins = Math.min(5, 2 + Math.floor((r.paid + r.tip) / (grade() === 'k' ? 3 : 30)));
+      SC.flyMany('🪙', coins, p.jobs ? $('#cashbox') : shopper, '#fmoney', { delay: 350, size: '1.5rem' });
+      setTimeout(() => { bumpMoney(before); MQ.sfx('coin'); }, SC.reduced() ? 0 : 900);
+    }
+    const s = $('.pstatus');
+    if (s) s.textContent = fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : `🏪 Customer ${fs.n} · +${fmt(fs.earned + fs.tips)}`;
+    if (r.ups.length) levelUp(r.ups);
+    else if (solved) autoNext = setTimeout(() => { if (fs && fs.locked && !$('#modal') && $('.fplay')) next(); }, 1700);
+    K().checkBadges();
+  }
+  // A payment is done (after a hint or with the answer shown it still goes through: the lesson is in the reveal).
+  function paid(first, solved, shown) {
+    const f = fm();
+    F.record(st(), first);
+    F.adapt(f, grade(), first);
+    const done = fs.done, before = f.money;
+    document.querySelectorAll('.ftray .fcoin').forEach((c, k) => SC.fly(c.innerHTML, c, '#cashbox', { delay: k * 80, dur: 550, size: '1rem' }));
+    fs.locked = true;
+    const thing = done();
+    save();
+    bumpMoney(before);
+    MQ.sfx('reward');
+    const sh = $('#shopper');
+    if (sh) sh.classList.add('happy');
+    feedback(solved ? `${first ? 'Perfect payment!' : 'Paid!'} ${thing}` : `${shown}<br>${thing}`, solved ? 'ok' : 'reveal');
+    drawAnswer();
+    const ups = xp(solved ? (first ? 3 : 1) : 0);
+    save();
+    if (!ups.length && solved) autoNext = setTimeout(() => { if (fs && fs.locked && !$('#modal') && $('.fplay')) next(); }, 1500);
+    K().checkBadges();
+  }
+  function next() {
+    clearTimeout(autoNext);
+    if (!fs) return main();
+    if (fs.mode === 'pay') { const back = fs.back || 'farm'; fs = null; return K().go(back); }
+    if (fs.mode === 'market' && !F.basketCount(fm())) return summary(true);
+    nextCustomer();
+  }
+  function quit() {
+    clearTimeout(autoNext);
+    if (!fs) return main();
+    if (fs.mode === 'pay' || !fs.n) { const back = fs.back || 'farm'; fs = null; return K().go(back); }
+    summary(false);
+  }
+  function summary(soldOut) {
+    clearTimeout(autoNext);
+    const s = fs;
+    fs = null;
+    if (!s || !s.n) return main();
+    const sold = Object.entries(s.sold || {}).map(([id, n]) => `${F.ITEMS[id].e} ${n}`).join(' · ');
+    const title = s.mode === 'jobs' ? 'Odd jobs done!' : soldOut ? 'Sold out! 🎉' : 'Stand closed';
+    K().render(`<main class="result">
+      <div class="bigemoji">${s.mode === 'jobs' ? '🧹' : '🏪'}</div>
+      <h1 class="title">${title}</h1>
+      <p class="lead">${s.mode === 'jobs' ? `${s.n} ${s.n === 1 ? 'job' : 'jobs'}` : `${s.n} ${s.n === 1 ? 'customer' : 'customers'}`} · earned <b>${fmt(s.earned + s.tips)}</b>${s.tips ? ` (tips ${fmt(s.tips)})` : ''} · +${s.xp} XP</p>
+      ${sold ? `<p class="muted">Sold: ${sold}</p>` : ''}
+      <p>Money now: <b>${fmt(fm().money)}</b></p>
+      <div class="row"><button class="btn ghost" data-act="go" data-arg="farm:shop">🛒 Shop</button><button class="btn" data-act="go" data-arg="farm">Back to the farm</button></div>
+    </main>`);
+    MQ.sfx('reward');
+    if (soldOut) MQ.confetti(80);
+  }
+  function key(k) {
+    if (!fs || fs.locked || cur().kind !== 'num') return;
+    if (k === 'back') fs.input = fs.input.slice(0, -1);
+    else if (fs.input.length < 5) fs.input = (fs.input + k).replace(/^0+(?=\d)/, '');
+    MQ.sfx('tap');
+    const d = $('#dval');
+    if (d) { d.textContent = fs.input || '?'; d.classList.toggle('filled', !!fs.input); }
+  }
+
+  // ---------------------------------------------------------------- routing
+  function show_(arg, quiet = false) {
+    clearTimeout(autoNext);
+    fs = null;
+    if (arg === 'shop') return shop();
+    main();
+    if (!quiet && st().settings.readAloud) MQ.speak(tipText());
+  }
+  const A = {
+    fBed: (a, el) => bed(+a, el),
+    fPen: (a, el) => pen(+a, el),
+    fFeedAll: () => feedAll(),
+    fCollectAll: () => collectAll(),
+    fSleep: () => sleep(),
+    fMarket: () => startMarket(),
+    fJobs: () => startJobs(),
+    fTab: (a) => { tab = a; shop(); },
+    fGoal: (a) => { fm().goal = a; save(); MQ.sfx('tap'); K().toast('⭐ Saving goal set'); shop(); },
+    fPlant: (a) => {
+      const [i, crop] = a.split(':'), price = F.seedPrice(crop, grade());
+      K().closeModal();
+      if (fm().money < price) return K().toast('Not enough money yet');
+      startPay(price, `seeds to grow ${F.ITEMS[crop].e} ${esc(F.ITEMS[crop].many)}`, () => {
+        F.buySeed(fm(), grade(), +i, crop);
+        return `${F.ITEMS[crop].e} planted! Ready in ${F.CROPS[crop].days} ${F.CROPS[crop].days === 1 ? 'day' : 'days'}.`;
+      }, '🌱');
+    },
+    fBuy: (a) => {
+      const x = F.shopItem(fm(), grade(), a);
+      if (!x || fm().money < x.price) return;
+      const icon = a.startsWith('decor:') ? SC.icon(a.slice(6), x.e) : x.e;
+      startPay(x.price, `${x.e} ${esc(x.name)}`, () => { F.buy(fm(), grade(), a); return `${x.e} ${esc(x.name)} is yours!`; }, icon);
+      fs.back = 'farm:shop';
+    },
+    fKey: (a) => key(a),
+    fCheck: () => {
+      if (!fs || fs.locked) return;
+      const p = cur();
+      if (p.kind === 'num') { if (!fs.input) return; return check(fs.input); }
+      if (p.kind === 'coins') { if (!fs.tray.length) return; return check(fs.tray.slice()); }
+    },
+    fChoose: (a) => { if (fs && !fs.locked) check(cur().choices[+a]); },
+    fCoin: (a, el) => {
+      if (!fs || fs.locked) return;
+      const p = cur();
+      if (p.pay && F.sumCoins(fs.tray) + F.COINV[a] > fm().money) return K().toast(`You only have ${fmt(fm().money)}`);
+      if (fs.tray.length >= 30) return;
+      fs.tray.push(a);
+      MQ.sfx('coin');
+      const from = el && el.getBoundingClientRect();
+      drawAnswer();
+      const last = document.querySelector('.ftray .fcoin:last-child');
+      if (last && from && !SC.reduced()) { last.classList.add('landing'); SC.fly(V.coins([a], true), from, last, { dur: 380, size: '1rem', land: () => last.classList.remove('landing') }); }
+    },
+    fUncoin: (a) => { if (!fs || fs.locked) return; fs.tray.splice(+a, 1); MQ.sfx('tap'); drawAnswer(); },
+    fClear: () => { if (!fs || fs.locked) return; fs.tray = []; drawAnswer(); },
+    fNext: () => next(),
+    fQuit: () => quit(),
+    fSpeak: () => speakIt(),
+  };
+  document.addEventListener('keydown', (e) => {
+    if (!fs || fs.locked || $('#modal') || !document.getElementById('app').classList.contains('is-farmplay')) return;
+    const p = cur();
+    if (p.kind === 'num') {
+      if (/^[0-9]$/.test(e.key)) key(e.key);
+      else if (e.key === 'Backspace') { e.preventDefault(); key('back'); }
+      else if (e.key === 'Enter') A.fCheck();
+    } else if (p.kind === 'choice' && /^[1-4]$/.test(e.key) && p.choices[+e.key - 1]) check(p.choices[+e.key - 1]);
+  });
+
+  MQ.farmUI = { show: show_, redraw: (arg) => show_(arg, true), actions: A, playing: () => fs };
+})();
+</script>
+  <script>
 // UI: screens, game loop, rewards. Screens render into #app; clicks are routed through data-act attributes.
 (function () {
   const MQ = globalThis.MQ, U = MQ.U, S = MQ.store;
@@ -5067,6 +6495,7 @@ svg.vis.abacus { max-height: 160px; }
   const D_ICONS = { 1: '🌱', 2: '🧭', 3: '🏕️', 4: '🏔️', 5: '🐉' };
   const TRACK_COLOR = { k: '#e0a21b', g2: '#2bb3a3' };
   const DAILY_REWARD = 15;
+  const FARM_FEED_BONUS = 5; // the Daily Quest also brings feed for Sunny Farm
 
   let st = null; // MQ.state
   let sess = null; // current play session
@@ -5359,7 +6788,7 @@ svg.vis.abacus { max-height: 160px; }
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
-    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg) }[scr];
+    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg) }[scr];
     if (redraw) redraw();
   }
   function newExplorer() {
@@ -5449,6 +6878,7 @@ svg.vis.abacus { max-height: 160px; }
         <button class="tile t-daily ${dailyDone ? 'done' : ''}" data-act="daily"><span class="ti">${dailyDone ? '✅' : '📅'}</span><b>Daily Quest</b><small>${dailyDone ? 'Done today · 🔥 ' + st.daily.streak : '+' + DAILY_REWARD + ' 💎 · streak ' + st.daily.streak}</small></button>
         <button class="tile t-fixit ${toFix ? 'hot' : ''}" data-act="go" data-arg="fixit"><span class="ti">🛠️</span><b>Fix-it Lab</b><small>${toFix ? `${toFix} to fix today` : inRepair ? 'All done today ✓' : 'No mistakes to fix'}</small></button>
         <button class="tile t-journal" data-act="go" data-arg="journal"><span class="ti">📔</span><b>Field Journal</b><small>${have} / ${total} creatures</small></button>
+        ${farmTile()}
         <button class="tile t-hatch" data-act="go" data-arg="hatch"><span class="ti">🥚</span><b>Hatchery</b><small>Rare eggs · ${MQ.EGG_PRICE} 💎</small></button>
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
         <button class="tile t-progress" data-act="go" data-arg="progress"><span class="ti">📈</span><b>My Progress</b><small>${weekAcc}</small></button>
@@ -5457,6 +6887,27 @@ svg.vis.abacus { max-height: 160px; }
       <footer class="foot">${syncLine()}<button class="linkbtn" data-act="go" data-arg="parent">For grown-ups</button>${appLinks()}</footer>
     </main>`);
     cur = 'home';
+  }
+
+  // Sunny Farm: level, money and what's waiting (ripe crops, things to collect, a full basket).
+  function farmTile() {
+    const F = MQ.farm, fm = st.farm;
+    if (!fm || !fm.started) return `<button class="tile t-farm wide" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>New! Grow, sell at your stand, count real money</small></span></button>`;
+    const waiting = fm.beds.some((b) => F.cropStage(b) === 'ready') || fm.pens.some((p) => p.ready);
+    const n = F.basketCount(fm);
+    const note = waiting ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Day ' + fm.day;
+    return `<button class="tile t-farm wide ${waiting || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
+  }
+
+  // For grown-ups: how Sunny Farm is going (its money problems also count in the daily totals above).
+  function farmReport() {
+    const F = MQ.farm, fm = st.farm;
+    if (!fm || !fm.started) return '';
+    const s = fm.stats, tiers = F.tiers(st.grade), tier = tiers[Math.min(fm.tier, tiers.length) - 1];
+    return `<section><h2>🌻 Sunny Farm</h2>
+      <p>Farm level <b>${F.level(fm.xp).level}</b> · day ${fm.day} · money <b>${F.fmt(fm.money, st.grade)}</b> (earned ${F.fmt(s.earned, st.grade)}, spent ${F.fmt(s.spent, st.grade)})</p>
+      <p>${s.tasks} money problems from customers and odd jobs, <b>${pct(s.right, s.tasks)}%</b> right on the first try · ${s.vip} ⭐ challenge customers. Now practicing: <b>${esc(tier.name)}</b>${tier.ahead ? ' (ahead of grade)' : ''}.</p>
+      <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p></section>`;
   }
 
   // The daily goal a grown-up set: a ring for today and a dot for each day of this week.
@@ -5926,12 +7377,14 @@ svg.vis.abacus { max-height: 160px; }
       st.daily.last = today;
       gems = DAILY_REWARD + Math.min(st.daily.streak - 1, 10);
       addGems(gems);
+      if (st.farm && st.farm.started) { st.farm.feed += FARM_FEED_BONUS; st.farm.t = Date.now(); }
     }
     S.save();
     render(`<main class="result" style="--wc:#e09a2b;--wt:#fbecd2">
       <div class="bigemoji">${first ? '🔥' : '✅'}</div>
       <h1 class="title">Daily Quest complete!</h1>
       <p class="lead">${first ? `Day streak: <b>${st.daily.streak}</b> · <b>+${gems} 💎</b>` : 'Extra practice — great job! Come back tomorrow for a new quest.'}</p>
+      ${first && st.farm && st.farm.started ? `<p class="muted">+${FARM_FEED_BONUS} 🌾 feed bags for your farm animals</p>` : ''}
       ${first && st.daily.streak > 1 ? `<p class="muted">Streak bonus: +${Math.min(st.daily.streak - 1, 10)} 💎 for coming back every day.</p>` : ''}
       <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button><button class="btn" data-act="go" data-arg="hatch">Visit the Hatchery 🥚</button></div></main>`);
     MQ.sfx('reward');
@@ -6723,6 +8176,7 @@ svg.vis.abacus { max-height: 160px; }
         <div class="row left"><button class="btn ghost" data-act="exportSave">Show & copy save code</button><button class="btn ghost" data-act="importSave">Load pasted code</button></div>
         <p class="muted" id="save-msg"></p></section>
       ${readinessSection()}
+      ${farmReport()}
       <section><h2>How levels map to school</h2><p>${track().school}</p></section>
       <section><h2>${CL() && MQ.cloud.family ? 'Explorers in your family' : 'Explorers on this device'}</h2>
         <p class="muted">Each child has a separate profile: their own grade, map, creatures, crystals and statistics. Changing the grade switches the map; progress in the other grade is kept.</p>
@@ -6780,6 +8234,7 @@ svg.vis.abacus { max-height: 160px; }
     if (!st) return who();
     if (scr === 'parent' && S.preview) { endPreview(); toast('Preview ended'); }
     endContest();
+    if (scr === 'farm') return MQ.farmUI.show(arg);
     ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
 
@@ -6962,7 +8417,10 @@ svg.vis.abacus { max-height: 160px; }
       home();
     },
   };
-  function act(name, arg, el) { if (ACTIONS[name]) ACTIONS[name](arg, el); }
+  function act(name, arg, el) {
+    if (ACTIONS[name]) return ACTIONS[name](arg, el);
+    if (st && MQ.farmUI && MQ.farmUI.actions[name]) MQ.farmUI.actions[name](arg, el); // Sunny Farm (js/farm-ui.js)
+  }
 
   function init() {
     S.init();
@@ -7013,7 +8471,9 @@ svg.vis.abacus { max-height: 160px; }
     startScreen();
   }
 
-  MQ.app = { init, go, session: () => sess, contest: () => ct }; // session() and contest() are used by the browser tests
+  // kit: what the Sunny Farm screens (js/farm-ui.js) borrow from the app
+  const kit = { render, toast, modal, closeModal, go, checkBadges, state: () => st, setCur: (c) => { cur = c; } };
+  MQ.app = { init, go, kit, session: () => sess, contest: () => ct }; // session() and contest() are used by the browser tests
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

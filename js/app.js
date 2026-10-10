@@ -5,6 +5,7 @@
   const D_ICONS = { 1: '🌱', 2: '🧭', 3: '🏕️', 4: '🏔️', 5: '🐉' };
   const TRACK_COLOR = { k: '#e0a21b', g2: '#2bb3a3' };
   const DAILY_REWARD = 15;
+  const FARM_FEED_BONUS = 5; // the Daily Quest also brings feed for Sunny Farm
 
   let st = null; // MQ.state
   let sess = null; // current play session
@@ -297,7 +298,7 @@
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
-    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg) }[scr];
+    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg) }[scr];
     if (redraw) redraw();
   }
   function newExplorer() {
@@ -387,6 +388,7 @@
         <button class="tile t-daily ${dailyDone ? 'done' : ''}" data-act="daily"><span class="ti">${dailyDone ? '✅' : '📅'}</span><b>Daily Quest</b><small>${dailyDone ? 'Done today · 🔥 ' + st.daily.streak : '+' + DAILY_REWARD + ' 💎 · streak ' + st.daily.streak}</small></button>
         <button class="tile t-fixit ${toFix ? 'hot' : ''}" data-act="go" data-arg="fixit"><span class="ti">🛠️</span><b>Fix-it Lab</b><small>${toFix ? `${toFix} to fix today` : inRepair ? 'All done today ✓' : 'No mistakes to fix'}</small></button>
         <button class="tile t-journal" data-act="go" data-arg="journal"><span class="ti">📔</span><b>Field Journal</b><small>${have} / ${total} creatures</small></button>
+        ${farmTile()}
         <button class="tile t-hatch" data-act="go" data-arg="hatch"><span class="ti">🥚</span><b>Hatchery</b><small>Rare eggs · ${MQ.EGG_PRICE} 💎</small></button>
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
         <button class="tile t-progress" data-act="go" data-arg="progress"><span class="ti">📈</span><b>My Progress</b><small>${weekAcc}</small></button>
@@ -395,6 +397,27 @@
       <footer class="foot">${syncLine()}<button class="linkbtn" data-act="go" data-arg="parent">For grown-ups</button>${appLinks()}</footer>
     </main>`);
     cur = 'home';
+  }
+
+  // Sunny Farm: level, money and what's waiting (ripe crops, things to collect, a full basket).
+  function farmTile() {
+    const F = MQ.farm, fm = st.farm;
+    if (!fm || !fm.started) return `<button class="tile t-farm wide" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>New! Grow, sell at your stand, count real money</small></span></button>`;
+    const waiting = fm.beds.some((b) => F.cropStage(b) === 'ready') || fm.pens.some((p) => p.ready);
+    const n = F.basketCount(fm);
+    const note = waiting ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Day ' + fm.day;
+    return `<button class="tile t-farm wide ${waiting || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
+  }
+
+  // For grown-ups: how Sunny Farm is going (its money problems also count in the daily totals above).
+  function farmReport() {
+    const F = MQ.farm, fm = st.farm;
+    if (!fm || !fm.started) return '';
+    const s = fm.stats, tiers = F.tiers(st.grade), tier = tiers[Math.min(fm.tier, tiers.length) - 1];
+    return `<section><h2>🌻 Sunny Farm</h2>
+      <p>Farm level <b>${F.level(fm.xp).level}</b> · day ${fm.day} · money <b>${F.fmt(fm.money, st.grade)}</b> (earned ${F.fmt(s.earned, st.grade)}, spent ${F.fmt(s.spent, st.grade)})</p>
+      <p>${s.tasks} money problems from customers and odd jobs, <b>${pct(s.right, s.tasks)}%</b> right on the first try · ${s.vip} ⭐ challenge customers. Now practicing: <b>${esc(tier.name)}</b>${tier.ahead ? ' (ahead of grade)' : ''}.</p>
+      <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p></section>`;
   }
 
   // The daily goal a grown-up set: a ring for today and a dot for each day of this week.
@@ -864,12 +887,14 @@
       st.daily.last = today;
       gems = DAILY_REWARD + Math.min(st.daily.streak - 1, 10);
       addGems(gems);
+      if (st.farm && st.farm.started) { st.farm.feed += FARM_FEED_BONUS; st.farm.t = Date.now(); }
     }
     S.save();
     render(`<main class="result" style="--wc:#e09a2b;--wt:#fbecd2">
       <div class="bigemoji">${first ? '🔥' : '✅'}</div>
       <h1 class="title">Daily Quest complete!</h1>
       <p class="lead">${first ? `Day streak: <b>${st.daily.streak}</b> · <b>+${gems} 💎</b>` : 'Extra practice — great job! Come back tomorrow for a new quest.'}</p>
+      ${first && st.farm && st.farm.started ? `<p class="muted">+${FARM_FEED_BONUS} 🌾 feed bags for your farm animals</p>` : ''}
       ${first && st.daily.streak > 1 ? `<p class="muted">Streak bonus: +${Math.min(st.daily.streak - 1, 10)} 💎 for coming back every day.</p>` : ''}
       <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button><button class="btn" data-act="go" data-arg="hatch">Visit the Hatchery 🥚</button></div></main>`);
     MQ.sfx('reward');
@@ -1661,6 +1686,7 @@
         <div class="row left"><button class="btn ghost" data-act="exportSave">Show & copy save code</button><button class="btn ghost" data-act="importSave">Load pasted code</button></div>
         <p class="muted" id="save-msg"></p></section>
       ${readinessSection()}
+      ${farmReport()}
       <section><h2>How levels map to school</h2><p>${track().school}</p></section>
       <section><h2>${CL() && MQ.cloud.family ? 'Explorers in your family' : 'Explorers on this device'}</h2>
         <p class="muted">Each child has a separate profile: their own grade, map, creatures, crystals and statistics. Changing the grade switches the map; progress in the other grade is kept.</p>
@@ -1718,6 +1744,7 @@
     if (!st) return who();
     if (scr === 'parent' && S.preview) { endPreview(); toast('Preview ended'); }
     endContest();
+    if (scr === 'farm') return MQ.farmUI.show(arg);
     ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
 
@@ -1900,7 +1927,10 @@
       home();
     },
   };
-  function act(name, arg, el) { if (ACTIONS[name]) ACTIONS[name](arg, el); }
+  function act(name, arg, el) {
+    if (ACTIONS[name]) return ACTIONS[name](arg, el);
+    if (st && MQ.farmUI && MQ.farmUI.actions[name]) MQ.farmUI.actions[name](arg, el); // Sunny Farm (js/farm-ui.js)
+  }
 
   function init() {
     S.init();
@@ -1951,7 +1981,9 @@
     startScreen();
   }
 
-  MQ.app = { init, go, session: () => sess, contest: () => ct }; // session() and contest() are used by the browser tests
+  // kit: what the Sunny Farm screens (js/farm-ui.js) borrow from the app
+  const kit = { render, toast, modal, closeModal, go, checkBadges, state: () => st, setCur: (c) => { cur = c; } };
+  MQ.app = { init, go, kit, session: () => sess, contest: () => ct }; // session() and contest() are used by the browser tests
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
