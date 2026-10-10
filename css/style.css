@@ -595,3 +595,7 @@ svg.vis.abacus { max-height: 160px; }
   .analogy.emo .abox { font-size: 2.1rem; }
   .foldsteps svg.vis { width: 74px; height: 74px; }
 }
+
+/* Unfinished test on a test card */
+.tc-resume { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0; padding: 10px 12px; border-radius: 14px; background: #fff6e0; box-shadow: inset 0 0 0 2px #ffcf6b; }
+.tc-resume span { font-size: 0.95rem; }

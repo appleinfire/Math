@@ -52,6 +52,7 @@ Practice for the tests used in California schools. The app is not affiliated wit
   - Practice by type (gets harder as she gets them right, every answer explained) or a 45-question practice test: 15 per part, 4 answers each, with a clock that shows time used but never stops the test. Results show how many were right in each part and each question type.
   - Original questions in the CogAT style; not affiliated with the publisher. Real CogAT percentiles cannot be estimated from practice, so the app doesn't show any.
 - **Brain Games** — kindergarten: 18 easy CogAT-style picture questions (2 of each type), read aloud, no clock.
+- **Take a break any time.** An unfinished Placement Check or practice test is saved after every answer and when the page is closed. The test card then offers **Continue** (same questions, same answers; a running clock waits) or **Start over**. Unfinished tests are kept on the device where they were started.
 - **Retakes bring new questions.** Every test and practice set is built fresh from generators and hand-written sets (20+ different questions per level for every type). The app remembers the last 80 questions each child saw per type (synced across devices) and only repeats one when nothing new is left, starting with the one seen longest ago.
 
 ## Kindergarten track
