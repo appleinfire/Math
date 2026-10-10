@@ -16,6 +16,7 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 - **Online (main way):** **https://appleinfire.github.io/Math/** — works on any phone, tablet or computer. On an iPad, open it in Safari, then Share → *Add to Home Screen* to get a full-screen app icon. It keeps working offline.
 - **Same progress everywhere:** on the first device choose *Create a family* (family code + PIN). On every other device choose *I already have a family* and type the same code and PIN. Explorers, levels, creatures and crystals then stay in sync across all devices.
 - **Updates:** every push to `main` is tested and published automatically by GitHub Actions in about a minute. See [docs/DEPLOY.md](docs/DEPLOY.md) for the setup and how sync works.
+- **New apps on the same shell:** [docs/NEW-APP-GUIDE.md](docs/NEW-APP-GUIDE.md) (in Russian) has the steps and a prompt for a new chat; the shell itself is in `templates/app-shell/`.
 - **Offline single file:** `dist/math-expedition.html` still works on its own (progress stays on that device).
 
 ## How the game works
@@ -118,6 +119,7 @@ tools/build.py        bundles everything into dist/math-expedition.html (local-o
 .github/workflows/    automatic deploy to GitHub Pages
 firestore.rules       Firestore security rules (paste into the Firebase console)
 tests/                generator test (node) and browser smoke test (Playwright)
+templates/app-shell/   the same shell (profiles, family sync, grown-ups page, preview, deploy) without the math, for new apps
 ```
 
 No build step or dependencies are needed to run it. After changing code, run:
