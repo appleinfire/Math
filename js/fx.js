@@ -34,6 +34,7 @@
     crack: () => { tone(180, 0, 0.08, 'square', 0.06); tone(140, 0.05, 0.08, 'square', 0.05); },
     hatch: () => [440, 554, 659, 880, 1108].forEach((f, i) => tone(f, i * 0.1, 0.35, 'sine', 0.16)),
     tick: () => tone(1200, 0, 0.03, 'square', 0.03),
+    coin: () => { tone(1320, 0, 0.06, 'square', 0.04); tone(1760, 0.05, 0.14, 'square', 0.04); },
   };
   MQ.sfx = (name) => {
     if (!MQ.state || !MQ.state.settings.sound) return;

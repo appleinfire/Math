@@ -44,7 +44,10 @@
     n: { v: 5, r: 22, fill: '#c9ced6', stroke: '#7f8792', name: 'nickel' },
     d: { v: 10, r: 17, fill: '#e1e5ea', stroke: '#8f97a2', name: 'dime' },
     q: { v: 25, r: 25, fill: '#d2d7de', stroke: '#7a828e', name: 'quarter' },
-    b: { v: 100, name: 'dollar' },
+    b: { v: 100, name: 'dollar', bill: '$1' },
+    f: { v: 500, name: 'five dollars', bill: '$5' },
+    t: { v: 1000, name: 'ten dollars', bill: '$10' },
+    w: { v: 2000, name: 'twenty dollars', bill: '$20' },
   };
   V.COIN = COIN;
   V.coins = (list, showValues = true) => {
@@ -52,12 +55,13 @@
     let x = 6, y = 6, rowH = 58, items = '', w = 0;
     for (const k of list) {
       const c = COIN[k];
-      const iw = k === 'b' ? 100 : c.r * 2 + 10;
+      const iw = c.bill ? 100 : c.r * 2 + 10;
       if (x + iw > maxW) { x = 6; y += rowH; }
-      if (k === 'b') {
+      if (c.bill) {
+        const n = c.bill.slice(1);
         items += `<rect x="${x}" y="${y + 4}" width="94" height="46" rx="5" fill="#cfe7c6" stroke="#4d7d48" stroke-width="2.5"/>` +
-          `<ellipse cx="${x + 47}" cy="${y + 27}" rx="14" ry="16" fill="#e6f3df" stroke="#4d7d48" stroke-width="1.5"/>` +
-          text(x + 47, y + 33, '$1', 16, 'fill="#2f5a2b"') + text(x + 12, y + 18, '1', 10, 'fill="#2f5a2b"') + text(x + 82, y + 46, '1', 10, 'fill="#2f5a2b"');
+          `<ellipse cx="${x + 47}" cy="${y + 27}" rx="${n.length > 1 ? 18 : 14}" ry="16" fill="#e6f3df" stroke="#4d7d48" stroke-width="1.5"/>` +
+          text(x + 47, y + 33, c.bill, 16, 'fill="#2f5a2b"') + text(x + 12, y + 18, n, 10, 'fill="#2f5a2b"') + text(x + 82, y + 46, n, 10, 'fill="#2f5a2b"');
       } else {
         const cx = x + c.r + 5, cy = y + 27;
         items += `<circle cx="${cx}" cy="${cy}" r="${c.r}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="2.5"/>` +

@@ -8,7 +8,7 @@ Site: **https://appleinfire.github.io/Math/**
 
 Every push to `main` runs `.github/workflows/pages.yml`, which:
 
-1. runs the tests (`tests/generators.test.js`, `tests/store.test.js`);
+1. runs the tests (`tests/generators.test.js`, `tests/store.test.js`, `tests/testprep.test.js`, `tests/farm.test.js`);
 2. copies the site into `_site/`;
 3. gives the offline cache a new name (the commit hash), so tablets load the new version the next time the app is opened online;
 4. publishes it to GitHub Pages. This takes about a minute.

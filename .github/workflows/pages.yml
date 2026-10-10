@@ -31,6 +31,7 @@ jobs:
           node tests/generators.test.js
           node tests/store.test.js
           node tests/testprep.test.js
+          node tests/farm.test.js
       - name: Build site
         run: |
           mkdir _site

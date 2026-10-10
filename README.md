@@ -33,11 +33,27 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 | **Strategy tips** | After two misses of the same kind of problem in one session, the next question of that kind starts with a short tip ("Make a ten: 8 + 5 → 8 + 2 + 3"). Every topic has tips, at most one a day per topic. |
 | **Daily goal** | A grown-up can set problems per day (10–50) and goal days per week. The home screen shows a ring for today and the days of the week; a badge for a week that reaches the goal. |
 | **Hatchery** | Spend 30 💎 on an egg, tap it 3 times, and hatch one of 14 rare creatures that only come from eggs. |
-| **Badges & ranks** | 21 badges (streaks, collections, daily habit, lightning rounds, challenge problems). Explorer level grows with XP. |
+| **Badges & ranks** | 26 badges (streaks, collections, daily habit, lightning rounds, challenge problems, Sunny Farm). Explorer level grows with XP. |
 | **Hints** | A wrong answer gets a strategy hint and one more try ("make a ten", "count up", "break a ten"). A second miss shows the answer with an explanation. |
 | **Voice** | After each answer a voice says "Great job!" or a gentle "Oops! Try again." The next problem waits until the voice has finished; the **Next →** button skips the wait. Questions can be read aloud with 🔊 (automatic for kindergarten). Both can be turned off per child in *For grown-ups*. |
 | **Navigation** | Every screen has a back button; result screens have Home. **👥 Switch** on the home screen (or the small avatar in the top bar) changes the child without reloading. The browser's back gesture moves between screens and asks before leaving a game. |
 | **For grown-ups** | Protected by a multiplication question. Shows progress over time (the same charts as My Progress), accuracy per topic with the standard code, activity for the last 14 days, recent mistakes and how many are in repair, test history, the daily goal, settings (sound, *unlock all worlds*), save codes and reset. **👀 Look at every level** starts a grown-up preview: every world and level is open, Practice by type can start at any level 1–5, and nothing is saved (no stars, crystals, statistics, mistakes or test results, nothing unlocked for the child, nothing synced). A purple bar shows it is on; **Exit**, opening For grown-ups again, switching explorer or reloading ends it. |
+
+## 🌻 Sunny Farm
+
+A mini-game about real money (pretend money, no real purchases). The child runs a small farm, sells what it makes at their own stand and spends the money on the farm. Every sale and every purchase is a money problem with US coins and bills. The rules and problems are in `js/farm.js`, the screens in `js/farm-ui.js`.
+
+- **The farm.** Garden beds grow crops (plant seeds → wait a few days → pick). Animals in pens grow up when they are fed (baby → young → grown-up); a fed grown-up gives eggs, honey, milk, wool… the next morning. Animals never get sick or leave: an animal that wasn't fed just doesn't grow that night. **🌙 Sleep** starts the next day whenever the child wants; there is no real-time waiting and no limit on how much they play.
+- **The stand.** Customers come while there is something in the basket. Each one brings a problem: count the coins they pay with, the total for 3 eggs, the change from $1, tap coins to give change, do they have enough, money left after buying two things. A first-try right answer earns a tip (bigger with a nicer stand) and XP; after a hint or a shown answer the customer still buys, so nothing is lost. Every 5th customer is a **⭐ challenge customer** with a problem one tier above the child's (a big tip for a first-try right answer).
+- **Paying.** In the shop the child pays with coins and bills from a tray. Kindergarten pays the exact amount; a 2nd grader may pay more (a quarter for 15¢ seeds) and then works out the change.
+- **The shop.** Seeds, feed, 9 animals, more beds (up to 8) and pens (up to 8), 6 stands (table → supermarket, bigger tips) and 16 decorations up to a golden chicken statue. Anything can be set as a **⭐ saving goal**, even before it opens, with a progress bar on the farm.
+- **Odd jobs** at the big market pay a small wage per problem, so a child is never stuck with no money.
+- **Growing for a long time.** Farm level has no top (level 10 ≈ 650 XP, level 50 ≈ 13,000 XP, about 2,500 problems); almost every level up to 50 opens something (a crop, an animal, a bed, a pen, a stand, a decoration or new money problems) and pays a money gift.
+- **Money problems by tier.** A tier opens with the farm level, and the child climbs the open tiers by answering (4 first-try right in a row → up, 2 misses → down).
+  - Kindergarten (prices in cents, read aloud): pennies to 10¢ → nickels to 20¢ and change from a dime → ⭐ dimes to 50¢ → ⭐ quarters to 99¢.
+  - 2nd grade: coins to 50¢ → quarters to 99¢, change from $1 → dollars → change from $5, budgets → ⭐ big orders (3 × 85¢, change from $10/$20) → ⭐ deals (2 for $1.70) and profit (seeds cost vs. harvest sold).
+  - ⭐ tiers are ahead of the grade's standards: challenges to grow into.
+- **With the rest of the app.** Farm problems count in the daily totals (daily goal, My Progress). The Daily Quest also brings 5 bags of feed. 5 farm badges. *For grown-ups* shows the farm level, money, accuracy and the tier being practiced. The farm syncs with the family; when two devices changed it, the one changed last wins.
 
 ## Test Prep
 
@@ -114,6 +130,8 @@ js/testprep.js        Placement Check (grade ladder, adaptive questions, level e
 js/puzzles.js         Math Kangaroo style puzzle generators, hand-written puzzle bank, Joey puzzles
 js/cogat.js           CogAT style question generators (Verbal, Quantitative, Nonverbal)
 js/logic.js           Logic Lab generators (order, who has what, yes/no/can't tell, situations, counting, truth-tellers)
+js/farm.js            Sunny Farm rules: prices, crops, animals, shop, levels, money problems for customers
+js/farm-ui.js         Sunny Farm screens: farm, shop, stand, odd jobs, paying with coins
 js/fx.js              sounds (Web Audio), read-aloud (Web Speech), confetti
 js/app.js             screens and game logic
 tools/build.py        bundles everything into dist/math-expedition.html (local-only copy)
@@ -129,7 +147,9 @@ No build step or dependencies are needed to run it. After changing code, run:
 node tests/generators.test.js      # 312,000 generated problems checked
 node tests/store.test.js           # merging progress from two devices, mistakes to practice, family keys
 node tests/testprep.test.js        # Placement Check accuracy on simulated children, mock tests with review questions
+node tests/farm.test.js            # Sunny Farm economy, days, shop, and thousands of customer problems for both grades
 node tests/smoke.mjs               # two children, both grades, played in Chromium (needs Playwright)
+node tests/farm-smoke.mjs          # Sunny Farm played by a 2nd grader and a kindergartner in Chromium
 node tests/cloud-e2e.mjs           # two devices syncing through the real Firebase project
 python3 tools/build.py             # refresh the single-file version in dist/
 ```
