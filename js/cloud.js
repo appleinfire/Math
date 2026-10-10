@@ -3,12 +3,15 @@
 // A family is identified by a family code + PIN typed on each device. Both are turned into a long key
 // in the browser (PBKDF2), and the family's data lives at families/<key>/profiles/<childId>.
 // Without the code and PIN nobody can find the key; the PIN itself is never stored or sent.
+// This key is also the family root of all our apps (MQ.APPS): the other apps derive their own data keys
+// from it, and families/<key> is the one family record. So one family code + PIN works in every app, and an
+// app can join the family another app connected on this device (C.sibling) without asking for the PIN.
 //
 // The device keeps its own copy in localStorage (js/store.js), so the app opens instantly and works offline.
 // Changes are uploaded a moment after they happen; changes from other devices arrive live and are merged.
 (function () {
   const MQ = (globalThis.MQ = globalThis.MQ || {});
-  const LINK = 'math-expedition-family'; // { fid, name } of the connected family on this device
+  const LINK = 'math-expedition-family'; // { fid, root, name } of the connected family on this device (here fid = root)
   const C = { status: 'off', family: null, error: '' };
   const subs = [];
   C.onUpdate = (fn) => subs.push(fn);
@@ -28,6 +31,16 @@
 
   const readLink = () => { try { return JSON.parse(localStorage.getItem(LINK) || 'null'); } catch (e) { return null; } };
   const writeLink = (v) => { try { v ? localStorage.setItem(LINK, JSON.stringify(v)) : localStorage.removeItem(LINK); } catch (e) { /* ignore */ } };
+  // A family one of our other apps connected on this device (they share this origin, so their links are visible).
+  C.sibling = () => {
+    for (const a of MQ.APPS || []) {
+      if (a.id === MQ.APP_ID) continue;
+      let l = null;
+      try { l = JSON.parse(localStorage.getItem(a.id + '-family') || 'null'); } catch (e) { /* ignore */ }
+      if (l && /^[a-f0-9]{64}$/.test(l.root || '')) return { root: l.root, name: l.name || '', app: a.name };
+    }
+    return null;
+  };
 
   let db = null, auth = null, unsub = null, ready = null;
   const timers = {};
@@ -114,6 +127,7 @@
     watchLocal();
     const link = readLink();
     if (!link || !C.configured()) return;
+    if (!link.root) { link.root = link.fid; writeLink(link); } // older links: let our other apps find the family
     C.family = link;
     boot();
     start();
@@ -127,12 +141,23 @@
     pin = String(pin || '').trim();
     if (name.length < 6) throw fail('short-code');
     if (!/^\d{4,6}$/.test(pin)) throw fail('bad-pin');
+    return attach(() => C.deriveId(name, pin), name, create ? 'create' : 'join');
+  };
+  // Join the family another of our apps connected on this device (see C.sibling): no code or PIN needed.
+  C.connectSibling = () => {
+    if (!C.configured()) return Promise.reject(fail('unavailable'));
+    const sib = C.sibling();
+    if (!sib) return Promise.reject(fail('not-found'));
+    return attach(() => sib.root, sib.name, 'join');
+  };
+  async function attach(getFid, name, mode) {
+    const create = mode === 'create';
     boot();
     const before = C.family;
     setStatus('connecting');
     try {
       await ensureUser();
-      const fid = await C.deriveId(name, pin);
+      const fid = await getFid();
       const ref = db.collection('families').doc(fid);
       let snap;
       try { snap = await ref.get({ source: 'server' }); } catch (e) { throw fail(e && e.code === 'permission-denied' ? 'denied' : 'offline'); }
@@ -140,7 +165,7 @@
       if (!create && !snap.exists) throw fail('not-found');
       if (create) await ref.set({ name, created: now() });
       if (unsub) { unsub(); unsub = null; }
-      C.family = { fid, name };
+      C.family = { fid, root: fid, name };
       writeLink(C.family);
       ready = Promise.resolve();
       const docs = await ref.collection('profiles').get({ source: 'server' });
@@ -154,7 +179,7 @@
       setStatus(before ? 'offline' : 'off');
       throw e.code ? e : fail(navigator.onLine === false ? 'offline' : 'unknown');
     }
-  };
+  }
 
   // Stop syncing on this device. The children's progress stays on this device and in the family.
   C.disconnect = () => {

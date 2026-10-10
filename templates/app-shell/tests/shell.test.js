@@ -73,5 +73,24 @@ for (const s of scripts.concat('css/style.css')) assert.ok(cached.includes(`'${s
   assert.strictEqual(k1, k2);
   assert.match(k1, /^[a-f0-9]{64}$/, 'matches the pattern in firestore.rules');
   assert.notStrictEqual(k1, await APP.cloud.deriveId('smith-tigers', '1235'));
+
+  // One family code + PIN for all our apps: the root is the key Math Expedition already uses,
+  // and each app keeps its data under its own key derived from the root.
+  const MATH_KEY = 'd359f955e02a16da5751505a2d0bc555a26c7a08f33ac7eb1a1469ded2b601e6'; // Math Expedition: smith-tigers + 1234
+  const root = await APP.cloud.deriveRoot('smith-tigers', '1234');
+  assert.strictEqual(root, MATH_KEY, 'same family root as Math Expedition');
+  assert.strictEqual(await APP.cloud.appKey(root, 'math-expedition'), MATH_KEY, 'Math Expedition keeps its data under the root');
+  assert.strictEqual(k1, await APP.cloud.appKey(root), 'this app: key from the root');
+  assert.notStrictEqual(k1, root);
+  assert.notStrictEqual(await APP.cloud.appKey(root, 'writing-power'), await APP.cloud.appKey(root, 'another-app'), 'apps do not share data');
+
+  // A family another app connected on this device can be joined without the PIN.
+  assert.strictEqual(APP.cloud.sibling(), null);
+  localStorage.setItem('math-expedition-family', JSON.stringify({ fid: MATH_KEY, name: 'smith-tigers' })); // Math's older link: no root
+  assert.deepStrictEqual(APP.cloud.sibling(), { root: MATH_KEY, name: 'smith-tigers', app: 'Math Expedition' });
+  localStorage.removeItem('math-expedition-family');
+  localStorage.setItem('writing-power-family', JSON.stringify({ root: MATH_KEY, fid: 'x', name: 'smith-tigers' }));
+  assert.strictEqual(APP.cloud.sibling().app, 'WritingPower');
+  localStorage.removeItem('writing-power-family');
   console.log('shell tests passed');
 })().catch((e) => { console.error(e); process.exit(1); });

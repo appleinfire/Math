@@ -73,6 +73,16 @@ ok(await page.evaluate(() => { const own = APP.CONFIG.apps.find((a) => a.id === 
 await page.click('.profile >> text=Mia');
 ok(await page.evaluate(() => APP.state.stats.correct === 5), 'progress survives a reload');
 
+// A link from our other app with a name (#who=) opens that profile; an unknown name offers to add it.
+await page.goto('about:blank'); // a link from another app loads the page fresh
+await page.goto(url + '#who=mia');
+ok(await page.isVisible('text=Hi, Mia!'), '#who= opens the profile with that name');
+ok(await page.evaluate(() => location.hash === ''), '#who= is dropped from the address');
+ok(await page.evaluate(() => [...document.querySelectorAll('.appbtn')].every((a) => a.href.endsWith('#who=Mia'))), 'links from home carry the name');
+await page.goto('about:blank');
+await page.goto(url + '#who=Zed');
+ok(await page.inputValue('#ob-name') === 'Zed', 'an unknown name opens the new-profile form with the name filled in');
+
 await browser.close();
 if (errors.length) { console.error('Console errors:\n' + errors.join('\n')); process.exit(1); }
 console.log('smoke test passed');

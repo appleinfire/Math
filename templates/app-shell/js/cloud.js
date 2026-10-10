@@ -1,14 +1,20 @@
 // Family sync through Firebase (Firestore + anonymous sign-in, free Spark plan).
 //
-// A family is identified by a family code + PIN typed on each device. Both are turned into a long key
-// in the browser (PBKDF2), and the family's data lives at families/<key>/profiles/<profileId>.
-// Without the code and PIN nobody can find the key; the PIN itself is never stored or sent.
+// A family is identified by a family code + PIN typed on each device. Both are turned into a long key in
+// the browser (PBKDF2): the family root. The root is the same in all our apps (FAMILY_SALT), so one family
+// code + PIN works everywhere, and an app can join the family another app already connected on this device
+// (C.sibling) without asking for the PIN again. families/<root> is the family record. Each app keeps its
+// data under its own key derived from the root (C.appKey): families/<appKey>/profiles/<profileId>.
+// Without the code and PIN nobody can find the keys; the PIN itself is never stored or sent.
 //
 // The device keeps its own copy in localStorage (js/store.js), so the app opens instantly and works offline.
 // Changes are uploaded a moment after they happen; changes from other devices arrive live and are merged.
 (function () {
   const APP = (globalThis.APP = globalThis.APP || {});
-  const LINK = APP.CONFIG.id + '-family'; // { fid, name } of the connected family on this device
+  const LINK = (id) => id + '-family'; // { root, fid, name } of the family an app connected on this device
+  // Never change these two: every app and every family depends on them.
+  const FAMILY_SALT = 'math-expedition'; // the first app; its family keys became the shared root
+  const ROOT_APP = 'math-expedition'; // the first app keeps its data right under the root
   const C = { status: 'off', family: null, error: '' };
   const subs = [];
   C.onUpdate = (fn) => subs.push(fn);
@@ -17,17 +23,31 @@
   const fail = (code) => Object.assign(new Error(code), { code });
 
   C.normCode = (code) => String(code || '').trim().toLowerCase().replace(/\s+/g, '-');
-  C.deriveId = async (code, pin) => {
+  const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  C.deriveRoot = async (code, pin) => {
     const enc = new TextEncoder();
     const key = await crypto.subtle.importKey('raw', enc.encode(C.normCode(code) + '|' + String(pin).trim()), 'PBKDF2', false, ['deriveBits']);
-    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode(APP.CONFIG.id), iterations: 150000 }, key, 256);
-    return [...new Uint8Array(bits)].map((b) => b.toString(16).padStart(2, '0')).join('');
+    return hex(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode(FAMILY_SALT), iterations: 150000 }, key, 256));
   };
+  C.appKey = async (root, appId = APP.CONFIG.id) =>
+    appId === ROOT_APP ? root : hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(root + '|' + appId)));
+  C.deriveId = async (code, pin) => C.appKey(await C.deriveRoot(code, pin));
   C.configured = () =>
     !!APP.CONFIG.firebase && typeof firebase !== 'undefined' && typeof location !== 'undefined' && /^https?:$/.test(location.protocol) && !!(globalThis.crypto && crypto.subtle);
 
-  const readLink = () => { try { return JSON.parse(localStorage.getItem(LINK) || 'null'); } catch (e) { return null; } };
-  const writeLink = (v) => { try { v ? localStorage.setItem(LINK, JSON.stringify(v)) : localStorage.removeItem(LINK); } catch (e) { /* ignore */ } };
+  const readLink = (id = APP.CONFIG.id) => { try { return JSON.parse(localStorage.getItem(LINK(id)) || 'null'); } catch (e) { return null; } };
+  const writeLink = (v) => { try { v ? localStorage.setItem(LINK(APP.CONFIG.id), JSON.stringify(v)) : localStorage.removeItem(LINK(APP.CONFIG.id)); } catch (e) { /* ignore */ } };
+  // A family one of our other apps (APP.CONFIG.apps) connected on this device: all our apps share one origin,
+  // so their links are visible here. Returns { root, name, app } or null.
+  C.sibling = () => {
+    for (const a of APP.CONFIG.apps || []) {
+      if (a.id === APP.CONFIG.id) continue;
+      const l = readLink(a.id);
+      const root = l && (l.root || (a.id === ROOT_APP ? l.fid : '')); // the first app's older links have no root
+      if (root && /^[a-f0-9]{64}$/.test(root)) return { root, name: l.name || '', app: a.name };
+    }
+    return null;
+  };
 
   let db = null, auth = null, unsub = null, ready = null;
   const timers = {};
@@ -128,20 +148,32 @@
     pin = String(pin || '').trim();
     if (name.length < 6) throw fail('short-code');
     if (!/^\d{4,6}$/.test(pin)) throw fail('bad-pin');
+    return attach(() => C.deriveRoot(name, pin), name, create ? 'create' : 'join');
+  };
+  // Join the family another of our apps connected on this device (see C.sibling): no code or PIN needed.
+  C.connectSibling = () => {
+    if (!C.configured()) return Promise.reject(fail('unavailable'));
+    const sib = C.sibling();
+    if (!sib) return Promise.reject(fail('not-found'));
+    return attach(() => sib.root, sib.name, 'join');
+  };
+  async function attach(getRoot, name, mode) {
     boot();
     const before = C.family;
     setStatus('connecting');
     try {
       await ensureUser();
-      const fid = await C.deriveId(name, pin);
-      const ref = db.collection('families').doc(fid);
+      const root = await getRoot();
+      const fid = await C.appKey(root);
+      const famDoc = db.collection('families').doc(root); // the family record, shared by all our apps
+      const ref = db.collection('families').doc(fid); // this app's data
       let snap;
-      try { snap = await ref.get({ source: 'server' }); } catch (e) { throw fail(e && e.code === 'permission-denied' ? 'denied' : 'offline'); }
-      if (create && snap.exists) throw fail('exists');
-      if (!create && !snap.exists) throw fail('not-found');
-      if (create) await ref.set({ name, created: now() });
+      try { snap = await famDoc.get({ source: 'server' }); } catch (e) { throw fail(e && e.code === 'permission-denied' ? 'denied' : 'offline'); }
+      if (mode === 'create' && snap.exists) throw fail('exists');
+      if (mode === 'join' && !snap.exists) throw fail('not-found');
+      if (mode === 'create') await famDoc.set({ name, created: now() });
       if (unsub) { unsub(); unsub = null; }
-      C.family = { fid, name };
+      C.family = { root, fid, name };
       writeLink(C.family);
       ready = Promise.resolve();
       const docs = await ref.collection('profiles').get({ source: 'server' });
@@ -155,7 +187,7 @@
       setStatus(before ? 'offline' : 'off');
       throw e.code ? e : fail(navigator.onLine === false ? 'offline' : 'unknown');
     }
-  };
+  }
 
   // Stop syncing on this device. Progress stays on this device and in the family.
   C.disconnect = () => {
