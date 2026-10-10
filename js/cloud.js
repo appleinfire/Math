@@ -69,9 +69,22 @@
   // What this device last uploaded for each profile ({ fid, revs: { id: rev } }). On start it tells a change
   // that never reached the server (upload it) from a profile deleted on another device (remove it here).
   const SYNCED = 'math-expedition-synced';
+  // It also keeps deletes the server has not confirmed yet ({ gone: { id: 1 } }): they are sent again on start,
+  // and a server copy of a profile deleted here is ignored meanwhile.
+  const readRec = () => {
+    try { const v = JSON.parse(localStorage.getItem(SYNCED) || 'null'); return v && C.family && v.fid === C.family.fid ? { revs: v.revs || {}, gone: v.gone || {} } : null; } catch (e) { return null; }
+  };
+  const writeRec = (r) => { try { localStorage.setItem(SYNCED, JSON.stringify({ fid: C.family.fid, revs: r.revs, gone: r.gone })); } catch (e) { /* ignore */ } };
   // null = no record yet for this family (a device from before this record existed).
-  const readSynced = () => { try { const v = JSON.parse(localStorage.getItem(SYNCED) || 'null'); return v && C.family && v.fid === C.family.fid ? v.revs : null; } catch (e) { return null; } };
-  const writeSynced = (revs) => { try { localStorage.setItem(SYNCED, JSON.stringify({ fid: C.family.fid, revs })); } catch (e) { /* ignore */ } };
+  const readSynced = () => { const r = readRec(); return r ? r.revs : null; };
+  const writeSynced = (revs) => { const r = readRec() || { revs: {}, gone: {} }; r.revs = revs; writeRec(r); };
+  const isGone = (id) => !!(readRec() || { gone: {} }).gone[id];
+  const setGone = (id, on) => {
+    if (!C.family) return;
+    const r = readRec() || { revs: {}, gone: {} };
+    on ? (r.gone[id] = 1) : delete r.gone[id];
+    writeRec(r);
+  };
   const markSynced = (id, rev) => {
     if (!C.family) return;
     const revs = readSynced() || {};
@@ -105,6 +118,16 @@
       .then(() => { inflight--; markSynced(id, rev); if (!busy()) setStatus('synced'); })
       .catch((e) => { inflight--; C.error = (e && e.code) || 'write'; setStatus(navigator.onLine === false ? 'offline' : 'error'); });
   }
+  function deleteRemote(id) {
+    setGone(id, true);
+    if (!ready) return; // sent on the next start
+    inflight++;
+    setStatus(navigator.onLine === false ? 'offline' : 'saving');
+    ready
+      .then(() => famRef().collection('profiles').doc(id).delete())
+      .then(() => { inflight--; setGone(id, false); markSynced(id, null); if (!busy()) setStatus('synced'); })
+      .catch(() => { inflight--; setStatus(navigator.onLine === false ? 'offline' : 'error'); });
+  }
   C.flushAll = () => Object.keys(timers).forEach((id) => { clearTimeout(timers[id]); upload(id); });
 
   function listen() {
@@ -116,6 +139,7 @@
         caughtUp = true;
         const server = {};
         snap.docs.forEach((d) => { server[d.id] = d.data().rev || 0; });
+        Object.keys((readRec() || { gone: {} }).gone).forEach((id) => (id in server ? deleteRemote(id) : setGone(id, false))); // unconfirmed deletes
         const plan = C.catchUpPlan(MQ.store.profiles().map((p) => ({ id: p.id, rev: MQ.store.raw(p.id).rev })), server, readSynced());
         const revs = Object.assign(readSynced() || {}, plan.onServer);
         plan.remove.forEach((id) => { any = MQ.store.removeRemote(id) || any; delete revs[id]; });
@@ -124,7 +148,8 @@
       }
       snap.docChanges().forEach((ch) => {
         if (ch.doc.metadata.hasPendingWrites) return; // our own change on its way up
-        if (ch.type === 'removed') { any = MQ.store.removeRemote(ch.doc.id) || any; markSynced(ch.doc.id, null); return; }
+        if (ch.type === 'removed') { any = MQ.store.removeRemote(ch.doc.id) || any; markSynced(ch.doc.id, null); setGone(ch.doc.id, false); return; }
+        if (isGone(ch.doc.id)) return; // deleted here, the delete is on its way
         let st;
         try { st = JSON.parse(ch.doc.data().json); } catch (e) { return; }
         any = MQ.store.applyRemote(st) || any;
@@ -144,7 +169,7 @@
       clearTimeout(timers[id]);
       if (type === 'remove') {
         delete timers[id];
-        if (ready) ready.then(() => famRef().collection('profiles').doc(id).delete()).then(() => markSynced(id, null)).catch(() => {});
+        deleteRemote(id);
         return;
       }
       timers[id] = setTimeout(() => upload(id), 1500);
@@ -214,7 +239,7 @@
       if (!readSynced()) writeSynced({}); // everything on this device is uploaded right below
       ready = Promise.resolve();
       const docs = await ref.collection('profiles').get({ source: 'server' });
-      docs.forEach((d) => { try { MQ.store.applyRemote(JSON.parse(d.data().json)); markSynced(d.id, d.data().rev || 0); } catch (e) { /* skip a broken copy */ } });
+      docs.forEach((d) => { if (isGone(d.id)) return; try { MQ.store.applyRemote(JSON.parse(d.data().json)); markSynced(d.id, d.data().rev || 0); } catch (e) { /* skip a broken copy */ } });
       MQ.store.profiles().forEach((p) => upload(p.id));
       listen();
       emit('data');
