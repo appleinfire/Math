@@ -92,8 +92,25 @@
     S.save();
     return S.open(st.id);
   };
+  // Unfinished tests (Placement Check, mock contests), one per kind, kept on this device for each child.
+  const PAUSE = (id) => 'math-expedition-pause-' + id;
+  S.paused = (kind) => (MQ.state && (get(PAUSE(MQ.state.id)) || {})[kind]) || null;
+  S.setPaused = (kind, data) => {
+    if (!MQ.state) return;
+    const all = get(PAUSE(MQ.state.id)) || {};
+    all[kind] = data;
+    put(PAUSE(MQ.state.id), all);
+  };
+  S.clearPaused = (kind) => {
+    if (!MQ.state) return;
+    const all = get(PAUSE(MQ.state.id)) || {};
+    if (!(kind in all)) return;
+    delete all[kind];
+    Object.keys(all).length ? put(PAUSE(MQ.state.id), all) : del(PAUSE(MQ.state.id));
+  };
   S.remove = (id) => {
     del(PKEY(id));
+    del(PAUSE(id));
     delete memory[id];
     index.order = index.order.filter((x) => x !== id);
     if (index.active === id) index.active = null;
@@ -121,6 +138,7 @@
   S.reset = () => { // erase one child's progress, keep who they are
     const { id, name, grade, companion, buddyName } = MQ.state;
     MQ.state = Object.assign(fresh(grade), { id, name, grade, companion, buddyName, resetAt: Date.now() });
+    del(PAUSE(id));
     S.save();
   };
   S.exportCode = () => btoa(unescape(encodeURIComponent(JSON.stringify(MQ.state))));

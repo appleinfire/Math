@@ -182,7 +182,14 @@ async function run(viewport, tag) {
   await snap('15-parent');
 
   // ---- Placement Check (i-Ready style): 30 questions, no feedback, then results and a practice plan
-  async function runCheck(expectN, knowsUpTo) {
+  // Reload the page (like closing and reopening it) and come back to this child's home screen.
+  async function reopen() {
+    await page.reload();
+    await page.waitForSelector('.home, .who-screen');
+    if (await page.$('.who-screen')) await page.click('.profile >> text=Sofia');
+    await page.waitForSelector('.home');
+  }
+  async function runCheck(expectN, knowsUpTo, pauseAt = -1) {
     await page.evaluate(() => MQ.app.go('prep'));
     await page.waitForSelector('.testcard');
     await page.click('[data-act=startCheck]');
@@ -192,6 +199,20 @@ async function run(viewport, tag) {
       if (await page.$('.presult')) break;
       const step = await page.evaluate(() => MQ.app.session().p.step);
       if (n === 3) await snap('30-check-question');
+      if (n === pauseAt) { // stop in the middle, close the page, then continue from the same question
+        const q = await page.evaluate(() => MQ.app.session().p.text);
+        await page.click('[data-act=quit]');
+        await page.click('[data-act=leave]');
+        await page.waitForSelector('.prep .tc-resume');
+        await reopen();
+        if (!(await page.textContent('.t-prep')).includes('unfinished')) errors.push(tag + ': home does not mention the unfinished check');
+        await page.evaluate(() => MQ.app.go('prep'));
+        await snap('29-check-resume');
+        await page.click('[data-act=resumeTest][data-arg=check]');
+        await page.waitForFunction(() => MQ.app.session() && MQ.app.session().p);
+        const back = await page.evaluate(() => ({ q: MQ.app.session().p.text, n: MQ.app.session().answered }));
+        if (back.q !== q || back.n !== pauseAt) errors.push(`${tag}: check did not continue where it stopped ${JSON.stringify(back)}`);
+      }
       if (await page.$('.fb')) errors.push(tag + ': the check showed feedback');
       await answer(page, step <= knowsUpTo);
       n++;
@@ -201,7 +222,8 @@ async function run(viewport, tag) {
     return page.evaluate(() => MQ.state.tests.checks.slice(-1)[0]);
   }
   const gemsBefore = await page.evaluate(() => MQ.state.crystals);
-  const res = await runCheck(30, 6);
+  const res = await runCheck(30, 6, 4);
+  if (await page.evaluate(() => !!MQ.store.paused('check'))) errors.push(tag + ': finished check is still marked unfinished');
   await snap('31-check-result');
   if (!res || res.items.length !== 30) errors.push(tag + ': check result not saved');
   else if (Math.abs(res.overall - 6) > 1.5) errors.push(`${tag}: a child who knows up to Mid 2nd got ${res.overall}`);
@@ -312,6 +334,32 @@ async function run(viewport, tag) {
   await page.waitForSelector('.contest');
   const repeats = await page.evaluate((old) => MQ.app.contest().items.filter((i) => old.includes(i.p.topic + MQ.U.qkey(i.p))).length, before);
   if (repeats) errors.push(`${tag}: second CogAT test repeats ${repeats} questions`);
+  // Answer two, stop on the third, close the page: the test continues with the same questions and answers.
+  const firstKeys = await page.evaluate(() => MQ.app.contest().items.map((i) => MQ.U.qkey(i.p)));
+  for (const k of [0, 1]) {
+    await page.click('.choices.ct .choice >> nth=0');
+    await page.click(`.ctbar [data-act=ctGo][data-arg="${k + 1}"]`);
+  }
+  await page.click('[data-act=ctQuit]');
+  await page.click('[data-act=ctLeave]');
+  await page.waitForSelector('.prep .tc-resume');
+  if (!(await page.textContent('.tc-resume')).includes('2 of 45')) errors.push(tag + ': resume box does not say 2 of 45');
+  await reopen();
+  await page.evaluate(() => MQ.app.go('prep'));
+  await snap('45b-cogat-resume');
+  await page.click('[data-act=resumeTest][data-arg=cogat]');
+  await page.waitForSelector('.contest');
+  const back = await page.evaluate(() => ({ i: MQ.app.contest().i, answered: MQ.app.contest().answers.filter((a) => a !== null).length, keys: MQ.app.contest().items.map((i) => MQ.U.qkey(i.p)) }));
+  if (back.i !== 2 || back.answered !== 2 || back.keys.join() !== firstKeys.join()) errors.push(`${tag}: CogAT did not continue where it stopped (question ${back.i + 1}, ${back.answered} answered)`);
+  await page.click('[data-act=ctQuit]');
+  await page.click('[data-act=ctLeave]');
+  // Starting over asks first, then throws the unfinished test away.
+  await page.click('[data-act=startContest][data-arg="cogat"]');
+  await page.waitForSelector('#modal [data-act=restartTest]');
+  await page.click('#modal [data-act=restartTest]');
+  await page.waitForSelector('.contest');
+  const fresh = await page.evaluate(() => ({ answered: MQ.app.contest().answers.filter((a) => a !== null).length, keys: MQ.app.contest().items.map((i) => MQ.U.qkey(i.p)).join() }));
+  if (fresh.answered !== 0 || fresh.keys === firstKeys.join()) errors.push(tag + ': start over did not begin a new test');
   await page.click('[data-act=ctQuit]');
   await page.click('[data-act=ctLeave]');
   await page.waitForSelector('.prep');

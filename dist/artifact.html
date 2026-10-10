@@ -604,6 +604,10 @@ svg.vis.abacus { max-height: 160px; }
   .analogy.emo .abox { font-size: 2.1rem; }
   .foldsteps svg.vis { width: 74px; height: 74px; }
 }
+
+/* Unfinished test on a test card */
+.tc-resume { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0; padding: 10px 12px; border-radius: 14px; background: #fff6e0; box-shadow: inset 0 0 0 2px #ffcf6b; }
+.tc-resume span { font-size: 0.95rem; }
 </style>
 <div id="app"><p style="padding:40px;text-align:center">Loading Math Expedition…</p></div>
   <script>
@@ -4023,8 +4027,25 @@ svg.vis.abacus { max-height: 160px; }
     S.save();
     return S.open(st.id);
   };
+  // Unfinished tests (Placement Check, mock contests), one per kind, kept on this device for each child.
+  const PAUSE = (id) => 'math-expedition-pause-' + id;
+  S.paused = (kind) => (MQ.state && (get(PAUSE(MQ.state.id)) || {})[kind]) || null;
+  S.setPaused = (kind, data) => {
+    if (!MQ.state) return;
+    const all = get(PAUSE(MQ.state.id)) || {};
+    all[kind] = data;
+    put(PAUSE(MQ.state.id), all);
+  };
+  S.clearPaused = (kind) => {
+    if (!MQ.state) return;
+    const all = get(PAUSE(MQ.state.id)) || {};
+    if (!(kind in all)) return;
+    delete all[kind];
+    Object.keys(all).length ? put(PAUSE(MQ.state.id), all) : del(PAUSE(MQ.state.id));
+  };
   S.remove = (id) => {
     del(PKEY(id));
+    del(PAUSE(id));
     delete memory[id];
     index.order = index.order.filter((x) => x !== id);
     if (index.active === id) index.active = null;
@@ -4052,6 +4073,7 @@ svg.vis.abacus { max-height: 160px; }
   S.reset = () => { // erase one child's progress, keep who they are
     const { id, name, grade, companion, buddyName } = MQ.state;
     MQ.state = Object.assign(fresh(grade), { id, name, grade, companion, buddyName, resetAt: Date.now() });
+    del(PAUSE(id));
     S.save();
   };
   S.exportCode = () => btoa(unescape(encodeURIComponent(JSON.stringify(MQ.state))));
@@ -4613,7 +4635,7 @@ svg.vis.abacus { max-height: 160px; }
         <button class="tile t-journal" data-act="go" data-arg="journal"><span class="ti">📔</span><b>Field Journal</b><small>${have} / ${total} creatures</small></button>
         <button class="tile t-hatch" data-act="go" data-arg="hatch"><span class="ti">🥚</span><b>Hatchery</b><small>Rare eggs · ${MQ.EGG_PRICE} 💎</small></button>
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
-        <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>Placement Check in the style of i-Ready${myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : ''}</small></span></button>
+        <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>${['check', 'kangaroo', 'joey', 'cogat', 'cogatk'].some((k) => S.paused(k)) ? '⏸️ You have an unfinished test: tap to continue' : 'Placement Check in the style of i-Ready' + (myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : '')}</small></span></button>
       </div>
       <footer class="foot">${syncLine()}<button class="linkbtn" data-act="go" data-arg="parent">For grown-ups</button></footer>
     </main>`);
@@ -4658,7 +4680,10 @@ svg.vis.abacus { max-height: 160px; }
 
   // ---------------------------------------------------------------- play
   function pickProblem() {
-    if (sess.mode === 'check') return MQ.prep.next(sess.eng);
+    if (sess.mode === 'check') {
+      if (sess.resumeP) { const p = sess.resumeP; sess.resumeP = null; return p; } // back where the child stopped
+      return MQ.prep.next(sess.eng);
+    }
     const topic = U.pick(sess.topics);
     const d = sess.auto ? sess.autoD : U.rnd(sess.d[0], sess.d[1]);
     if (MQ.TOPICS[topic].track === 'prep') { // test-prep practice: prefer questions not seen in earlier attempts
@@ -4723,6 +4748,7 @@ svg.vis.abacus { max-height: 160px; }
     sess.lineVal = null;
     sess.showLine = null;
     sess.pickChoice = null;
+    if (sess.mode === 'check') saveCheck();
     const p = sess.p, T = MQ.TOPICS[p.topic];
     const card = $('#pcard');
     // In a Placement Check the difficulty is not shown (it would give the level away).
@@ -5064,8 +5090,9 @@ svg.vis.abacus { max-height: 160px; }
       return finishTrainer();
     }
     if (sess.mode === 'check') {
-      return modal(`<div class="mtitle">Stop the Placement Check?</div><p>Your answers so far will not be saved. You can start a new check any time.</p>
-        <div class="row"><button class="btn ghost" data-act="closeModal">Keep going</button><button class="btn" data-act="leave">Stop</button></div>`);
+      saveCheck();
+      return modal(`<div class="mtitle">Take a break?</div><p>Your answers are saved. Next time you can continue from question ${sess.answered + 1}, or start over.</p>
+        <div class="row"><button class="btn ghost" data-act="closeModal">Keep going</button><button class="btn" data-act="leave">Save and stop</button></div>`);
     }
     modal(`<div class="mtitle">Leave this ${sess.mode === 'daily' ? 'quest' : 'level'}?</div><p>You will need to start it again to ${sess.mode === 'daily' ? 'finish the quest' : 'discover the creature'}.</p>
       <div class="row"><button class="btn ghost" data-act="closeModal">Keep playing</button><button class="btn" data-act="leave">Leave</button></div>`);
@@ -5099,19 +5126,75 @@ svg.vis.abacus { max-height: 160px; }
         <div class="tc-head"><span class="tc-ic">🎯</span><div><b>Placement Check</b><small>In the style of i-Ready · ${total} questions · about ${st.grade === 'k' ? 15 : 25} minutes</small></div></div>
         <p>Questions about numbers, algebra, measurement and shapes. They get harder or easier as you answer, like i-Ready at school. No hints this time: just do your best, and make your best guess if you are not sure.</p>
         ${last ? `<div class="tc-last">Last check, ${fmtDate(last.date)}: <b>${P().label(last.overall)}</b> · ${P().status(last.overall, last.expected).icon} ${P().status(last.overall, last.expected).text} <button class="linkbtn" data-act="viewCheck" data-arg="${last.id}">See results</button></div>` : ''}
-        <button class="btn" data-act="startCheck">${last ? 'Take a new check' : 'Start the check'} ▶</button>
+        ${resumeBox('check')}
+        <button class="btn ${pausedInfo('check') ? 'ghost' : ''}" data-act="startCheck">${pausedInfo('check') ? 'Start over' : last ? 'Take a new check' : 'Start the check'}${pausedInfo('check') ? '' : ' ▶'}</button>
       </article>
       ${historyChart(checks)}
       ${contestCard()}
     </main>`);
     cur = 'prep';
   }
+  // ---- Unfinished tests: saved after every step and when the page is hidden, so the child can continue later.
+  function saveCheck() {
+    if (!sess || sess.mode !== 'check') return;
+    S.setPaused('check', { eng: Object.assign({}, sess.eng, { seen: [...sess.eng.seen] }), p: sess.locked ? null : sess.p, // an answered question is not asked again
+      answered: sess.answered, correct: sess.correct, saved: Date.now() });
+  }
+  function saveContest() {
+    if (!ct) return;
+    const { interval, ...rest } = ct;
+    S.setPaused(ct.kind, Object.assign(rest, { elapsed: Date.now() - ct.started, saved: Date.now() }));
+  }
+  function saveProgress() { saveCheck(); saveContest(); }
+  const pausedInfo = (kind) => {
+    const x = S.paused(kind);
+    if (!x) return null;
+    const done = kind === 'check' ? x.answered : x.answers.filter((a) => a !== null).length;
+    const n = kind === 'check' ? x.eng.plan.length : x.items.length;
+    return { done, n, date: U.dateKey(new Date(x.saved)) };
+  };
+  // A highlighted box on a test card: continue the unfinished test.
+  function resumeBox(kind) {
+    const x = pausedInfo(kind);
+    if (!x) return '';
+    const when = x.date === U.dateKey() ? 'today' : fmtDate(x.date).replace(/, \d{4}$/, '');
+    return `<div class="tc-resume"><span>⏸️ Unfinished (${when}): <b>${x.done} of ${x.n}</b> answered</span><button class="btn" data-act="resumeTest" data-arg="${kind}">Continue ▶</button></div>`;
+  }
+  // Starting again throws the unfinished test away, so ask first.
+  function confirmRestart(kind, act, arg) {
+    const x = pausedInfo(kind);
+    if (!x || ui.restartOk === kind) { ui.restartOk = null; return false; }
+    modal(`<div class="mtitle">Start over?</div><p>You have an unfinished ${kind === 'check' ? 'check' : 'test'} with <b>${x.done} of ${x.n}</b> answered. Starting over will throw it away.</p>
+      <div class="row"><button class="btn ghost" data-act="resumeTest" data-arg="${kind}">Continue it</button><button class="btn" data-act="restartTest" data-arg="${kind}|${act}|${arg || ''}">Start over</button></div>`);
+    return true;
+  }
+  function resumeTest(kind) {
+    closeModal();
+    const x = S.paused(kind);
+    if (!x) return prep();
+    if (kind === 'check') {
+      const eng = Object.assign({}, x.eng, { seen: new Set(x.eng.seen) });
+      startSession({ mode: 'check', eng, topics: [], d: [1, 1], goal: 0, resumeP: x.p, answered: x.answered, correct: x.correct });
+      say(`${st.buddyName}: Welcome back! Let’s keep going from question ${x.answered + 1}.`);
+      return;
+    }
+    remember('contest');
+    const { elapsed, saved, ...rest } = x;
+    ct = Object.assign(rest, { started: Date.now() - (elapsed || 0) }); // time away does not count
+    render('', 'is-contest');
+    contestView();
+    toast('Welcome back! Your answers are all here.');
+    if (ct.timed || ct.soft) ct.interval = setInterval(contestTick, 1000);
+  }
   function startCheck() {
+    if (confirmRestart('check', 'startCheck')) return;
+    S.clearPaused('check');
     const eng = P().newCheck(st.grade, myChecks());
     startSession({ mode: 'check', eng, topics: [], d: [1, 1], goal: 0 });
     say(`${st.buddyName}: Do your best! No hints in a check. If you are not sure, make your best guess.`);
   }
   function finishCheck() {
+    S.clearPaused('check');
     const res = P().result(sess.eng);
     const list = st.tests.checks;
     list.push(res);
@@ -5162,8 +5245,9 @@ svg.vis.abacus { max-height: 160px; }
       <div class="tc-head"><span class="tc-ic">🧠</span><div><b>${k ? 'Brain Games' : 'CogAT practice'}</b><small>${k ? 'Thinking puzzles in the style of CogAT' : 'GATE screening · Eureka Union tests every 2nd grader'} · ${n} questions</small></div></div>
       <p>${k ? 'Picture puzzles about patterns, shapes and things that go together. Every question is read aloud.' : 'Three parts like the real CogAT: <b>Verbal</b> (pictures that go together), <b>Quantitative</b> (number puzzles) and <b>Nonverbal</b> (shapes and paper folding). Pictures only, every question can be read aloud.'}</p>
       ${last ? `<div class="tc-last">Last practice test, ${fmtDate(last.date)}: <b>${last.right} of ${last.n}</b> right <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
+      ${resumeBox(kind)}
       <div class="row left">
-        <button class="btn" data-act="startContest" data-arg="${kind}">${k ? 'Play the brain games' : 'Practice test'} ▶</button>
+        <button class="btn ${pausedInfo(kind) ? 'ghost' : ''}" data-act="startContest" data-arg="${kind}">${pausedInfo(kind) ? 'Start over' : (k ? 'Play the brain games' : 'Practice test') + ' ▶'}</button>
         <button class="btn ghost" data-act="go" data-arg="cgtypes">Practice by type</button>
       </div>
     </article>`;
@@ -5181,7 +5265,8 @@ svg.vis.abacus { max-height: 160px; }
         <div class="tc-head"><span class="tc-ic">🐣</span><div><b>Joey Puzzles</b><small>Brain teasers like Math Kangaroo, made for kindergarten · 12 puzzles</small></div></div>
         <p>Picture puzzles with 5 answers to choose from. Every question can be read aloud. No clock: take your time and think!</p>
         ${last ? `<div class="tc-last">Last time: <b>${last.right} of ${last.n}</b> ${'⭐'.repeat(Math.round((last.right / last.n) * 3))}</div>` : ''}
-        <button class="btn" data-act="startContest" data-arg="joey">Play 12 puzzles ▶</button>
+        ${resumeBox('joey')}
+        <button class="btn ${pausedInfo('joey') ? 'ghost' : ''}" data-act="startContest" data-arg="joey">${pausedInfo('joey') ? 'Start over' : 'Play 12 puzzles ▶'}</button>
       </article>`;
     }
     const last = myContests('kangaroo').slice(-1)[0];
@@ -5189,8 +5274,9 @@ svg.vis.abacus { max-height: 160px; }
       <div class="tc-head"><span class="tc-ic">🦘</span><div><b>Math Kangaroo</b><small>Contest for grades 1–2 every March · 24 puzzles · 75 minutes</small></div></div>
       <p>Logic and thinking puzzles with answers A–E. The first 8 are worth 3 points, the next 8 are worth 4, the last 8 are worth 5. There is no penalty for a wrong answer, so always make a guess.</p>
       ${last ? `<div class="tc-last">Last mock contest, ${fmtDate(last.date)}: <b>${last.score} / ${last.max}</b> points <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
+      ${resumeBox('kangaroo')}
       <div class="row left">
-        <button class="btn" data-act="startContest" data-arg="kangaroo:timed">Mock contest (75 min) ▶</button>
+        <button class="btn ${pausedInfo('kangaroo') ? 'ghost' : ''}" data-act="startContest" data-arg="kangaroo:timed">${pausedInfo('kangaroo') ? 'New mock contest (75 min)' : 'Mock contest (75 min) ▶'}</button>
         <button class="btn ghost" data-act="startContest" data-arg="kangaroo">Without the clock</button>
         <button class="btn ghost" data-act="go" data-arg="kgtypes">Practice by type</button>
       </div>
@@ -5204,6 +5290,8 @@ svg.vis.abacus { max-height: 160px; }
   }
   function startContest(arg) {
     const [kind, timed] = arg.split(':');
+    if (confirmRestart(kind, 'startContest', arg)) return;
+    S.clearPaused(kind);
     remember('contest');
     ct = P().newContest(kind);
     ct.timed = !!timed;
@@ -5218,16 +5306,18 @@ svg.vis.abacus { max-height: 160px; }
   const CT_TITLE = { kangaroo: '🦘 Math Kangaroo', joey: '🐣 Joey Puzzles', cogat: '🧠 CogAT practice', cogatk: '🧠 Brain Games' };
   function contestTick() {
     if (!ct) return;
-    if (ct.soft) { ct.used++; const el = $('#ct-timer'); if (el) el.textContent = '⏱ ' + clock(ct.used); return; }
+    if (ct.soft) { ct.used++; const el = $('#ct-timer'); if (el) el.textContent = '⏱ ' + clock(ct.used); if (ct.used % 10 === 0) saveContest(); return; }
     ct.left--;
     const el = $('#ct-timer');
     if (el) { el.textContent = '⏱ ' + clock(Math.max(0, ct.left)); el.classList.toggle('low', ct.left <= 300); }
-    if (ct.left <= 0) { clearInterval(ct.interval); ct.interval = null; toast('⏰ Time is up!'); contestFinish(); }
+    if (ct.left <= 0) { clearInterval(ct.interval); ct.interval = null; toast('⏰ Time is up!'); contestFinish(); return; }
+    if (ct.left % 10 === 0) saveContest();
   }
   // Draw the contest without render(), so the clock keeps running between questions.
   function contestView() {
     const i = ct.i, it = ct.items[i], p = it.p, n = ct.items.length, joey = ct.kind === 'joey' || ct.kind === 'cogatk', kangaroo = ct.kind === 'kangaroo';
     if (!it.seen) { it.seen = true; S.markSeen(p.topic, U.qkey(p)); S.save(); }
+    saveContest();
     const r = root();
     r.className = 'is-contest';
     r.innerHTML = `<div class="contest">
@@ -5260,6 +5350,7 @@ svg.vis.abacus { max-height: 160px; }
     }
     closeModal();
     const res = P().scoreContest(ct);
+    S.clearPaused(ct.kind);
     endContest();
     const list = st.tests.contests;
     list.push(res);
@@ -5303,8 +5394,9 @@ svg.vis.abacus { max-height: 160px; }
     </main>`);
   }
   function contestQuit() {
-    modal(`<div class="mtitle">Stop the ${ct && ct.kind === 'kangaroo' ? 'contest' : 'test'}?</div><p>Your answers will not be saved.</p>
-      <div class="row"><button class="btn ghost" data-act="closeModal">Keep going</button><button class="btn" data-act="ctLeave">Stop</button></div>`);
+    saveContest();
+    modal(`<div class="mtitle">Take a break?</div><p>Your answers are saved. Next time you can continue where you stopped${ct && ct.timed ? ' (the clock waits for you)' : ''}, or start over.</p>
+      <div class="row"><button class="btn ghost" data-act="closeModal">Keep going</button><button class="btn" data-act="ctLeave">Save and stop</button></div>`);
   }
 
   // Grown-ups: history of checks by domain.
@@ -5612,7 +5704,9 @@ svg.vis.abacus { max-height: 160px; }
     ctFinish: () => contestFinish(false),
     ctFinishNow: () => contestFinish(true),
     ctQuit: () => contestQuit(),
-    ctLeave: () => { closeModal(); endContest(); prep(); },
+    ctLeave: () => { closeModal(); saveContest(); endContest(); prep(); },
+    resumeTest: (a) => resumeTest(a),
+    restartTest: (a) => { const [kind, act, arg] = a.split('|'); closeModal(); ui.restartOk = kind; ACTIONS[act](arg); },
     viewContest: (a) => { const c = (st.tests.contests || []).find((x) => x.id === a); c ? contestResult(c, false) : prep(); },
     kgPractice: (a) => { if (!MQ.TOPICS[a]) return prep(); startSession({ mode: 'trainer', topics: [a], auto: true, d: [2, 2], goal: 0, timer: 0, kgTopic: a }); },
     startCheck: () => startCheck(),
@@ -5674,6 +5768,9 @@ svg.vis.abacus { max-height: 160px; }
   function init() {
     S.init();
     if (MQ.cloud) { MQ.cloud.init(); MQ.cloud.onUpdate(onCloud); }
+    // Closing the tab, switching apps or locking the screen keeps an unfinished test.
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveProgress(); });
+    window.addEventListener('pagehide', saveProgress);
     document.addEventListener('click', (e) => {
       const el = e.target.closest('[data-act]');
       if (!el || el.disabled) return;
