@@ -8,6 +8,7 @@ What the shell already does:
 - **Same progress on every device.** *Create a family* (family code + PIN) on the first device, *I already have a family* on the others. Firebase Firestore + anonymous sign-in; the code and PIN become a key in the browser (PBKDF2), the PIN is never sent. Each device keeps a full copy, works offline, uploads changes 1.5 s later, and merges copies played offline on two devices without losing anything earned.
 - **For grown-ups.** Behind a multiplication question: report (KPIs, last 14 days), settings, rename, family sync status and disconnect, save code (backup / move without the cloud), list of profiles (change kind, delete with a second tap), erase progress (not undone by an older copy on another device).
 - **Grown-up preview.** Everything unlocked on a copy of the profile, nothing saved, a purple bar with Exit.
+- **Our other apps.** The picker and home screens link to every app in `apps` (in `js/config.js`) except this one. Keep the list the same in every app; add a new app to it everywhere.
 - **Navigation.** Back button on every screen, browser back gesture moves between screens and asks before leaving an activity.
 - **Installable and offline.** PWA manifest and service worker; on an iPad: Safari → Share → Add to Home Screen.
 - **Publishing.** Every push to `main` runs the tests and publishes the site to GitHub Pages in about a minute.
@@ -38,7 +39,7 @@ How the code is organized: every file attaches itself to the global `APP` object
 ## Start a new app
 
 1. Copy this folder to the root of a new repository, and copy `js/vendor/` from appleinfire/Math.
-2. In `js/config.js` set `name`, `id` (unique, never changed later), `profileWord`, `kinds`, `avatars`.
+2. In `js/config.js` set `name`, `id` (unique, never changed later), `profileWord`, `kinds`, `avatars`, and make sure `apps` lists this app with the same `id`.
 3. In `sw.js` set `PREFIX` to `'<id>-cache-'`. In `index.html` and `manifest.webmanifest` set the title, description, colors. Replace the icons.
 4. Replace the demo fields in `js/schema.js` and the demo screens in `js/app.js` (`home`, `play`, `next`, `answer`, `finish`) with the app's own. For every new field in a profile, decide how two copies merge (`mergeProgress`) and add a test.
 5. `node tests/shell.test.js` and `node tests/smoke.mjs` must pass.

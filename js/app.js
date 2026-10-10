@@ -70,6 +70,15 @@
   // The group a topic belongs to: a school track ('k', 'g2') or a test-prep family. Review questions stay in their group.
   const familyOf = (t) => { const T = MQ.TOPICS[t]; return !T ? '' : t === 'kg_joey' ? 'joey' : T.kangaroo ? 'kangaroo' : T.cogat ? 'cogat' : T.logic ? 'logic' : T.track; };
   const PAUSE_KINDS = ['check', 'kangaroo', 'joey', 'cogat', 'cogatk', 'logic', 'logick'];
+  // Our other apps, on the same site. Each keeps its own profiles and progress; a link just opens it.
+  const APPS = [
+    { id: 'math-expedition', name: 'Math Expedition', icon: '🧭', url: 'https://appleinfire.github.io/Math/' },
+    { id: 'writing-power', name: 'WritingPower', icon: '✏️', url: 'https://appleinfire.github.io/WritingPower/' },
+  ];
+  const appLinks = () => {
+    const other = APPS.filter((a) => a.id !== 'math-expedition');
+    return other.length ? `<nav class="apps" aria-label="Our other apps"><span>Our other apps:</span>${other.map((a) => `<a class="appbtn" href="${a.url}">${a.icon} ${esc(a.name)}</a>`).join('')}</nav>` : '';
+  };
 
   // ---------------------------------------------------------------- voice
   const voiceOn = () => st.settings.voice !== false && MQ.canSpeak() && !(sess && sess.timer);
@@ -176,6 +185,7 @@
       </div>
       <p class="muted center">Each explorer has their own grade, map, creatures and progress.</p>
       ${syncLine()}
+      ${appLinks()}
     </main>`, 'is-who');
     cur = 'who';
   }
@@ -351,7 +361,7 @@
         <button class="tile t-progress" data-act="go" data-arg="progress"><span class="ti">📈</span><b>My Progress</b><small>${weekAcc}</small></button>
         <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>${PAUSE_KINDS.some((k) => S.paused(k)) ? '⏸️ You have an unfinished test: tap to continue' : 'Placement Check in the style of i-Ready' + (myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : '')}</small></span></button>
       </div>
-      <footer class="foot">${syncLine()}<button class="linkbtn" data-act="go" data-arg="parent">For grown-ups</button></footer>
+      <footer class="foot">${syncLine()}<button class="linkbtn" data-act="go" data-arg="parent">For grown-ups</button>${appLinks()}</footer>
     </main>`);
     cur = 'home';
   }
