@@ -4066,6 +4066,13 @@ svg.vis.abacus { max-height: 160px; }
   MQ.creatureById = (id) => MQ.ALL_CREATURES.find((c) => c.id === id);
   MQ.worldById = (id) => Object.values(MQ.TRACKS).flatMap((t) => t.worlds).find((w) => w.id === id);
 
+  // Our apps, all on appleinfire.github.io. The picker and home screens link to the others, and one family
+  // code + PIN works in all of them (js/cloud.js). Keep this list the same in every app.
+  MQ.APP_ID = 'math-expedition';
+  MQ.APPS = [
+    { id: 'math-expedition', name: 'Math Expedition', icon: '🧭', url: 'https://appleinfire.github.io/Math/' },
+    { id: 'writing-power', name: 'WritingPower', icon: '✏️', url: 'https://appleinfire.github.io/WritingPower/' },
+  ];
   MQ.COMPANIONS = [
     { e: '🦊', n: 'Fox' }, { e: '🐙', n: 'Octopus' }, { e: '🦉', n: 'Owl' },
     { e: '🐉', n: 'Dragon' }, { e: '🦦', n: 'Otter' }, { e: '🐢', n: 'Turtle' },
@@ -5118,15 +5125,14 @@ svg.vis.abacus { max-height: 160px; }
   // The group a topic belongs to: a school track ('k', 'g2') or a test-prep family. Review questions stay in their group.
   const familyOf = (t) => { const T = MQ.TOPICS[t]; return !T ? '' : t === 'kg_joey' ? 'joey' : T.kangaroo ? 'kangaroo' : T.cogat ? 'cogat' : T.logic ? 'logic' : T.track; };
   const PAUSE_KINDS = ['check', 'kangaroo', 'joey', 'cogat', 'cogatk', 'logic', 'logick'];
-  // Our other apps, on the same site. Each keeps its own profiles and progress; a link just opens it.
-  const APPS = [
-    { id: 'math-expedition', name: 'Math Expedition', icon: '🧭', url: 'https://appleinfire.github.io/Math/' },
-    { id: 'writing-power', name: 'WritingPower', icon: '✏️', url: 'https://appleinfire.github.io/WritingPower/' },
-  ];
+  // Links to our other apps (MQ.APPS). Each keeps its own profiles and progress. With an explorer open, the link
+  // carries the name (#who=Mia), so the other app opens the profile with the same name.
   const appLinks = () => {
-    const other = APPS.filter((a) => a.id !== 'math-expedition');
-    return other.length ? `<nav class="apps" aria-label="Our other apps"><span>Our other apps:</span>${other.map((a) => `<a class="appbtn" href="${a.url}">${a.icon} ${esc(a.name)}</a>`).join('')}</nav>` : '';
+    const other = MQ.APPS.filter((a) => a.id !== MQ.APP_ID);
+    const who = st ? '#who=' + encodeURIComponent(st.name) : '';
+    return other.length ? `<nav class="apps" aria-label="Our other apps"><span>Our other apps:</span>${other.map((a) => `<a class="appbtn" href="${esc(a.url + who)}">${a.icon} ${esc(a.name)}</a>`).join('')}</nav>` : '';
   };
+  let wanted = ''; // explorer name from a link of our other app (…/#who=Mia): open that explorer on start
 
   // ---------------------------------------------------------------- voice
   const voiceOn = () => st.settings.voice !== false && MQ.canSpeak() && !(sess && sess.timer);
@@ -5243,7 +5249,10 @@ svg.vis.abacus { max-height: 160px; }
   function syncLine() {
     const C = CL();
     if (!C) return '';
-    if (!C.family) return `<div id="sync" class="sync off">📱 Progress is saved on this device only. <button class="linkbtn" data-act="go" data-arg="family">Connect family ☁️</button></div>`;
+    if (!C.family) {
+      const sib = C.sibling();
+      return `<div id="sync" class="sync off">📱 Progress is saved on this device only. <button class="linkbtn" data-act="go" data-arg="family">${sib ? `Use family ${esc(sib.name)} ☁️` : 'Connect family ☁️'}</button></div>`;
+    }
     const label = { connecting: 'connecting…', saving: 'saving…', synced: 'synced ✓', offline: 'offline — saved here, will sync later', error: 'sync problem, will retry' }[C.status] || 'synced ✓';
     return `<div id="sync" class="sync s-${C.status}">☁️ Family <b>${esc(C.family.name)}</b> · ${label}</div>`;
   }
@@ -5264,13 +5273,16 @@ svg.vis.abacus { max-height: 160px; }
     const top = `<header class="bar">${backTo ? `<button class="iconbtn" data-act="${backTo === 'who' ? 'go' : 'famMode'}" data-arg="${backTo === 'who' ? 'who' : 'choose'}" aria-label="Back">←</button>` : ''}<h1>${f.mode === 'create' ? 'Create a family' : f.mode === 'join' ? 'Join your family' : 'Save progress online'}</h1></header>`;
     let body;
     if (f.mode === 'choose') {
+      const sib = MQ.cloud.sibling();
       body = `<div class="ob-hero" aria-hidden="true">☁️</div>
         <p class="lead center">Connect this device to your family, and every phone, tablet and computer shows the same explorers, levels and creatures.</p>
         <div class="famchoices">
+          ${sib ? `<button class="grade-pick" id="fam-sib" data-act="famSibling" style="--pc:#5b3fa8"><span class="gi">🔗</span><b>Use family ${esc(sib.name)}</b><small>Already connected in ${esc(sib.app)} on this device · no PIN needed</small></button>` : ''}
           <button class="grade-pick" data-act="famMode" data-arg="create" style="--pc:#2bb3a3"><span class="gi">🏡</span><b>Create a family</b><small>First device: choose a family code and PIN</small></button>
           <button class="grade-pick" data-act="famMode" data-arg="join" style="--pc:#e0a21b"><span class="gi">🔑</span><b>I already have a family</b><small>Another device: type the same code and PIN</small></button>
           ${hasKids ? '' : `<button class="grade-pick" data-act="localOnly" style="--pc:#c4ccd6"><span class="gi">📱</span><b>Play on this device only</b><small>You can connect later in For grown-ups</small></button>`}
-        </div>`;
+        </div>
+        <p class="famerr" id="fam-err" role="alert">${esc(f.error)}</p>`;
     } else {
       const create = f.mode === 'create';
       body = `<p class="muted">${create ? 'Pick a family code you will remember (at least 6 letters, for example <b>rudyk-tigers</b>) and a 4–6 digit PIN. Write them down: you type them once on every new device.' : 'Type the family code and PIN you chose on the first device.'}${hasKids && create ? ' The explorers already on this device will be added to the family.' : ''}</p>
@@ -5301,8 +5313,33 @@ svg.vis.abacus { max-height: 160px; }
     ui.fam = null;
     toast('☁️ Family connected');
     MQ.sfx('reward');
+    startScreen();
+  }
+  async function famSibling() {
+    const btn = $('#fam-sib'), err = $('#fam-err');
+    btn.disabled = true;
+    err.textContent = '';
+    try { await MQ.cloud.connectSibling(); } catch (e) { btn.disabled = false; ui.fam.error = FAM_ERRORS[e.code] || 'Something went wrong. Try again.'; err.textContent = ui.fam.error; return; }
+    ui.fam = null;
+    toast('☁️ Family connected');
+    MQ.sfx('reward');
+    startScreen();
+  }
+  // The first screen: the explorer a link asked for (#who=), else the only explorer, else the picker.
+  // Right after joining a family, its explorers can arrive a moment later: until then the new-explorer form
+  // is the 'start' screen, and onCloud runs startScreen again when they come.
+  function startScreen() {
     const list = S.profiles();
-    if (!list.length) return newExplorer();
+    const name = wanted.trim();
+    if (name) {
+      const p = list.find((x) => x.name.trim().toLowerCase() === name.toLowerCase());
+      if (p) { wanted = ''; return openProfile(p.id); }
+      ui.newKid = { name: name.slice(0, 16), grade: 'g2', buddy: '🦊', buddyName: 'Pip' }; // not here yet: offer to add
+      newExplorer();
+      cur = 'start';
+      return;
+    }
+    if (!list.length) { ui.newKid = null; newExplorer(); cur = 'start'; return; }
     if (list.length === 1) return openProfile(list[0].id);
     who();
   }
@@ -5311,6 +5348,7 @@ svg.vis.abacus { max-height: 160px; }
     if (what === 'status') { const el = $('#sync'); if (el) el.outerHTML = syncLine(); return; }
     if (root().classList.contains('is-play')) return;
     if (st && MQ.state !== st) { st = null; return who(); } // this explorer was deleted on another device
+    if (cur === 'start') { if (S.profiles().length) startScreen(); return; }
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
@@ -6723,6 +6761,7 @@ svg.vis.abacus { max-height: 160px; }
   }
   function go(where) {
     remember(where);
+    wanted = '';
     closeModal();
     if (where !== 'hatch') ui.hatch = null;
     if (where !== 'parent') { ui.resetArmed = false; ui.delArmed = null; ui.discArmed = false; }
@@ -6745,6 +6784,7 @@ svg.vis.abacus { max-height: 160px; }
       keepNewKidFields();
       const k = ui.newKid;
       if (!k.name) { $('#ob-name').focus(); $('#ob-name').classList.add('shake'); return; }
+      wanted = '';
       st = S.create({ name: k.name.slice(0, 16), grade: k.grade, companion: k.buddy, buddyName: k.buddyName.slice(0, 14) });
       ui = {};
       MQ.sfx('reward');
@@ -6753,7 +6793,8 @@ svg.vis.abacus { max-height: 160px; }
     openProfile: (a) => openProfile(a),
     famMode: (a) => { ui.fam = ui.fam || {}; if ($('#fam-code')) ui.fam.code = $('#fam-code').value; ui.fam.mode = a; ui.fam.error = ''; family(); },
     famSubmit: () => famSubmit(),
-    localOnly: () => { try { localStorage.setItem('math-expedition-localonly', '1'); } catch (e) { /* ignore */ } ui.newKid = null; newExplorer(); },
+    famSibling: () => famSibling(),
+    localOnly: () => { try { localStorage.setItem('math-expedition-localonly', '1'); } catch (e) { /* ignore */ } ui.newKid = null; startScreen(); },
     famDisconnect: () => {
       if (!ui.discArmed) { ui.discArmed = true; return parent(); }
       ui.discArmed = false;
@@ -6933,7 +6974,11 @@ svg.vis.abacus { max-height: 160px; }
       if (el) act(el.dataset.act, el.tagName === 'SELECT' ? el.value : el.dataset.arg, el);
     });
     window.addEventListener('popstate', onPop);
-    try { if (useHistory) history.replaceState({ where: 'start' }, ''); } catch (e) { /* ignore */ }
+    const m = /^#who=(.+)$/.exec(location.hash);
+    if (m) { try { wanted = decodeURIComponent(m[1]); } catch (e) { /* broken link: ignore */ } }
+    try {
+      if (useHistory) history.replaceState({ where: 'start' }, '', location.pathname + location.search); // drop #who= from the address
+    } catch (e) { /* ignore */ }
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && $('#modal')) return closeModal();
       if (e.key === 'Enter' && $('#fam-go') && !$('#fam-go').disabled) return famSubmit();
@@ -6953,14 +6998,12 @@ svg.vis.abacus { max-height: 160px; }
       } else if (/^[1-6]$/.test(e.key) && sess.p.kind === 'choice') choose(+e.key - 1);
       else if (e.key === 'Enter') submitPick();
     });
-    // One child: straight to their home. Several: ask who is playing.
     // A brand-new device first offers to join the family, so progress is shared from the start.
-    const list = S.profiles();
+    // Then: the explorer a link asked for, the only explorer, or the picker.
     let localOnly = false;
     try { localOnly = localStorage.getItem('math-expedition-localonly') === '1'; } catch (e) { /* ignore */ }
-    if (!list.length && CL() && !MQ.cloud.family && !localOnly) return family();
-    if (list.length === 1) openProfile(list[0].id);
-    else who();
+    if (!S.profiles().length && CL() && !MQ.cloud.family && !localOnly) return family();
+    startScreen();
   }
 
   MQ.app = { init, go, session: () => sess, contest: () => ct }; // session() and contest() are used by the browser tests

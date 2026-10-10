@@ -5,10 +5,11 @@ The family app shell from [Math Expedition](https://github.com/appleinfire/Math)
 What the shell already does:
 
 - **Profiles.** "Who's playing?" picker, a new-profile form (name, kind such as grade or age group, avatar), one profile opens straight to its home. Every profile has its own progress.
-- **Same progress on every device.** *Create a family* (family code + PIN) on the first device, *I already have a family* on the others. Firebase Firestore + anonymous sign-in; the code and PIN become a key in the browser (PBKDF2), the PIN is never sent. Each device keeps a full copy, works offline, uploads changes 1.5 s later, and merges copies played offline on two devices without losing anything earned.
+- **Same progress on every device.** *Create a family* (family code + PIN) on the first device, *I already have a family* on the others. Firebase Firestore + anonymous sign-in; the code and PIN become a key in the browser (PBKDF2), the PIN is never sent. Each device keeps a full copy, works offline, uploads changes 1.5 s later, catches up on start (uploads what a closed app did not finish, removes profiles deleted elsewhere), and merges copies played offline on two devices without losing anything earned.
+- **One family for all our apps.** The family code + PIN make a family root that is the same in every app (it is Math Expedition's family key); each app keeps its data under its own key derived from the root. An app offers **Use family …** with one tap when another of our apps on the same device is already connected. Never change `FAMILY_SALT` or `ROOT_APP` in `js/cloud.js`.
 - **For grown-ups.** Behind a multiplication question: report (KPIs, last 14 days), settings, rename, family sync status and disconnect, save code (backup / move without the cloud), list of profiles (change kind, delete with a second tap), erase progress (not undone by an older copy on another device).
 - **Grown-up preview.** Everything unlocked on a copy of the profile, nothing saved, a purple bar with Exit.
-- **Our other apps.** The picker and home screens link to every app in `apps` (in `js/config.js`) except this one. Keep the list the same in every app; add a new app to it everywhere.
+- **Our other apps.** The picker and home screens link to every app in `apps` (in `js/config.js`) except this one. Keep the list the same in every app; add a new app to it everywhere. With a profile open, the link carries its name (`#who=Mia`): the other app opens that profile, or offers to add it with the name filled in.
 - **Navigation.** Back button on every screen, browser back gesture moves between screens and asks before leaving an activity.
 - **Installable and offline.** PWA manifest and service worker; on an iPad: Safari → Share → Add to Home Screen.
 - **Publishing.** Every push to `main` runs the tests and publishes the site to GitHub Pages in about a minute.
@@ -52,9 +53,9 @@ How the code is organized: every file attaches itself to the global `APP` object
 
 ## Family sync (Firebase, free Spark plan)
 
-Option A — reuse the Firebase project of Math Expedition (nothing to set up): copy the config from appleinfire/Math `js/cloud-config.js` into `firebase:` in `js/config.js`. Its authorized domain `appleinfire.github.io` already covers every repository of that account. Data stays separate because the family key is salted with `APP.CONFIG.id`. The daily free limits (50,000 reads, 20,000 writes) are shared.
+Option A — reuse the Firebase project of Math Expedition (nothing to set up): copy the config from appleinfire/Math `js/cloud-config.js` into `firebase:` in `js/config.js`. Its authorized domain `appleinfire.github.io` already covers every repository of that account. Data stays separate because each app keeps its data under its own key derived from the family root (`APP.CONFIG.id`). The daily free limits (50,000 reads, 20,000 writes) are shared.
 
-Option B — a separate project:
+Option B — a separate project (then this app cannot join the family of our other apps: one family across apps works inside one Firebase project):
 
 1. console.firebase.google.com → Add project (Google Analytics not needed). Stay on the **Spark** plan.
 2. Project settings → Your apps → Web app → register; copy the `firebaseConfig` object into `firebase:` in `js/config.js`.

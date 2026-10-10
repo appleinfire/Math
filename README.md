@@ -8,7 +8,7 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 - **Separate profiles.** Every child has their own grade, world map, creatures, crystals, badges, daily streak, training settings and statistics. Nothing is shared between profiles.
 - **Grade tracks.** A profile follows one grade track: **Kindergarten** (7 worlds, baby animals) or **2nd grade** (8 worlds, wild animals). A grown-up can move a child to another grade; progress in the old grade is kept.
 - **Switching.** Tap the buddy avatar on the home screen (or the small avatar in the top bar) to go back to the picker.
-- **Our other apps.** The picker and the home screen link to our other apps (WritingPower); each app keeps its own profiles and progress. The list is `APPS` in `js/app.js`.
+- **Our other apps.** The picker and the home screen link to our other apps (WritingPower); each app keeps its own profiles and progress. From a child's home screen the link opens the same child in the other app. One family code + PIN works in all our apps, and an app offers *Use family …* with one tap when another of our apps on the device is already connected. The list is `MQ.APPS` in `js/content.js`.
 - **Grown-ups page** shows the report for the current child and lists every explorer on the device: change grade, delete, add a new one.
 - Progress from the first single-player version is moved into a 2nd-grade profile automatically.
 

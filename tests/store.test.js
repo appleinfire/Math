@@ -144,5 +144,26 @@ assert.ok(S.mergeProfiles(erased, later).creatures.owl);
   assert.match(k1, /^[a-f0-9]{64}$/, 'family key is 64 hex characters (what firestore.rules expects)');
   assert.strictEqual(k1, k2, 'code is case- and space-insensitive');
   assert.notStrictEqual(k1, k3, 'a different PIN gives a different family');
+  // This key is the family root of all our apps; the app shell template (templates/app-shell) pins the same value.
+  assert.strictEqual(await MQ.cloud.deriveId('smith-tigers', '1234'), 'd359f955e02a16da5751505a2d0bc555a26c7a08f33ac7eb1a1469ded2b601e6', 'family keys never change');
+  // A family another of our apps connected on this device is offered without the PIN.
+  const mem = {};
+  globalThis.localStorage = { getItem: (k) => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = String(v); }, removeItem: (k) => { delete mem[k]; } };
+  assert.strictEqual(MQ.cloud.sibling(), null);
+  mem['math-expedition-family'] = JSON.stringify({ fid: k1, root: k1, name: 'own' }); // our own link is not a sibling
+  assert.strictEqual(MQ.cloud.sibling(), null);
+  mem['writing-power-family'] = JSON.stringify({ root: k1, fid: 'other', name: 'rudyk-tigers' });
+  assert.deepStrictEqual(MQ.cloud.sibling(), { root: k1, name: 'rudyk-tigers', app: 'WritingPower' });
+  delete globalThis.localStorage;
+
+  // Catch-up on start: what never reached the server goes up; what was deleted elsewhere goes away here.
+  const plan = (l, srv, syn) => { const p = MQ.cloud.catchUpPlan(l, srv, syn); return [p.upload.join(), p.remove.join(), JSON.stringify(p.onServer)]; };
+  assert.deepStrictEqual(plan([{ id: 'a', rev: 5 }], { a: 5 }, {}), ['', '', '{"a":5}'], 'in sync: nothing to do');
+  assert.deepStrictEqual(plan([{ id: 'a', rev: 6 }], { a: 5 }, { a: 5 }), ['a', '', '{}'], 'a change that never went up is uploaded');
+  assert.deepStrictEqual(plan([{ id: 'a', rev: 4 }], { a: 5 }, {}), ['', '', '{"a":5}'], 'the server is newer: the live update brings it');
+  assert.deepStrictEqual(plan([{ id: 'n', rev: 3 }], {}, {}), ['n', '', '{}'], 'a new profile that never went up is uploaded');
+  assert.deepStrictEqual(plan([{ id: 'd', rev: 3 }], {}, { d: 3 }), ['', 'd', '{}'], 'deleted on another device: removed here too');
+  assert.deepStrictEqual(plan([{ id: 'd', rev: 4 }], {}, { d: 3 }), ['d', '', '{}'], 'changed here after it was deleted elsewhere: kept and uploaded');
+  assert.deepStrictEqual(plan([{ id: 'd', rev: 3 }, { id: 'a', rev: 1 }], { a: 1 }, null), ['', '', '{"a":1}'], 'no record yet: a missing profile is left alone');
   console.log('OK — merging progress and family keys behave as expected.');
 })().catch((e) => { console.error(e); process.exit(1); });

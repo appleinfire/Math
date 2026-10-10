@@ -170,6 +170,13 @@
   MQ.creatureById = (id) => MQ.ALL_CREATURES.find((c) => c.id === id);
   MQ.worldById = (id) => Object.values(MQ.TRACKS).flatMap((t) => t.worlds).find((w) => w.id === id);
 
+  // Our apps, all on appleinfire.github.io. The picker and home screens link to the others, and one family
+  // code + PIN works in all of them (js/cloud.js). Keep this list the same in every app.
+  MQ.APP_ID = 'math-expedition';
+  MQ.APPS = [
+    { id: 'math-expedition', name: 'Math Expedition', icon: '🧭', url: 'https://appleinfire.github.io/Math/' },
+    { id: 'writing-power', name: 'WritingPower', icon: '✏️', url: 'https://appleinfire.github.io/WritingPower/' },
+  ];
   MQ.COMPANIONS = [
     { e: '🦊', n: 'Fox' }, { e: '🐙', n: 'Octopus' }, { e: '🦉', n: 'Owl' },
     { e: '🐉', n: 'Dragon' }, { e: '🦦', n: 'Otter' }, { e: '🐢', n: 'Turtle' },
