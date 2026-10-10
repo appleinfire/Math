@@ -13,7 +13,7 @@ const fail = (topic, d, msg, p) => {
 
 for (const topic of Object.keys(MQ.TOPICS)) {
   for (let d = 1; d <= 5; d++) {
-    const seen = new Set();
+    const seen = new Set(), questions = new Set();
     for (let i = 0; i < RUNS; i++) {
       let p;
       try {
@@ -48,10 +48,14 @@ for (const topic of Object.keys(MQ.TOPICS)) {
         if (!l || !(l.min < l.max) || !Number.isInteger(p.answer) || p.answer < l.min || p.answer > l.max || (p.answer - l.min) % l.step) fail(topic, d, 'line: answer not on a tick', p);
       } else fail(topic, d, 'unknown kind', p);
       seen.add(p.text + (p.visual || '') + (p.choices || p.items || []).join('|'));
+      questions.add(p.text + (p.visual || ''));
     }
     // Picture puzzles have fewer possible layouts; still, a contest must never feel repetitive.
     const minDistinct = MQ.TOPICS[topic].kangaroo || MQ.TOPICS[topic].cogat ? 5 : 8;
     if (seen.size < minDistinct) fail(topic, d, `only ${seen.size} distinct problems`);
+    // Test prep is taken again and again: every level needs plenty of different questions (answer order aside).
+    // The hand-written sets (sentence questions, puzzle bank) have 20 per level.
+    if (MQ.TOPICS[topic].track === 'prep' && questions.size < (['cg_sentence', 'kg_bank'].includes(topic) ? 20 : 25)) fail(topic, d, `only ${questions.size} different questions for retakes`);
   }
 }
 
