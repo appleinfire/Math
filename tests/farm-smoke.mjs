@@ -115,6 +115,7 @@ async function play(grade, tag, viewport) {
 
   // sleep: carrots ripen, the chick grows; morning card
   await page.click('[data-act=fSleep]');
+  await snap('09a-night');
   await page.waitForSelector('#modal');
   await snap('09-morning');
   await page.click('#modal [data-act=closeModal]');
@@ -155,7 +156,11 @@ async function play(grade, tag, viewport) {
   if (jobs !== 4) errors.push(`${tag}: jobs ${jobs}`);
 
   // a high-level farm: every tier, challenge customers, a level-up card
-  await page.evaluate(() => { const f = MQ.state.farm; f.xp = 13227; /* 3 XP before level 50 */ f.tier = MQ.farm.tiers(MQ.state.grade).length; f.basket = { honey: 9, milk: 9, pumpkin: 9, egg: 9, truffle: 9, grapes: 9 }; f.customers = 4; MQ.store.save(); });
+  await page.evaluate(() => { const f = MQ.state.farm; f.xp = 13227; /* 3 XP before level 50 */ f.tier = MQ.farm.tiers(MQ.state.grade).length; f.basket = { honey: 9, milk: 9, pumpkin: 9, egg: 9, truffle: 9, grapes: 9 }; f.customers = 4; f.stand = 3;
+    Object.keys(MQ.farm.DECOR).forEach((id) => (f.owned[id] = true));
+    f.beds = ['carrot', 'strawberry', 'tomato', 'corn', 'pumpkin', 'sunflower', 'watermelon', null].map((c, i) => ({ c, g: i % 3 === 0 ? 9 : i % 3 }));
+    f.pens = Object.keys(MQ.farm.ANIMALS).slice(0, 8).map((a, i) => ({ a, g: i % 3 === 0 ? 0 : 9, fed: i % 2 === 0, ready: i % 3 === 1 ? 2 : 0 }));
+    MQ.store.save(); });
   await page.click('[data-act=go][data-arg=farm]');
   await snap('13-bigfarm');
   await page.click('[data-act=fMarket]');

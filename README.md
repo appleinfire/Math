@@ -47,6 +47,7 @@ A mini-game about real money (pretend money, no real purchases). The child runs 
 - **The stand.** Customers come while there is something in the basket. Each one brings a problem: count the coins they pay with, the total for 3 eggs, the change from $1, tap coins to give change, do they have enough, money left after buying two things. A first-try right answer earns a tip (bigger with a nicer stand) and XP; after a hint or a shown answer the customer still buys, so nothing is lost. Every 5th customer is a **⭐ challenge customer** with a problem one tier above the child's (a big tip for a first-try right answer).
 - **Paying.** In the shop the child pays with coins and bills from a tray. Kindergarten pays the exact amount; a 2nd grader may pay more (a quarter for 15¢ seeds) and then works out the change.
 - **The shop.** Seeds, feed, 9 animals, more beds (up to 8) and pens (up to 8), 6 stands (table → supermarket, bigger tips) and 16 decorations up to a golden chicken statue. Anything can be set as a **⭐ saving goal**, even before it opens, with a progress bar on the farm.
+- **A living farm.** The farm is drawn as a scene (emoji, CSS and a few SVGs, no image files): sky with clouds, garden beds where seedlings grow into crops, pens where animals walk around (babies are small), eggs and milk lying in the grass, a yard with the stand. Picked crops fly into the basket, feed flies to the animal and hearts pop up, coins fly from the customer to the money and the number counts up, a customer walks up to the stall, the night passes with a moon and stars. Bought decorations appear on the farm: a barn and a turning windmill on the hill, a rainbow, a balloon, a pond with a swan, a running dog, a tractor driving by. With *Reduce motion* turned on in the device settings nothing moves.
 - **Odd jobs** at the big market pay a small wage per problem, so a child is never stuck with no money.
 - **Growing for a long time.** Farm level has no top (level 10 ≈ 650 XP, level 50 ≈ 13,000 XP, about 2,500 problems); almost every level up to 50 opens something (a crop, an animal, a bed, a pen, a stand, a decoration or new money problems) and pays a money gift.
 - **Money problems by tier.** A tier opens with the farm level, and the child climbs the open tiers by answering (4 first-try right in a row → up, 2 misses → down).
@@ -132,6 +133,7 @@ js/cogat.js           CogAT style question generators (Verbal, Quantitative, Non
 js/logic.js           Logic Lab generators (order, who has what, yes/no/can't tell, situations, counting, truth-tellers)
 js/farm.js            Sunny Farm rules: prices, crops, animals, shop, levels, money problems for customers
 js/farm-ui.js         Sunny Farm screens: farm, shop, stand, odd jobs, paying with coins
+js/farm-scene.js      Sunny Farm pictures and animations: farm scene, market stall, flying coins, night
 js/fx.js              sounds (Web Audio), read-aloud (Web Speech), confetti
 js/app.js             screens and game logic
 tools/build.py        bundles everything into dist/math-expedition.html (local-only copy)

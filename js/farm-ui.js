@@ -1,7 +1,7 @@
 // Sunny Farm screens: the farm, the shop, the stand (customers bring money problems), odd jobs and paying with coins.
 // Rules and problems are in js/farm.js. The app shell (js/app.js) lends render, toast, modal and routing via MQ.app.kit.
 (function () {
-  const MQ = globalThis.MQ, U = MQ.U, F = MQ.farm, V = MQ.V;
+  const MQ = globalThis.MQ, U = MQ.U, F = MQ.farm, V = MQ.V, SC = MQ.farmScene;
   const esc = U.esc;
   const K = () => MQ.app.kit;
   const st = () => K().state();
@@ -19,10 +19,10 @@
   function header(title, back = 'home') {
     return `<header class="bar"><button class="iconbtn" data-act="go" data-arg="${back}" aria-label="Back">←</button><h1>${title}</h1>${moneyPill()}</header>`;
   }
-  function bumpMoney() {
+  function bumpMoney(from) {
     const m = $('#fmoney');
     if (!m) return;
-    m.textContent = fmt(fm().money);
+    SC.roll(m, from === undefined ? fm().money : from, fm().money, fmt);
     m.parentNode.classList.remove('bump');
     void m.offsetWidth;
     m.parentNode.classList.add('bump');
@@ -75,30 +75,12 @@
       <span class="fbar"><span style="width:${pctv}%"></span></span>
       <small>${left > 0 ? `${fmt(fm().money)} of ${fmt(g.price)} · ${fmt(left)} to go` : g.locked ? `You have enough! It opens at farm level ${g.lv}.` : 'You have enough! Buy it in the shop 🎉'}${left > 0 && g.locked ? ` · opens at level ${g.lv}` : ''}</small></span></button>`;
   }
-  function bedTile(b, i) {
-    const s = F.cropStage(b);
-    if (s === 'empty') return `<button class="fbed empty" data-act="fBed" data-arg="${i}"><span class="fe">🟫</span><small>Plant</small></button>`;
-    const c = F.CROPS[b.c], it = F.ITEMS[b.c];
-    if (s === 'ready') return `<button class="fbed ready" data-act="fBed" data-arg="${i}"><span class="fe">${it.e}</span><small>Pick ${c.yield}!</small></button>`;
-    const left = c.days - b.g;
-    return `<button class="fbed" data-act="fBed" data-arg="${i}"><span class="fe">${s === 'seed' ? '🌱' : '🌿'}</span><small>${it.e} in ${left} ${left === 1 ? 'day' : 'days'}</small></button>`;
-  }
-  function penTile(p, i) {
-    if (!p.a) return `<button class="fpen empty" data-act="go" data-arg="farm:shop"><span class="fe">🏡</span><small>Empty pen</small></button>`;
-    const a = F.ANIMALS[p.a], sg = F.animalStage(p), it = F.ITEMS[a.item];
-    const look = sg === 0 ? a.baby : a.e;
-    const age = ['Baby', 'Young', 'Grown-up'][sg];
-    const status = p.ready ? `<b>${it.e} × ${p.ready}</b> Collect!` : p.fed ? 'Fed ✓' : `Hungry · ${a.eat} 🌾`;
-    const growNote = sg < 2 ? ` · grown in ${a.grow[1] - p.g} fed ${a.grow[1] - p.g === 1 ? 'day' : 'days'}` : '';
-    return `<button class="fpen ${p.ready ? 'ready' : p.fed ? 'fed' : 'hungry'} s${sg}" data-act="fPen" data-arg="${i}" title="${age}${growNote}"><span class="fe">${look}</span><small>${status}</small><i class="fage">${age}</i></button>`;
-  }
   function main() {
     const f = fm(), g = grade();
     const lv = F.level(f.xp), pctv = Math.round(((f.xp - lv.from) / (lv.to - lv.from)) * 100);
     const tiers = F.tiers(g), tier = tiers[Math.min(f.tier, tiers.length) - 1];
     const n = F.basketCount(f);
     const basket = Object.entries(f.basket).filter(([, c]) => c > 0).map(([id, c]) => `<span class="fchip">${F.ITEMS[id].e} ${c} <small>× ${fmt(F.price(id, g))}</small></span>`).join('') || '<span class="muted">Empty. Pick crops and collect from animals.</span>';
-    const decor = Object.keys(f.owned).filter((id) => F.DECOR[id]).map((id) => `<span title="${esc(F.DECOR[id].name)}">${F.DECOR[id].e}</span>`).join('');
     const hungry = f.pens.some((p) => p.a && !p.fed), ready = f.pens.some((p) => p.ready);
     K().render(header('🌻 Sunny Farm') + `<main class="farm">
       <section class="flevel">
@@ -114,30 +96,30 @@
         <button class="tile" data-act="fJobs"><span class="ti">🧹</span><b>Odd jobs</b><small>Earn at the big market</small></button>
         <button class="tile" data-act="fSleep"><span class="ti">🌙</span><b>Sleep</b><small>Start day ${f.day + 1}</small></button>
       </div>
-      <h2>🌱 Garden</h2>
-      <div class="fgrid">${f.beds.map(bedTile).join('')}</div>
-      <div class="fhead"><h2>🐾 Animals</h2><span class="pill">🌾 ${f.feed} feed</span></div>
-      <div class="fgrid">${f.pens.map(penTile).join('')}</div>
-      <div class="row left">${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}${ready ? '<button class="btn ghost" data-act="fCollectAll">🧺 Collect all</button>' : ''}</div>
+      ${SC.farm(f, g)}
+      <div class="fstore">
+        <span class="pill" id="ffeed">🌾 ${f.feed} feed</span>
+        ${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}${ready ? '<button class="btn ghost" data-act="fCollectAll">🧺 Collect all</button>' : ''}
+      </div>
       <h2>🧺 Basket</h2>
-      <div class="fbasket">${basket}</div>
-      ${decor ? `<h2>✨ My farm</h2><div class="fdecor">${decor}</div>` : ''}
+      <div class="fbasket" id="fbasket">${basket}</div>
       <p class="muted center">Sold ${f.stats.sold} things · earned ${fmt(f.stats.earned)} in all</p>
     </main>`, 'is-farm');
     K().setCur('farm');
   }
 
-  function bed(i) {
+  function bed(i, el) {
     const f = fm(), b = f.beds[i];
     if (!b) return;
     const s = F.cropStage(b);
     if (s === 'ready') {
-      const crop = b.c, n = F.harvest(f, i);
+      const crop = b.c, n = F.harvest(f, i), from = el && el.getBoundingClientRect();
       MQ.sfx('correct');
-      K().toast(`${F.ITEMS[crop].e} +${n} in the basket`);
       xp(1);
       save();
-      return redraw();
+      redraw();
+      SC.flyMany(F.ITEMS[crop].e, n, from, '#fbasket');
+      return;
     }
     if (s !== 'empty') {
       const c = F.CROPS[b.c];
@@ -156,45 +138,70 @@
     }).join('');
     K().modal(`<div class="mtitle">Plant seeds</div><p class="muted">You have ${fmt(f.money)}.</p><div class="fseeds">${rows}</div><div class="row"><button class="btn ghost" data-act="closeModal">Not now</button></div>`);
   }
-  function pen(i) {
+  const penEl = (i) => document.querySelector(`.fpen[data-arg="${i}"]`);
+  function pen(i, el) {
     const f = fm(), p = f.pens[i];
     if (!p || !p.a) return;
     if (p.ready) {
-      const it = F.ITEMS[F.ANIMALS[p.a].item], n = F.collect(f, i);
+      const it = F.ITEMS[F.ANIMALS[p.a].item], n = F.collect(f, i), from = el && el.getBoundingClientRect();
       MQ.sfx('correct');
-      K().toast(`${it.e} +${n} in the basket`);
       xp(1);
       save();
-      return redraw();
+      redraw();
+      SC.flyMany(it.e, n, from, '#fbasket');
+      return;
     }
     const r = F.feed(f, i);
-    if (r === 'ok') { MQ.sfx('tap'); K().toast(`${F.ANIMALS[p.a].e} Yum! Fed.`); save(); return redraw(); }
+    if (r === 'ok') {
+      MQ.sfx('tap');
+      const from = $('#ffeed') && $('#ffeed').getBoundingClientRect();
+      save();
+      redraw();
+      const to = penEl(i);
+      SC.fly('🌾', from, to, { land: () => { MQ.sfx('correct'); SC.burst(penEl(i)); hop(i); } });
+      return;
+    }
     if (r === 'nofeed') return K().modal(`<div class="bigemoji">🌾</div><div class="mtitle">Not enough feed</div><p>${esc(F.ANIMALS[p.a].name)} eats ${F.ANIMALS[p.a].eat} 🌾 a day. You have ${f.feed}.</p><div class="row"><button class="btn ghost" data-act="closeModal">Later</button><button class="btn" data-act="go" data-arg="farm:shop">Buy feed</button></div>`);
     const a = F.ANIMALS[p.a], sg = F.animalStage(p);
     K().modal(`<div class="bigemoji">${sg ? a.e : a.baby}</div><div class="mtitle">${esc(a.name)}</div><p>${sg < 2 ? `Grows up after ${a.grow[1] - p.g} more fed ${a.grow[1] - p.g === 1 ? 'day' : 'days'}. Then it gives ${a.per} ${F.ITEMS[a.item].e} every day it is fed.` : `Gives ${a.per} ${F.ITEMS[a.item].e} every morning after a day it was fed.`}</p><p class="muted">Already fed today. Tap 🌙 Sleep for a new day.</p><div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
   }
+  // a quick happy jump of the animal in pen i
+  function hop(i) {
+    const w = penEl(i) && penEl(i).querySelector('.bob, .bee');
+    if (!w) return;
+    w.classList.remove('hop');
+    void w.offsetWidth;
+    w.classList.add('hop');
+  }
   function feedAll() {
-    const f = fm();
-    let fed = 0, short = 0;
-    f.pens.forEach((p, i) => { if (!p.a || p.fed) return; F.feed(f, i) === 'ok' ? fed++ : short++; });
-    if (fed) MQ.sfx('tap');
-    K().toast(short ? `Fed ${fed}. Not enough feed for ${short} more: buy 🌾 in the shop.` : `Fed ${fed} ${fed === 1 ? 'animal' : 'animals'} 🌾`);
+    const f = fm(), from = $('#ffeed') && $('#ffeed').getBoundingClientRect(), fedNow = [];
+    let short = 0;
+    f.pens.forEach((p, i) => { if (!p.a || p.fed) return; F.feed(f, i) === 'ok' ? fedNow.push(i) : short++; });
+    if (fedNow.length) MQ.sfx('tap');
+    if (short) K().toast(`Not enough feed for ${short} more ${short === 1 ? 'animal' : 'animals'}: buy 🌾 in the shop.`);
     save();
     redraw();
+    fedNow.forEach((i, k) => SC.fly('🌾', from, penEl(i), { delay: k * 140, land: () => { SC.burst(penEl(i), '❤️', 2); hop(i); } }));
   }
   function collectAll() {
-    const f = fm();
-    let n = 0;
-    f.pens.forEach((_, i) => { n += F.collect(f, i); });
+    const f = fm(), got = [];
+    f.pens.forEach((p, i) => { if (p.ready) { const r = penEl(i).getBoundingClientRect(), e = F.ITEMS[F.ANIMALS[p.a].item].e; got.push([r, e, F.collect(f, i)]); } });
+    const n = U.sum(got.map((x) => x[2]));
     MQ.sfx('correct');
-    K().toast(`🧺 +${n} in the basket`);
     xp(n);
     save();
     redraw();
+    got.forEach(([r, e, c], k) => SC.flyMany(e, c, r, '#fbasket', { delay: k * 200 }));
   }
   function sleep() {
+    if ($('.nightfx')) return;
     const f = fm(), news = F.nextDay(f);
     save();
+    MQ.sfx('tick');
+    SC.night(() => redraw(), () => morning(f, news));
+  }
+  function morning(f, news) {
+    if (fs || !$('.scene')) return; // left the farm during the night
     const lines = [];
     const count = (arr) => { const m = {}; arr.forEach((x) => (m[x] = (m[x] || 0) + 1)); return m; };
     for (const [c, n] of Object.entries(count(news.ripe))) lines.push(`${F.ITEMS[c].e} ${n > 1 ? n + ' beds of ' + esc(F.ITEMS[c].many) : esc(cap(F.ITEMS[c].many))} are ripe`);
@@ -204,7 +211,6 @@
     for (const [a, sg] of news.grew) lines.push(`${F.ANIMALS[a].e} Your ${esc(F.ANIMALS[a].name.toLowerCase())} ${sg === 2 ? 'is all grown up!' : 'got bigger'}`);
     for (const [a, n] of Object.entries(count(news.hungry))) lines.push(`${F.ANIMALS[a].e} ${n > 1 ? n + ' ' : ''}${esc(F.ANIMALS[a].name.toLowerCase())}${n > 1 ? 's were' : ' was'} hungry and didn’t grow. Feed animals before bed!`);
     MQ.sfx('reward');
-    redraw();
     K().modal(`<div class="bigemoji">☀️</div><div class="mtitle">Good morning! Day ${f.day}</div>
       ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : '<p>A quiet night on the farm.</p>'}
       <div class="row"><button class="btn" data-act="closeModal">Let’s go!</button></div>`);
@@ -224,7 +230,7 @@
       else if (x.blocked) btn = `<span class="flock">${esc(x.blocked)}</span>`;
       else if (f.money >= x.price) btn = `<button class="btn" data-act="fBuy" data-arg="${x.id}">Buy</button>`;
       else btn = goal;
-      return `<div class="fitem ${x.locked ? 'locked' : ''}"><span class="fe">${x.e}</span>
+      return `<div class="fitem ${x.locked ? 'locked' : ''}"><span class="fe">${x.id.startsWith('decor:') ? SC.icon(x.id.slice(6), x.e) : x.e}</span>
         <span class="fitem-t"><b>${esc(x.name)}</b>${x.note ? `<small>${esc(x.note)}</small>` : ''}</span>
         <span class="fside"><span class="fprice">${x.owned ? '' : fmt(x.price)}</span>${btn}</span></div>`;
     }).join('');
@@ -247,8 +253,8 @@
     if (price >= 1000) k.unshift('t', 'w');
     return k;
   }
-  function startPay(price, what, done) {
-    fs = { mode: 'pay', what, done, n: 0, earned: 0, tips: 0, xp: 0 };
+  function startPay(price, what, done, icon = '') {
+    fs = { mode: 'pay', what, done, icon, n: 0, earned: 0, tips: 0, xp: 0 };
     const p = { kind: 'coins', pay: true, target: price, coinKinds: payKinds(price), text: `Pay <b>${fmt(price)}</b> for ${what}. Tap your coins${grade() === 'k' ? '' : ' and bills'}, then tap Pay.`, hint: 'Start with the biggest money that fits, then add smaller coins.', explain: `One way: ${F.fewest(price, payKinds(price)).map((k) => fmt(F.COINV[k])).join(' + ')} = ${fmt(price)}`, total: price };
     show(p);
   }
@@ -274,13 +280,16 @@
     const f = fm(), tiers = F.tiers(grade()), tier = tiers[(p.tier || f.tier) - 1];
     const status = fs.mode === 'pay' ? '🛒 Paying' : fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : `🏪 Customer ${fs.n + 1} · +${fmt(fs.earned + fs.tips)}`;
     const label = fs.mode === 'pay' ? '🛒 Farm Shop' : p.vip ? '⭐ Challenge customer · big tip' : `🧮 ${esc(tier.name)}${tier.ahead ? ' ⭐' : ''}`;
-    const who = p.who ? `<span class="fwho" aria-hidden="true">${p.who[0]}</span>` : '';
     const intro = fs.mode === 'jobs' ? '<small class="muted">At the big Farmers’ Market:</small><br>' : '';
+    const stall = fs.mode === 'pay'
+      ? SC.stall({ mode: 'pay', seller: '🧑‍🌾', shopper: st().companion, goods: fs.icon || '🛍️' })
+      : SC.stall({ mode: fs.mode, stand: fs.mode === 'jobs' ? 9 : f.stand, seller: st().companion, shopper: p.who[0], goods: SC.goods(p.sale), vip: p.vip });
     K().render(`<div class="play fplay" style="--wc:${p.vip ? '#b0569e' : '#e0a21b'}">
       <header class="playbar"><button class="iconbtn" data-act="fQuit" aria-label="Stop">✕</button><div class="pstatus">${status}</div>${moneyPill()}</header>
+      ${stall}
       <section class="pcard enter ${p.vip ? 'vip' : ''}" id="pcard">
         <div class="pmeta"><span>${label}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="fSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
-        <div class="fcust">${who}<div class="ptext wordy">${intro}${p.who ? `<b>${esc(p.who[1])}</b> ` : ''}${p.text}</div></div>
+        <div class="fcust"><div class="ptext wordy">${intro}${p.who ? `<b>${esc(p.who[1])}</b> ` : ''}${p.text}</div></div>
         ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
         <div id="fstep"></div>
         <div class="feedback" id="feedback" aria-live="polite"></div>
@@ -360,7 +369,7 @@
   }
   // A customer or an odd job is done.
   function finish(first, solved, shown) {
-    const f = fm(), p = fs.p;
+    const f = fm(), p = fs.p, before = f.money;
     const r = F.serve(f, grade(), p, first, solved);
     F.record(st(), first);
     const move = F.adapt(f, grade(), first);
@@ -374,9 +383,16 @@
     const thanks = p.noPay ? `${esc(p.who[1])} will come back with more money.` : p.jobs ? `You earned <b>${fmt(r.paid)}</b>.` : `${esc(p.who[1])} paid <b>${fmt(r.paid)}</b>${r.tip ? ` and tipped <b>${fmt(r.tip)}</b>` : ''}.`;
     if (solved) feedback(`${first ? U.pick(['Great job!', 'Thank you, farmer!', 'Perfect!', 'You got it!']) : 'Got it!'} ${thanks}${move === 'up' ? '<br>⬆️ Harder money problems unlocked!' : ''}`, 'ok');
     else feedback(`${shown}<br>${thanks}`, 'reveal');
-    bumpMoney();
-    if (r.tip || r.paid) MQ.sfx('coin');
     drawAnswer();
+    // the customer takes the things and pays: goods fly to them, coins fly to the money
+    const shopper = $('#shopper');
+    if (shopper) shopper.classList.add(p.noPay ? 'sad' : 'happy');
+    if (!p.jobs && !p.noPay && $('#goods')) { $('#goods').querySelectorAll('i').forEach((g, k) => SC.fly(g.textContent, g, shopper, { delay: k * 90, dur: 500 })); $('#goods').classList.add('gone'); }
+    if (r.paid + r.tip) {
+      const coins = Math.min(5, 2 + Math.floor((r.paid + r.tip) / (grade() === 'k' ? 3 : 30)));
+      SC.flyMany('🪙', coins, p.jobs ? $('#cashbox') : shopper, '#fmoney', { delay: 350, size: '1.5rem' });
+      setTimeout(() => { bumpMoney(before); MQ.sfx('coin'); }, SC.reduced() ? 0 : 900);
+    }
     const s = $('.pstatus');
     if (s) s.textContent = fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : `🏪 Customer ${fs.n} · +${fmt(fs.earned + fs.tips)}`;
     if (r.ups.length) levelUp(r.ups);
@@ -388,12 +404,15 @@
     const f = fm();
     F.record(st(), first);
     F.adapt(f, grade(), first);
-    const done = fs.done;
+    const done = fs.done, before = f.money;
+    document.querySelectorAll('.ftray .fcoin').forEach((c, k) => SC.fly(c.innerHTML, c, '#cashbox', { delay: k * 80, dur: 550, size: '1rem' }));
     fs.locked = true;
     const thing = done();
     save();
-    bumpMoney();
+    bumpMoney(before);
     MQ.sfx('reward');
+    const sh = $('#shopper');
+    if (sh) sh.classList.add('happy');
     feedback(solved ? `${first ? 'Perfect payment!' : 'Paid!'} ${thing}` : `${shown}<br>${thing}`, solved ? 'ok' : 'reveal');
     drawAnswer();
     const ups = xp(solved ? (first ? 3 : 1) : 0);
@@ -450,8 +469,8 @@
     if (!quiet && st().settings.readAloud) MQ.speak(tipText());
   }
   const A = {
-    fBed: (a) => bed(+a),
-    fPen: (a) => pen(+a),
+    fBed: (a, el) => bed(+a, el),
+    fPen: (a, el) => pen(+a, el),
     fFeedAll: () => feedAll(),
     fCollectAll: () => collectAll(),
     fSleep: () => sleep(),
@@ -463,15 +482,16 @@
       const [i, crop] = a.split(':'), price = F.seedPrice(crop, grade());
       K().closeModal();
       if (fm().money < price) return K().toast('Not enough money yet');
-      startPay(price, `${F.ITEMS[crop].e} ${esc(F.ITEMS[crop].many)} seeds`, () => {
+      startPay(price, `seeds to grow ${F.ITEMS[crop].e} ${esc(F.ITEMS[crop].many)}`, () => {
         F.buySeed(fm(), grade(), +i, crop);
         return `${F.ITEMS[crop].e} planted! Ready in ${F.CROPS[crop].days} ${F.CROPS[crop].days === 1 ? 'day' : 'days'}.`;
-      });
+      }, '🌱');
     },
     fBuy: (a) => {
       const x = F.shopItem(fm(), grade(), a);
       if (!x || fm().money < x.price) return;
-      startPay(x.price, `${x.e} ${esc(x.name)}`, () => { F.buy(fm(), grade(), a); return `${x.e} ${esc(x.name)} is yours!`; });
+      const icon = a.startsWith('decor:') ? SC.icon(a.slice(6), x.e) : x.e;
+      startPay(x.price, `${x.e} ${esc(x.name)}`, () => { F.buy(fm(), grade(), a); return `${x.e} ${esc(x.name)} is yours!`; }, icon);
       fs.back = 'farm:shop';
     },
     fKey: (a) => key(a),
@@ -482,14 +502,17 @@
       if (p.kind === 'coins') { if (!fs.tray.length) return; return check(fs.tray.slice()); }
     },
     fChoose: (a) => { if (fs && !fs.locked) check(cur().choices[+a]); },
-    fCoin: (a) => {
+    fCoin: (a, el) => {
       if (!fs || fs.locked) return;
       const p = cur();
       if (p.pay && F.sumCoins(fs.tray) + F.COINV[a] > fm().money) return K().toast(`You only have ${fmt(fm().money)}`);
       if (fs.tray.length >= 30) return;
       fs.tray.push(a);
       MQ.sfx('coin');
+      const from = el && el.getBoundingClientRect();
       drawAnswer();
+      const last = document.querySelector('.ftray .fcoin:last-child');
+      if (last && from && !SC.reduced()) { last.classList.add('landing'); SC.fly(V.coins([a], true), from, last, { dur: 380, size: '1rem', land: () => last.classList.remove('landing') }); }
     },
     fUncoin: (a) => { if (!fs || fs.locked) return; fs.tray.splice(+a, 1); MQ.sfx('tap'); drawAnswer(); },
     fClear: () => { if (!fs || fs.locked) return; fs.tray = []; drawAnswer(); },

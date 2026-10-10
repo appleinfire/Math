@@ -723,26 +723,10 @@ svg.vis.abacus { max-height: 160px; }
 .fbtns .tile small { font-size: 0.78rem; }
 .fhead { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .fhead .pill { margin-top: 12px; }
-.fgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
-.fbed, .fpen { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 104px; border: 0; border-radius: 16px; padding: 8px 6px; text-align: center; font-size: 0.8rem; font-weight: 800; color: var(--ink-soft); }
-.fbed { background: #c99a6b; box-shadow: inset 0 0 0 3px #9c6b3f, 0 4px 0 #8a5a31; color: #ffffff; }
-.fbed.empty { background: #b98a5d; opacity: 0.85; }
-.fbed.ready { background: #9bd36b; box-shadow: inset 0 0 0 3px #5d9a31, 0 4px 0 #4e8628; color: #1f4a12; animation: fpulse 1.6s ease-in-out infinite; }
-@keyframes fpulse { 50% { transform: scale(1.05); } }
-.fpen { background: #fdf7e9; box-shadow: inset 0 0 0 3px #e3cf9e, 0 4px 0 #d4bd85; }
-.fpen.hungry { background: #fff1ee; box-shadow: inset 0 0 0 3px #f2b4a8, 0 4px 0 #e39b8c; }
-.fpen.fed { background: #eef8e6; box-shadow: inset 0 0 0 3px #b6dc95, 0 4px 0 #9cc97a; }
-.fpen.ready { background: #fff1c9; box-shadow: inset 0 0 0 3px var(--sun), 0 4px 0 #e39a22; color: #6d4a00; }
-.fpen.empty { background: transparent; box-shadow: inset 0 0 0 2px var(--line); }
-.fbed:active, .fpen:active { transform: translateY(3px); }
+.fbasket { display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; }
 .fe { font-size: 2.4rem; line-height: 1.1; }
-.fpen.s0 .fe { font-size: 1.7rem; }
-.fpen.s1 .fe { font-size: 2rem; }
-.fage { position: absolute; top: 5px; right: 8px; font-style: normal; font-size: 0.66rem; color: var(--ink-soft); }
-.fbasket, .fdecor { display: flex; flex-wrap: wrap; gap: 8px; }
 .fchip { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 999px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); font-weight: 900; font-size: 1.1rem; }
 .fchip small { color: var(--ink-soft); font-size: 0.78rem; }
-.fdecor { font-size: 2rem; background: #f3fbe8; border-radius: var(--r); padding: 8px 12px; box-shadow: inset 0 0 0 2px #b6dc95; }
 .fseeds, .fitems { display: flex; flex-direction: column; gap: 8px; text-align: left; margin-top: 10px; }
 .fseed, .fitem { display: flex; align-items: center; gap: 10px; border: 0; border-radius: 14px; background: var(--card); padding: 8px 12px; box-shadow: inset 0 0 0 2px var(--line); }
 .fseed:disabled { opacity: 0.55; cursor: not-allowed; }
@@ -762,7 +746,6 @@ svg.vis.abacus { max-height: 160px; }
 /* stand and paying */
 .pcard.vip { background: #fff5fb; }
 .fcust { display: flex; align-items: flex-start; gap: 12px; }
-.fwho { font-size: 3rem; line-height: 1; flex: none; animation: float 3s ease-in-out infinite; }
 .frow { font-size: 1.9rem; letter-spacing: 4px; text-align: center; }
 .ftag { display: inline-block; margin: 6px 4px 0; padding: 4px 12px; border-radius: 10px; background: #fff8e6; box-shadow: inset 0 0 0 2px #f0c35a; font-family: var(--display); font-weight: 600; font-size: 1.15rem; }
 .ftags { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 6px; }
@@ -776,11 +759,141 @@ svg.vis.abacus { max-height: 160px; }
 .fcoin.big svg { height: 56px; }
 .fcoin.big:active { transform: translateY(3px); box-shadow: inset 0 0 0 2px var(--line), 0 1px 0 var(--line); }
 @media (max-width: 480px) {
-  .fgrid { grid-template-columns: repeat(3, 1fr); }
-  .fwho { font-size: 2.4rem; }
   .fcoin.big svg { height: 48px; }
 }
-@media (prefers-reduced-motion: reduce) { .fbed.ready, .fwho { animation: none; } }
+
+/* ---------- Sunny Farm scene (js/farm-scene.js) ---------- */
+.scene { position: relative; margin-top: 16px; border-radius: 22px; overflow: hidden; box-shadow: inset 0 0 0 3px #5d9a31, 0 5px 0 #4e8628; background: #8fd16a; }
+.scene button { touch-action: manipulation; }
+.sky { position: relative; height: 128px; background: linear-gradient(#7cc8f2, #c4ecff 80%); overflow: hidden; }
+.sun { position: absolute; top: 8px; right: 14px; font-size: 2.4rem; animation: sunspin 30s linear infinite; }
+.cloud { position: absolute; font-size: 2.2rem; opacity: 0.95; animation: drift 38s linear infinite; }
+.cloud.c1 { top: 10px; animation-delay: -8s; }
+.cloud.c2 { top: 34px; font-size: 1.6rem; animation-duration: 52s; animation-delay: -30s; }
+.rainbow { position: absolute; top: -6px; left: 28%; font-size: 5.2rem; opacity: 0.8; }
+.balloon { position: absolute; top: 14px; left: 12%; font-size: 1.8rem; animation: floaty 6s ease-in-out infinite; }
+.bird { position: absolute; top: 22px; font-size: 1.3rem; animation: fly 16s linear infinite; }
+.hills { position: absolute; left: 0; right: 0; bottom: 0; height: 52px; background: radial-gradient(ellipse 45% 100% at 20% 100%, #7cc35a 98%, transparent 100%), radial-gradient(ellipse 55% 90% at 78% 100%, #6db64c 98%, transparent 100%), linear-gradient(transparent 70%, #8fd16a 70%); }
+.hfence { position: absolute; left: 0; right: 0; bottom: 0; height: 14px; background: repeating-linear-gradient(90deg, #fffaf0 0 5px, transparent 5px 22px), linear-gradient(transparent 3px, #fffaf0 3px, #fffaf0 6px, transparent 6px); }
+.deco { position: absolute; bottom: 6px; line-height: 1; font-size: 2.3rem; }
+.sky .deco.d-tree { font-size: 2.8rem; }
+.sky .deco.d-cat { bottom: 4px; font-size: 1.4rem; }
+.spi { display: inline-flex; line-height: 0; }
+.spi svg, .deco svg { height: 1em; width: auto; }
+.sky .deco.d-barn svg { height: 52px; }
+.sky .deco.d-windmill svg { height: 74px; }
+.fitem .spi svg { height: 1.9rem; }
+.windmill .blades { transform-origin: 30px 40px; animation: sunspin 7s linear infinite; }
+.land { padding: 10px 10px 0; background: linear-gradient(#8fd16a, #7cc35a); display: flex; flex-direction: column; gap: 10px; }
+.flabel { position: absolute; left: 6px; bottom: 4px; font-size: 0.68rem; font-weight: 900; padding: 1px 7px; border-radius: 999px; background: rgba(255, 255, 255, 0.85); color: var(--ink); }
+.plus { font-size: 1.8rem; font-weight: 900; color: rgba(255, 255, 255, 0.9); }
+/* garden beds */
+.beds { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.fbed.soil { position: relative; flex: 1 1 88px; max-width: 150px; height: 82px; border: 0; border-radius: 14px; padding: 0; display: grid; place-items: center; background: repeating-linear-gradient(0deg, #9c6b3f 0 6px, #b07d4d 6px 16px); box-shadow: inset 0 0 0 3px #7c5130, 0 4px 0 #6a4426; }
+.fbed.soil.empty { background: repeating-linear-gradient(0deg, #a87850 0 6px, #ba8a5c 6px 16px); opacity: 0.9; }
+.fbed.soil.ready { box-shadow: inset 0 0 0 3px #5d9a31, 0 4px 0 #4e8628, 0 0 0 3px #ffe27a; }
+.fbed:active { transform: translateY(3px); }
+.plants { display: flex; gap: 2px; margin-bottom: 14px; }
+.plants i { font-style: normal; font-size: 1.25rem; line-height: 1; }
+.fbed.sprout .plants i { font-size: 1.6rem; }
+.fbed.ready .plants i { font-size: 1.75rem; animation: wiggle 1.4s ease-in-out infinite; animation-delay: calc(var(--k) * 0.15s); transform-origin: 50% 100%; }
+.fbed.ready .flabel { background: #fff27a; }
+.scarecrow { font-size: 2.6rem; line-height: 1; align-self: center; animation: wiggle 3s ease-in-out infinite; transform-origin: 50% 100%; }
+/* pens */
+.pens { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.fpen.pasture { position: relative; height: 104px; border: 0; border-radius: 16px; padding: 0; overflow: hidden; background: linear-gradient(#a6dc80, #93cf6a); box-shadow: inset 0 0 0 4px #c48c55, inset 0 0 0 6px #e3b783, 0 4px 0 #8a5a31; }
+.fpen.pasture::before { content: ''; position: absolute; left: 6px; right: 6px; top: 22px; height: 3px; background: rgba(196, 140, 85, 0.55); }
+.fpen.pasture.empty { display: grid; place-items: center; background: linear-gradient(#b5e095, #a3d77f); opacity: 0.85; }
+.fpen.pasture.ready { box-shadow: inset 0 0 0 4px #c48c55, inset 0 0 0 6px #e3b783, 0 4px 0 #8a5a31, 0 0 0 3px #ffe27a; }
+.fpen:active { transform: translateY(3px); }
+.walker { position: absolute; bottom: 14px; left: 8px; line-height: 1; font-size: 2.6rem; animation: wander var(--t) linear infinite; animation-delay: var(--dl); }
+.walker:not(.side) { animation-name: wander-front; }
+.s0 .walker { font-size: 1.7rem; }
+.s1 .walker { font-size: 2.1rem; }
+.bob { display: inline-block; animation: bob 0.5s ease-in-out infinite alternate; }
+.hungry .bob { animation-duration: 0.9s; }
+.bob.hop, .bee.hop { animation: hop 0.5s ease-out; }
+.hivebox { position: absolute; left: 10px; bottom: 12px; line-height: 0; }
+.hivebox svg { height: 44px; width: auto; }
+.bee { position: absolute; left: 40%; top: 40%; font-size: 1.2rem; animation: buzz 3.2s ease-in-out infinite; animation-delay: calc(var(--k) * -1.1s); }
+.loot { position: absolute; right: 30px; bottom: 10px; display: flex; gap: 1px; }
+.loot i { font-style: normal; font-size: 1.35rem; animation: wiggle 1.2s ease-in-out infinite; animation-delay: calc(var(--k) * 0.2s); }
+.trough { position: absolute; right: 8px; bottom: 10px; width: 24px; height: 12px; border-radius: 3px 3px 8px 8px; background: #8a5a31; }
+.trough.full::after { content: ''; position: absolute; left: 3px; right: 3px; top: -3px; height: 6px; border-radius: 4px; background: #e8c45a; }
+.pchip { position: absolute; top: 6px; right: 8px; font-size: 0.78rem; font-weight: 900; padding: 1px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.92); color: var(--ink); }
+.hungry .pchip { background: #ffe2dc; color: var(--bad); animation: bump 1.6s ease-in-out infinite; }
+.ready .pchip { background: #fff27a; }
+/* yard with the stand */
+.yard { position: relative; height: 96px; margin: 0 -10px; background: linear-gradient(#7cc35a, #6aae49); overflow: hidden; }
+.yard::before { content: ''; position: absolute; left: 0; right: 0; bottom: 18px; height: 16px; background: #d8b98a; opacity: 0.7; border-radius: 8px; }
+.yard .deco { bottom: 10px; font-size: 2.1rem; }
+.yard .deco.d-pond { width: 74px; height: 30px; bottom: 6px; border-radius: 50%; background: radial-gradient(#7fd0f2, #4aa8d8); display: grid; place-items: center; font-size: 1.4rem; }
+.yard .deco.d-pond { animation: none; }
+.ystand { position: absolute; left: 10px; bottom: 8px; width: 82px; height: 76px; border: 0; border-radius: 12px; background: #fff7e6; box-shadow: inset 0 0 0 3px #b07a46, 0 4px 0 #8a5a31; display: grid; place-items: end center; padding-bottom: 4px; }
+.ystand .awn { position: absolute; top: 0; left: 0; right: 0; height: 22px; border-radius: 12px 12px 4px 4px; background: repeating-linear-gradient(90deg, var(--aw, #ff7e6b) 0 12px, #ffffff 12px 24px); }
+.ystand .ye { font-size: 2rem; line-height: 1; }
+.ystand .badge { position: absolute; top: -2px; right: -4px; min-width: 24px; height: 24px; border-radius: 12px; display: grid; place-items: center; background: var(--coral); color: #ffffff; font-size: 0.8rem; box-shadow: 0 2px 0 var(--coral-dark); }
+.ystand:active { transform: translateY(3px); }
+.st1 { --aw: #f2a33a; } .st2 { --aw: #3fae6a; } .st3 { --aw: #4d8fe0; } .st4 { --aw: #9b59d0; } .st5 { --aw: #e04d7c; } .st9 { --aw: #6a5acd; }
+.dog { position: absolute; bottom: 10px; font-size: 1.8rem; animation: run 9s linear infinite; }
+.tractor { position: absolute; bottom: 14px; font-size: 2.4rem; animation: drive 16s linear infinite; }
+.fstore { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
+.fstore .btn { padding: 8px 14px; font-size: 0.95rem; }
+/* market stall above the customer */
+.stall { position: relative; margin: 10px 0 0; border-radius: 18px 18px 0 0; overflow: hidden; background: linear-gradient(#cfeeff, #e9f8ff); height: 116px; }
+.stall .awning { position: absolute; top: 0; left: 0; right: 0; height: 26px; background: repeating-linear-gradient(90deg, var(--aw, #ff7e6b) 0 22px, #ffffff 22px 44px); border-radius: 0 0 14px 14px; box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08); }
+.stall.m-pay { --aw: #4d8fe0; }
+.stall.vip { --aw: #b0569e; background: linear-gradient(#f6e4ff, #fff5fb); }
+.stall-in { position: absolute; inset: 26px 0 0; }
+.seller { position: absolute; left: 12px; bottom: 30px; font-size: 2.6rem; line-height: 1; }
+.counter { position: absolute; left: 0; right: 32%; bottom: 0; height: 36px; background: #c48c55; box-shadow: inset 0 4px 0 #e3b783; display: flex; align-items: flex-start; justify-content: flex-end; gap: 8px; padding: 0 10px; }
+.goods { display: flex; gap: 1px; margin-top: -24px; font-size: 1.6rem; line-height: 1; }
+.goods i { font-style: normal; }
+.goods.gone { opacity: 0; transition: opacity 0.3s 0.2s; }
+.goods .spi svg { height: 1.7rem; }
+.cashbox { margin-top: -22px; font-size: 1.6rem; line-height: 1; }
+.shopper { position: absolute; right: 8%; bottom: 4px; font-size: 3.2rem; line-height: 1; animation: walkin 0.9s ease-out both; }
+.shopper > span { display: inline-block; animation: bob 0.45s ease-in-out 2 alternate; }
+.shopper.vip::after { content: '⭐'; position: absolute; top: -8px; right: -10px; font-size: 1.3rem; animation: sunspin 4s linear infinite; }
+.shopper.happy > span { animation: hop 0.6s ease-out 2; }
+.shopper.sad > span { animation: shake 0.6s; }
+.stall + .pcard { border-radius: 0 0 22px 22px; }
+.fcoin.landing { visibility: hidden; }
+.flyer { position: fixed; z-index: 60; pointer-events: none; line-height: 1; }
+.flyer svg { height: 2.2em; width: auto; max-height: none; }
+/* the night between two days */
+.nightfx { position: fixed; inset: 0; z-index: 55; pointer-events: none; background: radial-gradient(ellipse at 50% 120%, #2b3f7a, #0c1633 70%); overflow: hidden; }
+.nightfx i { position: absolute; color: #fff6c9; font-style: normal; font-size: 0.9rem; animation: twinkle 0.8s ease-in-out infinite alternate; }
+.nightfx .moon { position: absolute; top: 14%; right: 18%; font-size: 4rem; }
+.nightfx .zzz { position: absolute; top: 40%; left: 50%; transform: translateX(-50%); color: #cfd8ff; font-family: var(--display); font-size: 2.2rem; letter-spacing: 0.3em; animation: floaty 1.6s ease-in-out infinite; }
+.nightfx .sunup { position: absolute; left: 50%; bottom: -80px; font-size: 5rem; transform: translateX(-50%); animation: sunup 2.4s ease-in both; }
+@keyframes drift { from { left: -15%; } to { left: 110%; } }
+@keyframes sunspin { to { transform: rotate(360deg); } }
+@keyframes floaty { 50% { transform: translateY(-10px); } }
+@keyframes fly { from { left: -10%; transform: translateY(0); } 50% { transform: translateY(16px); } to { left: 110%; transform: translateY(0); } }
+@keyframes wiggle { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+@keyframes bob { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+@keyframes hop { 0% { transform: translateY(0) scale(1); } 40% { transform: translateY(-22px) scale(1.15); } 100% { transform: translateY(0) scale(1); } }
+/* side-drawn animals face left: walking right they turn around */
+@keyframes wander { 0% { left: 8px; transform: scaleX(-1); } 44% { left: calc(100% - 3.4rem); transform: scaleX(-1); } 50% { left: calc(100% - 3.4rem); transform: scaleX(1); } 94% { left: 8px; transform: scaleX(1); } 100% { left: 8px; transform: scaleX(-1); } }
+@keyframes wander-front { 0%, 100% { left: 8px; } 50% { left: calc(100% - 3.4rem); } }
+@keyframes buzz { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(34px, -18px); } 50% { transform: translate(10px, 10px); } 75% { transform: translate(-22px, -8px); } }
+@keyframes run { 0% { left: 105%; transform: scaleX(1); } 45% { left: -10%; transform: scaleX(1); } 50% { left: -10%; transform: scaleX(-1); } 95% { left: 105%; transform: scaleX(-1); } 100% { left: 105%; transform: scaleX(1); } }
+@keyframes drive { 0% { left: 110%; } 60%, 100% { left: -20%; } }
+@keyframes walkin { from { transform: translateX(140%); } to { transform: translateX(0); } }
+@keyframes twinkle { from { opacity: 0.3; } to { opacity: 1; } }
+@keyframes sunup { 0%, 55% { bottom: -90px; } 100% { bottom: 30%; } }
+@media (max-width: 480px) {
+  .sky { height: 112px; }
+  .pens { grid-template-columns: repeat(2, 1fr); }
+  .fbed.soil { flex-basis: 70px; height: 76px; }
+  .stall { height: 104px; }
+  .shopper { font-size: 2.8rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene *, .stall * { animation: none !important; }
+  .walker { left: 30%; }
+}
 </style>
 </head>
 <body>
@@ -5675,10 +5788,174 @@ svg.vis.abacus { max-height: 160px; }
 })();
 </script>
   <script>
+// Sunny Farm pictures: the farm scene (sky, garden beds, pens with animals walking around, a yard with the stand and
+// decorations), the market stall above each customer, and small animations (things flying to the basket, coins
+// flying to the money, a night passing). Made of emoji, CSS and a few inline SVGs: no image files.
+// Everything moving is turned off when the device asks for reduced motion.
+(function () {
+  const MQ = globalThis.MQ, F = MQ.farm, U = MQ.U;
+  const esc = U.esc;
+  const S = {};
+  const reduced = () => typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  S.reduced = reduced;
+
+  // ---------------------------------------------------------------- sprites without a good emoji
+  const SVG = {
+    windmill: `<svg class="sp windmill" viewBox="0 0 60 92" aria-hidden="true"><polygon points="22,40 38,40 45,90 15,90" fill="#f1e4c6" stroke="#8a6b46" stroke-width="2"/><rect x="25" y="70" width="10" height="20" rx="4" fill="#8a6b46"/><rect x="26" y="52" width="8" height="8" fill="#9fd3f0" stroke="#8a6b46" stroke-width="1.5"/><g class="blades">${[0, 90, 180, 270].map((r) => `<g transform="rotate(${r} 30 40)"><rect x="28.5" y="4" width="3" height="36" fill="#7a5532"/><rect x="31.5" y="6" width="9" height="26" fill="#fffaf0" stroke="#7a5532" stroke-width="1.2"/></g>`).join('')}</g><circle cx="30" cy="40" r="3.5" fill="#5b3d22"/></svg>`,
+    barn: `<svg class="sp barn" viewBox="0 0 80 66" aria-hidden="true"><polygon points="2,28 40,3 78,28" fill="#8e2b23"/><rect x="8" y="26" width="64" height="38" fill="#cf4330" stroke="#8e2b23" stroke-width="2"/><rect x="28" y="36" width="24" height="28" fill="#fff4e6" stroke="#8e2b23" stroke-width="2"/><path d="M28 36 L52 64 M52 36 L28 64" stroke="#8e2b23" stroke-width="2.5"/><rect x="34" y="13" width="12" height="9" fill="#fff4e6" stroke="#8e2b23" stroke-width="2"/></svg>`,
+    hive: `<svg class="sp hive" viewBox="0 0 40 40" aria-hidden="true"><ellipse cx="20" cy="31" rx="15" ry="7" fill="#e9a425"/><ellipse cx="20" cy="22" rx="12.5" ry="6.5" fill="#f2b83a"/><ellipse cx="20" cy="14" rx="9" ry="5.5" fill="#f7c95a"/><ellipse cx="20" cy="7.5" rx="5" ry="4" fill="#fad77a"/><ellipse cx="20" cy="31" rx="4" ry="3.5" fill="#6b4210"/></svg>`,
+  };
+  // The shop and the scene use these pictures for the windmill and the barn.
+  S.icon = (id, e) => (SVG[id] ? `<span class="spi">${SVG[id]}</span>` : e);
+
+  // Animals that are drawn from the side (they turn around when they walk the other way).
+  const SIDE = new Set(['🐔', '🐐', '🐑', '🐄', '🦆', '🐖', '🦙', '🐎', '🐓']);
+  const WALK = { pony: '🐎' }; // a whole pony instead of the 🐴 head
+  // Where each decoration stands: sky (floats), hill (on the horizon, left %), yard (in front, left %).
+  const SPOTS = {
+    rainbow: ['sky'], balloon: ['sky'], birdhouse: ['sky'],
+    tree: ['hill', 3], greenhouse: ['hill', 24], barn: ['hill', 58], cat: ['hill', 66], windmill: ['hill', 82],
+    fence: ['fence'], scarecrow: ['bed'],
+    flowers: ['yard', 30], pond: ['yard', 46], fountain: ['yard', 64], golden: ['yard', 78], dog: ['run'], tractor: ['drive'],
+  };
+
+  // ---------------------------------------------------------------- the farm scene
+  function bedHtml(b, i) {
+    const s = F.cropStage(b);
+    if (s === 'empty') return `<button class="fbed soil empty" data-act="fBed" data-arg="${i}" aria-label="Empty garden bed: plant seeds"><span class="plus">＋</span><span class="flabel">Plant</span></button>`;
+    const c = F.CROPS[b.c], it = F.ITEMS[b.c], left = c.days - b.g;
+    const n = Math.min(c.yield, 4);
+    const sprite = s === 'ready' ? it.e : s === 'seed' ? '🌱' : '🌿';
+    const plants = Array.from({ length: s === 'ready' ? n : 3 }, (_, k) => `<i style="--k:${k}">${sprite}</i>`).join('');
+    const label = s === 'ready' ? `Pick ${c.yield}!` : `${left} ${left === 1 ? 'day' : 'days'}`;
+    return `<button class="fbed soil ${s}" data-act="fBed" data-arg="${i}" aria-label="${esc(it.many)}: ${s === 'ready' ? 'ripe, tap to pick' : `ready in ${label}`}"><span class="plants">${plants}</span><span class="flabel">${s === 'ready' ? label : it.e + ' ' + label}</span></button>`;
+  }
+  function penHtml(p, i) {
+    if (!p.a) return `<button class="fpen pasture empty" data-act="go" data-arg="farm:shop" aria-label="Empty pen: buy an animal in the shop"><span class="plus">＋</span><span class="flabel">Buy an animal</span></button>`;
+    const a = F.ANIMALS[p.a], sg = F.animalStage(p), it = F.ITEMS[a.item];
+    const state = p.ready ? 'ready' : p.fed ? 'fed' : 'hungry';
+    const age = ['Baby', 'Young', 'Grown-up'][sg];
+    const chip = p.ready ? `${it.e}×${p.ready}` : p.fed ? '❤️' : `🌾 ${a.eat}`;
+    const loot = p.ready ? `<span class="loot">${Array.from({ length: Math.min(p.ready, 5) }, (_, k) => `<i style="--k:${k}">${it.e}</i>`).join('')}</span>` : '';
+    let who;
+    if (p.a === 'bees') {
+      who = `<span class="hivebox">${SVG.hive}</span>${Array.from({ length: sg + 1 }, (_, k) => `<span class="bee" style="--k:${k}">🐝</span>`).join('')}`;
+    } else {
+      const e = sg === 0 ? a.baby : WALK[p.a] || a.e;
+      const t = 7 + ((i * 3) % 5); // each animal walks at its own pace
+      who = `<span class="walker ${SIDE.has(e) ? 'side' : ''}" style="--t:${t}s;--dl:-${(i * 2.3) % t}s"><span class="bob">${e}</span></span>`;
+    }
+    const label = `${a.name}, ${age.toLowerCase()}: ${p.ready ? `${p.ready} ${it.many} to collect` : p.fed ? 'fed' : `hungry, eats ${a.eat} feed`}`;
+    return `<button class="fpen pasture ${state} s${sg} a-${p.a}" data-act="fPen" data-arg="${i}" aria-label="${esc(label)}">${who}${loot}<span class="trough ${p.fed ? 'full' : ''}"></span><span class="pchip">${chip}</span><span class="flabel">${age}</span></button>`;
+  }
+  S.farm = (fm, grade) => {
+    const has = (id) => !!fm.owned[id];
+    const at = (zone) => Object.keys(fm.owned).filter((id) => F.DECOR[id] && (SPOTS[id] || [])[0] === zone);
+    const sky = [];
+    if (has('rainbow')) sky.push('<span class="rainbow">🌈</span>');
+    if (has('balloon')) sky.push('<span class="balloon">🎈</span>');
+    if (has('birdhouse')) sky.push('<span class="bird">🐦</span>');
+    const hill = at('hill').map((id) => `<span class="deco d-${id}" style="left:${SPOTS[id][1]}%" title="${esc(F.DECOR[id].name)}">${S.icon(id, F.DECOR[id].e)}</span>`).join('');
+    const yard = at('yard').map((id) => `<span class="deco d-${id}" style="left:${SPOTS[id][1]}%" title="${esc(F.DECOR[id].name)}">${F.DECOR[id].e}</span>`).join('');
+    const stand = F.STANDS[fm.stand], n = F.basketCount(fm);
+    return `<section class="scene" aria-label="Your farm">
+      <div class="sky">
+        <span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>${sky.join('')}
+        <div class="hills"></div>${hill}${has('fence') ? '<div class="hfence"></div>' : ''}
+      </div>
+      <div class="land">
+        <div class="beds">${fm.beds.map(bedHtml).join('')}${has('scarecrow') ? '<span class="scarecrow" title="Scarecrow">🧑‍🌾</span>' : ''}</div>
+        <div class="pens">${fm.pens.map(penHtml).join('')}</div>
+        <div class="yard">
+          <button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
+          ${yard}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}
+        </div>
+      </div>
+    </section>`;
+  };
+
+  // ---------------------------------------------------------------- the stall above a customer
+  // mode: market (your stand), jobs (the big market), pay (the farm shop, where the child is the buyer).
+  S.stall = ({ mode, stand = 0, seller, shopper, goods = '', vip = false }) => `<div class="stall st${stand} m-${mode} ${vip ? 'vip' : ''}" aria-hidden="true">
+      <div class="awning"></div>
+      <div class="stall-in">
+        <span class="seller">${seller}</span>
+        <div class="counter"><span class="goods" id="goods">${goods}</span><span class="cashbox" id="cashbox">💰</span></div>
+        <span class="shopper ${vip ? 'vip' : ''}" id="shopper"><span>${shopper}</span></span>
+      </div>
+    </div>`;
+  S.goods = (sale) => Object.entries(sale || {}).map(([id, n]) => Array.from({ length: Math.min(n, 6) }, () => `<i>${F.ITEMS[id].e}</i>`).join('')).join('');
+
+  // ---------------------------------------------------------------- animations
+  const box = (x) => (!x ? null : x.getBoundingClientRect ? x.getBoundingClientRect() : x);
+  // Something flies from one place to another along an arc (a harvested carrot to the basket, coins to the money).
+  S.fly = (html, from, to, { delay = 0, dur = 650, size = '1.9rem', land } = {}) => {
+    const a = box(from), b = box(typeof to === 'string' ? document.querySelector(to) : to);
+    if (reduced() || !a || !b || !document.body.animate) { if (land) land(); return; }
+    const el = document.createElement('div');
+    el.className = 'flyer';
+    el.style.fontSize = size;
+    el.innerHTML = html;
+    el.style.left = a.left + a.width / 2 + 'px';
+    el.style.top = a.top + a.height / 2 + 'px';
+    document.body.appendChild(el);
+    const dx = b.left + b.width / 2 - (a.left + a.width / 2), dy = b.top + b.height / 2 - (a.top + a.height / 2);
+    const anim = el.animate([
+      { transform: 'translate(-50%, -50%) scale(0.8)', opacity: 0 },
+      { transform: 'translate(-50%, -50%) scale(1.1)', opacity: 1, offset: 0.1 },
+      { transform: `translate(calc(-50% + ${dx / 2}px), calc(-50% + ${dy / 2 - 70}px)) scale(1.25)`, offset: 0.55 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.55)`, opacity: 0.9 },
+    ], { duration: dur, delay, easing: 'ease-in-out', fill: 'both' });
+    anim.onfinish = () => { el.remove(); if (land) land(); };
+  };
+  // A few things fly one after another.
+  S.flyMany = (html, n, from, to, opts = {}) => { for (let k = 0; k < n; k++) S.fly(html, from, to, Object.assign({}, opts, { delay: (opts.delay || 0) + k * 110 })); };
+  // Hearts (or anything) float up from a spot.
+  S.burst = (el, html = '❤️', n = 3) => {
+    const r = box(el);
+    if (reduced() || !r || !document.body.animate) return;
+    for (let k = 0; k < n; k++) {
+      const d = document.createElement('div');
+      d.className = 'flyer';
+      d.innerHTML = html;
+      d.style.left = r.left + r.width * (0.3 + 0.2 * k) + 'px';
+      d.style.top = r.top + r.height * 0.4 + 'px';
+      document.body.appendChild(d);
+      d.animate([{ transform: 'translate(-50%, 0) scale(0.6)', opacity: 0 }, { transform: 'translate(-50%, -20px) scale(1)', opacity: 1, offset: 0.25 }, { transform: `translate(calc(-50% + ${(k - 1) * 14}px), -70px) scale(1.1)`, opacity: 0 }], { duration: 900, delay: k * 120, easing: 'ease-out', fill: 'both' }).onfinish = () => d.remove();
+    }
+  };
+  // A number counts up (or down) to its new value: the money pill after a sale.
+  S.roll = (el, from, to, show, dur = 650) => {
+    if (!el) return;
+    if (reduced() || from === to || typeof requestAnimationFrame === 'undefined') { el.textContent = show(to); return; }
+    const t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / dur);
+      el.textContent = show(Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))));
+      if (k < 1 && el.isConnected) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  // The night passes: the screen goes dark with a moon and stars, then the sun comes up.
+  // dark() runs in the middle (redraw the farm there), done() at the end.
+  S.night = (dark, done) => {
+    if (reduced() || !document.body.animate) { dark(); done(); return; }
+    const o = document.createElement('div');
+    o.className = 'nightfx';
+    o.innerHTML = '<span class="moon">🌙</span>' + Array.from({ length: 14 }, (_, k) => `<i style="left:${(k * 37) % 100}%;top:${(k * 23) % 60 + 5}%;animation-delay:${(k % 5) * 0.15}s">✦</i>`).join('') + '<span class="zzz">Z z z</span><span class="sunup">☀️</span>';
+    document.body.appendChild(o);
+    o.animate([{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 1, offset: 0.7 }, { opacity: 0 }], { duration: 2400, easing: 'ease-in-out', fill: 'both' }).onfinish = () => { o.remove(); done(); };
+    setTimeout(dark, 900);
+  };
+
+  MQ.farmScene = S;
+})();
+</script>
+  <script>
 // Sunny Farm screens: the farm, the shop, the stand (customers bring money problems), odd jobs and paying with coins.
 // Rules and problems are in js/farm.js. The app shell (js/app.js) lends render, toast, modal and routing via MQ.app.kit.
 (function () {
-  const MQ = globalThis.MQ, U = MQ.U, F = MQ.farm, V = MQ.V;
+  const MQ = globalThis.MQ, U = MQ.U, F = MQ.farm, V = MQ.V, SC = MQ.farmScene;
   const esc = U.esc;
   const K = () => MQ.app.kit;
   const st = () => K().state();
@@ -5696,10 +5973,10 @@ svg.vis.abacus { max-height: 160px; }
   function header(title, back = 'home') {
     return `<header class="bar"><button class="iconbtn" data-act="go" data-arg="${back}" aria-label="Back">←</button><h1>${title}</h1>${moneyPill()}</header>`;
   }
-  function bumpMoney() {
+  function bumpMoney(from) {
     const m = $('#fmoney');
     if (!m) return;
-    m.textContent = fmt(fm().money);
+    SC.roll(m, from === undefined ? fm().money : from, fm().money, fmt);
     m.parentNode.classList.remove('bump');
     void m.offsetWidth;
     m.parentNode.classList.add('bump');
@@ -5752,30 +6029,12 @@ svg.vis.abacus { max-height: 160px; }
       <span class="fbar"><span style="width:${pctv}%"></span></span>
       <small>${left > 0 ? `${fmt(fm().money)} of ${fmt(g.price)} · ${fmt(left)} to go` : g.locked ? `You have enough! It opens at farm level ${g.lv}.` : 'You have enough! Buy it in the shop 🎉'}${left > 0 && g.locked ? ` · opens at level ${g.lv}` : ''}</small></span></button>`;
   }
-  function bedTile(b, i) {
-    const s = F.cropStage(b);
-    if (s === 'empty') return `<button class="fbed empty" data-act="fBed" data-arg="${i}"><span class="fe">🟫</span><small>Plant</small></button>`;
-    const c = F.CROPS[b.c], it = F.ITEMS[b.c];
-    if (s === 'ready') return `<button class="fbed ready" data-act="fBed" data-arg="${i}"><span class="fe">${it.e}</span><small>Pick ${c.yield}!</small></button>`;
-    const left = c.days - b.g;
-    return `<button class="fbed" data-act="fBed" data-arg="${i}"><span class="fe">${s === 'seed' ? '🌱' : '🌿'}</span><small>${it.e} in ${left} ${left === 1 ? 'day' : 'days'}</small></button>`;
-  }
-  function penTile(p, i) {
-    if (!p.a) return `<button class="fpen empty" data-act="go" data-arg="farm:shop"><span class="fe">🏡</span><small>Empty pen</small></button>`;
-    const a = F.ANIMALS[p.a], sg = F.animalStage(p), it = F.ITEMS[a.item];
-    const look = sg === 0 ? a.baby : a.e;
-    const age = ['Baby', 'Young', 'Grown-up'][sg];
-    const status = p.ready ? `<b>${it.e} × ${p.ready}</b> Collect!` : p.fed ? 'Fed ✓' : `Hungry · ${a.eat} 🌾`;
-    const growNote = sg < 2 ? ` · grown in ${a.grow[1] - p.g} fed ${a.grow[1] - p.g === 1 ? 'day' : 'days'}` : '';
-    return `<button class="fpen ${p.ready ? 'ready' : p.fed ? 'fed' : 'hungry'} s${sg}" data-act="fPen" data-arg="${i}" title="${age}${growNote}"><span class="fe">${look}</span><small>${status}</small><i class="fage">${age}</i></button>`;
-  }
   function main() {
     const f = fm(), g = grade();
     const lv = F.level(f.xp), pctv = Math.round(((f.xp - lv.from) / (lv.to - lv.from)) * 100);
     const tiers = F.tiers(g), tier = tiers[Math.min(f.tier, tiers.length) - 1];
     const n = F.basketCount(f);
     const basket = Object.entries(f.basket).filter(([, c]) => c > 0).map(([id, c]) => `<span class="fchip">${F.ITEMS[id].e} ${c} <small>× ${fmt(F.price(id, g))}</small></span>`).join('') || '<span class="muted">Empty. Pick crops and collect from animals.</span>';
-    const decor = Object.keys(f.owned).filter((id) => F.DECOR[id]).map((id) => `<span title="${esc(F.DECOR[id].name)}">${F.DECOR[id].e}</span>`).join('');
     const hungry = f.pens.some((p) => p.a && !p.fed), ready = f.pens.some((p) => p.ready);
     K().render(header('🌻 Sunny Farm') + `<main class="farm">
       <section class="flevel">
@@ -5791,30 +6050,30 @@ svg.vis.abacus { max-height: 160px; }
         <button class="tile" data-act="fJobs"><span class="ti">🧹</span><b>Odd jobs</b><small>Earn at the big market</small></button>
         <button class="tile" data-act="fSleep"><span class="ti">🌙</span><b>Sleep</b><small>Start day ${f.day + 1}</small></button>
       </div>
-      <h2>🌱 Garden</h2>
-      <div class="fgrid">${f.beds.map(bedTile).join('')}</div>
-      <div class="fhead"><h2>🐾 Animals</h2><span class="pill">🌾 ${f.feed} feed</span></div>
-      <div class="fgrid">${f.pens.map(penTile).join('')}</div>
-      <div class="row left">${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}${ready ? '<button class="btn ghost" data-act="fCollectAll">🧺 Collect all</button>' : ''}</div>
+      ${SC.farm(f, g)}
+      <div class="fstore">
+        <span class="pill" id="ffeed">🌾 ${f.feed} feed</span>
+        ${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}${ready ? '<button class="btn ghost" data-act="fCollectAll">🧺 Collect all</button>' : ''}
+      </div>
       <h2>🧺 Basket</h2>
-      <div class="fbasket">${basket}</div>
-      ${decor ? `<h2>✨ My farm</h2><div class="fdecor">${decor}</div>` : ''}
+      <div class="fbasket" id="fbasket">${basket}</div>
       <p class="muted center">Sold ${f.stats.sold} things · earned ${fmt(f.stats.earned)} in all</p>
     </main>`, 'is-farm');
     K().setCur('farm');
   }
 
-  function bed(i) {
+  function bed(i, el) {
     const f = fm(), b = f.beds[i];
     if (!b) return;
     const s = F.cropStage(b);
     if (s === 'ready') {
-      const crop = b.c, n = F.harvest(f, i);
+      const crop = b.c, n = F.harvest(f, i), from = el && el.getBoundingClientRect();
       MQ.sfx('correct');
-      K().toast(`${F.ITEMS[crop].e} +${n} in the basket`);
       xp(1);
       save();
-      return redraw();
+      redraw();
+      SC.flyMany(F.ITEMS[crop].e, n, from, '#fbasket');
+      return;
     }
     if (s !== 'empty') {
       const c = F.CROPS[b.c];
@@ -5833,45 +6092,70 @@ svg.vis.abacus { max-height: 160px; }
     }).join('');
     K().modal(`<div class="mtitle">Plant seeds</div><p class="muted">You have ${fmt(f.money)}.</p><div class="fseeds">${rows}</div><div class="row"><button class="btn ghost" data-act="closeModal">Not now</button></div>`);
   }
-  function pen(i) {
+  const penEl = (i) => document.querySelector(`.fpen[data-arg="${i}"]`);
+  function pen(i, el) {
     const f = fm(), p = f.pens[i];
     if (!p || !p.a) return;
     if (p.ready) {
-      const it = F.ITEMS[F.ANIMALS[p.a].item], n = F.collect(f, i);
+      const it = F.ITEMS[F.ANIMALS[p.a].item], n = F.collect(f, i), from = el && el.getBoundingClientRect();
       MQ.sfx('correct');
-      K().toast(`${it.e} +${n} in the basket`);
       xp(1);
       save();
-      return redraw();
+      redraw();
+      SC.flyMany(it.e, n, from, '#fbasket');
+      return;
     }
     const r = F.feed(f, i);
-    if (r === 'ok') { MQ.sfx('tap'); K().toast(`${F.ANIMALS[p.a].e} Yum! Fed.`); save(); return redraw(); }
+    if (r === 'ok') {
+      MQ.sfx('tap');
+      const from = $('#ffeed') && $('#ffeed').getBoundingClientRect();
+      save();
+      redraw();
+      const to = penEl(i);
+      SC.fly('🌾', from, to, { land: () => { MQ.sfx('correct'); SC.burst(penEl(i)); hop(i); } });
+      return;
+    }
     if (r === 'nofeed') return K().modal(`<div class="bigemoji">🌾</div><div class="mtitle">Not enough feed</div><p>${esc(F.ANIMALS[p.a].name)} eats ${F.ANIMALS[p.a].eat} 🌾 a day. You have ${f.feed}.</p><div class="row"><button class="btn ghost" data-act="closeModal">Later</button><button class="btn" data-act="go" data-arg="farm:shop">Buy feed</button></div>`);
     const a = F.ANIMALS[p.a], sg = F.animalStage(p);
     K().modal(`<div class="bigemoji">${sg ? a.e : a.baby}</div><div class="mtitle">${esc(a.name)}</div><p>${sg < 2 ? `Grows up after ${a.grow[1] - p.g} more fed ${a.grow[1] - p.g === 1 ? 'day' : 'days'}. Then it gives ${a.per} ${F.ITEMS[a.item].e} every day it is fed.` : `Gives ${a.per} ${F.ITEMS[a.item].e} every morning after a day it was fed.`}</p><p class="muted">Already fed today. Tap 🌙 Sleep for a new day.</p><div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
   }
+  // a quick happy jump of the animal in pen i
+  function hop(i) {
+    const w = penEl(i) && penEl(i).querySelector('.bob, .bee');
+    if (!w) return;
+    w.classList.remove('hop');
+    void w.offsetWidth;
+    w.classList.add('hop');
+  }
   function feedAll() {
-    const f = fm();
-    let fed = 0, short = 0;
-    f.pens.forEach((p, i) => { if (!p.a || p.fed) return; F.feed(f, i) === 'ok' ? fed++ : short++; });
-    if (fed) MQ.sfx('tap');
-    K().toast(short ? `Fed ${fed}. Not enough feed for ${short} more: buy 🌾 in the shop.` : `Fed ${fed} ${fed === 1 ? 'animal' : 'animals'} 🌾`);
+    const f = fm(), from = $('#ffeed') && $('#ffeed').getBoundingClientRect(), fedNow = [];
+    let short = 0;
+    f.pens.forEach((p, i) => { if (!p.a || p.fed) return; F.feed(f, i) === 'ok' ? fedNow.push(i) : short++; });
+    if (fedNow.length) MQ.sfx('tap');
+    if (short) K().toast(`Not enough feed for ${short} more ${short === 1 ? 'animal' : 'animals'}: buy 🌾 in the shop.`);
     save();
     redraw();
+    fedNow.forEach((i, k) => SC.fly('🌾', from, penEl(i), { delay: k * 140, land: () => { SC.burst(penEl(i), '❤️', 2); hop(i); } }));
   }
   function collectAll() {
-    const f = fm();
-    let n = 0;
-    f.pens.forEach((_, i) => { n += F.collect(f, i); });
+    const f = fm(), got = [];
+    f.pens.forEach((p, i) => { if (p.ready) { const r = penEl(i).getBoundingClientRect(), e = F.ITEMS[F.ANIMALS[p.a].item].e; got.push([r, e, F.collect(f, i)]); } });
+    const n = U.sum(got.map((x) => x[2]));
     MQ.sfx('correct');
-    K().toast(`🧺 +${n} in the basket`);
     xp(n);
     save();
     redraw();
+    got.forEach(([r, e, c], k) => SC.flyMany(e, c, r, '#fbasket', { delay: k * 200 }));
   }
   function sleep() {
+    if ($('.nightfx')) return;
     const f = fm(), news = F.nextDay(f);
     save();
+    MQ.sfx('tick');
+    SC.night(() => redraw(), () => morning(f, news));
+  }
+  function morning(f, news) {
+    if (fs || !$('.scene')) return; // left the farm during the night
     const lines = [];
     const count = (arr) => { const m = {}; arr.forEach((x) => (m[x] = (m[x] || 0) + 1)); return m; };
     for (const [c, n] of Object.entries(count(news.ripe))) lines.push(`${F.ITEMS[c].e} ${n > 1 ? n + ' beds of ' + esc(F.ITEMS[c].many) : esc(cap(F.ITEMS[c].many))} are ripe`);
@@ -5881,7 +6165,6 @@ svg.vis.abacus { max-height: 160px; }
     for (const [a, sg] of news.grew) lines.push(`${F.ANIMALS[a].e} Your ${esc(F.ANIMALS[a].name.toLowerCase())} ${sg === 2 ? 'is all grown up!' : 'got bigger'}`);
     for (const [a, n] of Object.entries(count(news.hungry))) lines.push(`${F.ANIMALS[a].e} ${n > 1 ? n + ' ' : ''}${esc(F.ANIMALS[a].name.toLowerCase())}${n > 1 ? 's were' : ' was'} hungry and didn’t grow. Feed animals before bed!`);
     MQ.sfx('reward');
-    redraw();
     K().modal(`<div class="bigemoji">☀️</div><div class="mtitle">Good morning! Day ${f.day}</div>
       ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : '<p>A quiet night on the farm.</p>'}
       <div class="row"><button class="btn" data-act="closeModal">Let’s go!</button></div>`);
@@ -5901,7 +6184,7 @@ svg.vis.abacus { max-height: 160px; }
       else if (x.blocked) btn = `<span class="flock">${esc(x.blocked)}</span>`;
       else if (f.money >= x.price) btn = `<button class="btn" data-act="fBuy" data-arg="${x.id}">Buy</button>`;
       else btn = goal;
-      return `<div class="fitem ${x.locked ? 'locked' : ''}"><span class="fe">${x.e}</span>
+      return `<div class="fitem ${x.locked ? 'locked' : ''}"><span class="fe">${x.id.startsWith('decor:') ? SC.icon(x.id.slice(6), x.e) : x.e}</span>
         <span class="fitem-t"><b>${esc(x.name)}</b>${x.note ? `<small>${esc(x.note)}</small>` : ''}</span>
         <span class="fside"><span class="fprice">${x.owned ? '' : fmt(x.price)}</span>${btn}</span></div>`;
     }).join('');
@@ -5924,8 +6207,8 @@ svg.vis.abacus { max-height: 160px; }
     if (price >= 1000) k.unshift('t', 'w');
     return k;
   }
-  function startPay(price, what, done) {
-    fs = { mode: 'pay', what, done, n: 0, earned: 0, tips: 0, xp: 0 };
+  function startPay(price, what, done, icon = '') {
+    fs = { mode: 'pay', what, done, icon, n: 0, earned: 0, tips: 0, xp: 0 };
     const p = { kind: 'coins', pay: true, target: price, coinKinds: payKinds(price), text: `Pay <b>${fmt(price)}</b> for ${what}. Tap your coins${grade() === 'k' ? '' : ' and bills'}, then tap Pay.`, hint: 'Start with the biggest money that fits, then add smaller coins.', explain: `One way: ${F.fewest(price, payKinds(price)).map((k) => fmt(F.COINV[k])).join(' + ')} = ${fmt(price)}`, total: price };
     show(p);
   }
@@ -5951,13 +6234,16 @@ svg.vis.abacus { max-height: 160px; }
     const f = fm(), tiers = F.tiers(grade()), tier = tiers[(p.tier || f.tier) - 1];
     const status = fs.mode === 'pay' ? '🛒 Paying' : fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : `🏪 Customer ${fs.n + 1} · +${fmt(fs.earned + fs.tips)}`;
     const label = fs.mode === 'pay' ? '🛒 Farm Shop' : p.vip ? '⭐ Challenge customer · big tip' : `🧮 ${esc(tier.name)}${tier.ahead ? ' ⭐' : ''}`;
-    const who = p.who ? `<span class="fwho" aria-hidden="true">${p.who[0]}</span>` : '';
     const intro = fs.mode === 'jobs' ? '<small class="muted">At the big Farmers’ Market:</small><br>' : '';
+    const stall = fs.mode === 'pay'
+      ? SC.stall({ mode: 'pay', seller: '🧑‍🌾', shopper: st().companion, goods: fs.icon || '🛍️' })
+      : SC.stall({ mode: fs.mode, stand: fs.mode === 'jobs' ? 9 : f.stand, seller: st().companion, shopper: p.who[0], goods: SC.goods(p.sale), vip: p.vip });
     K().render(`<div class="play fplay" style="--wc:${p.vip ? '#b0569e' : '#e0a21b'}">
       <header class="playbar"><button class="iconbtn" data-act="fQuit" aria-label="Stop">✕</button><div class="pstatus">${status}</div>${moneyPill()}</header>
+      ${stall}
       <section class="pcard enter ${p.vip ? 'vip' : ''}" id="pcard">
         <div class="pmeta"><span>${label}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="fSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
-        <div class="fcust">${who}<div class="ptext wordy">${intro}${p.who ? `<b>${esc(p.who[1])}</b> ` : ''}${p.text}</div></div>
+        <div class="fcust"><div class="ptext wordy">${intro}${p.who ? `<b>${esc(p.who[1])}</b> ` : ''}${p.text}</div></div>
         ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
         <div id="fstep"></div>
         <div class="feedback" id="feedback" aria-live="polite"></div>
@@ -6037,7 +6323,7 @@ svg.vis.abacus { max-height: 160px; }
   }
   // A customer or an odd job is done.
   function finish(first, solved, shown) {
-    const f = fm(), p = fs.p;
+    const f = fm(), p = fs.p, before = f.money;
     const r = F.serve(f, grade(), p, first, solved);
     F.record(st(), first);
     const move = F.adapt(f, grade(), first);
@@ -6051,9 +6337,16 @@ svg.vis.abacus { max-height: 160px; }
     const thanks = p.noPay ? `${esc(p.who[1])} will come back with more money.` : p.jobs ? `You earned <b>${fmt(r.paid)}</b>.` : `${esc(p.who[1])} paid <b>${fmt(r.paid)}</b>${r.tip ? ` and tipped <b>${fmt(r.tip)}</b>` : ''}.`;
     if (solved) feedback(`${first ? U.pick(['Great job!', 'Thank you, farmer!', 'Perfect!', 'You got it!']) : 'Got it!'} ${thanks}${move === 'up' ? '<br>⬆️ Harder money problems unlocked!' : ''}`, 'ok');
     else feedback(`${shown}<br>${thanks}`, 'reveal');
-    bumpMoney();
-    if (r.tip || r.paid) MQ.sfx('coin');
     drawAnswer();
+    // the customer takes the things and pays: goods fly to them, coins fly to the money
+    const shopper = $('#shopper');
+    if (shopper) shopper.classList.add(p.noPay ? 'sad' : 'happy');
+    if (!p.jobs && !p.noPay && $('#goods')) { $('#goods').querySelectorAll('i').forEach((g, k) => SC.fly(g.textContent, g, shopper, { delay: k * 90, dur: 500 })); $('#goods').classList.add('gone'); }
+    if (r.paid + r.tip) {
+      const coins = Math.min(5, 2 + Math.floor((r.paid + r.tip) / (grade() === 'k' ? 3 : 30)));
+      SC.flyMany('🪙', coins, p.jobs ? $('#cashbox') : shopper, '#fmoney', { delay: 350, size: '1.5rem' });
+      setTimeout(() => { bumpMoney(before); MQ.sfx('coin'); }, SC.reduced() ? 0 : 900);
+    }
     const s = $('.pstatus');
     if (s) s.textContent = fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : `🏪 Customer ${fs.n} · +${fmt(fs.earned + fs.tips)}`;
     if (r.ups.length) levelUp(r.ups);
@@ -6065,12 +6358,15 @@ svg.vis.abacus { max-height: 160px; }
     const f = fm();
     F.record(st(), first);
     F.adapt(f, grade(), first);
-    const done = fs.done;
+    const done = fs.done, before = f.money;
+    document.querySelectorAll('.ftray .fcoin').forEach((c, k) => SC.fly(c.innerHTML, c, '#cashbox', { delay: k * 80, dur: 550, size: '1rem' }));
     fs.locked = true;
     const thing = done();
     save();
-    bumpMoney();
+    bumpMoney(before);
     MQ.sfx('reward');
+    const sh = $('#shopper');
+    if (sh) sh.classList.add('happy');
     feedback(solved ? `${first ? 'Perfect payment!' : 'Paid!'} ${thing}` : `${shown}<br>${thing}`, solved ? 'ok' : 'reveal');
     drawAnswer();
     const ups = xp(solved ? (first ? 3 : 1) : 0);
@@ -6127,8 +6423,8 @@ svg.vis.abacus { max-height: 160px; }
     if (!quiet && st().settings.readAloud) MQ.speak(tipText());
   }
   const A = {
-    fBed: (a) => bed(+a),
-    fPen: (a) => pen(+a),
+    fBed: (a, el) => bed(+a, el),
+    fPen: (a, el) => pen(+a, el),
     fFeedAll: () => feedAll(),
     fCollectAll: () => collectAll(),
     fSleep: () => sleep(),
@@ -6140,15 +6436,16 @@ svg.vis.abacus { max-height: 160px; }
       const [i, crop] = a.split(':'), price = F.seedPrice(crop, grade());
       K().closeModal();
       if (fm().money < price) return K().toast('Not enough money yet');
-      startPay(price, `${F.ITEMS[crop].e} ${esc(F.ITEMS[crop].many)} seeds`, () => {
+      startPay(price, `seeds to grow ${F.ITEMS[crop].e} ${esc(F.ITEMS[crop].many)}`, () => {
         F.buySeed(fm(), grade(), +i, crop);
         return `${F.ITEMS[crop].e} planted! Ready in ${F.CROPS[crop].days} ${F.CROPS[crop].days === 1 ? 'day' : 'days'}.`;
-      });
+      }, '🌱');
     },
     fBuy: (a) => {
       const x = F.shopItem(fm(), grade(), a);
       if (!x || fm().money < x.price) return;
-      startPay(x.price, `${x.e} ${esc(x.name)}`, () => { F.buy(fm(), grade(), a); return `${x.e} ${esc(x.name)} is yours!`; });
+      const icon = a.startsWith('decor:') ? SC.icon(a.slice(6), x.e) : x.e;
+      startPay(x.price, `${x.e} ${esc(x.name)}`, () => { F.buy(fm(), grade(), a); return `${x.e} ${esc(x.name)} is yours!`; }, icon);
       fs.back = 'farm:shop';
     },
     fKey: (a) => key(a),
@@ -6159,14 +6456,17 @@ svg.vis.abacus { max-height: 160px; }
       if (p.kind === 'coins') { if (!fs.tray.length) return; return check(fs.tray.slice()); }
     },
     fChoose: (a) => { if (fs && !fs.locked) check(cur().choices[+a]); },
-    fCoin: (a) => {
+    fCoin: (a, el) => {
       if (!fs || fs.locked) return;
       const p = cur();
       if (p.pay && F.sumCoins(fs.tray) + F.COINV[a] > fm().money) return K().toast(`You only have ${fmt(fm().money)}`);
       if (fs.tray.length >= 30) return;
       fs.tray.push(a);
       MQ.sfx('coin');
+      const from = el && el.getBoundingClientRect();
       drawAnswer();
+      const last = document.querySelector('.ftray .fcoin:last-child');
+      if (last && from && !SC.reduced()) { last.classList.add('landing'); SC.fly(V.coins([a], true), from, last, { dur: 380, size: '1rem', land: () => last.classList.remove('landing') }); }
     },
     fUncoin: (a) => { if (!fs || fs.locked) return; fs.tray.splice(+a, 1); MQ.sfx('tap'); drawAnswer(); },
     fClear: () => { if (!fs || fs.locked) return; fs.tray = []; drawAnswer(); },
