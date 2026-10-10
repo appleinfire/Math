@@ -159,11 +159,20 @@
     avoid.add(U.qkey(best));
     return best;
   };
-  P.newContest = (kind) => {
+  // review: skills the child got wrong before ({ topic, d }, most urgent first). Kangaroo and Logic tests swap a few
+  // questions for fresh ones of those skills, in the same section, so the test keeps its size and point values.
+  // (CogAT, Brain Games and Joey tests already ask every question type at every level they use.)
+  P.REVIEW_IN_CONTEST = 3;
+  const bandOf = (d) => (d <= 2 ? 3 : d === 3 ? 4 : 5);
+  P.newContest = (kind, review = []) => {
     const avoid = new Set();
     const make = (topic, d) => P.fresh(topic, d, avoid);
     const items = [];
-    if (kind === 'joey') {
+    if (kind === 'logic' || kind === 'logick') {
+      // Logic Lab challenge: every kind of logic puzzle, the easier round first.
+      const [topics, levels] = kind === 'logic' ? [MQ.LOGIC_TOPICS, [4, 5]] : [MQ.LOGIC_K, [1, 2]];
+      levels.forEach((d, r) => { for (const t of U.shuffle(topics)) items.push({ p: make(t, d), pts: 1, sec: r ? 'Round 2' : 'Round 1' }); });
+    } else if (kind === 'joey') {
       for (let i = 0; i < 12; i++) items.push({ p: make('kg_joey', 1), pts: 1 });
     } else if (kind === 'cogat' || kind === 'cogatk') {
       // CogAT style: battery by battery, each question type in a row, getting harder within the type.
@@ -174,6 +183,18 @@
         const topics = U.shuffle(MQ.KANGAROO_TOPICS);
         for (let i = 0; i < 8; i++) items.push({ p: make(topics[i % topics.length], pts === 3 ? U.rnd(1, 2) : pts === 4 ? 3 : U.rnd(4, 5)), pts });
       }
+    }
+    const family = kind === 'kangaroo' ? MQ.KANGAROO_TOPICS : kind === 'logic' ? MQ.LOGIC_TOPICS : kind === 'logick' ? MQ.LOGIC_K : [];
+    const maxD = kind === 'logick' ? 2 : 5;
+    for (const r of review.filter((x) => family.includes(x.topic) && x.d <= maxD).slice(0, P.REVIEW_IN_CONTEST)) {
+      // the same type if it is in the test, otherwise any question of the same section
+      const fits = (it) => !it.rv && (kind === 'kangaroo' ? it.pts === bandOf(r.d) : true);
+      let at = items.findIndex((it) => fits(it) && it.p.topic === r.topic);
+      if (at < 0) at = items.findIndex(fits);
+      if (at < 0) continue;
+      const p = make(r.topic, r.d);
+      p.review = true;
+      items[at] = Object.assign({}, items[at], { p, rv: true });
     }
     return { kind, items, answers: items.map(() => null), flags: items.map(() => false), i: 0, seconds: kind === 'kangaroo' ? P.KANGAROO_MINUTES * 60 : 0, started: Date.now() };
   };
@@ -194,12 +215,65 @@
       right: graded.filter((g) => g.ok).length, blank: graded.filter((g) => g.given === null).length, n: graded.length,
       sections, types, minutes: Math.max(1, Math.round((Date.now() - ct.started) / 60000)), timed: !!ct.timed,
       items: graded.map((g) => ({
-        t: g.it.p.topic, pts: g.it.pts, sec: g.it.sec || '', ok: g.ok,
+        t: g.it.p.topic, d: g.it.p.d, pts: g.it.pts, sec: g.it.sec || '', ok: g.ok, rv: !!g.it.rv,
         q: String(g.it.p.text).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160),
         g: g.given === null ? '' : g.given, a: g.it.p.answer, e: g.it.p.explain || '',
         letterG: g.given === null ? '' : 'ABCDE'[g.it.p.choices.indexOf(g.given)], letterA: 'ABCDE'[g.it.p.choices.indexOf(g.it.p.answer)],
       })),
     };
+  };
+
+  // ---------- what each test is, for the ⓘ buttons ----------
+  P.INFO = {
+    check: {
+      title: 'Placement Check', icon: '🎯',
+      what: 'A practice version of the i-Ready Diagnostic in math: an adaptive test where the next question gets harder after a right answer and easier after a wrong one.',
+      where: 'Many California schools give the i-Ready Diagnostic three times a year (fall, winter, spring). Teachers use it to see each child’s level and to choose lessons.',
+      checks: 'Four areas of school math: Numbers & Operations, Algebra & Algebraic Thinking, Measurement & Data, and Geometry. The result is a level such as “Mid 2nd”, compared with where most kids are at that time of year.',
+      how: 'Take a check about a week before the school test, or every couple of months to see growth. No hints during the check. Afterwards, “Practice these” trains the two weakest areas, and the mistakes come back in Fix-it Lab.',
+    },
+    kangaroo: {
+      title: 'Math Kangaroo', icon: '🦘',
+      what: 'An international math contest with thinking puzzles, not drills. Levels 1–2 take the same paper: 24 puzzles in 75 minutes, answers A–E.',
+      where: 'Held once a year in March at test centers across the US (Math Kangaroo USA). Kids sign up through a local center, often a school or a library.',
+      checks: 'Logic, counting, shapes and patterns, careful reading. Puzzles are worth 3, 4 or 5 points, and a wrong answer costs nothing.',
+      how: 'Try a mock contest with the clock once in a while, and use “Practice by type” for the kinds of puzzles that went wrong. Missed puzzle types come back in the next mock contest.',
+    },
+    joey: {
+      title: 'Joey Puzzles', icon: '🐣',
+      what: 'Picture brain teasers in the style of Math Kangaroo, made easier for kindergarten.',
+      where: 'Math Kangaroo starts in 1st grade; these puzzles get a kindergartner used to the style early.',
+      checks: 'Counting, comparing, simple patterns and shapes, and listening carefully to the question.',
+      how: 'Play the 12 puzzles with a grown-up nearby. Every question can be read aloud with 🔊. There is no clock.',
+    },
+    cogat: {
+      title: 'CogAT practice', icon: '🧠',
+      what: 'Practice for the Cognitive Abilities Test (CogAT), which measures reasoning, not what was taught in class.',
+      where: 'Eureka Union School District gives the CogAT to every 2nd grader as one part of GATE screening. Many other districts use it for gifted programs too.',
+      checks: 'Three parts: Verbal (picture analogies, sentence completion, picture classification), Quantitative (number analogies, number puzzles, number series) and Nonverbal (figure matrices, figure classification, paper folding).',
+      how: 'Short sessions of “Practice by type” work best; a full 45-question test now and then shows progress in each part. Real CogAT percentiles cannot be estimated from practice.',
+    },
+    cogatk: {
+      title: 'Brain Games', icon: '🧠',
+      what: 'Picture thinking puzzles in the style of the CogAT, made for kindergarten.',
+      where: 'Eureka Union gives the CogAT in 2nd grade; these games build the same kinds of thinking early.',
+      checks: 'Seeing patterns, things that go together, and how shapes change.',
+      how: 'Play a few puzzles at a time. Every question is read aloud.',
+    },
+    logic: {
+      title: 'Logic Lab', icon: '🧩',
+      what: 'Logic puzzles in words: put people in order from clues, find who has what, decide what must be true, count all the ways, and catch the fibber.',
+      where: 'Not a school test, but the same thinking is in Math Kangaroo, CogAT and the word problems on i-Ready, and it helps in reading too.',
+      checks: 'Careful reading, using only what is said, trying possibilities and checking them. Levels 4–5 are advanced puzzles for kids who want more.',
+      how: 'Use “Practice by type” (it gets harder as answers are right, and every answer is explained). The 12-puzzle challenge mixes all types at the advanced levels.',
+    },
+    logick: {
+      title: 'Logic Lab', icon: '🧩',
+      what: 'First logic puzzles: who is tallest, who has which pet, yes or no, and what happens next.',
+      where: 'Not a school test. It builds the careful thinking used in all later math.',
+      checks: 'Listening to clues and putting them together.',
+      how: 'Play with a grown-up: every puzzle is read aloud, and drawing the clues on paper helps.',
+    },
   };
 
   MQ.prep = P;

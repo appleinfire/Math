@@ -24,13 +24,18 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 |---|---|
 | **Expedition Map** | 8 worlds × 6 levels. A level asks for 5 correct answers (7 for the Guardian). Finishing a level discovers a creature for the Field Journal. Stars depend on mistakes: 0 → ★★★, 1–2 → ★★, more → ★. Beating a world's Guardian opens the next world. |
 | **Endless Training** | Pick any topics, a difficulty (or **Auto**, which goes up after 4 first-try answers in a row and down after 2 misses), and a mode: Endless, Lightning 60 s or Lightning 2 min. Problems never run out. +1 💎 per first-try answer, a 🎁 chest every 5 in a row. |
-| **Daily Quest** | 5 mixed problems from the worlds she has opened. Gives crystals plus a bonus for each day in a row. |
+| **Daily Quest** | 5 mixed problems from the worlds she has opened (2 of them are review questions when there are mistakes to practice). Gives crystals plus a bonus for each day in a row. |
+| **Mistakes come back** | Every first-try mistake, in games and in tests, is saved as a skill to practice (topic + difficulty). A fresh question of that skill comes back as every 4th question in levels (only topics of that world and earlier), Endless Training and Practice by type, in 2 of the 5 Daily Quest questions, and in the next Math Kangaroo or Logic challenge (up to 3 puzzles, in the matching point section). They are marked 🔁 Review. Never in the Placement Check (it would change the level) or in Lightning rounds. A skill is **fixed** after a right first answer on 3 different days (today, then 1 day later, then 3 days later); a new mistake starts it over. |
+| **🛠️ Fix-it Lab** | Lists the skills in repair with their progress (●●○) and plays up to 10 that are due today, with a strategy tip. Fixing a skill gives +3 💎. Badges for 10 and 50 fixes. |
+| **📈 My Progress** | Accuracy (right on the first try) by week, or by month for long ranges and for a single topic, over 1, 3 or 6 months or all time, with a trend line and a plain verdict ("Getting better: +8 points over 3 months"). Problems per week, right / not yet counts, days practiced. A **skill map** shows every topic as 🌱 started → 🌿 practicing → ⭐ solid → 🏆 mastered (80% right on 5+ tries at that difficulty); tap a skill to practice it. Charts of every practice test over time. Daily totals are kept for two years and per-topic monthly totals for three. |
+| **Strategy tips** | After two misses of the same kind of problem in one session, the next question of that kind starts with a short tip ("Make a ten: 8 + 5 → 8 + 2 + 3"). Every topic has tips, at most one a day per topic. |
+| **Daily goal** | A grown-up can set problems per day (10–50) and goal days per week. The home screen shows a ring for today and the days of the week; a badge for a week that reaches the goal. |
 | **Hatchery** | Spend 30 💎 on an egg, tap it 3 times, and hatch one of 14 rare creatures that only come from eggs. |
-| **Badges & ranks** | 17 badges (streaks, collections, daily habit, lightning rounds, challenge problems). Explorer level grows with XP. |
+| **Badges & ranks** | 21 badges (streaks, collections, daily habit, lightning rounds, challenge problems). Explorer level grows with XP. |
 | **Hints** | A wrong answer gets a strategy hint and one more try ("make a ten", "count up", "break a ten"). A second miss shows the answer with an explanation. |
 | **Voice** | After each answer a voice says "Great job!" or a gentle "Oops! Try again." The next problem waits until the voice has finished; the **Next →** button skips the wait. Questions can be read aloud with 🔊 (automatic for kindergarten). Both can be turned off per child in *For grown-ups*. |
 | **Navigation** | Every screen has a back button; result screens have Home. **👥 Switch** on the home screen (or the small avatar in the top bar) changes the child without reloading. The browser's back gesture moves between screens and asks before leaving a game. |
-| **For grown-ups** | Protected by a multiplication question. Shows accuracy per topic with the standard code, activity for the last 14 days, recent mistakes, Placement Check history, settings (sound, *unlock all worlds*), save codes and reset. |
+| **For grown-ups** | Protected by a multiplication question. Shows progress over time (the same charts as My Progress), accuracy per topic with the standard code, activity for the last 14 days, recent mistakes and how many are in repair, test history, the daily goal, settings (sound, *unlock all worlds*), save codes and reset. **👀 Look at every level** starts a grown-up preview: every world and level is open, Practice by type can start at any level 1–5, and nothing is saved (no stars, crystals, statistics, mistakes or test results, nothing unlocked for the child, nothing synced). A purple bar shows it is on; **Exit**, opening For grown-ups again, switching explorer or reloading ends it. |
 
 ## Test Prep
 
@@ -52,6 +57,8 @@ Practice for the tests used in California schools. The app is not affiliated wit
   - Practice by type (gets harder as she gets them right, every answer explained) or a 45-question practice test: 15 per part, 4 answers each, with a clock that shows time used but never stops the test. Results show how many were right in each part and each question type.
   - Original questions in the CogAT style; not affiliated with the publisher. Real CogAT percentiles cannot be estimated from practice, so the app doesn't show any.
 - **Brain Games** — kindergarten: 18 easy CogAT-style picture questions (2 of each type), read aloud, no clock.
+- **Logic Lab** — both grades. Word logic that school topics don't cover, and that Math Kangaroo and CogAT reward. Six types, each at 5 levels (levels 4–5 are the Advanced section): **Who is first?** (order from clues, standing in a line), **Who has what?** (cross out the impossible), **Yes, No or Can't tell** (all / some / none, if…then, only, made-up words), **Think it through** (everyday situations: what happens next, why, what must be true, best plan), **Count the ways** (outfits, handshakes, orders, "how many to be sure"), **Truth or fib?** (truth-tellers and fibbers). Clue puzzles are built from a hidden answer and checked by trying every possibility, so each has exactly one solution; every answer is explained. Practice by type, or a 12-puzzle Advanced challenge (levels 4 and 5). Kindergarten gets 4 of the types at levels 1–2, read aloud, and an 8-puzzle set.
+- **ⓘ What is this test?** Every test card has an ⓘ button: what the test is, where and when it is used (school, contest, GATE screening), what it checks, and how to practice with the app. Every Practice-by-type tile has a one-line description.
 - **Take a break any time.** An unfinished Placement Check or practice test is saved after every answer and when the page is closed. The test card then offers **Continue** (same questions, same answers; a running clock waits) or **Start over**. Unfinished tests are kept on the device where they were started.
 - **Retakes bring new questions.** Every test and practice set is built fresh from generators and hand-written sets (20+ different questions per level for every type). The app remembers the last 80 questions each child saw per type (synced across devices) and only repeats one when nothing new is left, starting with the one seen longest ago.
 
@@ -104,6 +111,7 @@ js/vendor/            Firebase JS SDK 10.14.1 (compat builds), served with the a
 js/testprep.js        Placement Check (grade ladder, adaptive questions, level estimate, practice plan) and mock contests
 js/puzzles.js         Math Kangaroo style puzzle generators, hand-written puzzle bank, Joey puzzles
 js/cogat.js           CogAT style question generators (Verbal, Quantitative, Nonverbal)
+js/logic.js           Logic Lab generators (order, who has what, yes/no/can't tell, situations, counting, truth-tellers)
 js/fx.js              sounds (Web Audio), read-aloud (Web Speech), confetti
 js/app.js             screens and game logic
 tools/build.py        bundles everything into dist/math-expedition.html (local-only copy)
@@ -115,9 +123,9 @@ tests/                generator test (node) and browser smoke test (Playwright)
 No build step or dependencies are needed to run it. After changing code, run:
 
 ```
-node tests/generators.test.js      # 144,000 generated problems checked
-node tests/store.test.js           # merging progress from two devices, family keys
-node tests/testprep.test.js        # Placement Check accuracy on simulated children
+node tests/generators.test.js      # 312,000 generated problems checked
+node tests/store.test.js           # merging progress from two devices, mistakes to practice, family keys
+node tests/testprep.test.js        # Placement Check accuracy on simulated children, mock tests with review questions
 node tests/smoke.mjs               # two children, both grades, played in Chromium (needs Playwright)
 node tests/cloud-e2e.mjs           # two devices syncing through the real Firebase project
 python3 tools/build.py             # refresh the single-file version in dist/

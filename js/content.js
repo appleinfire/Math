@@ -202,7 +202,81 @@
     { id: 'egg', icon: '🥚', name: 'Hatchling', desc: 'Hatch your first egg', test: (s) => s.eggsHatched >= 1 },
     { id: 'ahead', icon: '🧠', name: 'Big Brain', desc: 'Solve 25 challenge-level problems', test: (s) => (s.stats.d5 || 0) >= 25 },
     { id: 'sky', icon: '🌠', name: 'Summit Explorer', desc: 'Befriend the guardian of the last world', test: (s) => { const w = MQ.trackWorlds(s); return !!s.levels[w[w.length - 1].id + '-5']; } },
+    { id: 'fix10', icon: '🛠️', name: 'Fixer', desc: 'Fix 10 mistakes in the Fix-it Lab', test: (s) => (s.stats.fixed || 0) >= 10 },
+    { id: 'fix50', icon: '🔧', name: 'Comeback Champion', desc: 'Fix 50 mistakes', test: (s) => (s.stats.fixed || 0) >= 50 },
+    { id: 'goal', icon: '🎯', name: 'Goal Getter', desc: 'Reach the daily goal enough days in one week', test: (s) => MQ.goalWeeks(s).some((w) => w.met) },
+    { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];
+
+  // Daily goal (set by a grown-up): weeks from Monday to Sunday, how many days reached the goal.
+  MQ.weekStart = (key) => { const d = new Date(key + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return MQ.U.dateKey(d); };
+  MQ.goalWeeks = (s) => {
+    const g = s.goal || {};
+    if (!g.perDay) return [];
+    const weeks = {};
+    for (const [k, v] of Object.entries(s.days || {})) {
+      const w = (weeks[MQ.weekStart(k)] = weeks[MQ.weekStart(k)] || { start: MQ.weekStart(k), days: 0 });
+      if ((v.a || 0) >= g.perDay) w.days++;
+    }
+    return Object.values(weeks).map((w) => Object.assign(w, { met: w.days >= (g.days || 5) }));
+  };
+
+  // Strategy tips: shown before the next question after a child misses the same kind of problem twice,
+  // and in the Fix-it Lab. Short, concrete, in a child's words.
+  MQ.TIPS = {
+    add20: ['Make a ten: 8 + 5 → 8 + 2 = 10, then 10 + 3 = 13.', 'Use doubles: 6 + 7 is 6 + 6 and one more = 13.', 'For take-away, count up: 13 − 9 → from 9 to 10 is 1, from 10 to 13 is 3, so 4.'],
+    place: ['Read the digits by their places: 352 = 3 hundreds, 5 tens, 2 ones.', 'To compare numbers, look at the hundreds first, then the tens, then the ones.'],
+    add100: ['Add the tens first, then the ones: 34 + 25 → 30 + 20 = 50, 4 + 5 = 9, so 59.', 'If the ones make more than 10, trade 10 ones for 1 ten.'],
+    sub100: ['Jump back by tens, then by ones: 72 − 25 → 72 − 20 = 52, 52 − 5 = 47.', 'Check by adding: your answer + the number you took away should give the start.'],
+    arrays: ['Even numbers split into pairs with none left over. Look at the ones digit: 0, 2, 4, 6, 8 are even.', 'An array is rows × columns: count one row, then skip-count the rows.'],
+    time: ['The short hand shows the hour, the long hand shows the minutes.', 'Each number on the clock is 5 minutes for the long hand: count by 5s.'],
+    money: ['Start with the coins worth the most, then count on: quarters, dimes, nickels, pennies.', 'Quarter 25¢, dime 10¢, nickel 5¢, penny 1¢. A dime is small but worth more than a nickel!'],
+    shapes: ['Count the sides and the corners. Triangles 3, quadrilaterals 4, pentagons 5, hexagons 6.', 'Halves are 2 equal parts, thirds are 3, fourths are 4. The parts must be the same size.'],
+    measure: ['Line up the object with 0 on the ruler, not with the end of the ruler.', 'Longer units mean a smaller number: 1 foot is 12 inches.'],
+    data: ['Read the title and the labels first. Then find the bar or row the question asks about.', '“How many more” means find both numbers and subtract.'],
+    big: ['Line up hundreds, tens and ones. Add or subtract each place, starting with the ones.', 'Estimate first: 398 + 205 is about 400 + 200 = 600.'],
+    words: ['Read the question twice. What do you know? What do you need to find?', 'Draw a quick picture or a bar model. “In all” often means add, “left” or “more than” often means subtract.'],
+    mult: ['Multiplication is equal groups: 4 × 3 is 4 groups of 3 = 3 + 3 + 3 + 3.', 'Division is sharing equally: 12 ÷ 3 means 12 shared into 3 equal groups.'],
+    logic: ['Look at how much the numbers change each time. Is the jump always the same?', 'Try a number, check it, then fix it: guess and check is a real strategy!'],
+    k_count: ['Touch each thing once while you count. Move it or mark it so you don’t count it twice.', 'The last number you say tells how many.'],
+    k_numbers: ['Say the numbers out loud in order. Which comes just before? Just after?'],
+    k_compare: ['Match them up one to one. The group with some left over has more.'],
+    k_add: ['Start with the bigger number and count on with your fingers.', 'Adding means putting together. Count all of them.'],
+    k_sub: ['Taking away means some go away. Start with all of them, cover the ones that leave, count what is left.'],
+    k_teen: ['A ten frame holds 10. Teen numbers are 10 and some more ones: 14 is 10 and 4.'],
+    k_shapes: ['Count the sides and the corners. Flat shapes lie on paper, solid shapes you can hold.'],
+    k_measure: ['Put the things side by side, with their ends lined up at the same start.'],
+    k_words: ['Listen to the story again and act it out with your fingers or toys.'],
+    k_patterns: ['Say the pattern out loud: red, blue, red, blue… what comes next?'],
+    kg_count: ['Count small shapes first, then shapes made of 2 pieces, then bigger ones. Write the number for each size.'],
+    kg_balance: ['If the scale is level, both sides weigh the same. Take the same thing off both sides to make it simpler.'],
+    kg_order: ['Draw a line from tallest to shortest (or oldest to youngest) and place each person as you read the clue.'],
+    kg_calendar: ['Every 7 days it is the same day of the week again. Count the leftover days after the full weeks.'],
+    kg_coins: ['Make a list of the coins and add them in an organized way, biggest first.'],
+    kg_paths: ['Trace the route with your finger and count each step. Mark where you have already been.'],
+    kg_mirror: ['In a mirror, left and right swap but up and down stay. Turning moves every part around the middle.'],
+    kg_cubes: ['Count the cubes layer by layer, and remember the ones hidden underneath that hold the others up.'],
+    kg_pattern: ['Look at the jumps between the numbers. Do they stay the same, or grow by a rule?'],
+    kg_digits: ['Start with the ones column: which digit makes the ones work? Then move to the tens.'],
+    kg_age: ['Everybody gets older by the same amount. The difference between two ages never changes.'],
+    kg_bank: ['Read slowly and draw the puzzle. Check your answer against every sentence before you choose.'],
+    kg_joey: ['Listen to the question again with 🔊 and point to each picture.'],
+    cg_picanalogy: ['Say how the first two pictures go together in a sentence, like “a bird lives in a nest”. Then use the same sentence for the next one.'],
+    cg_sentence: ['Listen to the whole question. Then look at every picture before you choose.'],
+    cg_picclass: ['Find what the three pictures have in common: what they are, what they do, or where they belong.'],
+    cg_numanalogy: ['Find the rule in the first pair: add, take away, or double? Then do the same to the last one.'],
+    cg_numpuzzle: ['Find what the animal must be to make both sides equal. Check by putting your number back in.'],
+    cg_numseries: ['Look at how each step changes from the one before. The same change comes next.'],
+    cg_matrix: ['Look across the row: what changes and what stays the same? Then look down the column too.'],
+    cg_classify: ['Check shape, color, size and number. The rule is what ALL three share.'],
+    cg_folding: ['Each fold doubles the holes. Unfold in your head one fold at a time, like a mirror.'],
+    lg_order: ['Draw a line or a ladder. Put names on it as you read each clue, and erase guesses that don’t fit.'],
+    lg_whois: ['Make a table: names down the side, things across the top. Put ✗ for every “does not”. A row with one empty box gives the answer.'],
+    lg_truth: ['Use only what the sentences say. If something could go either way, the answer is “Can’t tell”.', '“If A, then B” does not mean “if B, then A”.'],
+    lg_situation: ['Make a picture in your head. Which answer makes sense with ALL the facts?'],
+    lg_count: ['Make an organized list so you don’t miss any or count any twice.', 'For “to be sure”, imagine the unluckiest way it could happen.'],
+    lg_liars: ['Pretend one person tells the truth and see if everything fits. If something breaks, try the other way.'],
+  };
 
   MQ.SAY = {
     hello: ['Ready for an adventure?', 'Let’s discover something amazing today!', 'Your brain is a muscle. Let’s train it!', 'I packed snacks and a magnifying glass!'],

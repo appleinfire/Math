@@ -1,7 +1,7 @@
 // Run: node tests/generators.test.js
 // Generates thousands of problems for every topic and difficulty and checks they are well-formed.
 const path = require('path');
-for (const f of ['util', 'visuals', 'generators', 'generators-k', 'puzzles', 'cogat', 'content', 'content-k']) require(path.join(__dirname, '..', 'js', f + '.js'));
+for (const f of ['util', 'visuals', 'generators', 'generators-k', 'puzzles', 'cogat', 'logic', 'content', 'content-k']) require(path.join(__dirname, '..', 'js', f + '.js'));
 const MQ = globalThis.MQ;
 
 const RUNS = 1200;
@@ -28,7 +28,7 @@ for (const topic of Object.keys(MQ.TOPICS)) {
       if (p.kind === 'num') {
         if (!Number.isInteger(p.answer) || p.answer < 0 || p.answer > 9999) fail(topic, d, 'answer not a whole number 0..9999', p);
       } else if (p.kind === 'choice') {
-        const maxChoices = MQ.TOPICS[topic].kangaroo ? 5 : 4; // contest puzzles always have A–E, CogAT always 4
+        const maxChoices = MQ.TOPICS[topic].kangaroo || MQ.TOPICS[topic].logic ? 5 : 4; // contest puzzles always have A–E, CogAT always 4, logic up to 5 names
         if (!Array.isArray(p.choices) || p.choices.length < 2 || p.choices.length > maxChoices || (MQ.TOPICS[topic].kangaroo && p.choices.length !== 5) || (MQ.TOPICS[topic].cogat && p.choices.length !== 4)) fail(topic, d, 'choice count', p);
         else if (!p.choices.includes(p.answer)) fail(topic, d, 'answer missing from choices', p);
         else if (new Set(p.choices).size !== p.choices.length) fail(topic, d, 'duplicate choices', p);
@@ -52,6 +52,7 @@ for (const topic of Object.keys(MQ.TOPICS)) {
     }
     // Picture puzzles have fewer possible layouts; still, a contest must never feel repetitive.
     const minDistinct = MQ.TOPICS[topic].kangaroo || MQ.TOPICS[topic].cogat ? 5 : 8;
+    if (MQ.TOPICS[topic].logic && !MQ.TOPICS[topic].desc) fail(topic, d, 'logic topic without a description');
     if (seen.size < minDistinct) fail(topic, d, `only ${seen.size} distinct problems`);
     // Test prep is taken again and again: every level needs plenty of different questions (answer order aside).
     // The hand-written sets (sentence questions, puzzle bank) have 20 per level.
@@ -71,6 +72,12 @@ for (let i = 0; i < 2000; i++) {
   const p = MQ.makeProblem('mult', 3);
   const m = p.text.match(/(\d+) × (\d+)/);
   if (+m[1] * +m[2] !== p.answer) fail('mult', 3, 'wrong product', p);
+}
+
+// Every topic has a strategy tip, and every test-prep type a one-line description.
+for (const [t, T] of Object.entries(MQ.TOPICS)) {
+  if (!MQ.TIPS[t] || !MQ.TIPS[t].length) fail(t, 0, 'no strategy tip');
+  if (T.track === 'prep' && !T.desc) fail(t, 0, 'no description for Practice by type');
 }
 
 // Content sanity: every level references real topics, creature ids are unique.

@@ -142,6 +142,71 @@ async function run(viewport, tag) {
   await page.waitForSelector('.sumgrid');
   await snap('08-summary');
 
+  // ---- Mistakes come back: the level above had a wrong first answer, so that skill is waiting to be practiced
+  const rev0 = await page.evaluate(() => Object.values(MQ.state.review));
+  if (!rev0.length || rev0.some((r) => r.box > 1 || r.miss < 1)) errors.push(tag + ': a mistake did not go to the review list ' + JSON.stringify(rev0)); // box 1 if the same skill was answered right later in the level
+  // In training, every 4th question is a fresh one of a missed skill (marked 🔁 Review)
+  await page.evaluate(() => { MQ.state.review = { 'money|2': { topic: 'money', d: 2, box: 0, due: MQ.U.dateKey(), miss: 1, last: MQ.U.dateKey() } }; MQ.state.trainer = { topics: ['add20'], diff: 1, mode: 'endless' }; MQ.app.go('trainer'); });
+  await page.click('[data-act=startTrainer]');
+  const asked = [];
+  for (let k = 0; k < 4; k++) {
+    await page.waitForFunction(() => MQ.app.session() && MQ.app.session().p && !MQ.app.session().locked);
+    asked.push(await page.evaluate(() => ({ t: MQ.app.session().p.topic, d: MQ.app.session().p.d, rv: !!MQ.app.session().p.review, chip: !!document.querySelector('.pcard .dchip.rv') })));
+    if (k < 3) { await answer(page, true); await page.click('[data-act=advance]', { timeout: 2000 }).catch(() => {}); }
+  }
+  if (asked.slice(0, 3).some((a) => a.rv) || !asked[3].rv || asked[3].t !== 'money' || asked[3].d !== 2 || !asked[3].chip) errors.push(tag + ': review question not mixed in as the 4th: ' + JSON.stringify(asked));
+  await snap('16b-review-question');
+  await answer(page, true);
+  await page.waitForSelector('.fb.ok');
+  const rv1 = await page.evaluate(() => MQ.state.review['money|2']);
+  if (!rv1 || rv1.box !== 1) errors.push(tag + ': a right review answer did not move the skill up ' + JSON.stringify(rv1));
+  await page.click('[data-act=quit]');
+  await page.waitForSelector('.sumgrid');
+
+  // ---- Fix-it Lab: only the mistakes, with a strategy tip; a skill on its last step gets fixed (+3 💎)
+  await page.evaluate(() => {
+    const t = MQ.U.dateKey();
+    MQ.state.review = { 'time|1': { topic: 'time', d: 1, box: 2, due: t, miss: 1, last: t }, 'add100|2': { topic: 'add100', d: 2, box: 0, due: t, miss: 2, last: t }, 'place|1': { topic: 'place', d: 1, box: 1, due: '2099-01-01', miss: 1, last: t } };
+    MQ.state.tips = {};
+    MQ.app.go('home');
+  });
+  if (!(await page.textContent('.t-fixit')).includes('2 to fix')) errors.push(tag + ': home does not show 2 mistakes to fix');
+  await page.click('[data-act=go][data-arg=fixit]');
+  await page.waitForSelector('.fxlist');
+  if ((await page.$$('.fx')).length !== 3 || (await page.$$('.fx.due')).length !== 2) errors.push(tag + ': Fix-it Lab list is wrong');
+  await snap('17-fixit');
+  const fixGems = await page.evaluate(() => MQ.state.crystals);
+  await page.click('[data-act=startFixit]');
+  for (let k = 0; k < 2; k++) {
+    await page.waitForFunction(() => MQ.app.session() && MQ.app.session().p && !MQ.app.session().locked);
+    const q = await page.evaluate(() => ({ t: MQ.app.session().p.topic, tip: !!document.querySelector('.pcard .tipcard') }));
+    if (!['time', 'add100'].includes(q.t)) errors.push(tag + ': Fix-it asked a topic that is not due: ' + q.t);
+    if (!q.tip) errors.push(tag + ': no strategy tip in Fix-it Lab');
+    if (k === 0) await snap('17b-fixit-question');
+    await answer(page, true);
+    await page.click('[data-act=advance]', { timeout: 2000 }).catch(() => {});
+  }
+  await page.waitForSelector('.result');
+  await snap('17c-fixit-done');
+  const fx = await page.evaluate(() => ({ rev: Object.keys(MQ.state.review).sort(), fixed: MQ.state.stats.fixed, gems: MQ.state.crystals }));
+  if (fx.rev.join() !== 'add100|2,place|1' || fx.fixed !== 1 || fx.gems !== fixGems + 3) errors.push(tag + ': Fix-it result wrong ' + JSON.stringify(fx));
+
+  // ---- Strategy tip after missing the same kind of problem twice in a session
+  await page.evaluate(() => { MQ.state.review = {}; MQ.state.tips = {}; MQ.state.trainer = { topics: ['add20'], diff: 1, mode: 'endless' }; MQ.app.go('trainer'); });
+  await page.click('[data-act=startTrainer]');
+  for (let k = 0; k < 2; k++) {
+    await page.waitForFunction(() => MQ.app.session() && MQ.app.session().p && !MQ.app.session().locked);
+    await answer(page, false);
+    await page.waitForTimeout(100);
+    if (!(await page.evaluate(() => MQ.app.session().locked))) await answer(page, false);
+    await page.click('[data-act=advance]');
+  }
+  await page.waitForFunction(() => MQ.app.session() && MQ.app.session().p && !MQ.app.session().locked);
+  if (!(await page.$('.pcard .tipcard'))) errors.push(tag + ': no tip after two misses in a row');
+  await snap('17d-tip');
+  await page.click('[data-act=quit]');
+  await page.waitForSelector('.sumgrid');
+
   // Daily quest
   await page.click('.result [data-act=go][data-arg=home]');
   await page.waitForSelector('.home');
@@ -180,6 +245,78 @@ async function run(viewport, tag) {
   await page.click('[data-act=gate]');
   await page.waitForSelector('.kpis');
   await snap('15-parent');
+  // Daily goal set by a grown-up shows on the home screen
+  await page.click('[data-act=setGoal][data-arg="perDay:10"]');
+  await page.click('[data-act=setGoal][data-arg="days:4"]');
+  if (await page.evaluate(() => JSON.stringify(MQ.state.goal)) !== '{"perDay":10,"days":4}') errors.push(tag + ': goal not saved');
+  await page.evaluate(() => MQ.app.go('home'));
+  if (!(await page.$('.home .goal .ring'))) errors.push(tag + ': no goal ring on home');
+  await snap('15b-home-goal');
+
+  // ---- Grown-up preview: every level opens, a locked level can be played, and nothing is saved
+  const storeBefore = await page.evaluate(() => JSON.stringify(Object.fromEntries(Object.keys(localStorage).sort().map((k) => [k, localStorage.getItem(k)]))));
+  await page.evaluate(() => MQ.app.go('parent'));
+  {
+    const [pa, pb] = (await page.textContent('.eqline')).match(/\d+/g).map(Number);
+    await page.fill('#gate-in', String(pa * pb));
+    await page.click('[data-act=gate]');
+  }
+  await page.click('[data-act=startPreview]');
+  await page.waitForSelector('#app > .pvbar + header + .map');
+  if ((await page.$$('.wcard.locked')).length) errors.push(tag + ': preview did not open every world');
+  await snap('19-preview-map');
+  const lastWorld = await page.evaluate(() => MQ.track('g2').worlds.slice(-1)[0].id);
+  await page.click(`[data-act=go][data-arg="world:${lastWorld}"]`);
+  await page.click('.lrow >> nth=5');
+  await page.waitForSelector('#app.is-play > .pvbar');
+  await solve(9);
+  await page.waitForSelector('.result');
+  await page.evaluate(() => MQ.app.go('lgtypes'));
+  await page.click('[data-act=pvLevel][data-arg="5"]');
+  await page.click('[data-act=kgPractice][data-arg=lg_liars]');
+  await page.waitForSelector('.pcard');
+  if ((await page.evaluate(() => MQ.app.session().p.d)) !== 5) errors.push(tag + ': preview level picker did not start at level 5');
+  await snap('19b-preview-level5');
+  await answer(page, false);
+  await page.click('.pvbar [data-act=exitPreview]');
+  await page.waitForSelector('.home');
+  if (await page.$('.pvbar')) errors.push(tag + ': preview bar still shown after Exit');
+  const storeAfter = await page.evaluate(() => JSON.stringify(Object.fromEntries(Object.keys(localStorage).sort().map((k) => [k, localStorage.getItem(k)]))));
+  if (storeAfter !== storeBefore) errors.push(tag + ': the preview changed saved progress');
+  const real = await page.evaluate(() => ({ unlock: MQ.state.settings.unlockAll, last: Object.keys(MQ.state.levels).some((k) => k.startsWith(MQ.track('g2').worlds.slice(-1)[0].id)) }));
+  if (real.unlock || real.last) errors.push(tag + ': preview leaked into the child profile ' + JSON.stringify(real));
+  await page.click('[data-act=go][data-arg=map]');
+  if (!(await page.$$('.wcard.locked')).length) errors.push(tag + ': worlds are not locked again after the preview');
+  await page.evaluate(() => MQ.app.go('home'));
+
+  // ---- My Progress: six months of practice that gets better, seeded, then read back from the chart
+  await page.evaluate(() => {
+    const st = MQ.state, d = new Date();
+    for (let i = 180; i >= 1; i--) {
+      if (i % 3) continue;
+      const day = new Date(d); day.setDate(d.getDate() - i);
+      const k = MQ.U.dateKey(day), a = 20, c = Math.round(a * (0.55 + 0.35 * (1 - i / 180)));
+      st.days[k] = { a, c };
+      const m = k.slice(0, 7); st.months[m] = st.months[m] || {}; const t = (st.months[m].add20 = st.months[m].add20 || [0, 0]); t[0] += a; t[1] += c;
+    }
+    MQ.store.save();
+    MQ.app.go('progress');
+  });
+  await page.waitForSelector('.progress .pchart svg');
+  await page.click('[data-act=progRange][data-arg="6m"]');
+  await page.waitForSelector('.progress .verdict');
+  const pv = await page.evaluate(() => ({ verdict: document.querySelector('.verdict').className, dots: document.querySelectorAll('.pchart .cdot').length, skills: document.querySelectorAll('.skill').length }));
+  if (!/up/.test(pv.verdict) || pv.dots < 20 || pv.skills < 12) errors.push(tag + ': progress screen wrong ' + JSON.stringify(pv));
+  await snap('18-progress');
+  await page.selectOption('.progress select[data-act=progTopic]', 'add20');
+  await page.waitForFunction(() => document.querySelector('.progress select').value === 'add20');
+  const monthly = await page.evaluate(() => document.querySelectorAll('.pchart .cdot').length);
+  if (monthly < 6 || monthly > 8) errors.push(tag + ': one topic should show months, got ' + monthly + ' points');
+  await page.click('[data-act=practiceTopic][data-arg=time]');
+  await page.waitForSelector('.pcard');
+  if ((await page.evaluate(() => MQ.app.session().topics.join())) !== 'time') errors.push(tag + ': skill map does not start practice of that skill');
+  await page.click('[data-act=quit]');
+  await page.waitForSelector('.trainer');
 
   // ---- Placement Check (i-Ready style): 30 questions, no feedback, then results and a practice plan
   // Reload the page (like closing and reopening it) and come back to this child's home screen.
@@ -303,7 +440,22 @@ async function run(viewport, tag) {
     const res = await page.evaluate(() => MQ.state.tests.contests.slice(-1)[0]);
     return { res, expect };
   }
+  // ⓘ on every test card explains the test
+  await page.evaluate(() => MQ.app.go('prep'));
+  for (const k of ['check', 'cogat', 'kangaroo', 'logic']) {
+    await page.click(`.infobtn[data-arg=${k}]`);
+    await page.waitForSelector('#modal .infobox');
+    if ((await page.$$('#modal .infobox h3')).length !== 4) errors.push(tag + ': info for ' + k + ' is incomplete');
+    if (k === 'kangaroo') await snap('39-info');
+    await page.click('#modal [data-act=closeModal]');
+  }
+  // A missed Kangaroo puzzle type comes back in the next mock contest, in its point section
+  await page.evaluate(() => { const t = MQ.U.dateKey(); MQ.state.review = { 'kg_mirror|5': { topic: 'kg_mirror', d: 5, box: 0, due: t, miss: 1, last: t } }; });
+  const attempts0 = await page.evaluate(() => MQ.state.stats.attempts);
   const kres1 = await runContest('kangaroo:timed', 24, (k) => (k % 4 === 3 ? 'skip' : k % 5 === 4 ? 'wrong' : 'right'));
+  if (!kres1.res.items.some((i) => i.rv && i.t === 'kg_mirror' && i.pts === 5)) errors.push(tag + ': missed puzzle type did not come back in the mock contest');
+  if ((await page.evaluate(() => MQ.state.stats.attempts)) - attempts0 !== 18) errors.push(tag + ': contest answers not counted in statistics');
+  if (!(await page.evaluate(() => Object.keys(MQ.state.review).some((k) => k.startsWith('kg_'))))) errors.push(tag + ': contest mistakes not saved to practice');
   await snap('41-kangaroo-result');
   if (!kres1.res || kres1.res.score !== kres1.expect || kres1.res.max !== 96 || !kres1.res.timed) errors.push(`${tag}: kangaroo score ${kres1.res && kres1.res.score} != ${kres1.expect}`);
   if (await page.evaluate(() => !!(MQ.app.contest()))) errors.push(tag + ': contest still running after finish');
@@ -386,6 +538,26 @@ async function run(viewport, tag) {
   await page.waitForSelector('.parent');
   if (!(await page.textContent('.parent')).includes('CogAT practice') || (await page.$$('.parent .pr-dom')).length < 9) errors.push(tag + ': parent page has no CogAT results by type');
   await snap('49-parent-cogat');
+  if (!(await page.$('.parent .pchart svg'))) errors.push(tag + ': parent page has no progress chart');
+
+  // ---- Logic Lab: practice by type (with descriptions), then the 12-puzzle advanced challenge
+  await page.evaluate(() => MQ.app.go('lgtypes'));
+  if ((await page.$$('.tile.type')).length !== 6 || !(await page.textContent('.tile.type small'))) errors.push(tag + ': Logic Lab types missing');
+  await snap('50-lgtypes');
+  for (const t of ['lg_whois', 'lg_liars']) {
+    await page.evaluate(() => MQ.app.go('lgtypes'));
+    await page.click(`[data-act=kgPractice][data-arg=${t}]`);
+    await page.waitForSelector('.pcard .clues, .pcard .ptext');
+    await snap('51-' + t);
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    await page.click('[data-act=quit]');
+    await page.waitForSelector('.sumgrid');
+  }
+  if (!(await page.$('[data-act=go][data-arg=lgtypes]'))) errors.push(tag + ': logic practice summary does not lead back to Logic Lab');
+  const lres = await runContest('logic', 12, (k) => (k < 8 ? 'right' : 'wrong'));
+  await snap('52-logic-result');
+  if (!lres.res || lres.res.kind !== 'logic' || lres.res.right !== 8 || (await page.$$('.presult .pr-dom')).length !== 6) errors.push(`${tag}: logic challenge result wrong ${lres.res && lres.res.right}`);
 
   // Show a selection of visual problem types for review
   if (shots) {
@@ -427,6 +599,14 @@ async function run(viewport, tag) {
   await snap('44-joey-result');
   if (!jres.res || jres.res.kind !== 'joey' || jres.res.right !== 9) errors.push(`${tag}: joey result wrong ${jres.res && jres.res.right}`);
   const bres = await runContest('cogatk', 18, (k) => (k < 12 ? 'right' : 'wrong'));
+  const lkres = await runContest('logick', 8, (k) => (k < 6 ? 'right' : 'wrong'));
+  if (!lkres.res || lkres.res.kind !== 'logick' || lkres.res.right !== 6) errors.push(`${tag}: K logic result wrong ${lkres.res && lkres.res.right}`);
+  await page.evaluate(() => MQ.app.go('lgtypes'));
+  if ((await page.$$('.tile.type')).length !== 4) errors.push(tag + ': K Logic Lab should have 4 types');
+  await page.click('[data-act=kgPractice][data-arg=lg_order]');
+  await page.waitForSelector('.pcard');
+  if ((await page.evaluate(() => MQ.app.session().p.d)) > 2) errors.push(tag + ': K logic too hard');
+  await page.click('[data-act=quit]');
   await snap('48-brain-games-result');
   if (!bres.res || bres.res.kind !== 'cogatk' || bres.res.right !== 12) errors.push(`${tag}: brain games result wrong ${bres.res && bres.res.right}`);
   await page.evaluate(() => MQ.app.go('map'));
@@ -473,7 +653,7 @@ async function run(viewport, tag) {
   await page.click('[data-act=closeModal]');
   if (!(await page.$('.pcard'))) errors.push(tag + ': game closed after back + keep playing');
   // Every screen offers a way back (header back button or result buttons)
-  for (const scr of ['map', 'trainer', 'journal', 'hatch', 'badges', 'parent']) {
+  for (const scr of ['map', 'trainer', 'journal', 'hatch', 'badges', 'parent', 'progress', 'fixit', 'lgtypes']) {
     await page.evaluate((x) => MQ.app.go(x), scr);
     if (!(await page.$('.bar [data-act=go][aria-label=Back]'))) errors.push(tag + ': no back button on ' + scr);
   }
