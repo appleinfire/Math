@@ -92,5 +92,15 @@ for (const s of scripts.concat('css/style.css')) assert.ok(cached.includes(`'${s
   localStorage.setItem('writing-power-family', JSON.stringify({ root: MATH_KEY, fid: 'x', name: 'smith-tigers' }));
   assert.strictEqual(APP.cloud.sibling().app, 'WritingPower');
   localStorage.removeItem('writing-power-family');
+
+  // Catch-up on start: what never reached the server goes up; what was deleted elsewhere goes away here.
+  const plan = (l, srv, syn) => { const p = APP.cloud.catchUpPlan(l, srv, syn); return [p.upload.join(), p.remove.join(), JSON.stringify(p.onServer)]; };
+  assert.deepStrictEqual(plan([{ id: 'a', rev: 5 }], { a: 5 }, {}), ['', '', '{"a":5}'], 'in sync: nothing to do');
+  assert.deepStrictEqual(plan([{ id: 'a', rev: 6 }], { a: 5 }, { a: 5 }), ['a', '', '{}'], 'a change that never went up is uploaded');
+  assert.deepStrictEqual(plan([{ id: 'a', rev: 4 }], { a: 5 }, {}), ['', '', '{"a":5}'], 'the server is newer: the live update brings it');
+  assert.deepStrictEqual(plan([{ id: 'n', rev: 3 }], {}, {}), ['n', '', '{}'], 'a new profile that never went up is uploaded');
+  assert.deepStrictEqual(plan([{ id: 'd', rev: 3 }], {}, { d: 3 }), ['', 'd', '{}'], 'deleted on another device: removed here too');
+  assert.deepStrictEqual(plan([{ id: 'd', rev: 4 }], {}, { d: 3 }), ['d', '', '{}'], 'changed here after it was deleted elsewhere: kept and uploaded');
+  assert.deepStrictEqual(plan([{ id: 'd', rev: 3 }, { id: 'a', rev: 1 }], { a: 1 }, null), ['', '', '{"a":1}'], 'no record yet: a missing profile is left alone');
   console.log('shell tests passed');
 })().catch((e) => { console.error(e); process.exit(1); });

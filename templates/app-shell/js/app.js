@@ -193,17 +193,20 @@
     startScreen();
   }
   // The first screen: the profile a link asked for (#who=), else the only profile, else the picker.
+  // Right after joining a family, its profiles can arrive a moment later: until then the new-profile form
+  // is the 'start' screen, and onCloud runs startScreen again when they come.
   function startScreen() {
     const list = S.profiles();
     const name = wanted.trim();
-    wanted = '';
     if (name) {
       const p = list.find((x) => x.name.trim().toLowerCase() === name.toLowerCase());
-      if (p) return openProfile(p.id);
+      if (p) { wanted = ''; return openProfile(p.id); }
       ui.newKid = { name: name.slice(0, 16), kind: CFG.kinds[0].id, avatar: CFG.avatars[0] }; // not here yet: offer to add
-      return newProfile();
+      newProfile();
+      cur = 'start';
+      return;
     }
-    if (!list.length) return newProfile();
+    if (!list.length) { ui.newKid = null; newProfile(); cur = 'start'; return; }
     if (list.length === 1) return openProfile(list[0].id);
     who();
   }
@@ -212,6 +215,7 @@
     if (what === 'status') { const el = $('#sync'); if (el) el.outerHTML = syncLine(); return; }
     if (root().classList.contains('is-play')) return;
     if (st && APP.state !== st) { st = null; return who(); } // this profile was deleted on another device
+    if (cur === 'start') { if (S.profiles().length) startScreen(); return; }
     if (!cur) return;
     const redraw = { who, home }[cur];
     if (redraw) redraw();
@@ -354,6 +358,7 @@
   }
   function go(where) {
     remember(where);
+    wanted = '';
     closeModal();
     if (where !== 'parent') { ui.resetArmed = false; ui.delArmed = null; ui.discArmed = false; }
     const [scr] = where.split(':');
@@ -377,6 +382,7 @@
       const k = ui.newKid;
       if (!k.name) { $('#ob-name').focus(); $('#ob-name').classList.add('shake'); return; }
       endPreview();
+      wanted = '';
       st = S.create({ name: k.name.slice(0, 16), kind: k.kind, avatar: k.avatar });
       ui = {};
       remember('home');

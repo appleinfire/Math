@@ -271,17 +271,20 @@
     startScreen();
   }
   // The first screen: the explorer a link asked for (#who=), else the only explorer, else the picker.
+  // Right after joining a family, its explorers can arrive a moment later: until then the new-explorer form
+  // is the 'start' screen, and onCloud runs startScreen again when they come.
   function startScreen() {
     const list = S.profiles();
     const name = wanted.trim();
-    wanted = '';
     if (name) {
       const p = list.find((x) => x.name.trim().toLowerCase() === name.toLowerCase());
-      if (p) return openProfile(p.id);
+      if (p) { wanted = ''; return openProfile(p.id); }
       ui.newKid = { name: name.slice(0, 16), grade: 'g2', buddy: '🦊', buddyName: 'Pip' }; // not here yet: offer to add
-      return newExplorer();
+      newExplorer();
+      cur = 'start';
+      return;
     }
-    if (!list.length) return newExplorer();
+    if (!list.length) { ui.newKid = null; newExplorer(); cur = 'start'; return; }
     if (list.length === 1) return openProfile(list[0].id);
     who();
   }
@@ -290,6 +293,7 @@
     if (what === 'status') { const el = $('#sync'); if (el) el.outerHTML = syncLine(); return; }
     if (root().classList.contains('is-play')) return;
     if (st && MQ.state !== st) { st = null; return who(); } // this explorer was deleted on another device
+    if (cur === 'start') { if (S.profiles().length) startScreen(); return; }
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
@@ -1702,6 +1706,7 @@
   }
   function go(where) {
     remember(where);
+    wanted = '';
     closeModal();
     if (where !== 'hatch') ui.hatch = null;
     if (where !== 'parent') { ui.resetArmed = false; ui.delArmed = null; ui.discArmed = false; }
@@ -1724,6 +1729,7 @@
       keepNewKidFields();
       const k = ui.newKid;
       if (!k.name) { $('#ob-name').focus(); $('#ob-name').classList.add('shake'); return; }
+      wanted = '';
       st = S.create({ name: k.name.slice(0, 16), grade: k.grade, companion: k.buddy, buddyName: k.buddyName.slice(0, 14) });
       ui = {};
       MQ.sfx('reward');

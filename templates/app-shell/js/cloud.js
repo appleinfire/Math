@@ -51,6 +51,8 @@
 
   let db = null, auth = null, unsub = null, ready = null;
   const timers = {};
+  let inflight = 0; // uploads sent and not yet confirmed
+  const busy = () => inflight > 0 || Object.keys(timers).length > 0;
   function boot() {
     if (db) return;
     // A named app: other apps on the same origin using the same Firebase project keep their own sign-in and cache.
@@ -72,32 +74,73 @@
   const famRef = () => db.collection('families').doc(C.family.fid);
   const now = () => firebase.firestore.FieldValue.serverTimestamp();
 
+  // What this device last uploaded for each profile ({ fid, revs: { id: rev } }). On start it tells a change
+  // that never reached the server (upload it) from a profile deleted on another device (remove it here).
+  const SYNCED = APP.CONFIG.id + '-synced';
+  // null = no record yet for this family (a device from before this record existed).
+  const readSynced = () => { try { const v = JSON.parse(localStorage.getItem(SYNCED) || 'null'); return v && C.family && v.fid === C.family.fid ? v.revs : null; } catch (e) { return null; } };
+  const writeSynced = (revs) => { try { localStorage.setItem(SYNCED, JSON.stringify({ fid: C.family.fid, revs })); } catch (e) { /* ignore */ } };
+  const markSynced = (id, rev) => {
+    if (!C.family) return;
+    const revs = readSynced() || {};
+    rev === null ? delete revs[id] : (revs[id] = rev);
+    writeSynced(revs);
+  };
+  // Compare this device with the server: local = [{ id, rev }], server = { id: rev }, synced = { id: rev } or null.
+  // Returns what to upload, what to remove here, and the profiles now known to be on the server ({ id: rev }).
+  C.catchUpPlan = (local, server, synced) => {
+    const plan = { upload: [], remove: [], onServer: {} };
+    for (const { id, rev } of local) {
+      if (id in server) {
+        if ((rev || 0) > (server[id] || 0)) plan.upload.push(id); // a change that never reached the server
+        else plan.onServer[id] = server[id];
+      } else if (!synced) continue; // no record yet: can't tell "never uploaded" from "deleted elsewhere", leave it
+      else if (id in synced && (rev || 0) <= synced[id]) plan.remove.push(id); // deleted on another device, not changed here since
+      else plan.upload.push(id); // never reached the server, or changed here after it was deleted elsewhere: keep it
+    }
+    return plan;
+  };
+
   function upload(id) {
     delete timers[id];
     const st = APP.store.raw(id);
     if (!st || !C.family || !ready) return;
     setStatus(navigator.onLine === false ? 'offline' : 'saving');
+    const rev = st.rev || 0;
+    inflight++;
     ready
       .then(() => famRef().collection('profiles').doc(id).set({ json: JSON.stringify(st), rev: st.rev || 0, name: st.name || '', kind: st.kind || '', updatedAt: now() }))
-      .then(() => { if (!Object.keys(timers).length) setStatus('synced'); })
-      .catch((e) => { C.error = (e && e.code) || 'write'; setStatus(navigator.onLine === false ? 'offline' : 'error'); });
+      .then(() => { inflight--; markSynced(id, rev); if (!busy()) setStatus('synced'); })
+      .catch((e) => { inflight--; C.error = (e && e.code) || 'write'; setStatus(navigator.onLine === false ? 'offline' : 'error'); });
   }
   C.flushAll = () => Object.keys(timers).forEach((id) => { clearTimeout(timers[id]); upload(id); });
 
   function listen() {
     if (unsub) unsub();
+    let caughtUp = false;
     unsub = famRef().collection('profiles').onSnapshot({ includeMetadataChanges: true }, (snap) => {
       let any = false;
+      if (!snap.metadata.fromCache && !caughtUp) { // first answer from the server: catch up on what went missing
+        caughtUp = true;
+        const server = {};
+        snap.docs.forEach((d) => { server[d.id] = d.data().rev || 0; });
+        const plan = C.catchUpPlan(APP.store.profiles().map((p) => ({ id: p.id, rev: APP.store.raw(p.id).rev })), server, readSynced());
+        const revs = Object.assign(readSynced() || {}, plan.onServer);
+        plan.remove.forEach((id) => { any = APP.store.removeRemote(id) || any; delete revs[id]; });
+        writeSynced(revs);
+        plan.upload.forEach((id) => upload(id));
+      }
       snap.docChanges().forEach((ch) => {
         if (ch.doc.metadata.hasPendingWrites) return; // our own change on its way up
-        if (ch.type === 'removed') { any = APP.store.removeRemote(ch.doc.id) || any; return; }
+        if (ch.type === 'removed') { any = APP.store.removeRemote(ch.doc.id) || any; markSynced(ch.doc.id, null); return; }
         let st;
         try { st = JSON.parse(ch.doc.data().json); } catch (e) { return; }
         any = APP.store.applyRemote(st) || any;
+        markSynced(ch.doc.id, ch.doc.data().rev || 0); // this copy is on the server
       });
       // A first answer from the device cache is normal while the server responds; only no network means "offline".
       if (snap.metadata.fromCache) setStatus(navigator.onLine === false ? 'offline' : 'connecting');
-      else setStatus(snap.metadata.hasPendingWrites || Object.keys(timers).length ? 'saving' : 'synced');
+      else setStatus(snap.metadata.hasPendingWrites || busy() ? 'saving' : 'synced');
       if (any) emit('data');
     }, (e) => { C.error = (e && e.code) || 'read'; setStatus('error'); });
   }
@@ -109,10 +152,11 @@
       clearTimeout(timers[id]);
       if (type === 'remove') {
         delete timers[id];
-        if (ready) ready.then(() => famRef().collection('profiles').doc(id).delete()).catch(() => {});
+        if (ready) ready.then(() => famRef().collection('profiles').doc(id).delete()).then(() => markSynced(id, null)).catch(() => {});
         return;
       }
       timers[id] = setTimeout(() => upload(id), 1500);
+      setStatus(navigator.onLine === false ? 'offline' : 'saving'); // not "synced" while a change waits to go up
     });
     if (typeof window !== 'undefined') {
       window.addEventListener('pagehide', C.flushAll);
@@ -175,9 +219,10 @@
       if (unsub) { unsub(); unsub = null; }
       C.family = { root, fid, name };
       writeLink(C.family);
+      if (!readSynced()) writeSynced({}); // everything on this device is uploaded right below
       ready = Promise.resolve();
       const docs = await ref.collection('profiles').get({ source: 'server' });
-      docs.forEach((d) => { try { APP.store.applyRemote(JSON.parse(d.data().json)); } catch (e) { /* skip a broken copy */ } });
+      docs.forEach((d) => { try { APP.store.applyRemote(JSON.parse(d.data().json)); markSynced(d.id, d.data().rev || 0); } catch (e) { /* skip a broken copy */ } });
       APP.store.profiles().forEach((p) => upload(p.id));
       listen();
       emit('data');
@@ -195,6 +240,7 @@
     if (unsub) { unsub(); unsub = null; }
     C.family = null;
     writeLink(null);
+    try { localStorage.removeItem(SYNCED); } catch (e) { /* ignore */ }
     setStatus('off');
   };
 
