@@ -8,6 +8,7 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 - **Separate profiles.** Every child has their own grade, world map, creatures, crystals, badges, daily streak, training settings and statistics. Nothing is shared between profiles.
 - **Grade tracks.** A profile follows one grade track: **Kindergarten** (7 worlds, baby animals) or **2nd grade** (8 worlds, wild animals). A grown-up can move a child to another grade; progress in the old grade is kept.
 - **Switching.** Tap the buddy avatar on the home screen (or the small avatar in the top bar) to go back to the picker.
+- **Our other apps.** The picker and the home screen link to our other apps (WritingPower); each app keeps its own profiles and progress. The list is `APPS` in `js/app.js`.
 - **Grown-ups page** shows the report for the current child and lists every explorer on the device: change grade, delete, add a new one.
 - Progress from the first single-player version is moved into a 2nd-grade profile automatically.
 
@@ -16,6 +17,7 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 - **Online (main way):** **https://appleinfire.github.io/Math/** — works on any phone, tablet or computer. On an iPad, open it in Safari, then Share → *Add to Home Screen* to get a full-screen app icon. It keeps working offline.
 - **Same progress everywhere:** on the first device choose *Create a family* (family code + PIN). On every other device choose *I already have a family* and type the same code and PIN. Explorers, levels, creatures and crystals then stay in sync across all devices.
 - **Updates:** every push to `main` is tested and published automatically by GitHub Actions in about a minute. See [docs/DEPLOY.md](docs/DEPLOY.md) for the setup and how sync works.
+- **New apps on the same shell:** [docs/NEW-APP-GUIDE.md](docs/NEW-APP-GUIDE.md) (in Russian) has the steps and a prompt for a new chat; the shell itself is in `templates/app-shell/`.
 - **Offline single file:** `dist/math-expedition.html` still works on its own (progress stays on that device).
 
 ## How the game works
@@ -118,6 +120,7 @@ tools/build.py        bundles everything into dist/math-expedition.html (local-o
 .github/workflows/    automatic deploy to GitHub Pages
 firestore.rules       Firestore security rules (paste into the Firebase console)
 tests/                generator test (node) and browser smoke test (Playwright)
+templates/app-shell/   the same shell (profiles, family sync, grown-ups page, preview, deploy) without the math, for new apps
 ```
 
 No build step or dependencies are needed to run it. After changing code, run:
