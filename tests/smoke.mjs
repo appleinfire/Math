@@ -303,7 +303,19 @@ async function run(viewport, tag) {
   if (!cres.res || cres.res.kind !== 'cogat' || cres.res.right !== cres.expect) errors.push(`${tag}: cogat right ${cres.res && cres.res.right} != ${cres.expect}`);
   else if (cres.res.sections.Verbal.right !== 15 || Object.keys(cres.res.types).length !== 9) errors.push(`${tag}: cogat sections ${JSON.stringify(cres.res.sections)}`);
   if ((await page.$$('.presult .sumgrid > div')).length !== 3 || (await page.$$('.presult .pr-dom')).length !== 9) errors.push(tag + ': cogat result does not show parts and types');
-  await page.click('.presult [data-act=go][data-arg=cgtypes]');
+  if (!(await page.$('.presult [data-act=go][data-arg=cgtypes]'))) errors.push(tag + ': cogat result has no practice-by-type button');
+  // A second practice test brings new questions (the first test's questions are remembered in the profile)
+  const before = await page.evaluate(() => Object.entries(MQ.state.seen || {}).flatMap(([t, ks]) => ks.map((k) => t + k)));
+  if (before.length < 45) errors.push(`${tag}: only ${before.length} questions remembered after a CogAT test`);
+  await page.evaluate(() => MQ.app.go('prep'));
+  await page.click('[data-act=startContest][data-arg="cogat"]');
+  await page.waitForSelector('.contest');
+  const repeats = await page.evaluate((old) => MQ.app.contest().items.filter((i) => old.includes(i.p.topic + MQ.U.qkey(i.p))).length, before);
+  if (repeats) errors.push(`${tag}: second CogAT test repeats ${repeats} questions`);
+  await page.click('[data-act=ctQuit]');
+  await page.click('[data-act=ctLeave]');
+  await page.waitForSelector('.prep');
+  await page.click('[data-act=go][data-arg=cgtypes]');
   await page.waitForSelector('[data-act=kgPractice][data-arg=cg_folding]');
   await snap('46-cgtypes');
   for (const t of ['cg_folding', 'cg_matrix', 'cg_picanalogy']) {

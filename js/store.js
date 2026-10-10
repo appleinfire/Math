@@ -31,6 +31,7 @@
     days: {}, // 'YYYY-MM-DD': { a, c }
     mistakes: [],
     tests: { checks: [], contests: [] }, // Placement Check and mock contest results (newest last)
+    seen: {}, // test-prep topic: recently shown question keys (oldest first), so retakes bring new questions
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
     settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true },
   });
@@ -139,6 +140,18 @@
   // Combine two copies of the same child's progress (e.g. played offline on two devices).
   // Nothing earned is lost: creatures, badges and stars are united; counters keep the higher value;
   // spendable things (crystals) and settings come from the most recent copy.
+  S.SEEN_MAX = 80;
+  // Remember that a test-prep question was shown (most recent last).
+  S.markSeen = (topic, key) => {
+    const st = MQ.state;
+    if (!st) return;
+    const list = (st.seen = st.seen || {})[topic] || [];
+    const at = list.indexOf(key);
+    if (at === list.length - 1 && at >= 0) return;
+    if (at >= 0) list.splice(at, 1);
+    list.push(key);
+    st.seen[topic] = list.slice(-S.SEEN_MAX);
+  };
   S.mergeProfiles = (a, b) => {
     if (!a) return b;
     if (!b) return a;
@@ -167,6 +180,12 @@
       const byId = {};
       for (const r of both) byId[r.id] = r;
       out.tests[key] = Object.values(byId).sort((x, y) => (x.id < y.id ? -1 : 1));
+    }
+    // questions seen on either device; the newer copy's order wins
+    out.seen = {};
+    for (const t of new Set([...Object.keys(old.seen || {}), ...Object.keys(nw.seen || {})])) {
+      const keys = [...((old.seen || {})[t] || []), ...((nw.seen || {})[t] || [])];
+      out.seen[t] = keys.filter((k, i) => keys.lastIndexOf(k) === i).slice(-S.SEEN_MAX);
     }
     out.rev = max(nw.rev, old.rev);
     return out;

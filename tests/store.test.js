@@ -43,6 +43,20 @@ assert.deepStrictEqual(S.mergeProfiles(S.mergeProfiles(ta, tb), tc).tests.checks
 
 // Erasing progress on purpose is not undone by an older copy from another device.
 const erased = Object.assign(base(), { rev: 300, resetAt: 300 });
+// Questions already seen on either device are remembered (newer copy last, at most S.SEEN_MAX per topic).
+const sa = Object.assign(base(), { rev: 10, seen: { cg_matrix: ['k1', 'k2', 'k3'], kg_bank: ['b1'] } });
+const sb = Object.assign(base(), { rev: 20, seen: { cg_matrix: ['k2', 'k4'] } });
+assert.deepStrictEqual(S.mergeProfiles(sa, sb).seen, { cg_matrix: ['k1', 'k3', 'k2', 'k4'], kg_bank: ['b1'] });
+assert.deepStrictEqual(S.mergeProfiles(sb, sa).seen, S.mergeProfiles(sa, sb).seen, 'seen merge does not depend on order');
+const many = Object.assign(base(), { rev: 5, seen: { cg_matrix: Array.from({ length: 100 }, (_, i) => 'x' + i) } });
+assert.strictEqual(S.mergeProfiles(many, sb).seen.cg_matrix.length, S.SEEN_MAX);
+assert.deepStrictEqual(S.mergeProfiles(many, sb).seen.cg_matrix.slice(-2), ['k2', 'k4'], 'the newest keys are kept');
+assert.deepStrictEqual(S.mergeProfiles(base(), Object.assign(base(), { rev: 1 })).seen, {}, 'old copies without seen still merge');
+MQ.state = { seen: {} };
+for (const k of ['a', 'b', 'a', 'c']) S.markSeen('cg_folding', k);
+assert.deepStrictEqual(MQ.state.seen.cg_folding, ['b', 'a', 'c'], 'markSeen moves a repeat to the end');
+MQ.state = null;
+
 const merged = S.mergeProfiles(erased, a);
 assert.deepStrictEqual(merged.creatures, {}, 'an erase wins over older progress');
 // …but progress made after the erase on another device is kept.

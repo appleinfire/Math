@@ -145,17 +145,23 @@
   // Kangaroo: 24 questions, 8 worth 3 points, 8 worth 4, 8 worth 5 (96 in all), 75 minutes, no penalty for wrong answers.
   // Joey (kindergarten): 12 picture puzzles, 1 point each, no clock.
   P.KANGAROO_MINUTES = 75;
+  // A question this child has not seen yet: never one already in this attempt (`avoid`), preferably one
+  // not shown in earlier attempts (profile `seen`); when every candidate was seen, the one seen longest ago.
+  P.fresh = (topic, d, avoid = new Set()) => {
+    const seen = (MQ.state && MQ.state.seen && MQ.state.seen[topic]) || [];
+    let best = null, bestRank = Infinity;
+    for (let i = 0; i < 40; i++) {
+      const p = MQ.makeProblem(topic, d), k = U.qkey(p);
+      const rank = avoid.has(k) ? 1e9 : seen.indexOf(k);
+      if (rank === -1) { best = p; break; }
+      if (rank < bestRank || !best) { best = p; bestRank = rank; }
+    }
+    avoid.add(U.qkey(best));
+    return best;
+  };
   P.newContest = (kind) => {
-    const seen = new Set();
-    const make = (topic, d) => {
-      let p;
-      for (let i = 0; i < 40; i++) {
-        p = MQ.makeProblem(topic, d);
-        const key = p.text + (p.visual || '');
-        if (!seen.has(key)) { seen.add(key); break; }
-      }
-      return p;
-    };
+    const avoid = new Set();
+    const make = (topic, d) => P.fresh(topic, d, avoid);
     const items = [];
     if (kind === 'joey') {
       for (let i = 0; i < 12; i++) items.push({ p: make('kg_joey', 1), pts: 1 });

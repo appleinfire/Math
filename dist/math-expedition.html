@@ -677,6 +677,13 @@ svg.vis.abacus { max-height: 160px; }
     d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   U.daysBetween = (a, b) => Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000);
 
+  // Short fingerprint of a question (ignores answer order), used to avoid repeats across attempts.
+  U.qkey = (p) => {
+    const s = String(p.text) + (p.visual || '');
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  };
   MQ.U = U;
 })();
 </script>
@@ -1071,13 +1078,17 @@ svg.vis.abacus { max-height: 160px; }
     return svg(300, 172, s, 'scale', 'balance scale');
   };
   // A street grid: A at the bottom left, B at the top right.
-  V.pathGrid = (rows, cols) => {
+  // via / block = [i, j]: a corner i steps right and j steps up from A, marked ⭐ (must pass) or ✖ (closed).
+  V.pathGrid = (rows, cols, { via = null, block = null } = {}) => {
     const u = Math.min(56, Math.floor(240 / Math.max(rows, cols))), x0 = 26, y0 = 18;
     let s = '';
+    const at = ([i, j]) => [x0 + i * u, y0 + (rows - j) * u];
     for (let r = 0; r <= rows; r++) s += `<line x1="${x0}" y1="${y0 + r * u}" x2="${x0 + cols * u}" y2="${y0 + r * u}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
     for (let c = 0; c <= cols; c++) s += `<line x1="${x0 + c * u}" y1="${y0}" x2="${x0 + c * u}" y2="${y0 + rows * u}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
     s += `<circle cx="${x0}" cy="${y0 + rows * u}" r="12" fill="#ff6b5b" stroke="${INK}" stroke-width="2"/>` + text(x0, y0 + rows * u + 5, 'A', 13, 'fill="#ffffff"');
     s += `<circle cx="${x0 + cols * u}" cy="${y0}" r="12" fill="#2bb3a3" stroke="${INK}" stroke-width="2"/>` + text(x0 + cols * u, y0 + 5, 'B', 13, 'fill="#ffffff"');
+    if (via) { const [x, y] = at(via); s += `<circle cx="${x}" cy="${y}" r="13" fill="#ffd54a" stroke="${INK}" stroke-width="2"/>` + text(x, y + 6, '★', 17, `fill="${INK}"`); }
+    if (block) { const [x, y] = at(block); s += `<circle cx="${x}" cy="${y}" r="13" fill="#ffffff" stroke="#e5484d" stroke-width="3"/><path d="M${x - 6} ${y - 6}L${x + 6} ${y + 6}M${x + 6} ${y - 6}L${x - 6} ${y + 6}" stroke="#e5484d" stroke-width="3.5" stroke-linecap="round"/>`; }
     return svg(x0 * 2 + cols * u, y0 * 2 + rows * u, s, 'grid', 'grid of streets from A to B');
   };
   // Towers of cubes, drawn in 3D. back / front = tower heights per column (front row may be omitted).
@@ -1126,7 +1137,7 @@ svg.vis.abacus { max-height: 160px; }
     let s = `<rect x="1.5" y="1.5" width="${size - 3}" height="${size - 3}" rx="8" fill="#ffffff" stroke="#d6e0e6" stroke-width="2"/>`;
     for (const [px, py] of spots) {
       s += figShape(f.shape, r1(px * size), r1(py * size), r, FIG_COLORS[f.color] || f.color, f.rot || 0);
-      if (f.dot) s += `<circle cx="${r1(px * size)}" cy="${r1(py * size)}" r="${Math.max(3, r * 0.22)}" fill="${INK}"/>`;
+      if (f.dot) s += `<circle cx="${r1(px * size)}" cy="${r1(py * size)}" r="${Math.max(3.5, r * 0.24)}" fill="#ffffff" stroke="${INK}" stroke-width="2"/>`;
     }
     return svg(size, size, s, 'fig', 'figure');
   };
@@ -1156,10 +1167,20 @@ svg.vis.abacus { max-height: 160px; }
     for (const [r, c] of holes) s += `<circle cx="${2 + c * u + u / 2}" cy="${2 + r * u + u / 2}" r="${u * 0.26}" fill="${INK}"/>`;
     return svg(size + 4, size + 4, s, 'sheet', 'sheet of paper');
   };
+  // Folds: which cells stay on top, how to say it, and which mirror lines unfolding uses.
+  V.FOLDS = {
+    v: { vis: (r, c) => c >= 2, text: 'folded in half from left to right', axes: 'v' },
+    vr: { vis: (r, c) => c < 2, text: 'folded in half from right to left', axes: 'v' },
+    h: { vis: (r, c) => r >= 2, text: 'folded in half from top to bottom', axes: 'h' },
+    hb: { vis: (r, c) => r < 2, text: 'folded in half from bottom to top', axes: 'h' },
+    q: { vis: (r, c) => r >= 2 && c >= 2, text: 'folded in half two times', axes: 'vh' },
+    q2: { vis: (r, c) => r >= 2 && c < 2, text: 'folded in half two times', axes: 'vh' },
+    q3: { vis: (r, c) => r < 2 && c >= 2, text: 'folded in half two times', axes: 'vh' },
+    q4: { vis: (r, c) => r < 2 && c < 2, text: 'folded in half two times', axes: 'vh' },
+  };
   V.foldSteps = (fold, holes) => {
-    const vis = fold === 'v' ? (r, c) => c >= 2 : fold === 'h' ? (r, c) => r >= 2 : (r, c) => r >= 2 && c >= 2;
-    const lines = fold === 'v' ? 'folded in half from left to right' : fold === 'h' ? 'folded in half from top to bottom' : 'folded in half twice';
-    return `<div class="vis foldsteps"><div>${V.sheet([], { visible: null })}<small>paper</small></div><b>→</b><div>${V.sheet([], { visible: vis })}<small>${lines}</small></div><b>→</b><div>${V.sheet(holes, { visible: vis })}<small>hole punched</small></div></div>`;
+    const F = V.FOLDS[fold];
+    return `<div class="vis foldsteps"><div>${V.sheet([], { visible: null })}<small>paper</small></div><b>→</b><div>${V.sheet([], { visible: F.vis })}<small>${F.text.replace('folded in half', 'folded')}</small></div><b>→</b><div>${V.sheet(holes, { visible: F.vis })}<small>${holes.length === 1 ? 'hole' : 'holes'} punched</small></div></div>`;
   };
   // Little groups of emoji (for picture number analogies).
   V.cluster = (emoji, n) => `<span class="cluster c${Math.min(n, 9)}">${Array(n).fill(`<i>${emoji}</i>`).join('')}</span>`;
@@ -2542,24 +2563,62 @@ svg.vis.abacus { max-height: 160px; }
     const mr = Math.min(...cells.map((x) => x[0])), mc = Math.min(...cells.map((x) => x[1]));
     return cells.map(([r, c]) => [r - mr, c - mc]);
   }
+  // Squares of every size that fit inside a shape made of little squares.
+  function squaresInShape(cells) {
+    const has = (r, c) => cells.some(([a, b]) => a === r && b === c);
+    const out = {};
+    for (let k = 1; k <= 4; k++) for (const [r0, c0] of cells) {
+      let all = true;
+      for (let r = r0; r < r0 + k && all; r++) for (let c = c0; c < c0 + k && all; c++) all = has(r, c);
+      if (all) out[k] = (out[k] || 0) + 1;
+    }
+    return out;
+  }
   function kg_count(d) {
     if (d === 1) {
       const n = rnd(5, 9);
       return N5('How many little squares make this shape?', n, [n - 1, n + 1, n - 2, n + 2], { visual: V.cellShape(polyomino(n)), say: 'How many little squares make this shape?', hint: 'Count row by row and touch each square.' });
     }
-    // Counting puzzles by size: squares or rectangles in an r×c grid, or triangles in a fan of m parts.
+    // Half of the time: a random shape made of little squares.
+    if (chance(0.5)) {
+      if (d === 2) {
+        const n = rnd(9, 13);
+        return N5('How many little squares make this shape?', n, [n - 1, n + 1, n - 2, n + 2], { visual: V.cellShape(polyomino(n, 4), { size: 30 }), say: 'How many little squares make this shape?', hint: 'Count row by row and touch each square.' });
+      }
+      for (let t = 0; t < 50; t++) {
+        const n = d === 3 ? rnd(7, 10) : d === 4 ? rnd(9, 12) : rnd(12, 15), cells = polyomino(n, d === 5 ? 5 : 4);
+        const sq = squaresInShape(cells);
+        if (d === 3) {
+          const ans = sq[2] || 0;
+          if (ans < 1) continue;
+          return N5('How many 2×2 squares (made of 4 little squares) can you find in this shape? They may overlap.', ans, [ans - 1, ans + 1, ans + 2, n].filter((x) => x !== ans), { visual: V.cellShape(cells, { size: 30 }), hint: 'Look at every little square: can it be the top-left corner of a 2×2 square?', explain: `There are ${ans} of them.` });
+        }
+        const ans = U.sum(Object.values(sq));
+        if (!sq[2] || (d === 5 && !sq[3] && sq[2] < 3)) continue;
+        return N5('How many squares of any size can you find in this shape?', ans, [n, ans - 1, ans + 1, ans + 2, n + 1].filter((x) => x !== ans), { visual: V.cellShape(cells, { size: d === 5 ? 26 : 30 }), hint: 'Count the little squares, then the 2×2 squares, then any bigger ones.', explain: Object.entries(sq).map(([k, v]) => `${v} of size ${k}×${k}`).join(' + ') + ` = ${ans}` });
+      }
+    }
+    // Grid puzzles: squares, rectangles, dominoes or 2×2 squares in an r×c grid, or triangles in a fan of m parts.
     const squaresIn = (r, c) => U.sum(U.range(1, Math.min(r, c)).map((k) => (r - k + 1) * (c - k + 1)));
     const rectsIn = (r, c) => ((r * (r + 1)) / 2) * ((c * (c + 1)) / 2);
     const tasks = {
-      2: [['rect', 1, 3], ['rect', 1, 4], ['rect', 3, 1], ['sq', 2, 2], ['fan', 3]],
-      3: [['fan', 3], ['fan', 4], ['rect', 1, 5], ['rect', 5, 1], ['sq', 2, 3], ['sq', 3, 2], ['rect', 2, 2]],
-      4: [['sq', 3, 3], ['sq', 2, 4], ['sq', 4, 2], ['fan', 5], ['rect', 1, 6], ['rect', 2, 3], ['rect', 3, 2]],
-      5: [['sq', 3, 4], ['sq', 4, 3], ['sq', 4, 4], ['rect', 2, 4], ['rect', 3, 3], ['fan', 6], ['rect', 4, 2]],
+      2: [['rect', 1, 3], ['rect', 1, 4], ['rect', 3, 1], ['rect', 4, 1], ['sq', 2, 2], ['fan', 2], ['fan', 3], ['dom', 1, 4], ['dom', 4, 1], ['dom', 1, 5], ['dom', 2, 2], ['sq2', 2, 3], ['sq2', 3, 2]],
+      3: [['fan', 3], ['fan', 4], ['rect', 1, 5], ['rect', 5, 1], ['sq', 2, 3], ['sq', 3, 2], ['rect', 2, 2], ['dom', 2, 3], ['dom', 3, 2], ['sq2', 3, 3], ['sq2', 2, 4], ['sq2', 4, 2]],
+      4: [['sq', 3, 3], ['sq', 2, 4], ['sq', 4, 2], ['fan', 5], ['rect', 1, 6], ['rect', 2, 3], ['rect', 3, 2], ['dom', 3, 3], ['dom', 2, 4], ['sq2', 3, 4], ['sq2', 4, 3]],
+      5: [['sq', 3, 4], ['sq', 4, 3], ['sq', 4, 4], ['rect', 2, 4], ['rect', 3, 3], ['fan', 6], ['rect', 4, 2], ['dom', 3, 4], ['dom', 4, 4], ['sq2', 4, 4], ['sq2', 3, 5]],
     }[d];
     const [kind, r, c] = pick(tasks);
     if (kind === 'fan') {
       const ans = (r * (r + 1)) / 2;
       return N5('How many triangles are in this picture?', ans, [r, r + 1, 2 * r, ans - 1, ans + r], { visual: V.fan(r), hint: 'Count triangles made of 1 piece, then 2 pieces next to each other, and so on.', explain: `${U.range(1, r).reverse().join(' + ')} = ${ans}` });
+    }
+    if (kind === 'dom') {
+      const ans = r * (c - 1) + c * (r - 1);
+      return N5('How many rectangles made of exactly 2 little squares are in this picture?', ans, [r * c, ans - 1, ans + 1, ans + 2, Math.floor(r * c / 2)].filter((x) => x !== ans), { visual: V.grid(r, c, '#ffd28a'), hint: 'Count the ones lying down, then the ones standing up.', explain: `${r * (c - 1)} lying down + ${c * (r - 1)} standing up = ${ans}` });
+    }
+    if (kind === 'sq2') {
+      const ans = (r - 1) * (c - 1);
+      return N5('How many 2×2 squares (made of 4 little squares) are in this picture? They may overlap.', ans, [r * c, ans - 1, ans + 1, ans + 2, Math.floor(r * c / 4)].filter((x) => x !== ans), { visual: V.grid(r, c, '#c3b5ff'), hint: 'Slide a 2×2 window across each row, then down.', explain: `${c - 1} in each row × ${r - 1} rows = ${ans}` });
     }
     if (kind === 'sq') {
       const ans = squaresIn(r, c), parts = U.range(1, Math.min(r, c)).map((k) => (r - k + 1) * (c - k + 1));
@@ -2615,7 +2674,7 @@ svg.vis.abacus { max-height: 160px; }
   // ---------- 4. Calendar puzzles ----------
   function kg_calendar(d) {
     const t = rnd(0, 6);
-    if (d === 1) { const k = rnd(1, 3); return C(`What day comes ${k} ${plural(k, 'day', 'days')} after ${DAYS[t]}?`, DAYS[(t + k) % 7], dayChoices(DAYS[(t + k) % 7]), { hint: 'Say the days of the week in order.' }); }
+    if (d === 1) { const k = rnd(1, 3), back = chance(0.4), ans = DAYS[(t + (back ? 7 - k : k)) % 7]; return C(`What day comes ${k} ${plural(k, 'day', 'days')} ${back ? 'before' : 'after'} ${DAYS[t]}?`, ans, dayChoices(ans), { hint: back ? 'Say the days of the week backwards.' : 'Say the days of the week in order.' }); }
     if (d === 2) { const k = pick([7, 8, 9, 14]); return C(`Today is ${DAYS[t]}. What day will it be in ${k} days?`, DAYS[(t + k) % 7], dayChoices(DAYS[(t + k) % 7]), { hint: 'In 7 days it is the same day again.', explain: `${k} days = ${Math.floor(k / 7)} week${k >= 14 ? 's' : ''} and ${k % 7} more day${k % 7 === 1 ? '' : 's'}.` }); }
     if (d === 3) { const k = pick([3, 4, 6, 8, 10, 12]); const ans = DAYS[(((t - k) % 7) + 7) % 7]; return C(`Today is ${DAYS[t]}. What day was it ${k} days ago?`, ans, dayChoices(ans), { hint: 'Count backwards. 7 days ago was the same day.' }); }
     if (d === 4) { const date = pick([8, 10, 15, 20, 22, 29]); const ans = DAYS[(t + date - 1) % 7]; return C(`The 1st of the month is a ${DAYS[t]}. What day of the week is the ${date}${date === 22 ? 'nd' : 'th'}?`, ans, dayChoices(ans), { hint: 'The 8th, 15th, 22nd and 29th are the same day as the 1st.' }); }
@@ -2629,35 +2688,56 @@ svg.vis.abacus { max-height: 160px; }
   const ways = (amt, coins) => { const w = Array(amt + 1).fill(0); w[0] = 1; for (const c of coins) for (let a = c; a <= amt; a++) w[a] += w[a - c]; return w[amt]; };
   function kg_coins(d) {
     if (d <= 2) {
-      const coins = d === 1 ? pick([[1, 2, 5], [1, 3, 5], [1, 2, 4]]) : pick([[1, 2, 5, 10], [1, 3, 5, 10], [2, 5, 10]]);
+      const coins = d === 1 ? pick([[1, 2, 5], [1, 3, 5], [1, 2, 4], [1, 5, 10], [2, 3, 5]]) : pick([[1, 2, 5, 10], [1, 3, 5, 10], [2, 5, 10], [1, 5, 10, 25], [1, 4, 6, 10]]);
       const amt = d === 1 ? rnd(6, 15) : rnd(13, 29), ans = fewest(amt, coins);
       if (ans === Infinity) return kg_coins(d);
       return N5(`Kanga has lots of ${coins.map((c) => c + '¢').join(', ')} coins. What is the <b>fewest</b> coins she needs to pay exactly ${amt}¢?`, ans, [ans + 1, ans + 2, ans - 1], { hint: 'Use the biggest coins you can first.' });
     }
     if (d === 3) {
-      const set = U.sample([1, 2, 3, 5, 10, 20], 3).sort((a, b) => a - b);
+      const set = U.sample([1, 2, 3, 4, 5, 10, 20, 25], 3).sort((a, b) => a - b);
       const sums = new Set();
       for (let m = 1; m < 8; m++) sums.add(set.reduce((s, c, i) => s + (m & (1 << i) ? c : 0), 0));
       return N5(`Joey has three coins: ${set.map((c) => c + '¢').join(', ')}. How many different amounts can he pay exactly using one or more of them?`, sums.size, [3, 6, 8, 9], { hint: 'List them: each coin alone, two coins, all three.', explain: `${[...sums].sort((a, b) => a - b).join('¢, ')}¢ — that is ${sums.size} amounts.` });
     }
-    const coins = d === 4 ? pick([[2, 5], [2, 3], [3, 5]]) : pick([[1, 2, 5], [1, 5, 10]]);
+    const coins = d === 4 ? pick([[2, 5], [2, 3], [3, 5], [1, 5], [1, 10], [2, 10]]) : pick([[1, 2, 5], [1, 5, 10], [1, 2, 10], [2, 5, 10], [1, 3, 5]]);
     let amt, ans;
-    do { amt = d === 4 ? rnd(10, 24) : rnd(5, 14); ans = ways(amt, coins); } while (ans < 2 || ans > 15);
-    return N5(`In how many different ways can you pay ${amt}¢ using only ${coins.map((c) => c + '¢').join(' and ')} coins? (The order of the coins does not matter.)`, ans, [ans - 1, ans + 1, ans + 2], { hint: `Try using 0 five-cent coins, then 1, then 2…`, explain: `There are ${ans} ways.` });
+    do { amt = d === 4 ? rnd(10, 24) : rnd(5, 16); ans = ways(amt, coins); } while (ans < 2 || ans > 15);
+    return N5(`In how many different ways can you pay ${amt}¢ using only ${coins.map((c) => c + '¢').join(' and ')} coins? (The order of the coins does not matter.)`, ans, [ans - 1, ans + 1, ans + 2], { hint: `Try using 0 of the biggest coin, then 1, then 2…`, explain: `There are ${ans} ways.` });
   }
 
   // ---------- 6. Paths on a grid ----------
   const choose = (n, k) => (k === 0 ? 1 : (choose(n - 1, k - 1) * n) / k);
+  // Corner (i, j) = i steps right and j steps up from A.
+  const waysTo = (i, j) => choose(i + j, i);
   function kg_paths(d) {
-    if (d === 1) { const r = rnd(1, 3), c = rnd(2, 4); return N5('A bug walks along the lines from A to B. How many sides of little squares long is the shortest way?', r + c, [r * c, r + c + 1, r + c - 1, r + c + 2], { visual: V.pathGrid(r, c), hint: 'It must go up and to the right. Count each.' }); }
-    const [r, c] = pick({
-      2: [[1, 2], [2, 1], [1, 3], [3, 1], [1, 4]],
-      3: [[2, 2], [1, 5], [5, 1], [1, 6], [6, 1]],
-      4: [[2, 3], [3, 2], [1, 7], [2, 4]],
-      5: [[3, 3], [4, 2], [2, 5], [3, 4], [4, 3]],
-    }[d]);
+    if (d === 1) {
+      const r = rnd(1, 4), c = rnd(1, 5);
+      if (r + c < 3) return kg_paths(1);
+      if (chance(0.4)) return N5('A bug walks all the way around the outside of this grid, along the lines. How many sides of little squares long is its walk?', 2 * (r + c), [r + c, r * c, 2 * (r + c) - 1, 2 * (r + c) + 2], { visual: V.pathGrid(r, c), hint: 'Count the bottom, the right side, the top and the left side.', explain: `${c} + ${r} + ${c} + ${r} = ${2 * (r + c)}` });
+      return N5('A bug walks along the lines from A to B. How many sides of little squares long is the shortest way?', r + c, [r * c, r + c + 1, r + c - 1, r + c + 2], { visual: V.pathGrid(r, c), hint: 'It must go up and to the right. Count each.' });
+    }
+    const sizes = { 2: [[1, 2], [2, 1], [1, 3], [3, 1], [1, 4], [4, 1], [2, 2]], 3: [[2, 2], [1, 5], [5, 1], [1, 6], [6, 1], [2, 3], [3, 2]], 4: [[2, 3], [3, 2], [2, 4], [4, 2], [3, 3]], 5: [[3, 3], [4, 2], [2, 4], [2, 5], [3, 4], [4, 3]] }[d];
+    const special = { 2: [[2, 2], [2, 3], [3, 2]], 3: [[2, 3], [3, 2], [2, 2]], 4: [[2, 3], [3, 2], [2, 4], [4, 2]], 5: [[3, 3], [3, 4], [4, 3], [2, 5]] }[d];
+    const ask = 'The bug walks from A to B along the lines and only goes <b>up</b> or <b>right</b>.';
+    const hint = 'At every corner, write how many ways lead there: add the ways from the left and from below.';
+    // Half of the time the bug must pass a ⭐ corner (easier levels) or avoid a closed ✖ corner (harder levels).
+    if (chance(0.5)) {
+      for (let t = 0; t < 30; t++) {
+        const [r, c] = pick(special), i = rnd(0, c), j = rnd(0, r);
+        if ((i === 0 && j === 0) || (i === c && j === r)) continue;
+        const through = waysTo(i, j) * waysTo(c - i, r - j), total = waysTo(c, r);
+        if (d <= 3) {
+          if (through === total || through < 2) continue;
+          return N5(`${ask} It must pass the corner with the ⭐. How many different ways can it go?`, through, [total, through - 1, through + 1, through + 2].filter((x) => x !== through), { visual: V.pathGrid(r, c, { via: [i, j] }), hint: 'Count the ways from A to the star, and from the star to B. Then multiply.', explain: `${waysTo(i, j)} ${plural(waysTo(i, j), 'way', 'ways')} to the star × ${waysTo(c - i, r - j)} ${plural(waysTo(c - i, r - j), 'way', 'ways')} from the star to B = ${through}` });
+        }
+        const ans = total - through;
+        if (ans < 2 || through === 0) continue;
+        return N5(`${ask} The corner with the ✖ is closed. How many different ways can it go?`, ans, [total, ans - 1, ans + 1, through].filter((x) => x !== ans), { visual: V.pathGrid(r, c, { block: [i, j] }), hint: 'Count all the ways, then take away the ways that go through the closed corner.', explain: `${total} ways in all − ${through} through the ✖ = ${ans}` });
+      }
+    }
+    const [r, c] = pick(sizes);
     const ans = choose(r + c, r);
-    return N5('The bug walks from A to B along the lines and only goes <b>up</b> or <b>right</b>. How many different ways can it go?', ans, [ans - 1, ans + 1, ans + 2, r * c, r + c].filter((x) => x !== ans), { visual: V.pathGrid(r, c), hint: 'At every corner, write how many ways lead there: add the ways from the left and from below.', explain: `Writing the number of ways at each corner gives ${ans} at B.` });
+    return N5(`${ask} How many different ways can it go?`, ans, [ans - 1, ans + 1, ans + 2, r * c, r + c].filter((x) => x !== ans), { visual: V.pathGrid(r, c), hint, explain: `Writing the number of ways at each corner gives ${ans} at B.` });
   }
 
   // ---------- 7. Flip and turn ----------
@@ -2689,7 +2769,7 @@ svg.vis.abacus { max-height: 160px; }
   // ---------- 8. Cube towers ----------
   function kg_cubes(d) {
     if (d <= 2) {
-      const back = Array.from({ length: d === 1 ? 3 : 4 }, () => rnd(1, d === 1 ? 3 : 4)), ans = U.sum(back);
+      const back = Array.from({ length: d === 1 ? rnd(3, 4) : 4 }, () => rnd(1, d === 1 ? 3 : 4)), ans = U.sum(back);
       return N5('How many cubes are in these towers?', ans, [ans - 1, ans + 1, ans + 2, ans - 2], { visual: V.towers(back), say: 'How many cubes are in these towers?', hint: 'Count each tower, then add.' });
     }
     const cols = d === 3 ? 2 : 3;
@@ -2713,11 +2793,17 @@ svg.vis.abacus { max-height: 160px; }
     }
     else if (d === 3) { const s = rnd(1, 9), j = rnd(1, 3); seq = [s]; for (let i = 0; i < 4; i++) seq.push(seq[i] + j + i); hint = `The jumps are +${j}, +${j + 1}, +${j + 2}…`; }
     else if (d === 4) {
-      const k = rnd(1, 3);
-      seq = pick([[1, 4, 9, 16, 25, 36, 49].slice(k - 1, k + 4), [1, 2, 4, 8, 16, 32, 64].slice(k - 1, k + 4), [1, 3, 7, 15, 31], [2, 5, 4, 7, 6, 9], [3, 4, 6, 9, 13, 18], [20, 18, 15, 11, 6]]);
+      const k = rnd(1, 3), s0 = rnd(1, 9), a = rnd(2, 5), b = rnd(1, a - 1), top = rnd(30, 50);
+      seq = pick([
+        [1, 4, 9, 16, 25, 36, 49].slice(k - 1, k + 4), [1, 2, 4, 8, 16, 32, 64].slice(k - 1, k + 4), [1, 3, 7, 15, 31], [3, 4, 6, 9, 13, 18],
+        U.range(0, 5).map((i) => s0 + Math.ceil(i / 2) * a - Math.floor(i / 2) * b), // +a, −b, +a, −b…
+        [top, top - 1, top - 3, top - 6, top - 10], // the jumps back grow
+        [s0, s0 * 2, s0 * 4, s0 * 8], [k, k * 3, k * 9, k * 27],
+      ]);
       hint = 'Compare each number with the one before it.';
     }
-    else { seq = pick([[1, 1, 2, 3, 5, 8], [2, 3, 5, 8, 13, 21], [1, 3, 4, 7, 11, 18]]).slice(0, 6); hint = 'Each number comes from the two numbers before it.'; }
+    else if (chance(0.6)) { const a = rnd(1, 5), b = rnd(a, 7); seq = [a, b]; while (seq.length < 6) seq.push(seq[seq.length - 1] + seq[seq.length - 2]); hint = 'Each number comes from the two numbers before it.'; }
+    else { const s0 = rnd(1, 9); seq = [s0, s0 + 1, s0 + 3, s0 + 7, s0 + 15]; hint = 'Look at the jumps: each jump is twice the one before.'; }
     const ans = seq[seq.length - 1], shown = seq.slice(0, -1);
     return N5(`What number comes next?<div class="seq">${shown.join(', ')}, <span class="blank">?</span></div>`, ans, [ans - 1, ans + 1, ans + 2, ans - 2, shown[shown.length - 1] + (shown[shown.length - 1] - shown[shown.length - 2])].filter((x) => x !== ans && x > 0), { hint, say: `What number comes next? ${shown.join(', ')}` });
   }
@@ -2725,7 +2811,12 @@ svg.vis.abacus { max-height: 160px; }
   // ---------- 10. Hidden digits ----------
   function kg_digits(d) {
     for (let tries = 0; tries < 200; tries++) {
-      if (d === 1) { const x = rnd(2, 9); return N5(E(`? + ? = ${2 * x}`) + '<p>Both boxes hide the <b>same</b> number. What is it?</p>', x, [x - 1, x + 1, 2 * x, x + 2], { hint: 'Which number plus itself makes it?' }); }
+      if (d === 1) {
+        if (chance(0.4)) { const x = rnd(2, 10); return N5(E(`? + ? = ${2 * x}`) + '<p>Both boxes hide the <b>same</b> number. What is it?</p>', x, [x - 1, x + 1, 2 * x, x + 2], { hint: 'Which number plus itself makes it?' }); }
+        if (chance(0.3)) { const x = rnd(1, 6); return N5(E(`? + ? + ? = ${3 * x}`) + '<p>All three boxes hide the <b>same</b> number. What is it?</p>', x, [x - 1, x + 1, 3 * x, x + 2].filter((v) => v > 0), { hint: 'Try 1, 2, 3… three times.' }); }
+        const x = rnd(1, 9), a = rnd(2, 9);
+        return N5(E(`? + ${a} = ${x + a}`) + '<p>What number is hiding in the box?</p>', x, [x - 1, x + 1, x + a, a].filter((v) => v >= 0 && v !== x), { hint: 'Count on from the number you know.' });
+      }
       if (d === 2 || d === 3) {
         const add = d === 2;
         const a = rnd(2, 8), b = rnd(0, 9), x = rnd(0, 9), y = rnd(1, 9);
@@ -2759,6 +2850,10 @@ svg.vis.abacus { max-height: 160px; }
     if (d === 1) { const a = rnd(4, 9), k = rnd(2, 5); return N5(`${p} is ${a} years old. How old will ${p} be in ${k} years?`, a + k, [a, k, a + k + 1, a + k - 1], { hint: 'Count on from today’s age.' }); }
     if (d === 2) { const a = rnd(6, 10), b = rnd(2, a - 2); return N5(`${p} is ${a} and ${q} is ${b}. How old will ${p} be when ${q} is ${a}?`, 2 * a - b, [a, a + b, 2 * a - b + 1, 2 * a - b - 1], { hint: `${p} is always ${a - b} years older.`, explain: `${a} − ${b} = ${a - b} years apart, so ${a} + ${a - b} = ${2 * a - b}.` }); }
     if (d === 3) { const b = rnd(3, 9), diff = rnd(1, 4), a = b + diff; return N5(`Together ${p} and ${q} are ${a + b} years old. ${p} is ${diff} ${plural(diff, 'year', 'years')} older than ${q}. How old is ${q}?`, b, [a, b + 1, b - 1, a + b - diff].filter((x) => x !== b), { hint: `Take away the ${diff} extra years first, then share equally.`, explain: `${a + b} − ${diff} = ${2 * b}, half is ${b}.` }); }
+    if (d === 4 && chance(0.5)) {
+      const b = rnd(2, 6), x = rnd(1, 6), a = 2 * b + x; // in x years: a + x = 2 × (b + x)
+      return N5(`${p} is ${a} and ${q} is ${b}. In how many years will ${p} be exactly twice as old as ${q}?`, x, [x - 1, x + 1, x + 2, a - b].filter((v) => v > 0 && v !== x), { hint: 'Try 1 year, 2 years, 3 years… and check.', explain: `In ${x} ${plural(x, 'year', 'years')}: ${p} ${a + x}, ${q} ${b + x}, and ${a + x} = 2 × ${b + x}.` });
+    }
     if (d === 4) {
       let s, x, dad;
       do { s = rnd(4, 9); x = rnd(1, 6); dad = 3 * (s + x) - x; } while (dad < 25 || dad > 45);
@@ -2810,6 +2905,57 @@ svg.vis.abacus { max-height: 160px; }
     [3, 'Mia has 2 red balloons and 3 blue balloons. One balloon pops. How many balloons does she have now?', 4, [1, 3, 4, 5, 6], '2 + 3 = 5, then 5 − 1 = 4', true],
     [3, 'A ladybug has 6 legs. How many legs do 2 ladybugs have? 🐞🐞', 12, [6, 8, 10, 12, 14], '6 + 6 = 12', true],
     [3, 'There are 4 cookies 🍪🍪🍪🍪. Three friends each eat one. How many are left?', 1, [0, 1, 2, 3, 4], '4 − 3 = 1', true],
+    [3, 'There are 3 boxes. Each box has 4 pencils. How many pencils are there in all?', 12, [7, 10, 12, 14, 16], '4 + 4 + 4 = 12'],
+    [3, 'A week has 7 days. How many days are in 2 weeks?', 14, [9, 12, 14, 16, 21], '7 + 7 = 14'],
+    [3, 'Ann has 10 stickers. She gives 3 to Ben and 2 to Cara. How many stickers does she have left?', 5, [3, 5, 6, 7, 8], '10 − 3 − 2 = 5'],
+    [3, 'How many sides do 2 triangles and 1 square have together?', 10, [7, 8, 9, 10, 12], '3 + 3 + 4 = 10'],
+    [3, 'A clock shows 3 o’clock. What time will it show 4 hours later?', '7 o’clock', ['5 o’clock', '6 o’clock', '7 o’clock', '8 o’clock', '12 o’clock'], '3 + 4 = 7'],
+    [3, 'Tim is taller than Sam. Sam is taller than Lea. Who is the shortest?', 'Lea', ['Tim', 'Sam', 'Lea', 'They are all the same', 'You can’t tell'], 'From tallest to shortest: Tim, Sam, Lea'],
+    [3, 'What is the smallest number you can make with the digits 7, 2 and 5, using each digit once?', 257, [257, 275, 527, 572, 725], 'Put the smallest digit first: 2, then 5, then 7'],
+    [3, 'A pizza is cut into 8 slices. 3 children each eat 2 slices. How many slices are left?', 2, [1, 2, 3, 5, 6], '3 × 2 = 6 eaten, 8 − 6 = 2 left'],
+    [3, 'A duck has 2 legs and a dog has 4 legs. How many legs do 1 duck and 2 dogs have together?', 10, [6, 8, 10, 12, 14], '2 + 4 + 4 = 10'],
+    [3, 'Which number is 10 more than 47?', 57, [37, 48, 57, 58, 147], '47 + 10 = 57'],
+    [3, 'Max starts reading at 4 o’clock and reads for 2 hours. When does he finish?', '6 o’clock', ['2 o’clock', '5 o’clock', '6 o’clock', '7 o’clock', '8 o’clock'], '4 + 2 = 6'],
+    [3, 'Kanga has three coins: 10¢, 5¢ and 1¢. How many cents does she have?', 16, [15, 16, 17, 20, 25], '10 + 5 + 1 = 16'],
+    [4, 'A garden has 4 rows of flowers with 5 flowers in each row. 3 flowers are picked. How many flowers are left?', 17, [12, 15, 17, 18, 20], '4 × 5 = 20, then 20 − 3 = 17'],
+    [4, 'Three numbers in a row (like 4, 5, 6) add up to 18. What is the biggest of them?', 7, [5, 6, 7, 8, 9], '5 + 6 + 7 = 18'],
+    [4, 'Lisa is 3rd in line. There are 5 children behind her. How many children are in the line?', 8, [5, 7, 8, 9, 10], '2 in front, Lisa, 5 behind: 2 + 1 + 5 = 8'],
+    [4, 'A fence is 12 meters long. There is a post every 3 meters, at both ends too. How many posts are there?', 5, [3, 4, 5, 6, 12], 'Posts at 0, 3, 6, 9 and 12 meters: 5 posts'],
+    [4, 'Today is Wednesday. What day of the week will it be in 10 days?', 'Saturday', ['Thursday', 'Friday', 'Saturday', 'Sunday', 'Monday'], 'In 7 days it is Wednesday again, then 3 more days: Saturday'],
+    [4, 'How many odd numbers are there between 10 and 20?', 5, [4, 5, 6, 9, 10], '11, 13, 15, 17 and 19'],
+    [4, 'A bag has 12 marbles, red and blue. There are 4 more red marbles than blue ones. How many are blue?', 4, [3, 4, 6, 8, 10], '4 blue and 8 red: 4 + 8 = 12, and 8 is 4 more than 4'],
+    [4, 'Ben has twice as many cards as Ana. Together they have 15 cards. How many cards does Ben have?', 10, [5, 7, 8, 10, 12], 'Ana has 5 and Ben has 10: 5 + 10 = 15'],
+    [4, 'What is the biggest two-digit number whose digits add up to 5?', 50, [14, 23, 41, 50, 95], '5 + 0 = 5, and no bigger two-digit number works'],
+    [4, 'A car has 4 wheels and a bike has 2. In a parking lot there are 3 cars and 4 bikes. How many wheels are there?', 20, [14, 18, 20, 22, 28], '3 × 4 = 12 and 4 × 2 = 8: 12 + 8 = 20'],
+    [5, 'How many different three-digit numbers can you make with the digits 1, 2 and 3, using each digit once?', 6, [3, 4, 6, 8, 9], '123, 132, 213, 231, 312, 321'],
+    [5, 'A book has pages numbered 1 to 50. On how many pages does the digit 5 appear?', 6, [5, 6, 10, 11, 15], '5, 15, 25, 35, 45 and 50'],
+    [5, 'Three cats catch 3 mice in 3 minutes. How many mice do 6 cats catch in 3 minutes?', 6, [3, 6, 9, 12, 18], 'Twice as many cats in the same time catch twice as many mice'],
+    [5, 'Eva has 5 coins worth 13¢ in all. Each coin is a 1¢ or a 5¢ coin. How many 5¢ coins does she have?', 2, [1, 2, 3, 4, 5], 'Two 5¢ coins and three 1¢ coins: 10 + 3 = 13'],
+    [5, 'A big square is made of 4 small squares. Each small square has sides of 3 cm. How far is it around the big square?', 24, [12, 18, 24, 36, 48], 'Each side of the big square is 6 cm: 4 × 6 = 24'],
+    [5, 'Ted, Uma and Vic sit in a row. Ted is not at an end. Uma sits to the left of Ted. Who sits at the right end?', 'Vic', ['Ted', 'Uma', 'Vic', 'Nobody', 'You can’t tell'], 'Ted is in the middle and Uma is on his left, so Vic is at the right end.'],
+    [5, 'The digits of a two-digit number add up to 9, and the tens digit is twice the ones digit. What is the number?', 63, [36, 45, 54, 63, 81], '6 + 3 = 9 and 6 = 2 × 3'],
+    [5, 'The hour hand of a clock points at 9. Where does it point 5 hours later?', 2, [1, 2, 3, 4, 14], '9 + 5 = 14 hours, and after 12 the clock starts again: 2'],
+    [5, 'Kim, Leo and Mo have 18 stickers in all. Kim has 2 more than Leo, and Leo has 2 more than Mo. How many stickers does Kim have?', 8, [4, 6, 8, 9, 10], 'Mo 4, Leo 6, Kim 8: 4 + 6 + 8 = 18'],
+    [3, 'How many legs do 2 dogs have? 🐶🐶', 8, [4, 6, 8, 10, 12], '4 + 4 = 8', true],
+    [3, 'Which shape has 3 sides? 🔺 🟦 🟡 ⬛ ⭐', '🔺', ['🔺', '🟦', '🟡', '⬛', '⭐'], 'A triangle has 3 sides', true],
+    [3, 'There are 5 ducks 🦆🦆🦆🦆🦆. 2 fly away. How many ducks are left?', 3, [1, 2, 3, 4, 5], '5 − 2 = 3', true],
+    [3, 'Which number comes next? 2, 4, 6, 8, …', 10, [9, 10, 11, 12, 16], 'Count by 2s: 10', true],
+    [3, 'Today is Friday. What day is tomorrow?', 'Saturday', ['Thursday', 'Friday', 'Saturday', 'Sunday', 'Monday'], 'The day after Friday is Saturday', true],
+    [3, 'How many wheels do 2 bikes have? 🚲🚲', 4, [2, 3, 4, 6, 8], '2 + 2 = 4', true],
+    [3, 'Which animal is the biggest? 🐭 🐱 🐶 🐘 🐰', '🐘', ['🐭', '🐱', '🐶', '🐘', '🐰'], 'The elephant is the biggest', true],
+    [3, 'Sam has 3 apples 🍎🍎🍎. Mom gives him 3 more. How many apples does he have now?', 6, [3, 5, 6, 7, 9], '3 + 3 = 6', true],
+    [3, 'How many fingers are on 2 hands?', 10, [5, 8, 10, 12, 20], '5 + 5 = 10', true],
+    [3, 'What comes next? 🔴 🔵 🔴 🔵 🔴 …', '🔵', ['🔴', '🔵', '🟢', '🟡', '⚪'], 'Red and blue take turns', true],
+    [3, 'There are 4 birds on a tree 🐦🐦🐦🐦. 3 more birds come. How many birds are there now?', 7, [5, 6, 7, 8, 9], '4 + 3 = 7', true],
+    [3, 'How many eyes do 3 cats have? 🐱🐱🐱', 6, [3, 4, 6, 8, 9], '2 + 2 + 2 = 6', true],
+    [3, 'Lily is 5 years old. How old will she be next year?', 6, [4, 5, 6, 7, 10], '5 + 1 = 6', true],
+    [3, 'Which animal is last in line? 🐢 🐇 🐸 🐌 🐝', '🐝', ['🐢', '🐇', '🐸', '🐌', '🐝'], 'The bee is at the end of the line', true],
+    [3, 'How many corners does a square have? 🟦', 4, [2, 3, 4, 5, 6], 'A square has 4 corners', true],
+    [3, 'Ben has 2 cookies. Ana has 2 more cookies than Ben. How many cookies does Ana have?', 4, [2, 3, 4, 5, 6], '2 + 2 = 4', true],
+    [3, 'There are 6 balloons 🎈🎈🎈🎈🎈🎈. 2 pop. How many balloons are left?', 4, [2, 3, 4, 5, 8], '6 − 2 = 4', true],
+    [3, 'Which one does not belong? 🐶 🐱 🐰 🚗 🐻', '🚗', ['🐶', '🐱', '🐰', '🚗', '🐻'], 'All the others are animals', true],
+    [3, 'A table has 4 legs. How many legs do 2 tables have?', 8, [4, 6, 8, 10, 12], '4 + 4 = 8', true],
+    [3, 'A frog jumps 2 steps each time. It jumps 3 times. How many steps does it go?', 6, [3, 4, 5, 6, 9], '2 + 2 + 2 = 6', true],
   ];
   const fromBank = (it) => {
     const [, q, a, opts, ex] = it;
@@ -2900,25 +3046,39 @@ svg.vis.abacus { max-height: 160px; }
     let text, ans, say, explain;
     if (d === 1) { const x = rnd(1, 6), y = rnd(1, 4); ans = x + y; text = `${A} = ${x} + ${y}`; say = `The animal equals ${x} plus ${y}. What number is the animal?`; explain = `${x} + ${y} = ${ans}`; }
     else if (d === 2) { ans = rnd(2, 8); const y = rnd(1, 5); text = `${A} + ${y} = ${ans + y}`; say = `The animal plus ${y} equals ${ans + y}. What number is the animal?`; explain = `${ans + y} − ${y} = ${ans}`; }
-    else if (d === 3) { ans = rnd(2, 7); text = `${A} + ${A} = ${2 * ans}`; say = `Two of the same animal make ${2 * ans}. What number is one animal?`; explain = `${ans} + ${ans} = ${2 * ans}`; }
+    else if (d === 3 && chance(0.7)) { ans = rnd(2, 9); text = `${A} + ${A} = ${2 * ans}`; say = `Two of the same animal make ${2 * ans}. What number is one animal?`; explain = `${ans} + ${ans} = ${2 * ans}`; }
+    else if (d === 3) { ans = rnd(2, 5); text = `${A} + ${A} + ${A} = ${3 * ans}`; say = `Three of the same animal make ${3 * ans}. What number is one animal?`; explain = `${ans} + ${ans} + ${ans} = ${3 * ans}`; }
     else if (d === 4) { const b = rnd(6, 12); ans = rnd(1, b - 2); text = `${B} = ${b}<br>${A} + ${b - ans} = ${B}`; say = `The second animal is ${b}. The first animal plus ${b - ans} equals the second animal. What number is the first animal?`; explain = `${A} + ${b - ans} = ${b}, so ${A} = ${ans}`; }
     else { ans = rnd(2, 6); const y = rnd(1, 5); text = `${A} + ${A} + ${y} = ${2 * ans + y}`; say = `Two of the same animal plus ${y} make ${2 * ans + y}. What number is one animal?`; explain = `${2 * ans + y} − ${y} = ${2 * ans}, half of that is ${ans}`; }
     const opts = U.numChoices(ans, [ans + 1, ans - 1, ans + 2, ans * 2], 4).sort((a, b) => a - b);
     return C(`<div class="emojieq">${text}</div>What number is ${A}?`, ans, opts, { say, explain, hint: 'Make both sides equal.' });
   }
-  function cg_numseries(d) {
-    let seq;
-    for (let t = 0; t < 100; t++) {
-      if (d === 1) { const s = rnd(1, 5); seq = chance(0.7) ? [s, s + 1, s + 2, s + 3, s + 4] : [s + 3, s + 2, s + 1, s]; }
-      else if (d === 2) { if (chance(0.5)) { const s = rnd(6, 9); seq = [s, s - 1, s - 2, s - 3, s - 4]; } else { const s = rnd(1, 2); seq = [s, s + 2, s + 4, s + 6, s + 8]; } }
-      else if (d === 3) { const a = rnd(1, 4), b = rnd(a + 2, 8); seq = chance(0.5) ? [a, b, a, b, a, b] : [a, a + 1, a + 2, a, a + 1, a + 2]; }
-      else if (d === 4) {
-        const s = rnd(1, 3);
-        seq = pick([[s, s + 1, s + 3, s + 6], [1, 2, 4, 8], [9, 8, 6, 3], [s, s + 2, s + 3, s + 5, s + 6], [s + 6, s + 4, s + 3, s + 1, s]]);
+  // Every bead pattern a level can use (1 to 9 beads per rod); the last number is the answer.
+  const SERIES = (() => {
+    const L = { 1: [], 2: [], 3: [], 4: [], 5: [] }, R = (n) => U.range(1, n);
+    const step = (s, k, len) => U.range(0, len - 1).map((i) => s + i * k);
+    const rep = (unit, len) => U.range(0, len - 1).map((i) => unit[i % unit.length]);
+    for (const s of R(9)) {
+      L[1].push(step(s, 1, 5), step(s, -1, 4));
+      L[2].push(step(s, 2, 4), step(s, -2, 4), step(s, -1, 5), step(s, 1, 6));
+      L[3].push(rep([s, s + 1, s + 2], 6), step(s, 2, 5), step(s, -2, 5), step(s, 3, 3).concat([s + 9]));
+      L[4].push([s, s + 1, s + 3, s + 6], [s, s + 2, s + 3, s + 5, s + 6], [s, s - 2, s - 3, s - 5, s - 6], [s, s + 1, s, s + 2, s, s + 3], [s, s, s + 1, s + 1, s + 2, s + 2], step(s, 3, 3), [s, s + 3, s + 1, s + 4, s + 2, s + 5], [s, s - 1, s - 3, s - 6], [s, s + 2, s + 1, s + 3, s + 2]);
+      L[5].push([s, s - 2, s - 1, s - 3, s - 2, s - 4], [s, s + 2, s + 1, s + 3, s + 2, s + 4], [s, s, s + 2, s + 2, s + 4, s + 4], [s, s + 1, s + 3, s + 6, s + 10].slice(0, 4), [s, s - 1, s - 3, s - 6]);
+      for (const t of R(9)) if (t !== s) {
+        L[1].push(rep([s, t], 5));
+        L[2].push(rep([s, s, t], 6));
+        L[3].push(rep([s, t, t], 6));
+        if (t >= s + 2) L[3].push(rep([s, t], 6));
+        if (Math.abs(t - s) >= 2) L[5].push([s, t, s + 1, t + 1, s + 2, t + 2], [s, t, s + 1, t - 1, s + 2, t - 2]); // two rows taking turns, far enough apart to tell
       }
-      else { const a = rnd(1, 3), b = rnd(5, 6); seq = [a, b, a + 1, b + 1, a + 2, b + 2]; }
-      if (Math.max(...seq) <= 9 && Math.min(...seq) >= 1) break;
     }
+    L[4].push([1, 2, 4, 8], [8, 4, 2, 1]);
+    const ok = (q) => q.every((n) => n >= 1 && n <= 9) && new Set(q).size > 1;
+    for (const d of R(5)) L[d] = uniqueBy(L[d].filter(ok), (q) => q.join());
+    return L;
+  })();
+  function cg_numseries(d) {
+    const seq = pick(SERIES[d]);
     const ans = seq[seq.length - 1], shown = seq.slice(0, -1);
     const wrong = uniqueBy([ans + 1, ans - 1, ans + 2, ans - 2, shown[shown.length - 1], ans + 3, ans - 3].filter((n) => n !== ans && n >= 0 && n <= 9), (n) => n).slice(0, 3);
     const opts = shuffle([ans, ...wrong]);
@@ -2970,63 +3130,98 @@ svg.vis.abacus { max-height: 160px; }
     }
     return cg_matrix(1);
   }
+  const ATTRS = ['shape', 'color', 'big', 'count', 'dot'];
+  const vary = (o = {}) => randFig(Object.assign({ big: chance(0.7), count: pick([1, 1, 2, 3]), dot: chance(0.25) }, o));
   function cg_classify(d) {
-    for (let t = 0; t < 100; t++) {
-      // The rule the three pictures share, and the attribute each picture is free to vary.
+    for (let t = 0; t < 200; t++) {
+      // The rule the three pictures share; everything else varies.
       const rule = { 1: pick(['shape']), 2: pick(['color', 'shape']), 3: pick(['count', 'color']), 4: pick(['dot', 'small', 'count']), 5: 'two' }[d];
-      let fits, three, correct, wrongs, says;
-      if (rule === 'shape') { const s = pick(SHAPES); fits = (f) => f.shape === s; three = [0, 1, 2].map(() => randFig({ shape: s, big: chance(0.7) })); correct = randFig({ shape: s }); wrongs = [0, 1, 2].map(() => randFig({ shape: pick(SHAPES.filter((x) => x !== s)), color: pick([three[0].color, pick(COLORS)]) })); says = `they are all ${s}s`; }
-      else if (rule === 'color') { const c = pick(COLORS); fits = (f) => f.color === c; three = [0, 1, 2].map(() => randFig({ color: c })); correct = randFig({ color: c }); wrongs = [0, 1, 2].map(() => randFig({ color: pick(COLORS.filter((x) => x !== c)), shape: pick([three[0].shape, three[1].shape]) })); says = `they are all ${c}`; }
-      else if (rule === 'count') { const n = rnd(2, 4); fits = (f) => f.count === n; three = [0, 1, 2].map(() => randFig({ count: n })); correct = randFig({ count: n }); wrongs = [0, 1, 2].map(() => randFig({ count: pick([1, 2, 3, 4].filter((x) => x !== n)), shape: three[0].shape })); says = `they all have ${n} shapes`; }
-      else if (rule === 'dot') { fits = (f) => f.dot; three = [0, 1, 2].map(() => randFig({ dot: true })); correct = randFig({ dot: true }); wrongs = [0, 1, 2].map(() => randFig({ dot: false, shape: three[0].shape, color: three[1].color })); says = 'they all have a dot in the middle'; }
-      else if (rule === 'small') { fits = (f) => f.big === false; three = [0, 1, 2].map(() => randFig({ big: false })); correct = randFig({ big: false }); wrongs = [0, 1, 2].map(() => randFig({ big: true, shape: three[0].shape })); says = 'they are all small'; }
-      else { const s = pick(SHAPES), c = pick(COLORS); fits = (f) => f.shape === s && f.color === c; three = [0, 1, 2].map((i) => randFig({ shape: s, color: c, big: i !== 1, count: i === 2 ? 2 : 1 })); correct = randFig({ shape: s, color: c, big: chance(0.5), count: pick([1, 2, 3]) }); wrongs = [randFig({ shape: s, color: pick(COLORS.filter((x) => x !== c)) }), randFig({ shape: pick(SHAPES.filter((x) => x !== s)), color: c }), randFig({ shape: pick(SHAPES.filter((x) => x !== s)), color: c, count: 2 })]; says = `they are all ${c} ${s}s`; }
+      let fixed, says;
+      if (rule === 'shape') { fixed = { shape: pick(SHAPES) }; says = `they are all ${fixed.shape}s`; }
+      else if (rule === 'color') { fixed = { color: pick(COLORS) }; says = `they are all ${fixed.color}`; }
+      else if (rule === 'count') { fixed = { count: rnd(2, 4) }; says = `they all have ${fixed.count} shapes`; }
+      else if (rule === 'dot') { fixed = { dot: true }; says = 'they all have a dot in the middle'; }
+      else if (rule === 'small') { fixed = { big: false }; says = 'they are all small'; }
+      else {
+        const pair = pick([['shape', 'color'], ['shape', 'count'], ['color', 'count'], ['shape', 'dot'], ['color', 'dot']]);
+        const v = { shape: pick(SHAPES), color: pick(COLORS), count: rnd(2, 3), dot: true };
+        fixed = {};
+        for (const k of pair) fixed[k] = v[k];
+        says = {
+          'shape,color': `they are all ${v.color} ${v.shape}s`, 'shape,count': `each one has ${v.count} ${v.shape}s`, 'color,count': `each one has ${v.count} ${v.color} shapes`,
+          'shape,dot': `they are all ${v.shape}s with a dot`, 'color,dot': `they are all ${v.color} with a dot`,
+        }[pair.join()];
+      }
+      const keys = Object.keys(fixed);
+      const fits = (f) => keys.every((k) => f[k] === fixed[k]);
+      // Each wrong answer breaks one part of the rule (and only that), so it looks close.
+      const breakOne = (k) => ({ shape: { shape: pick(SHAPES.filter((x) => x !== fixed.shape)) }, color: { color: pick(COLORS.filter((x) => x !== fixed.color)) }, count: { count: pick([1, 2, 3, 4].filter((x) => x !== fixed.count)) }, dot: { dot: false }, big: { big: true } })[k];
+      const three = [0, 1, 2].map(() => vary(fixed));
+      const correct = vary(fixed);
+      const wrongs = [0, 1, 2].map((i) => vary(Object.assign({}, fixed, breakOne(keys[i % keys.length]))));
+      // No hidden second rule: whatever all three share, the right answer shares too and every wrong one misses.
+      const shared = ATTRS.filter((k) => three.every((f) => f[k] === three[0][k]));
+      const fitsAll = (f) => shared.every((k) => f[k] === three[0][k]);
       const allKeys = [...three, correct, ...wrongs].map(key);
-      if (new Set(allKeys).size !== 7 || !three.every(fits) || !fits(correct) || wrongs.some(fits)) continue;
+      if (new Set(allKeys).size !== 7 || !fits(correct) || wrongs.some(fits) || !fitsAll(correct) || wrongs.some(fitsAll)) continue;
       return pics(`These three pictures are alike in some way:${V.figRow(three)}Which picture goes with them?`, V.fig(correct), wrongs.map((f) => V.fig(f)), { say: 'These three pictures are alike in some way. Which picture goes with them?', hint: 'Look at shape, color, size, how many, and what is inside.', explain: `They belong together because ${says}.` });
     }
     return cg_classify(1);
   }
   function cg_folding(d) {
     for (let t = 0; t < 100; t++) {
-      const fold = d <= 3 ? pick(['v', 'h']) : d === 4 ? pick(['q', 'q', 'v', 'h']) : 'q';
-      const nHoles = d === 3 || d === 5 || (d === 4 && fold !== 'q') ? 2 : 1;
-      const cellsOk = (r, c) => (fold === 'v' ? c >= 2 : fold === 'h' ? r >= 2 : r >= 2 && c >= 2);
+      // Single folds from any side; double folds leave any one quarter on top.
+      const fold = d <= 3 ? pick(['v', 'vr', 'h', 'hb']) : d === 4 ? pick(['q', 'q2', 'q3', 'q4', 'v', 'vr', 'h', 'hb']) : pick(['q', 'q2', 'q3', 'q4', 'q', 'q2', 'q3', 'q4', 'v', 'vr', 'h', 'hb']);
+      const F = V.FOLDS[fold], twice = fold[0] === 'q';
+      const nHoles = d <= 2 ? 1 : d === 3 ? 2 : d === 4 ? (twice ? 1 : 2) : twice ? 2 : 3;
       const open = [];
-      for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) if (cellsOk(r, c)) open.push([r, c]);
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) if (F.vis(r, c)) open.push([r, c]);
       const holes = U.sample(open, nHoles);
       const mirrorV = ([r, c]) => [r, 3 - c], mirrorH = ([r, c]) => [3 - r, c];
-      const unfold = (hs, how) => { let out = hs.slice(); if (how === 'v' || how === 'q') out = out.concat(out.map(mirrorV)); if (how === 'h' || how === 'q') out = out.concat(out.map(mirrorH)); return uniqueBy(out, (x) => x.join()); };
-      const right = unfold(holes, fold);
+      const unfold = (hs, axes) => { let out = hs.slice(); if (axes.includes('v')) out = out.concat(out.map(mirrorV)); if (axes.includes('h')) out = out.concat(out.map(mirrorH)); return uniqueBy(out, (x) => x.join()); };
+      const right = unfold(holes, F.axes);
       const k = (hs) => hs.map((x) => x.join()).sort().join(';');
       const wrongSets = uniqueBy([
         holes,
-        unfold(holes, fold === 'v' ? 'h' : 'v'),
-        fold === 'q' ? unfold(holes, 'v') : unfold(holes, 'q'),
+        unfold(holes, F.axes === 'v' ? 'h' : 'v'),
+        twice ? unfold(holes, 'v') : unfold(holes, 'vh'),
+        twice ? unfold(holes, 'h') : unfold(holes, F.axes === 'v' ? 'h' : 'v').concat(holes),
         right.map(([r, c]) => [r, (c + 1) % 4]),
         right.map(([r, c]) => [(r + 1) % 4, c]),
-      ].filter((hs) => k(hs) !== k(right)), k);
+      ].map((hs) => uniqueBy(hs, (x) => x.join())).filter((hs) => k(hs) !== k(right)), k);
       if (wrongSets.length < 3) continue;
-      const how = fold === 'v' ? 'folded in half from left to right' : fold === 'h' ? 'folded in half from top to bottom' : 'folded in half two times';
-      return pics(`A sheet of paper is ${how}, then a hole is punched through it. What does the paper look like when it is opened?${V.foldSteps(fold, holes)}`, V.sheet(right, { size: 72 }), shuffle(wrongSets).slice(0, 3).map((hs) => V.sheet(hs, { size: 72 })), { say: `A sheet of paper is ${how}. Then a hole is punched. What does it look like when it is opened?`, hint: 'Every layer gets a hole. Unfolding makes a mirror copy across the fold.', explain: `The folded paper has ${fold === 'q' ? 4 : 2} layers, so each punch makes ${fold === 'q' ? 4 : 2} holes: ${right.length} holes in all, mirrored across the fold${fold === 'q' ? 's' : ''}.` });
+      const layers = twice ? 4 : 2;
+      return pics(`A sheet of paper is ${F.text}, then ${nHoles === 1 ? 'a hole is' : nHoles + ' holes are'} punched through it. What does the paper look like when it is opened?${V.foldSteps(fold, holes)}`, V.sheet(right, { size: 72 }), shuffle(wrongSets).slice(0, 3).map((hs) => V.sheet(hs, { size: 72 })), { say: `A sheet of paper is ${F.text}. Then ${nHoles === 1 ? 'a hole is' : nHoles + ' holes are'} punched. What does it look like when it is opened?`, hint: 'Every layer gets a hole. Unfolding makes a mirror copy across the fold.', explain: `The folded paper has ${layers} layers, so each punch makes ${layers} holes: ${right.length} holes in all, mirrored across the fold${twice ? 's' : ''}.` });
     }
     return cg_folding(1);
   }
 
   // ===================== Verbal (pictures) =====================
   // Relation groups for picture analogies: every pair in a group is linked the same way.
-  const ANALOGY = {
-    1: [['eats', [['🐇', '🥕'], ['🐒', '🍌'], ['🐶', '🦴'], ['🐭', '🧀'], ['🐼', '🎋']]], ['gives us', [['🐄', '🥛'], ['🐔', '🥚'], ['🐝', '🍯'], ['🐑', '🧶']]]],
-    2: [['grows into', [['🐛', '🦋'], ['🥚', '🐣'], ['🌱', '🌳']]], ['is worn on', [['🦶', '👟'], ['✋', '🧤'], ['🙂', '🧢']]]],
-    3: [['is used with', [['🔑', '🔒'], ['✏️', '📄'], ['⚽', '🥅'], ['🏹', '🎯']]], ['eats', [['🐇', '🥕'], ['🐒', '🍌'], ['🐶', '🦴'], ['🐭', '🧀']]]],
-    4: [['works with', [['👩‍🍳', '🍳'], ['👨‍🚒', '🚒'], ['👩‍⚕️', '🩺'], ['👨‍🌾', '🚜'], ['👩‍🎨', '🎨']]], ['grows into', [['🐛', '🦋'], ['🥚', '🐣'], ['🌱', '🌳']]]],
-    5: [['is the opposite of', [['☀️', '🌙'], ['🔥', '🧊'], ['⬆️', '⬇️'], ['➕', '➖']]], ['works with', [['👩‍🍳', '🍳'], ['👨‍🚒', '🚒'], ['👩‍⚕️', '🩺'], ['👨‍🌾', '🚜']]]],
+  // Wrong answers come from `wrong` (a hand-picked list that never fits the relation) or, when it is
+  // 'targets', from the other pairs' answers (they fit the relation, but for a different picture).
+  const GROUPS = {
+    eats: ['eats', [['🐇', '🥕'], ['🐒', '🍌'], ['🐶', '🦴'], ['🐭', '🧀'], ['🐼', '🎋'], ['🐿️', '🌰'], ['🐄', '🌾']], ['🧸', '🚗', '👟', '🎈', '📚', '🔑', '⚽', '🎸', '🛏️', '✏️']],
+    gives: ['gives us', [['🐄', '🥛'], ['🐔', '🥚'], ['🐝', '🍯'], ['🐑', '🧶']], ['🍎', '🍞', '🥕', '🍌', '🌽', '🧸', '🍇']],
+    worn: ['is worn on', [['🦶', '👟'], ['✋', '🧤'], ['🙂', '🧢'], ['👀', '🕶️'], ['👂', '🎧']], 'targets'],
+    grows: ['grows into', [['🐛', '🦋'], ['🌱', '🌳'], ['🐣', '🐓'], ['👶', '🧑'], ['🌰', '🌳']], 'targets'],
+    used: ['is used with', [['🔑', '🔒'], ['✏️', '📄'], ['⚽', '🥅'], ['🏹', '🎯'], ['🥄', '🥣']], 'targets'],
+    needs: ['needs', [['🚗', '⛽'], ['🌱', '💧'], ['📺', '🔌'], ['🔦', '🔋'], ['⛵', '💨']], ['🧸', '🎈', '🍕', '🧦', '🎸', '📚', '🎁']],
+    works: ['works with', [['👩‍🍳', '🍳'], ['👨‍🚒', '🚒'], ['👩‍⚕️', '🩺'], ['👨‍🌾', '🚜'], ['👩‍🎨', '🎨'], ['👩‍🚀', '🚀'], ['👮', '🚓']], 'targets'],
+    opposite: ['is the opposite of', [['☀️', '🌙'], ['🔥', '🧊'], ['⬆️', '⬇️'], ['➕', '➖'], ['⬅️', '➡️'], ['😀', '😢'], ['🔊', '🔇']], 'targets'],
   };
-  const ALL_ANALOGY_ITEMS = [...new Set(Object.values(ANALOGY).flatMap((g) => g.flatMap(([, ps]) => ps.flat())))];
+  const ANALOGY = {
+    1: [GROUPS.eats, GROUPS.gives, GROUPS.worn],
+    2: [GROUPS.worn, GROUPS.grows, GROUPS.gives],
+    3: [GROUPS.used, GROUPS.eats, GROUPS.needs],
+    4: [GROUPS.works, GROUPS.grows, GROUPS.needs],
+    5: [GROUPS.opposite, GROUPS.works, GROUPS.used],
+  };
   function cg_picanalogy(d) {
-    const [rel, pairs] = pick(ANALOGY[d]);
+    const [rel, pairs, pool] = pick(ANALOGY[d]);
     const [[a, b], [c, ans]] = U.sample(pairs, 2);
-    const wrong = U.sample(ALL_ANALOGY_ITEMS.filter((x) => ![a, b, c, ans].includes(x) && !pairs.some((p) => p[1] === x)), 2).concat([c]);
+    const from = [...new Set(pool === 'targets' ? pairs.map((p) => p[1]) : pool)];
+    const wrong = U.sample(from.filter((x) => ![a, b, c, ans].includes(x)), 2).concat([c]);
     return EC(`The first two pictures go together. Which picture goes with the third one in the same way?<div class="vis analogy emo"><span class="abox">${a}</span><b>→</b><span class="abox">${b}</span><span class="abox">${c}</span><b>→</b><span class="abox mq">?</span></div>`, ans, shuffle([ans, ...wrong]), { say: 'The first two pictures go together. Which picture goes with the third one in the same way?', hint: 'Say how the first two go together, then use the same words for the third.', explain: `${a} ${rel} ${b}, and ${c} ${rel} ${ans}.` });
   }
   const CATS = {
@@ -3067,26 +3262,104 @@ svg.vis.abacus { max-height: 160px; }
     [1, 'Which one keeps you dry in the rain?', '☂️', ['🕶️', '🧦', '🎒']],
     [1, 'Which animal says “moo”?', '🐄', ['🐶', '🐷', '🐑']],
     [1, 'Which one do you wear on your feet?', '👟', ['🧢', '🧤', '👓']],
+    [1, 'Which animal says “woof”?', '🐶', ['🐱', '🐄', '🐔']],
+    [1, 'Which one do you sleep in?', '🛏️', ['🚗', '📺', '🍳']],
+    [1, 'Which one do you read?', '📖', ['🍎', '⚽', '🧦']],
+    [1, 'Which one can you eat?', '🍌', ['🧱', '👟', '🔑']],
+    [1, 'Which one do you wear on your head?', '🧢', ['🧦', '👟', '🧤']],
+    [1, 'Which one can fly?', '🐦', ['🐟', '🐢', '🐄']],
+    [1, 'Which one lives in the water?', '🐟', ['🐈', '🐄', '🐔']],
+    [1, 'Which one is hot?', '🔥', ['🧊', '⛄', '🍦']],
+    [1, 'Which one do you kick?', '⚽', ['📚', '🍎', '🛏️']],
+    [1, 'Which one do you drink from?', '🥤', ['🍴', '🔨', '👟']],
+    [1, 'Which one has wheels?', '🚗', ['🐴', '⛵', '🏠']],
+    [1, 'Which one do you play music on?', '🎸', ['🍳', '🧹', '🛏️']],
+    [1, 'Which one shines in the sky at night?', '🌙', ['☀️', '🌈', '🌳']],
+    [1, 'Which one is a fruit?', '🍓', ['🥕', '🍞', '🧀']],
+    [1, 'Which one do you use to write?', '✏️', ['🥄', '🧦', '🔑']],
+    [1, 'Which animal hops?', '🐇', ['🐌', '🐟', '🐢']],
     [2, 'Which one would you find in a garden?', '🌻', ['🛏️', '🚿', '📺']],
     [2, 'Which one grows on a tree?', '🍎', ['🥕', '🥚', '🧀']],
     [2, 'Which animal can live both in water and on land?', '🐸', ['🐟', '🐦', '🐴']],
     [2, 'Which one do you use to call a friend?', '📱', ['📖', '🎸', '⚽']],
     [2, 'Which one gives light in the dark?', '🔦', ['🧸', '🧲', '🥁']],
+    [2, 'Which one do you use to sweep the floor?', '🧹', ['🍴', '🎨', '📏']],
+    [2, 'Which one do you wear when it is cold?', '🧣', ['🩳', '🕶️', '👙']],
+    [2, 'Which one is a vegetable?', '🥕', ['🍎', '🍪', '🍩']],
+    [2, 'Which animal has a very long neck?', '🦒', ['🐷', '🐢', '🐇']],
+    [2, 'Which one do you use to eat soup?', '🥄', ['🔪', '✏️', '🔑']],
+    [2, 'Which one lives in a beehive?', '🐝', ['🐦', '🐟', '🐌']],
+    [2, 'Which one do firefighters drive?', '🚒', ['🚌', '🚲', '🚜']],
+    [2, 'Which one is made of snow?', '⛄', ['🏠', '🧸', '🚗']],
+    [2, 'Which animal has black and white stripes?', '🦓', ['🐘', '🐻', '🐑']],
+    [2, 'Which one do you wear on your hands?', '🧤', ['🧦', '🧢', '👖']],
+    [2, 'Which one comes from a chicken?', '🥚', ['🥛', '🍯', '🧀']],
+    [2, 'Which one can you blow up with air?', '🎈', ['🧱', '📚', '🍎']],
+    [2, 'Which one do you use to take a picture?', '📷', ['📺', '📻', '⌚']],
+    [2, 'Which one is a bird?', '🦉', ['🐿️', '🐢', '🐍']],
+    [2, 'Which one tastes sour?', '🍋', ['🍬', '🍰', '🍫']],
     [3, 'Which one is the biggest animal?', '🐋', ['🐘', '🦒', '🐻']],
     [3, 'Which one is a baby animal?', '🐣', ['🐓', '🦅', '🦉']],
     [3, 'Which one helps a doctor listen to your heart?', '🩺', ['🔨', '🎤', '🧲']],
     [3, 'Which one do you use to see things far away?', '🔭', ['🔍', '🕶️', '📷']],
-    [3, 'Which one would melt in the sun?', '⛄', ['🪨', '🧱', '🏀']],
+    [3, 'Which one would melt in the sun?', '⛄', ['🧱', '🏀', '🪑']],
+    [3, 'Which one helps you find your way?', '🧭', ['🎁', '🧸', '🍕']],
+    [3, 'Which one do you use to see how heavy something is?', '⚖️', ['📏', '⏰', '🌡️']],
+    [3, 'Which one tells you how hot or cold it is?', '🌡️', ['⚖️', '📏', '⏰']],
+    [3, 'Which animal sleeps all winter long?', '🐻', ['🐄', '🐎', '🐓']],
+    [3, 'Which one is the smallest?', '🐜', ['🐈', '🐕', '🐎']],
+    [3, 'Which one grows under the ground?', '🥕', ['🍎', '🍒', '🍌']],
+    [3, 'Which one is NOT alive?', '🧸', ['🐶', '🌳', '🐟']],
+    [3, 'Which one makes honey?', '🐝', ['🦋', '🐞', '🐜']],
+    [3, 'Which one carries people across the ocean?', '🚢', ['🚗', '🚲', '🚂']],
+    [3, 'Which one do you need to bake a cake?', '🥚', ['🧦', '🔑', '🧸']],
+    [3, 'Which animal carries its house on its back?', '🐢', ['🐸', '🐍', '🦎']],
+    [3, 'Which one would you see at a birthday party?', '🎂', ['🧹', '🛏️', '🔧']],
+    [3, 'Which one falls from trees in the fall?', '🍂', ['🌵', '🌽', '🍄']],
+    [3, 'Which animal is good at climbing trees?', '🐒', ['🐟', '🐄', '🐧']],
+    [3, 'Which one flashes in the sky during a storm?', '⚡', ['🌈', '☁️', '💧']],
+    [3, 'Which animal has eight arms?', '🐙', ['🦀', '🐠', '🐬']],
     [4, 'Which one can you NOT eat?', '🧱', ['🍞', '🥕', '🍇']],
     [4, 'Which one is used to build a house?', '🧱', ['🎈', '🧸', '🍩']],
     [4, 'Which one do bees make?', '🍯', ['🥛', '🧀', '🥚']],
-    [4, 'Which one would you need at the beach on a sunny day?', '🕶️', ['🧣', '🧤', '☂️']],
+    [4, 'Which one would you need at the beach on a sunny day?', '🕶️', ['🧣', '🧤', '🧥']],
     [4, 'Which one has the most legs?', '🕷️', ['🐔', '🐕', '🐞']],
+    [4, 'Which one is NOT a fruit?', '🥦', ['🍎', '🍐', '🍑']],
+    [4, 'Which one does NOT have wings?', '🐍', ['🐝', '🦅', '🦇']],
+    [4, 'Which one would you take on a camping trip?', '⛺', ['🛁', '📺', '🛋️']],
+    [4, 'Which one is the fastest?', '🚀', ['🚲', '🐢', '🚗']],
+    [4, 'Which one is the heaviest?', '🐘', ['🐁', '🐇', '🐈']],
+    [4, 'Which one do you ride down a snowy hill?', '🛷', ['🛹', '🚲', '🛴']],
+    [4, 'Which one is a planet?', '🌍', ['⭐', '🌙', '☀️']],
+    [4, 'Which one does NOT grow?', '🪑', ['🌱', '🐶', '👶']],
+    [4, 'Which animal lays eggs?', '🐔', ['🐄', '🐶', '🐈']],
+    [4, 'Which one do you use to measure how long something is?', '📏', ['⚖️', '⏰', '🌡️']],
+    [4, 'Which one would you NOT find in a kitchen?', '🚜', ['🍳', '🥄', '🍴']],
+    [4, 'Which one keeps a door shut so nobody can open it?', '🔒', ['🎀', '🧸', '🎈']],
+    [4, 'Which one makes the loudest sound?', '🥁', ['🧸', '🧦', '🍃']],
+    [4, 'Which one keeps you warm in a snowstorm?', '🧥', ['🩳', '👙', '🕶️']],
+    [4, 'Which one has roots?', '🌳', ['🐢', '🚗', '🎈']],
     [5, 'Which one is cold AND sweet?', '🍦', ['🧊', '🍰', '⛄']],
     [5, 'Which one flies but is NOT a bird?', '🦋', ['🦅', '🦉', '🐧']],
     [5, 'Which one is an animal that does NOT live in water?', '🐫', ['🐬', '🐙', '🦈']],
     [5, 'Which one would you use to fix a broken chair?', '🔨', ['✂️', '🧹', '🖍️']],
     [5, 'Which one is a fruit that is NOT red?', '🍌', ['🍓', '🍒', '🍎']],
+    [5, 'Which one is round AND good to eat?', '🍊', ['⚽', '🍌', '🥖']],
+    [5, 'Which one lives in water but is NOT a fish?', '🐬', ['🐟', '🐠', '🐡']],
+    [5, 'Which one has wheels but NO engine?', '🚲', ['🚗', '🚌', '🏍️']],
+    [5, 'Which one is a bird that can NOT fly?', '🐧', ['🦅', '🦜', '🦉']],
+    [5, 'Which one is yellow AND a fruit?', '🍌', ['🌻', '🍓', '🍇']],
+    [5, 'Which one is cold but is NOT ice cream?', '⛄', ['🍦', '🔥', '☕']],
+    [5, 'Which one has a tail but NO legs?', '🐍', ['🐶', '🐈', '🐒']],
+    [5, 'Which one is NOT a vehicle?', '🏠', ['🚗', '🚌', '🚲']],
+    [5, 'Which one is hot AND you can drink it?', '☕', ['🔥', '🧃', '🍦']],
+    [5, 'Which one has stripes AND is a big cat?', '🐅', ['🦓', '🐈', '🦁']],
+    [5, 'Which one can swim AND fly?', '🦆', ['🐟', '🐬', '🦅']],
+    [5, 'Which one grows on a tree but is NOT a fruit?', '🍃', ['🍎', '🍐', '🍒']],
+    [5, 'Which one has wings but is NOT an animal?', '✈️', ['🦅', '🦋', '🐝']],
+    [5, 'Which one is green AND a vegetable?', '🥦', ['🥕', '🍏', '🌽']],
+    [5, 'Which animal lives in the desert?', '🐪', ['🐧', '🐠', '🐄']],
+    [5, 'Which one is NOT something you wear?', '☂️', ['👕', '👖', '🧢']],
   ];
   function cg_sentence(d) {
     const [, q, ans, wrong] = pick(SENT.filter((s) => s[0] === d));
@@ -3602,17 +3875,23 @@ svg.vis.abacus { max-height: 160px; }
   // Kangaroo: 24 questions, 8 worth 3 points, 8 worth 4, 8 worth 5 (96 in all), 75 minutes, no penalty for wrong answers.
   // Joey (kindergarten): 12 picture puzzles, 1 point each, no clock.
   P.KANGAROO_MINUTES = 75;
+  // A question this child has not seen yet: never one already in this attempt (`avoid`), preferably one
+  // not shown in earlier attempts (profile `seen`); when every candidate was seen, the one seen longest ago.
+  P.fresh = (topic, d, avoid = new Set()) => {
+    const seen = (MQ.state && MQ.state.seen && MQ.state.seen[topic]) || [];
+    let best = null, bestRank = Infinity;
+    for (let i = 0; i < 40; i++) {
+      const p = MQ.makeProblem(topic, d), k = U.qkey(p);
+      const rank = avoid.has(k) ? 1e9 : seen.indexOf(k);
+      if (rank === -1) { best = p; break; }
+      if (rank < bestRank || !best) { best = p; bestRank = rank; }
+    }
+    avoid.add(U.qkey(best));
+    return best;
+  };
   P.newContest = (kind) => {
-    const seen = new Set();
-    const make = (topic, d) => {
-      let p;
-      for (let i = 0; i < 40; i++) {
-        p = MQ.makeProblem(topic, d);
-        const key = p.text + (p.visual || '');
-        if (!seen.has(key)) { seen.add(key); break; }
-      }
-      return p;
-    };
+    const avoid = new Set();
+    const make = (topic, d) => P.fresh(topic, d, avoid);
     const items = [];
     if (kind === 'joey') {
       for (let i = 0; i < 12; i++) items.push({ p: make('kg_joey', 1), pts: 1 });
@@ -3690,6 +3969,7 @@ svg.vis.abacus { max-height: 160px; }
     days: {}, // 'YYYY-MM-DD': { a, c }
     mistakes: [],
     tests: { checks: [], contests: [] }, // Placement Check and mock contest results (newest last)
+    seen: {}, // test-prep topic: recently shown question keys (oldest first), so retakes bring new questions
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
     settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true },
   });
@@ -3798,6 +4078,18 @@ svg.vis.abacus { max-height: 160px; }
   // Combine two copies of the same child's progress (e.g. played offline on two devices).
   // Nothing earned is lost: creatures, badges and stars are united; counters keep the higher value;
   // spendable things (crystals) and settings come from the most recent copy.
+  S.SEEN_MAX = 80;
+  // Remember that a test-prep question was shown (most recent last).
+  S.markSeen = (topic, key) => {
+    const st = MQ.state;
+    if (!st) return;
+    const list = (st.seen = st.seen || {})[topic] || [];
+    const at = list.indexOf(key);
+    if (at === list.length - 1 && at >= 0) return;
+    if (at >= 0) list.splice(at, 1);
+    list.push(key);
+    st.seen[topic] = list.slice(-S.SEEN_MAX);
+  };
   S.mergeProfiles = (a, b) => {
     if (!a) return b;
     if (!b) return a;
@@ -3826,6 +4118,12 @@ svg.vis.abacus { max-height: 160px; }
       const byId = {};
       for (const r of both) byId[r.id] = r;
       out.tests[key] = Object.values(byId).sort((x, y) => (x.id < y.id ? -1 : 1));
+    }
+    // questions seen on either device; the newer copy's order wins
+    out.seen = {};
+    for (const t of new Set([...Object.keys(old.seen || {}), ...Object.keys(nw.seen || {})])) {
+      const keys = [...((old.seen || {})[t] || []), ...((nw.seen || {})[t] || [])];
+      out.seen[t] = keys.filter((k, i) => keys.lastIndexOf(k) === i).slice(-S.SEEN_MAX);
     }
     out.rev = max(nw.rev, old.rev);
     return out;
@@ -4370,6 +4668,12 @@ svg.vis.abacus { max-height: 160px; }
     if (sess.mode === 'check') return MQ.prep.next(sess.eng);
     const topic = U.pick(sess.topics);
     const d = sess.auto ? sess.autoD : U.rnd(sess.d[0], sess.d[1]);
+    if (MQ.TOPICS[topic].track === 'prep') { // test-prep practice: prefer questions not seen in earlier attempts
+      const p = MQ.prep.fresh(topic, d, new Set(sess.recent));
+      sess.recent.push(U.qkey(p));
+      if (sess.recent.length > 25) sess.recent.shift();
+      return p;
+    }
     let p;
     for (let i = 0; i < 25; i++) {
       p = MQ.makeProblem(topic, d);
@@ -4417,6 +4721,7 @@ svg.vis.abacus { max-height: 160px; }
   }
   function nextProblem() {
     sess.p = pickProblem();
+    if (sess.mode !== 'check' && MQ.TOPICS[sess.p.topic] && MQ.TOPICS[sess.p.topic].track === 'prep') { S.markSeen(sess.p.topic, U.qkey(sess.p)); S.save(); }
     sess.pending = null;
     sess.tries = 0;
     sess.input = '';
@@ -4929,6 +5234,7 @@ svg.vis.abacus { max-height: 160px; }
   // Draw the contest without render(), so the clock keeps running between questions.
   function contestView() {
     const i = ct.i, it = ct.items[i], p = it.p, n = ct.items.length, joey = ct.kind === 'joey' || ct.kind === 'cogatk', kangaroo = ct.kind === 'kangaroo';
+    if (!it.seen) { it.seen = true; S.markSeen(p.topic, U.qkey(p)); S.save(); }
     const r = root();
     r.className = 'is-contest';
     r.innerHTML = `<div class="contest">

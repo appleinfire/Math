@@ -388,13 +388,17 @@
     return svg(300, 172, s, 'scale', 'balance scale');
   };
   // A street grid: A at the bottom left, B at the top right.
-  V.pathGrid = (rows, cols) => {
+  // via / block = [i, j]: a corner i steps right and j steps up from A, marked ⭐ (must pass) or ✖ (closed).
+  V.pathGrid = (rows, cols, { via = null, block = null } = {}) => {
     const u = Math.min(56, Math.floor(240 / Math.max(rows, cols))), x0 = 26, y0 = 18;
     let s = '';
+    const at = ([i, j]) => [x0 + i * u, y0 + (rows - j) * u];
     for (let r = 0; r <= rows; r++) s += `<line x1="${x0}" y1="${y0 + r * u}" x2="${x0 + cols * u}" y2="${y0 + r * u}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
     for (let c = 0; c <= cols; c++) s += `<line x1="${x0 + c * u}" y1="${y0}" x2="${x0 + c * u}" y2="${y0 + rows * u}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
     s += `<circle cx="${x0}" cy="${y0 + rows * u}" r="12" fill="#ff6b5b" stroke="${INK}" stroke-width="2"/>` + text(x0, y0 + rows * u + 5, 'A', 13, 'fill="#ffffff"');
     s += `<circle cx="${x0 + cols * u}" cy="${y0}" r="12" fill="#2bb3a3" stroke="${INK}" stroke-width="2"/>` + text(x0 + cols * u, y0 + 5, 'B', 13, 'fill="#ffffff"');
+    if (via) { const [x, y] = at(via); s += `<circle cx="${x}" cy="${y}" r="13" fill="#ffd54a" stroke="${INK}" stroke-width="2"/>` + text(x, y + 6, '★', 17, `fill="${INK}"`); }
+    if (block) { const [x, y] = at(block); s += `<circle cx="${x}" cy="${y}" r="13" fill="#ffffff" stroke="#e5484d" stroke-width="3"/><path d="M${x - 6} ${y - 6}L${x + 6} ${y + 6}M${x + 6} ${y - 6}L${x - 6} ${y + 6}" stroke="#e5484d" stroke-width="3.5" stroke-linecap="round"/>`; }
     return svg(x0 * 2 + cols * u, y0 * 2 + rows * u, s, 'grid', 'grid of streets from A to B');
   };
   // Towers of cubes, drawn in 3D. back / front = tower heights per column (front row may be omitted).
@@ -443,7 +447,7 @@
     let s = `<rect x="1.5" y="1.5" width="${size - 3}" height="${size - 3}" rx="8" fill="#ffffff" stroke="#d6e0e6" stroke-width="2"/>`;
     for (const [px, py] of spots) {
       s += figShape(f.shape, r1(px * size), r1(py * size), r, FIG_COLORS[f.color] || f.color, f.rot || 0);
-      if (f.dot) s += `<circle cx="${r1(px * size)}" cy="${r1(py * size)}" r="${Math.max(3, r * 0.22)}" fill="${INK}"/>`;
+      if (f.dot) s += `<circle cx="${r1(px * size)}" cy="${r1(py * size)}" r="${Math.max(3.5, r * 0.24)}" fill="#ffffff" stroke="${INK}" stroke-width="2"/>`;
     }
     return svg(size, size, s, 'fig', 'figure');
   };
@@ -473,10 +477,20 @@
     for (const [r, c] of holes) s += `<circle cx="${2 + c * u + u / 2}" cy="${2 + r * u + u / 2}" r="${u * 0.26}" fill="${INK}"/>`;
     return svg(size + 4, size + 4, s, 'sheet', 'sheet of paper');
   };
+  // Folds: which cells stay on top, how to say it, and which mirror lines unfolding uses.
+  V.FOLDS = {
+    v: { vis: (r, c) => c >= 2, text: 'folded in half from left to right', axes: 'v' },
+    vr: { vis: (r, c) => c < 2, text: 'folded in half from right to left', axes: 'v' },
+    h: { vis: (r, c) => r >= 2, text: 'folded in half from top to bottom', axes: 'h' },
+    hb: { vis: (r, c) => r < 2, text: 'folded in half from bottom to top', axes: 'h' },
+    q: { vis: (r, c) => r >= 2 && c >= 2, text: 'folded in half two times', axes: 'vh' },
+    q2: { vis: (r, c) => r >= 2 && c < 2, text: 'folded in half two times', axes: 'vh' },
+    q3: { vis: (r, c) => r < 2 && c >= 2, text: 'folded in half two times', axes: 'vh' },
+    q4: { vis: (r, c) => r < 2 && c < 2, text: 'folded in half two times', axes: 'vh' },
+  };
   V.foldSteps = (fold, holes) => {
-    const vis = fold === 'v' ? (r, c) => c >= 2 : fold === 'h' ? (r, c) => r >= 2 : (r, c) => r >= 2 && c >= 2;
-    const lines = fold === 'v' ? 'folded in half from left to right' : fold === 'h' ? 'folded in half from top to bottom' : 'folded in half twice';
-    return `<div class="vis foldsteps"><div>${V.sheet([], { visible: null })}<small>paper</small></div><b>→</b><div>${V.sheet([], { visible: vis })}<small>${lines}</small></div><b>→</b><div>${V.sheet(holes, { visible: vis })}<small>hole punched</small></div></div>`;
+    const F = V.FOLDS[fold];
+    return `<div class="vis foldsteps"><div>${V.sheet([], { visible: null })}<small>paper</small></div><b>→</b><div>${V.sheet([], { visible: F.vis })}<small>${F.text.replace('folded in half', 'folded')}</small></div><b>→</b><div>${V.sheet(holes, { visible: F.vis })}<small>${holes.length === 1 ? 'hole' : 'holes'} punched</small></div></div>`;
   };
   // Little groups of emoji (for picture number analogies).
   V.cluster = (emoji, n) => `<span class="cluster c${Math.min(n, 9)}">${Array(n).fill(`<i>${emoji}</i>`).join('')}</span>`;

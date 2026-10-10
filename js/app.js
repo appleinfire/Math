@@ -375,6 +375,12 @@
     if (sess.mode === 'check') return MQ.prep.next(sess.eng);
     const topic = U.pick(sess.topics);
     const d = sess.auto ? sess.autoD : U.rnd(sess.d[0], sess.d[1]);
+    if (MQ.TOPICS[topic].track === 'prep') { // test-prep practice: prefer questions not seen in earlier attempts
+      const p = MQ.prep.fresh(topic, d, new Set(sess.recent));
+      sess.recent.push(U.qkey(p));
+      if (sess.recent.length > 25) sess.recent.shift();
+      return p;
+    }
     let p;
     for (let i = 0; i < 25; i++) {
       p = MQ.makeProblem(topic, d);
@@ -422,6 +428,7 @@
   }
   function nextProblem() {
     sess.p = pickProblem();
+    if (sess.mode !== 'check' && MQ.TOPICS[sess.p.topic] && MQ.TOPICS[sess.p.topic].track === 'prep') { S.markSeen(sess.p.topic, U.qkey(sess.p)); S.save(); }
     sess.pending = null;
     sess.tries = 0;
     sess.input = '';
@@ -934,6 +941,7 @@
   // Draw the contest without render(), so the clock keeps running between questions.
   function contestView() {
     const i = ct.i, it = ct.items[i], p = it.p, n = ct.items.length, joey = ct.kind === 'joey' || ct.kind === 'cogatk', kangaroo = ct.kind === 'kangaroo';
+    if (!it.seen) { it.seen = true; S.markSeen(p.topic, U.qkey(p)); S.save(); }
     const r = root();
     r.className = 'is-contest';
     r.innerHTML = `<div class="contest">

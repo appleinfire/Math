@@ -102,4 +102,32 @@ for (let r = 0; r < 30; r++) {
   assert.strictEqual(new Set(k.items.map(key)).size, 18, 'no repeated question in Brain Games');
 }
 
+// Retakes: questions shown in one attempt are not used again while new ones are left.
+MQ.state = { seen: {} };
+const showAll = (ct) => ct.items.forEach((i) => MQ.store.markSeen(i.p.topic, MQ.U.qkey(i.p)));
+let prev = null;
+for (let r = 0; r < 5; r++) {
+  const ct = P.newContest('cogat');
+  const keys = new Set(ct.items.map((i) => i.p.topic + MQ.U.qkey(i.p)));
+  if (prev) assert.strictEqual([...keys].filter((k) => prev.has(k)).length, 0, `CogAT test ${r + 1} repeats a question from test ${r}`);
+  prev = keys;
+  showAll(ct);
+}
+const bankSeen = new Set();
+for (let r = 0; r < 6; r++) {
+  const ct = P.newContest('kangaroo');
+  for (const it of ct.items.filter((i) => i.p.topic === 'kg_bank')) {
+    assert.ok(!bankSeen.has(it.p.text), 'a hand-written puzzle came back before the bank ran out');
+    bankSeen.add(it.p.text);
+  }
+  showAll(ct);
+}
+// When everything was seen, the question seen longest ago comes back first.
+MQ.TOPICS.__tiny = { name: 'tiny', track: 'prep', gen: () => ({ kind: 'choice', text: MQ.U.pick(['A', 'B', 'C']), answer: '1', choices: ['1', '2'] }) };
+MQ.state.seen.__tiny = ['B', 'C', 'A'].map((t) => MQ.U.qkey({ text: t }));
+assert.strictEqual(P.fresh('__tiny', 1).text, 'B');
+assert.strictEqual(P.fresh('__tiny', 1, new Set([MQ.U.qkey({ text: 'B' })])).text, 'C', 'never repeats inside one attempt');
+delete MQ.TOPICS.__tiny;
+MQ.state = null;
+
 console.log(`OK — Placement Check estimates are within one step in at least ${(worst * 100).toFixed(0)}% of simulated runs.`);

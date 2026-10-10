@@ -61,5 +61,12 @@
     d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   U.daysBetween = (a, b) => Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000);
 
+  // Short fingerprint of a question (ignores answer order), used to avoid repeats across attempts.
+  U.qkey = (p) => {
+    const s = String(p.text) + (p.visual || '');
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  };
   MQ.U = U;
 })();
