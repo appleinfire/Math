@@ -216,6 +216,9 @@
     { id: 'farm100', icon: '🏪', name: 'Shopkeeper', desc: 'Serve 100 customers at your farm stand', test: (s) => !!s.farm && s.farm.stats.tasks - s.farm.stats.jobs >= 100 },
     { id: 'farm10', icon: '🚜', name: 'Real Farmer', desc: 'Reach farm level 10', test: (s) => !!s.farm && MQ.farm.level(s.farm.xp).level >= 10 },
     { id: 'farm25', icon: '🌾', name: 'Farm Tycoon', desc: 'Reach farm level 25', test: (s) => !!s.farm && MQ.farm.level(s.farm.xp).level >= 25 },
+    { id: 'maker', icon: '🫙', name: 'Maker', desc: 'Make something in a Sunny Farm workshop', test: (s) => !!s.farm && (s.farm.stats.made || 0) >= 1 },
+    { id: 'banker', icon: '🏦', name: 'Smart Saver', desc: 'Collect interest from the farm bank 4 times', test: (s) => !!s.farm && (s.farm.stats.bankDays || 0) >= 4 },
+    { id: 'farm60', icon: '🦄', name: 'Farm Legend', desc: 'Reach farm level 60', test: (s) => !!s.farm && MQ.farm.level(s.farm.xp).level >= 60 },
     { id: 'vip10', icon: '⭐', name: 'Challenge Champ', desc: 'Help 10 ⭐ challenge customers right on the first try', test: (s) => !!s.farm && s.farm.stats.vip >= 10 },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];

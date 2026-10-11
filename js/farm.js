@@ -33,6 +33,33 @@
     truffle: { e: '🍄', name: 'truffle', many: 'truffles', price: [9, 300] },
     fluff: { e: '☁️', name: 'bag of alpaca fluff', many: 'bags of alpaca fluff', price: [9, 350] },
     ride: { e: '🎟️', name: 'pony ride', many: 'pony rides', price: [10, 250] },
+    potato: { e: '🥔', name: 'potato', many: 'potatoes', price: [3, 35] },
+    pepper: { e: '🌶️', name: 'pepper', many: 'peppers', price: [4, 50] },
+    pineapple: { e: '🍍', name: 'pineapple', many: 'pineapples', price: [9, 275] },
+    feather: { e: '🪶', name: 'turkey feather', many: 'turkey feathers', price: [6, 120] },
+    fish: { e: '🐟', name: 'fish', many: 'fish', price: [7, 180] },
+    silk: { e: '🧵', name: 'spool of silk', many: 'spools of silk', price: [9, 400] },
+    sleigh: { e: '🛷', name: 'sleigh ride', many: 'sleigh rides', price: [12, 500] },
+    sparkle: { e: '✨', name: 'jar of rainbow sparkles', many: 'jars of rainbow sparkles', price: [15, 900] },
+    // made in the workshops (F.WORKS)
+    jam: { e: '🫙', name: 'jar of strawberry jam', many: 'jars of strawberry jam', price: [10, 120], made: true },
+    sauce: { e: '🥫', name: 'can of tomato sauce', many: 'cans of tomato sauce', price: [14, 140], made: true },
+    cornbread: { e: '🍞', name: 'loaf of cornbread', many: 'loaves of cornbread', price: [12, 160], made: true },
+    pie: { e: '🥧', name: 'pumpkin pie', many: 'pumpkin pies', price: [16, 250], made: true },
+    fries: { e: '🍟', name: 'box of fries', many: 'boxes of fries', price: [15, 200], made: true },
+    cheese: { e: '🧀', name: 'wheel of cheese', many: 'wheels of cheese', price: [18, 320], made: true },
+    icecream: { e: '🍦', name: 'strawberry ice cream', many: 'strawberry ice creams', price: [17, 240], made: true },
+    scarf: { e: '🧣', name: 'scarf', many: 'scarves', price: [16, 280], made: true },
+    sweater: { e: '🧥', name: 'fluffy sweater', many: 'fluffy sweaters', price: [30, 1100], made: true },
+    juice: { e: '🧃', name: 'bottle of grape juice', many: 'bottles of grape juice', price: [32, 800], made: true },
+    smoothie: { e: '🥤', name: 'berry smoothie', many: 'berry smoothies', price: [24, 350], made: true },
+    hat: { e: '👒', name: 'feather hat', many: 'feather hats', price: [28, 950], made: true },
+    dress: { e: '👗', name: 'silk dress', many: 'silk dresses', price: [26, 1200], made: true },
+    soup: { e: '🍲', name: 'pot of veggie soup', many: 'pots of veggie soup', price: [26, 330], made: true },
+    fishchips: { e: '🍱', name: 'fish and chips', many: 'fish and chips', price: [28, 650], made: true },
+    candy: { e: '🍬', name: 'bag of honey candy', many: 'bags of honey candy', price: [14, 260], made: true },
+    pizza: { e: '🍕', name: 'pineapple pizza', many: 'pineapple pizzas', price: [40, 950], made: true },
+    lollipop: { e: '🍭', name: 'rainbow lollipop', many: 'rainbow lollipops', price: [28, 1400], made: true },
   };
   // Crops: plant a seed packet in a bed, wait `days` days, pick `yield` items.
   F.CROPS = {
@@ -45,6 +72,9 @@
     watermelon: { lv: 22, days: 4, yield: 2, seed: [10, 150] },
     blueberry: { lv: 28, days: 3, yield: 5, seed: [12, 120] },
     grapes: { lv: 35, days: 5, yield: 4, seed: [20, 250] },
+    potato: { lv: 25, days: 2, yield: 4, seed: [5, 50] },
+    pepper: { lv: 31, days: 3, yield: 4, seed: [7, 70] },
+    pineapple: { lv: 43, days: 5, yield: 2, seed: [10, 300] },
   };
   // Animals: fed every day they grow (baby → young → grown-up); a fed grown-up gives `per` items the next morning.
   // grow: [days fed to be young, days fed to be grown-up]; eat: feed bags a day.
@@ -58,12 +88,56 @@
     pig: { e: '🐖', baby: '🐷', name: 'Pig', lv: 24, cost: [40, 1500], eat: 3, grow: [2, 4], item: 'truffle', per: 1 },
     alpaca: { e: '🦙', baby: '🦙', name: 'Alpaca', lv: 30, cost: [60, 2500], eat: 4, grow: [2, 5], item: 'fluff', per: 1 },
     pony: { e: '🐴', baby: '🐴', name: 'Pony', lv: 40, cost: [90, 4000], eat: 5, grow: [2, 5], item: 'ride', per: 1 },
+    turkey: { e: '🦃', baby: '🐥', name: 'Turkey', lv: 27, cost: [45, 1800], eat: 3, grow: [2, 4], item: 'feather', per: 2 },
+    fishpond: { e: '🐟', baby: '🐟', name: 'Fish pond', lv: 34, cost: [55, 2800], eat: 2, grow: [1, 3], item: 'fish', per: 2 },
+    silkworm: { e: '🐛', baby: '🐛', name: 'Silkworms', lv: 41, cost: [65, 3500], eat: 2, grow: [1, 3], item: 'silk', per: 1 },
+    reindeer: { e: '🦌', baby: '🦌', name: 'Reindeer', lv: 51, cost: [80, 6000], eat: 5, grow: [2, 5], item: 'sleigh', per: 1 },
+    unicorn: { e: '🦄', baby: '🦄', name: 'Unicorn', lv: 60, cost: [99, 12000], eat: 6, grow: [3, 6], item: 'sparkle', per: 1 },
   };
+  // Workshops turn what the farm makes into things worth more (the first lesson in "adding value").
+  // Each workshop makes one batch at a time; a batch is ready after `days` nights. A recipe may open later than its workshop.
+  F.WORKS = {
+    jamkitchen: { e: '🫙', name: 'Jam kitchen', lv: 7, cost: [12, 200], recipes: [
+      { out: 'jam', in: { strawberry: 4 }, days: 1, lv: 7 },
+      { out: 'sauce', in: { tomato: 4 }, days: 1, lv: 9 },
+    ] },
+    bakery: { e: '🥖', name: 'Bakery', lv: 12, cost: [20, 500], recipes: [
+      { out: 'cornbread', in: { corn: 2, egg: 2 }, days: 1, lv: 12 },
+      { out: 'pie', in: { pumpkin: 1, egg: 2 }, days: 1, lv: 14 },
+      { out: 'fries', in: { potato: 4 }, days: 1, lv: 26 },
+    ] },
+    dairy: { e: '🏭', name: 'Cheese dairy', lv: 17, cost: [30, 900], recipes: [
+      { out: 'cheese', in: { milk: 3 }, days: 2, lv: 17 },
+      { out: 'icecream', in: { milk: 2, strawberry: 2 }, days: 1, lv: 19 },
+    ] },
+    knitting: { e: '🪡', name: 'Knitting room', lv: 21, cost: [35, 1200], recipes: [
+      { out: 'scarf', in: { wool: 2 }, days: 1, lv: 21 },
+      { out: 'sweater', in: { fluff: 2, wool: 1 }, days: 2, lv: 32 },
+    ] },
+    juicebar: { e: '🍹', name: 'Juice bar', lv: 29, cost: [45, 2000], recipes: [
+      { out: 'juice', in: { grapes: 3 }, days: 1, lv: 35 },
+      { out: 'smoothie', in: { strawberry: 2, blueberry: 2, milk: 1 }, days: 1, lv: 29 },
+    ] },
+    tailor: { e: '🧵', name: 'Tailor shop', lv: 44, cost: [70, 6000], recipes: [
+      { out: 'hat', in: { feather: 2, silk: 1 }, days: 1, lv: 44 },
+      { out: 'dress', in: { silk: 2 }, days: 2, lv: 45 },
+    ] },
+    restaurant: { e: '🍽️', name: 'Restaurant', lv: 49, cost: [80, 8000], recipes: [
+      { out: 'soup', in: { carrot: 3, tomato: 2, potato: 2, pepper: 1 }, days: 1, lv: 49 },
+      { out: 'fishchips', in: { fish: 2, potato: 2 }, days: 1, lv: 50 },
+      { out: 'pizza', in: { pineapple: 1, tomato: 2, cheese: 1 }, days: 1, lv: 55 },
+    ] },
+    sweets: { e: '🍬', name: 'Sweet shop', lv: 56, cost: [90, 10000], recipes: [
+      { out: 'candy', in: { honey: 2 }, days: 1, lv: 56 },
+      { out: 'lollipop', in: { sparkle: 1, honey: 1 }, days: 1, lv: 60 },
+    ] },
+  };
+  F.recipes = () => Object.entries(F.WORKS).flatMap(([w, x]) => x.recipes.map((r, i) => Object.assign({ work: w, i }, r)));
   F.FEED = { e: '🌾', price: [1, 5] }; // one bag
   F.FEED_PACKS = [5, 20];
   // More beds and pens: [unlock level, price k, price g2] for each one after the first ones.
-  F.BEDS = [[1, 0, 0], [1, 0, 0], [2, 5, 40], [4, 8, 80], [7, 12, 150], [11, 18, 250], [16, 25, 400], [21, 35, 600]];
-  F.PENS = [[1, 0, 0], [2, 6, 60], [5, 12, 150], [8, 20, 300], [12, 30, 500], [17, 45, 800], [23, 60, 1200], [30, 80, 2000]];
+  F.BEDS = [[1, 0, 0], [1, 0, 0], [2, 5, 40], [4, 8, 80], [7, 12, 150], [11, 18, 250], [16, 25, 400], [21, 35, 600], [37, 45, 800], [48, 55, 1000]];
+  F.PENS = [[1, 0, 0], [2, 6, 60], [5, 12, 150], [8, 20, 300], [12, 30, 500], [17, 45, 800], [23, 60, 1200], [30, 80, 2000], [39, 90, 2500], [53, 99, 3000]];
   // The stand: a nicer stand brings tips for first-try right answers (part of the sale, at least 1¢).
   F.STANDS = [
     { e: '🪵', name: 'Wooden table', lv: 1, cost: [0, 0], tip: 0 },
@@ -72,6 +146,7 @@
     { e: '🏠', name: 'Farm shop', lv: 15, cost: [50, 1500], tip: 0.15 },
     { e: '🏛️', name: 'Market hall', lv: 25, cost: [80, 4000], tip: 0.2 },
     { e: '🏬', name: 'Supermarket', lv: 40, cost: [99, 10000], tip: 0.25 },
+    { e: '🏰', name: 'Royal market', lv: 58, cost: [99, 20000], tip: 0.3 },
   ];
   F.DECOR = {
     fence: { e: '🪵', name: 'Fence', lv: 2, cost: [5, 100] },
@@ -90,6 +165,18 @@
     fountain: { e: '⛲', name: 'Fountain', lv: 36, cost: [80, 10000] },
     rainbow: { e: '🌈', name: 'Rainbow arch', lv: 42, cost: [90, 15000] },
     golden: { e: '🏆', name: 'Golden chicken statue', lv: 50, cost: [99, 20000] },
+    carousel: { e: '🎠', name: 'Carousel', lv: 38, cost: [75, 9000] },
+    farmhouse: { e: '🏡', name: 'Big farmhouse', lv: 46, cost: [85, 12000] },
+    helicopter: { e: '🚁', name: 'Farm helicopter', lv: 52, cost: [90, 16000] },
+    ferris: { e: '🎡', name: 'Ferris wheel', lv: 54, cost: [95, 18000] },
+    rocket: { e: '🚀', name: 'Rocket to the moon', lv: 57, cost: [99, 25000] },
+    sailboat: { e: '⛵', name: 'Sailboat on the pond', lv: 47, cost: [88, 14000] },
+    circus: { e: '🎪', name: 'Farm circus', lv: 59, cost: [99, 22000] },
+    telescope: { e: '🔭', name: 'Star telescope', lv: 64, cost: [99, 35000] },
+    island: { e: '🏝️', name: 'Farm island', lv: 68, cost: [99, 45000] },
+    fireworks: { e: '🎆', name: 'Fireworks show', lv: 62, cost: [99, 30000] },
+    ufo: { e: '🛸', name: 'Friendly UFO', lv: 66, cost: [99, 40000] },
+    dragon: { e: '🐉', name: 'Dragon friend', lv: 70, cost: [99, 50000] },
   };
   // Math tiers: which money problems customers bring. A tier opens with the farm level; the child climbs the open
   // tiers by answering right (4 first-try right in a row → up, 2 misses → down). Tiers marked ahead are beyond
@@ -100,6 +187,7 @@
       { lv: 4, name: 'Nickels to 20', max: 20, coins: ['n', 'p'], types: ['count', 'collect', 'total', 'change', 'enough'], pay: [10] },
       { lv: 12, name: 'Dimes to 50', max: 50, coins: ['d', 'n', 'p'], types: ['count', 'collect', 'change', 'giveChange', 'total'], pay: [10, 20, 25, 50], ahead: true },
       { lv: 22, name: 'Quarters to 99', max: 99, coins: ['q', 'd', 'n', 'p'], types: ['count', 'collect', 'change', 'giveChange', 'two', 'enough'], pay: [25, 50, 100], ahead: true },
+      { lv: 30, name: 'Dollars and saving', max: 200, coins: ['b', 'q', 'd', 'n', 'p'], types: ['count', 'collect', 'change', 'interest', 'worth'], pay: [100, 200], ahead: true },
     ],
     g2: [
       { lv: 1, name: 'Coins to 50¢', max: 60, coins: ['d', 'n', 'p'], types: ['count', 'collect', 'total', 'two'] },
@@ -108,6 +196,7 @@
       { lv: 10, name: 'Change from $5', max: 1000, coins: ['f', 'b', 'q', 'd', 'n', 'p'], types: ['change', 'giveChange', 'budget', 'collect', 'two'], pay: [100, 200, 500, 1000] },
       { lv: 16, name: 'Big orders', max: 2000, coins: ['t', 'f', 'b', 'q', 'd', 'n', 'p'], types: ['multiply', 'change', 'budget', 'giveChange'], pay: [500, 1000, 2000], ahead: true },
       { lv: 24, name: 'Deals & profit', max: 5000, coins: ['w', 't', 'f', 'b', 'q', 'd', 'n', 'p'], types: ['deal', 'profit', 'budget', 'multiply'], pay: [1000, 2000], ahead: true },
+      { lv: 34, name: 'Interest & adding value', max: 5000, coins: ['w', 't', 'f', 'b', 'q', 'd', 'n', 'p'], types: ['interest', 'worth', 'deal', 'budget'], pay: [1000, 2000], ahead: true },
     ],
   };
   F.tiers = (grade) => F.TIERS[grade === 'k' ? 'k' : 'g2'];
@@ -171,8 +260,18 @@
     for (const s of F.STANDS) if (s.lv === L && L > 1) out.push({ e: s.e, name: s.name });
     for (const d of Object.values(F.DECOR)) if (d.lv === L) out.push({ e: d.e, name: d.name });
     F.tiers(grade).forEach((t) => { if (t.lv === L && L > 1) out.push({ e: t.ahead ? '⭐' : '🧮', name: 'New money problems: ' + t.name + (t.ahead ? ' (challenge)' : '') }); });
+    for (const w of Object.values(F.WORKS)) {
+      if (w.lv === L) out.push({ e: w.e, name: w.name + ' (workshop)' });
+      for (const r of w.recipes) if (r.lv === L && r.lv > w.lv) out.push({ e: F.ITEMS[r.out].e, name: `New recipe: ${F.ITEMS[r.out].many}` });
+    }
+    if (L === F.BANK_LV) out.push({ e: '🏦', name: 'The bank: save money and earn interest' });
+    const t = F.TITLES.find((x) => x[0] === L);
+    if (t && L > 1) out.push({ e: '🎖️', name: 'New title: ' + t[1] });
     return out;
   };
+  // A farmer's title grows with the farm level.
+  F.TITLES = [[1, 'Little farmer'], [5, 'Farm helper'], [10, 'Farmer'], [15, 'Busy farmer'], [20, 'Rancher'], [30, 'Farm boss'], [40, 'Market master'], [50, 'Farm tycoon'], [60, 'Farm legend'], [75, 'Farm hero'], [100, 'Farm superstar']];
+  F.title = (L) => F.TITLES.filter((x) => x[0] <= L).pop()[1];
 
   // ---------------------------------------------------------------- new farm
   F.fresh = () => ({
@@ -192,13 +291,19 @@
     miss: 0,
     customers: 0,
     t: 0, // when the farm last changed (for merging copies from two devices)
-    stats: { sold: 0, earned: 0, spent: 0, tasks: 0, right: 0, vip: 0, jobs: 0 },
+    stats: { sold: 0, earned: 0, spent: 0, tasks: 0, right: 0, vip: 0, jobs: 0, made: 0, interest: 0, bankDays: 0 },
+    works: {}, // workshop id: { r: recipe index or null, g: nights, ready: items, out: item }
+    bank: { bal: 0, since: '', log: [] }, // since: the day the bank week started (interest every 7 days)
   });
   F.START_MONEY = [5, 30];
   F.ensure = (st) => {
     if (!st.farm) st.farm = F.fresh();
     const fm = st.farm;
     if (!fm.started) { fm.started = true; fm.money = F.START_MONEY[gi(st.grade)]; }
+    // farms from the first version: add what came later
+    if (!fm.works) fm.works = {};
+    if (!fm.bank) fm.bank = { bal: 0, since: '', log: [] };
+    for (const k of ['made', 'interest', 'bankDays']) if (!fm.stats[k]) fm.stats[k] = 0;
     return fm;
   };
 
@@ -243,7 +348,13 @@
   };
   // Night: crops grow a day, fed animals grow and grown-ups make something. Returns what happened for the morning card.
   F.nextDay = (fm) => {
-    const news = { ripe: [], made: [], grew: [], hungry: [] };
+    const news = { ripe: [], made: [], grew: [], hungry: [], cooked: [] };
+    for (const [id, w] of Object.entries(fm.works || {})) {
+      if (w.r === null || w.r === undefined) continue;
+      const r = F.WORKS[id].recipes[w.r];
+      w.g++;
+      if (w.g >= r.days) { w.ready = (w.ready || 0) + 1; w.out = r.out; w.r = null; w.g = 0; news.cooked.push(r.out); }
+    }
     fm.beds.forEach((b) => {
       if (!b.c || F.cropStage(b) === 'ready') return;
       b.g++;
@@ -274,6 +385,7 @@
     if (np < F.PENS.length) out.push({ id: 'pen', tab: 'farm', e: '🏡', name: 'Animal pen ' + (np + 1), price: F.PENS[np][1 + g], lv: F.PENS[np][0], note: 'Room for one more animal' });
     const ns = F.STANDS[fm.stand + 1];
     if (ns) out.push({ id: 'stand', tab: 'farm', e: ns.e, name: ns.name, price: ns.cost[g], lv: ns.lv, note: `Customers tip ${Math.round(ns.tip * 100)}% for right answers` });
+    for (const [id, w] of Object.entries(F.WORKS)) out.push({ id: 'work:' + id, tab: 'farm', e: w.e, name: w.name, price: w.cost[g], lv: w.lv, owned: !!(fm.works || {})[id], note: 'Makes ' + w.recipes.map((r) => F.ITEMS[r.out].e).join(' ') + ' from what you grow' });
     for (const [id, d] of Object.entries(F.DECOR)) out.push({ id: 'decor:' + id, tab: 'decor', e: d.e, name: d.name, price: d.cost[g], lv: d.lv, owned: !!fm.owned[id] });
     for (const x of out) x.locked = x.lv > L;
     return out;
@@ -292,6 +404,7 @@
     else if (kind === 'pen') fm.pens.push({ a: null, g: 0, fed: false, ready: 0 });
     else if (kind === 'stand') fm.stand++;
     else if (kind === 'decor') fm.owned[arg] = true;
+    else if (kind === 'work') fm.works[arg] = { r: null, g: 0, ready: 0, out: '' };
     if (fm.goal === id) fm.goal = '';
     return x;
   };
@@ -304,6 +417,85 @@
     F.plant(fm, i, crop);
     return true;
   };
+  // ---------------------------------------------------------------- workshops
+  // What a recipe is worth: the inputs sold one by one, the thing made from them, and how much more that brings.
+  F.worth = (r, grade) => {
+    const inVal = U.sum(Object.entries(r.in).map(([id, n]) => n * F.price(id, grade)));
+    const outVal = F.price(r.out, grade);
+    return { inVal, outVal, gain: outVal - inVal };
+  };
+  F.canMake = (fm, work, i) => {
+    const r = F.WORKS[work].recipes[i], w = fm.works[work];
+    if (!w || w.r !== null || r.lv > F.level(fm.xp).level) return false;
+    return Object.entries(r.in).every(([id, n]) => (fm.basket[id] || 0) >= n);
+  };
+  F.startMake = (fm, work, i) => {
+    if (!F.canMake(fm, work, i)) return false;
+    const r = F.WORKS[work].recipes[i];
+    for (const [id, n] of Object.entries(r.in)) { fm.basket[id] -= n; if (!fm.basket[id]) delete fm.basket[id]; }
+    Object.assign(fm.works[work], { r: i, g: 0 });
+    return true;
+  };
+  F.takeMade = (fm, work) => {
+    const w = fm.works[work];
+    if (!w || !w.ready) return 0;
+    const n = w.ready;
+    fm.basket[w.out] = (fm.basket[w.out] || 0) + n;
+    fm.stats.made += n;
+    w.ready = 0;
+    return n;
+  };
+
+  // ---------------------------------------------------------------- the bank
+  // Money in the bank grows every week (7 real days): 10¢ for every whole dollar in 2nd grade, 1¢ for every 10¢ in
+  // kindergarten (10% a week, easy to work out). At most BANK_CAP a week, and at most 4 missed weeks are paid.
+  F.BANK_LV = 10;
+  F.BANK_RULE = [[10, 1], [100, 10]]; // [for every …, add …] for k, g2
+  F.BANK_CAP = [50, 500];
+  F.BANK_MISSED = 4;
+  F.bankRule = (grade) => F.BANK_RULE[gi(grade)];
+  F.ruleText = (grade) => (grade === 'k' ? 'The bank adds 1¢ for every 10¢ you save, every week.' : 'The bank adds 10¢ for every whole dollar you save, every week.');
+  F.interest = (bal, grade) => { const [per, add] = F.bankRule(grade); return Math.min(F.BANK_CAP[gi(grade)], Math.floor(bal / per) * add); };
+  const addDays = (key, n) => { const d = new Date(key + 'T12:00:00'); d.setDate(d.getDate() + n); return U.dateKey(d); };
+  F.addDays = addDays;
+  const bankLog = (fm, kind, amt, today) => { fm.bank.log.unshift({ d: today, kind, amt }); fm.bank.log.length = Math.min(fm.bank.log.length, 12); };
+  F.deposit = (fm, amt, today = U.dateKey()) => {
+    if (!(amt > 0) || amt > fm.money) return false;
+    fm.money -= amt;
+    if (!fm.bank.bal || !fm.bank.since) fm.bank.since = today; // the first week starts with the first savings
+    fm.bank.bal += amt;
+    bankLog(fm, 'in', amt, today);
+    return true;
+  };
+  F.withdraw = (fm, amt, today = U.dateKey()) => {
+    if (!(amt > 0) || amt > fm.bank.bal) return false;
+    fm.bank.bal -= amt;
+    fm.money += amt;
+    bankLog(fm, 'out', amt, today);
+    return true;
+  };
+  // Bank days waiting (whole weeks since the bank week started), at most BANK_MISSED; older weeks are skipped.
+  F.bankDue = (fm, today = U.dateKey()) => {
+    const b = fm.bank;
+    if (!b.since || !b.bal) return 0;
+    const weeks = Math.floor(U.daysBetween(b.since, today) / 7);
+    if (weeks > F.BANK_MISSED) b.since = addDays(b.since, 7 * (weeks - F.BANK_MISSED));
+    return Math.max(0, Math.min(weeks, F.BANK_MISSED));
+  };
+  // Pay one week of interest. Returns the amount.
+  F.payInterest = (fm, grade, today = U.dateKey()) => {
+    const x = F.interest(fm.bank.bal, grade);
+    fm.bank.bal += x;
+    fm.bank.since = addDays(fm.bank.since, 7);
+    fm.stats.interest += x;
+    fm.stats.bankDays++;
+    bankLog(fm, 'interest', x, today);
+    return x;
+  };
+  // How the savings would grow, week by week, without adding or taking out money.
+  F.project = (bal, grade, weeks = 6) => { const out = [bal]; for (let i = 0; i < weeks; i++) out.push(out[i] + F.interest(out[i], grade)); return out; };
+  F.nextBankDay = (fm, today = U.dateKey()) => (fm.bank.since && fm.bank.bal ? 7 - (U.daysBetween(fm.bank.since, today) % 7) : 0);
+
   F.goalItem = (fm, grade) => (fm.goal ? F.shopItem(fm, grade, fm.goal) : null);
 
   // ---------------------------------------------------------------- XP
@@ -458,7 +650,31 @@
       if (!s) return null;
       return ask({ type, text: `asks a farmer question: a packet of ${F.ITEMS[c].e} seeds costs <b>${fmt(seed)}</b> and gives <b>${y} ${F.ITEMS[c].many}</b> that sell for <b>${fmt(P(c))}</b> each. How much <b>profit</b> is that? Then they buy ${things(s[0], s[1])}.`, hint: `Profit = money you get − money you spent. First ${y} × ${fmt(P(c))}.`, explain: `${y} × ${fmt(P(c))} = ${fmt(T)}; ${fmt(T)} − ${fmt(seed)} = ${fmt(T - seed)} profit`, sale: { [s[0]]: s[1] }, total: s[1] * P(s[0]) }, T - seed, grade);
     }
+    if (type === 'interest') {
+      const [per, add] = F.bankRule(grade);
+      const bal = grade === 'k' ? U.rnd(12, Math.min(tier.max, 199)) : U.rnd(120, 2400);
+      const n = Math.floor(bal / per), I = n * add;
+      const s = pickSale(1, 2, tier.max);
+      if (!s) return null;
+      const unit = per === 100 ? 'whole dollar' : fmt(per);
+      return ask({ type, text: `asks a bank question: the bank adds <b>${fmt(add)} for every ${unit}</b> you save. They have <b>${fmt(bal)}</b> in the bank. How much interest do they get this week? Then they buy ${things(s[0], s[1])}.`, hint: per === 100 ? `How many whole dollars are in ${fmt(bal)}? Each dollar brings 10¢.` : `How many tens are in ${bal}? Each ten brings 1¢.`, explain: `${fmt(bal)} has ${n} ${per === 100 ? (n === 1 ? 'whole dollar' : 'whole dollars') : n === 1 ? 'ten' : 'tens'}: ${n} × ${fmt(add)} = ${fmt(I)}`, sale: { [s[0]]: s[1] }, total: s[1] * P(s[0]) }, I, grade);
+    }
+    if (type === 'worth') {
+      const r = U.pick(F.recipes());
+      const w = F.worth(r, grade);
+      const s = pickSale(1, 2, tier.max);
+      if (!s) return null;
+      const ins = Object.entries(r.in).map(([id, n]) => `${n} ${F.ITEMS[id].e}`).join(' + ');
+      return ask({ type, text: `asks a farmer question: <b>${ins}</b> sell for <b>${fmt(w.inVal)}</b> in all. Made into ${F.ITEMS[r.out].e} ${F.ITEMS[r.out].name}, they sell for <b>${fmt(w.outVal)}</b>. How much <b>more</b> money is that? Then they buy ${things(s[0], s[1])}.`, hint: `Count up from ${fmt(w.inVal)} to ${fmt(w.outVal)}.`, explain: `${fmt(w.outVal)} − ${fmt(w.inVal)} = ${fmt(w.gain)}`, sale: { [s[0]]: s[1] }, total: s[1] * P(s[0]) }, w.gain, grade);
+    }
     return null;
+  };
+  // The question before making something in a workshop: is it worth it?
+  F.makeQuestion = (r, grade) => {
+    const fmt = (c) => F.fmt(c, grade), w = F.worth(r, grade);
+    const ins = Object.entries(r.in).map(([id, n]) => `${n} ${F.ITEMS[id].e} ${n === 1 ? F.ITEMS[id].name : F.ITEMS[id].many}`).join(' and ');
+    const tags = Object.entries(r.in).map(([id, n]) => `<span class="ftag">${n} × ${F.ITEMS[id].e} ${fmt(F.price(id, grade))}</span>`).join('<b>+</b>');
+    return ask({ type: 'make', text: `Make ${F.ITEMS[r.out].e} <b>${F.ITEMS[r.out].name}</b> from <b>${ins}</b>? Sold one by one they bring <b>${fmt(w.inVal)}</b>. The ${F.ITEMS[r.out].name} sells for <b>${fmt(w.outVal)}</b>. How much <b>more</b> money do you get by making it?`, visual: `<div class="ftags">${tags}<b>→</b><span class="ftag">${F.ITEMS[r.out].e} ${fmt(w.outVal)}</span></div>`, hint: `Count up from ${fmt(w.inVal)} to ${fmt(w.outVal)}.`, explain: `${fmt(w.outVal)} − ${fmt(w.inVal)} = ${fmt(w.gain)} more`, sale: {}, total: 0 }, w.gain, grade);
   };
   const FALLBACK = ['count', 'collect', 'total', 'two'];
   // The next customer: a problem of the child's tier (one tier up for a ⭐ challenge customer).

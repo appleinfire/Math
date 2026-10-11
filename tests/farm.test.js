@@ -22,9 +22,20 @@ assert.deepStrictEqual(F.level(0), { level: 1, from: 0, to: 30 });
 assert.strictEqual(F.level(29).level, 1);
 assert.strictEqual(F.level(30).level, 2);
 assert.strictEqual(F.level(1e6).level > 100, true);
-const quiet = [];
-for (let L = 2; L <= 50; L++) if (!F.unlocksAt(L, 'g2').length) quiet.push(L);
-assert.ok(quiet.length <= 18, 'most levels up to 50 open something: quiet ' + quiet.join(','));
+for (const g of ['k', 'g2']) {
+  const quiet = [];
+  for (let L = 2; L <= 60; L++) if (!F.unlocksAt(L, g).length) quiet.push(L);
+  assert.deepStrictEqual(quiet, [], `every level up to 60 opens something (${g}): quiet ${quiet.join(',')}`);
+}
+assert.strictEqual(F.title(1), 'Little farmer');
+assert.strictEqual(F.title(60), 'Farm legend');
+// workshops: every recipe is worth making, in both grades, and uses things the farm can have
+for (const r of F.recipes()) {
+  for (const g of ['k', 'g2']) assert.ok(F.worth(r, g).gain > 0, `${r.out} (${g}) is worth more than its inputs`);
+  assert.ok(F.ITEMS[r.out].made, r.out + ' is marked as made');
+  for (const id of Object.keys(r.in)) assert.ok(F.ITEMS[id], 'input ' + id);
+  assert.ok(r.lv >= F.WORKS[r.work].lv, r.out + ' opens with or after its workshop');
+}
 
 // ---------- a new farm, a day, a harvest
 const st = { grade: 'g2', days: {}, stats: { attempts: 0, correct: 0 } };
@@ -208,5 +219,76 @@ assert.strictEqual(S.mergeProfiles(opened, played).farm.money, 500);
 assert.strictEqual(S.mergeProfiles(played, never).farm.money, 500, 'a copy without a farm keeps the farm');
 const later = Object.assign(base(), { rev: 50, farm: Object.assign(F.fresh(), { money: 7, t: 999 }) });
 assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm changed last wins even in an older copy');
+
+// ---------- workshops
+{
+  const f = F.ensure({ grade: 'g2' });
+  f.money = 5000;
+  assert.strictEqual(F.buy(f, 'g2', 'work:jamkitchen'), null, 'the jam kitchen opens at level 7');
+  f.xp = F.level(1e9).from; // a big farm
+  f.xp = 0; for (let L = 1; L < 12; L++) f.xp += F.need(L); // level 12
+  assert.strictEqual(F.level(f.xp).level, 12);
+  assert.ok(F.buy(f, 'g2', 'work:jamkitchen'));
+  assert.strictEqual(F.buy(f, 'g2', 'work:jamkitchen'), null, 'one jam kitchen');
+  f.basket = { strawberry: 3 };
+  assert.strictEqual(F.canMake(f, 'jamkitchen', 0), false, 'jam needs 4 strawberries');
+  f.basket.strawberry = 5;
+  assert.ok(F.startMake(f, 'jamkitchen', 0));
+  assert.strictEqual(f.basket.strawberry, 1);
+  assert.strictEqual(F.canMake(f, 'jamkitchen', 1), false, 'one batch at a time');
+  const news = F.nextDay(f);
+  assert.deepStrictEqual(news.cooked, ['jam']);
+  assert.strictEqual(F.takeMade(f, 'jamkitchen'), 1);
+  assert.strictEqual(f.basket.jam, 1);
+  assert.strictEqual(f.stats.made, 1);
+  f.basket = { milk: 3 };
+  F.buy(f, 'g2', 'work:dairy');
+  assert.strictEqual(F.canMake(f, 'dairy', 0), false, 'the dairy opens at level 17');
+  f.xp = 0; for (let L = 1; L < 20; L++) f.xp += F.need(L);
+  assert.ok(F.buy(f, 'g2', 'work:dairy'));
+  assert.ok(F.startMake(f, 'dairy', 0));
+  F.nextDay(f);
+  assert.strictEqual(f.works.dairy.ready, 0, 'cheese takes two nights');
+  F.nextDay(f);
+  assert.strictEqual(F.takeMade(f, 'dairy'), 1);
+  assert.strictEqual(f.basket.cheese, 1);
+  const q = F.makeQuestion(F.WORKS.jamkitchen.recipes[0], 'g2');
+  assert.strictEqual(q.answer, 40, 'jam $1.20 − 4 strawberries 80¢');
+  const qk = F.makeQuestion(F.WORKS.jamkitchen.recipes[0], 'k');
+  assert.strictEqual(qk.answer, 2);
+}
+// ---------- the bank
+{
+  const f = F.ensure({ grade: 'g2' });
+  f.money = 1000;
+  assert.strictEqual(F.deposit(f, 2000, '2026-10-01'), false, 'only what is in the wallet');
+  assert.ok(F.deposit(f, 435, '2026-10-01'));
+  assert.deepStrictEqual([f.money, f.bank.bal, f.bank.since], [565, 435, '2026-10-01']);
+  assert.strictEqual(F.interest(435, 'g2'), 40, '10¢ for each of 4 whole dollars');
+  assert.strictEqual(F.interest(99, 'g2'), 0);
+  assert.strictEqual(F.interest(9000, 'g2'), 500, 'at most $5 a week');
+  assert.strictEqual(F.interest(37, 'k'), 3, '1¢ for each of 3 tens');
+  assert.strictEqual(F.bankDue(f, '2026-10-07'), 0);
+  assert.strictEqual(F.bankDue(f, '2026-10-08'), 1);
+  assert.strictEqual(F.nextBankDay(f, '2026-10-05'), 3);
+  assert.strictEqual(F.payInterest(f, 'g2', '2026-10-08'), 40);
+  assert.deepStrictEqual([f.bank.bal, f.bank.since, f.stats.interest, f.stats.bankDays], [475, '2026-10-08', 40, 1]);
+  assert.strictEqual(F.bankDue(f, '2026-10-14'), 0, 'the next bank day is a week later');
+  assert.strictEqual(F.bankDue(f, '2027-01-01'), F.BANK_MISSED, 'at most 4 missed weeks are paid');
+  assert.strictEqual(F.bankDue(f, '2027-01-01'), F.BANK_MISSED, 'and asking again gives the same');
+  assert.ok(F.withdraw(f, 75, '2027-01-01'));
+  assert.deepStrictEqual([f.bank.bal, f.money], [400, 640]);
+  assert.strictEqual(F.withdraw(f, 401), false);
+  assert.deepStrictEqual(F.project(400, 'g2', 3), [400, 440, 480, 520]);
+  assert.strictEqual(f.bank.log[0].kind, 'out');
+  const empty = F.ensure({ grade: 'k' });
+  assert.strictEqual(F.bankDue(empty, '2030-01-01'), 0, 'no savings, no bank day');
+  // a farm from the first version gets the workshops and the bank
+  const old = { grade: 'g2', farm: F.fresh() };
+  delete old.farm.works; delete old.farm.bank; delete old.farm.stats.made;
+  old.farm.started = true;
+  const up = F.ensure(old);
+  assert.deepStrictEqual([up.works, up.bank.bal, up.stats.made], [{}, 0, 0]);
+}
 
 console.log('farm tests passed ·', Object.entries(seen).map(([k, v]) => k + ' ' + v).join(', '));

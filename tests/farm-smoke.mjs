@@ -159,7 +159,9 @@ async function play(grade, tag, viewport) {
   await page.evaluate(() => { const f = MQ.state.farm; f.xp = 13227; /* 3 XP before level 50 */ f.tier = MQ.farm.tiers(MQ.state.grade).length; f.basket = { honey: 9, milk: 9, pumpkin: 9, egg: 9, truffle: 9, grapes: 9 }; f.customers = 4; f.stand = 3;
     Object.keys(MQ.farm.DECOR).forEach((id) => (f.owned[id] = true));
     f.beds = ['carrot', 'strawberry', 'tomato', 'corn', 'pumpkin', 'sunflower', 'watermelon', null].map((c, i) => ({ c, g: i % 3 === 0 ? 9 : i % 3 }));
-    f.pens = Object.keys(MQ.farm.ANIMALS).slice(0, 8).map((a, i) => ({ a, g: i % 3 === 0 ? 0 : 9, fed: i % 2 === 0, ready: i % 3 === 1 ? 2 : 0 }));
+    f.pens = ['chicken', 'bees', 'cow', 'fishpond', 'silkworm', 'turkey', 'reindeer', 'unicorn', 'alpaca', 'pony'].map((a, i) => ({ a, g: i % 3 === 0 ? 0 : 9, fed: i % 2 === 0, ready: i % 3 === 1 ? 2 : 0 }));
+    Object.keys(MQ.farm.WORKS).forEach((id, i) => (f.works[id] = i % 3 === 2 ? { r: 0, g: 0, ready: 0, out: '' } : i % 3 === 1 ? { r: null, g: 0, ready: 1, out: MQ.farm.WORKS[id].recipes[0].out } : { r: null, g: 0, ready: 0, out: '' }));
+    f.bank = { bal: 1234, since: MQ.farm.addDays(MQ.U.dateKey(), -15), log: [] };
     MQ.store.save(); });
   await page.click('[data-act=go][data-arg=farm]');
   await snap('13-bigfarm');
@@ -176,6 +178,71 @@ async function play(grade, tag, viewport) {
   await page.waitForSelector('.result');
   const vip = await page.evaluate(() => MQ.state.farm.stats.vip);
   if (vip < 1) errors.push(`${tag}: no challenge customer served`);
+  // the bank: two bank days waiting (interest questions), then save money and take some out
+  await page.click('[data-act=go][data-arg=farm]');
+  await page.click('.fbankday');
+  await page.waitForSelector('.fbank');
+  await snap('16-bank');
+  await page.click('[data-act=fInterest]');
+  for (let i = 0; i < 2; i++) {
+    await page.waitForSelector('.fplay #fanswer');
+    if (i === 0) await snap('17-interest');
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    if (await page.$('#modal')) await page.click('#modal [data-act=closeModal]');
+    await page.click('[data-act=fNext]');
+  }
+  await page.waitForSelector('.fbank');
+  const bank1 = await page.evaluate(() => MQ.state.farm.bank);
+  const want = grade === 'k' ? 1234 + 50 + 50 : 1234 + 120 + 130;
+  if (bank1.bal !== want || bank1.log.length !== 2) errors.push(`${tag}: bank after interest ${JSON.stringify(bank1)} (want ${want})`);
+  const wallet = await page.evaluate(() => MQ.state.farm.money);
+  await page.click('[data-act=fDeposit]');
+  await page.click(`.fpalette [data-act=fCoin][data-arg=${grade === 'k' ? 'd' : 'b'}]`);
+  await page.click(`.fpalette [data-act=fCoin][data-arg=${grade === 'k' ? 'd' : 'b'}]`);
+  await page.click('[data-act=fCheck]');
+  await page.waitForSelector('.fchange');
+  await snap('18-deposit');
+  await answer(page, true);
+  await page.waitForSelector('.fb.ok');
+  await page.click('[data-act=fNext]');
+  await page.waitForSelector('.fbank');
+  const dep = await page.evaluate(() => ({ bal: MQ.state.farm.bank.bal, money: MQ.state.farm.money }));
+  const two = grade === 'k' ? 20 : 200;
+  if (dep.bal !== want + two || dep.money !== wallet - two) errors.push(`${tag}: deposit ${JSON.stringify(dep)}`);
+  await page.click('[data-act=fWithdraw]');
+  await page.click('.fpalette [data-act=fCoin][data-arg=q]');
+  await page.click('[data-act=fCheck]');
+  await page.waitForSelector('.fb.ok');
+  await page.click('[data-act=fNext]');
+  await page.waitForSelector('.fbank');
+  await snap('19-bankbook');
+  const wd = await page.evaluate(() => MQ.state.farm.bank.bal);
+  if (wd !== want + two - 25) errors.push(`${tag}: withdraw left ${wd}`);
+
+  // a workshop: take what is ready, then make something (the question first), sleep, take it
+  await page.click('[data-act=go][data-arg=farm]');
+  await page.click('.fwork.ready >> nth=0');
+  const made = await page.evaluate(() => MQ.state.farm.stats.made);
+  if (made !== 1) errors.push(`${tag}: took ${made} from the workshop`);
+  await page.evaluate(() => { const f = MQ.state.farm; f.basket.strawberry = 8; MQ.store.save(); MQ.app.go('farm'); });
+  await page.click('.fwork[data-arg=jamkitchen]');
+  await page.waitForSelector('#modal .fitems');
+  await snap('20-workshop');
+  await page.click('#modal [data-act=fMake][data-arg="jamkitchen:0"]');
+  await page.waitForSelector('.fplay #fanswer');
+  await snap('21-worth');
+  await answer(page, true);
+  await page.waitForSelector('.fb.ok');
+  await page.click('[data-act=fNext]');
+  await page.waitForSelector('.fwork.busy[data-arg=jamkitchen]');
+  await page.click('[data-act=fSleep]');
+  await page.waitForSelector('#modal');
+  await page.click('#modal [data-act=closeModal]');
+  await page.click('.fwork.ready[data-arg=jamkitchen]');
+  const jam = await page.evaluate(() => MQ.state.farm.basket.jam || 0);
+  if (jam < 1) errors.push(`${tag}: no jam after a night`);
+
   // reloading keeps the farm; the home tile shows it
   await page.reload();
   await page.waitForSelector('.t-farm');
