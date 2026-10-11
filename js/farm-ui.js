@@ -111,18 +111,51 @@
         <button class="tile" data-act="fSleep"><span class="ti">🌙</span><b>Sleep</b><small>Start day ${f.day + 1}</small></button>
       </div>
       ${SC.farm(f, g)}
-      <div class="fquick">
-        <span class="pill" id="ffeed">🌾 ${f.feed} feed</span>
-        ${ripe >= 2 ? '<button class="btn ghost" data-act="fPickAll">🧺 Pick all</button>' : ''}
-        ${empty >= 2 ? '<button class="btn ghost" data-act="fPlantAll">🌱 Plant all</button>' : ''}
-        ${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}${ready ? '<button class="btn ghost" data-act="fCollectAll">🥚 Collect all</button>' : ''}
-      </div>
       ${f.helper.hired ? `<div class="fhelp">🧑‍🌾 <span>Farmhand ${F.HELPER.name} ${f.helper.on ? `feeds the animals at night and collects in the morning · ${fmt(F.HELPER.wage[g === 'k' ? 0 : 1])} a day` : 'is taking a break'}</span><button class="btn ghost" data-act="fHelper">${f.helper.on ? 'Pause' : 'Back to work'}</button></div>` : ''}
       <h2>🧺 Basket</h2>
       <div class="fbasket" id="fbasket">${basket}</div>
       <p class="muted center">Sold ${f.stats.sold} things · earned ${fmt(f.stats.earned)} in all</p>
-    </main>`, 'is-farm');
+    </main>
+    <nav class="fdock" aria-label="Farm resources and quick actions"><div class="fdock-in">
+      <div class="fdock-row">
+        <span class="fstat" id="fdmoney" title="Money">💰 <b>${fmt(f.money)}</b></span>
+        <span class="fstat" id="fdbasket" title="In the basket">🧺 <b>${n}</b></span>
+        <span class="fstat" id="ffeed" title="Feed">🌾 <b>${f.feed}</b></span>
+        <button class="btn fsell" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Sell</button>
+      </div>
+      ${ripe || empty >= 2 || hungry || ready ? `<div class="fdock-acts">
+        ${ripe ? '<button class="btn ghost" data-act="fPickAll">🧺 Pick all</button>' : ''}
+        ${ready ? '<button class="btn ghost" data-act="fCollectAll">🥚 Collect all</button>' : ''}
+        ${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}
+        ${empty >= 2 ? '<button class="btn ghost" data-act="fPlantAll">🌱 Plant all</button>' : ''}
+      </div>` : ''}
+    </div></nav>`, 'is-farm');
     K().setCur('farm');
+    dockChanges({ money: f.money, basket: n, feed: f.feed });
+  }
+  // The dock numbers bump and show "+3" / "−2" when they change (after the things have flown there).
+  let lastDock = null;
+  function dockChanges(now) {
+    const before = lastDock;
+    lastDock = now;
+    if (!before) return;
+    const ids = { money: '#fdmoney', basket: '#fdbasket', feed: '#ffeed' };
+    for (const k of Object.keys(ids)) {
+      const d = now[k] - before[k];
+      if (!d) continue;
+      setTimeout(() => {
+        const el = $(ids[k]);
+        if (!el) return;
+        el.classList.remove('bump');
+        void el.offsetWidth;
+        el.classList.add('bump');
+        const t = document.createElement('i');
+        t.className = 'delta ' + (d > 0 ? 'up' : 'down');
+        t.textContent = (d > 0 ? '+' : '−') + (k === 'money' ? fmt(Math.abs(d)) : Math.abs(d));
+        el.appendChild(t);
+        setTimeout(() => t.remove(), 1400);
+      }, SC.reduced() ? 0 : 600);
+    }
   }
 
   function bed(i, el) {
@@ -135,7 +168,8 @@
       xp(1);
       save();
       redraw();
-      SC.flyMany(F.ITEMS[crop].e, n, from, '#fbasket');
+      SC.flyMany(F.ITEMS[crop].e, Math.min(n, 5), from, '#fdbasket');
+      SC.floatText(from, `+${n} ${F.ITEMS[crop].e}`);
       return;
     }
     if (s !== 'empty') {
@@ -195,7 +229,7 @@
     xp(got.length);
     save();
     redraw();
-    got.forEach(([r, e, n], k) => SC.flyMany(e, Math.min(n, 4), r, '#fbasket', { delay: k * 150 }));
+    got.forEach(([r, e, n], k) => { SC.flyMany(e, Math.min(n, 4), r, '#fdbasket', { delay: k * 150 }); SC.floatText(r, `+${n} ${e}`, { delay: k * 150 }); });
   }
   const penEl = (i) => document.querySelector(`.fpen[data-arg="${i}"]`);
   function pen(i, el) {
@@ -207,9 +241,11 @@
       xp(1);
       save();
       redraw();
-      SC.flyMany(it.e, n, from, '#fbasket');
+      SC.flyMany(it.e, Math.min(n, 5), from, '#fdbasket');
+      SC.floatText(from, `+${n} ${it.e}`);
       return;
     }
+    const eat = F.penEat(p);
     const r = F.feed(f, i);
     if (r === 'ok') {
       MQ.sfx('tap');
@@ -217,7 +253,7 @@
       save();
       redraw();
       const to = penEl(i);
-      SC.fly('🌾', from, to, { land: () => { MQ.sfx('correct'); SC.burst(penEl(i)); hop(i); } });
+      SC.fly('🌾', from, to, { land: () => { MQ.sfx('correct'); SC.burst(penEl(i)); hop(i); SC.floatText(penEl(i), `−${eat} 🌾`, { minus: true }); } });
       return;
     }
     if (r === 'nofeed') return K().modal(`<div class="bigemoji">🌾</div><div class="mtitle">Not enough feed</div><p>${F.penCount(p) > 1 ? F.penCount(p) + ' × ' : ''}${esc(F.ANIMALS[p.a].name)} ${F.penCount(p) > 1 ? 'eat' : 'eats'} ${F.penEat(p)} 🌾 a day. You have ${f.feed}.</p><div class="row"><button class="btn ghost" data-act="closeModal">Later</button><button class="btn" data-act="go" data-arg="farm:shop">Buy feed</button></div>`);
@@ -241,7 +277,7 @@
     if (short) K().toast(`Not enough feed for ${short} more ${short === 1 ? 'animal' : 'animals'}: buy 🌾 in the shop.`);
     save();
     redraw();
-    fedNow.forEach((i, k) => SC.fly('🌾', from, penEl(i), { delay: k * 140, land: () => { SC.burst(penEl(i), '❤️', 2); hop(i); } }));
+    fedNow.forEach((i, k) => SC.fly('🌾', from, penEl(i), { delay: k * 140, land: () => { SC.burst(penEl(i), '❤️', 2); hop(i); SC.floatText(penEl(i), `−${F.penEat(f.pens[i])} 🌾`, { minus: true }); } }));
   }
   function collectAll() {
     const f = fm(), got = [];
@@ -251,7 +287,7 @@
     xp(n);
     save();
     redraw();
-    got.forEach(([r, e, c], k) => SC.flyMany(e, c, r, '#fbasket', { delay: k * 200 }));
+    got.forEach(([r, e, c], k) => { SC.flyMany(e, Math.min(c, 5), r, '#fdbasket', { delay: k * 200 }); SC.floatText(r, `+${c} ${e}`, { delay: k * 200 }); });
   }
   function sleep() {
     if ($('.nightfx')) return;
@@ -279,7 +315,10 @@
       ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : '<p>A quiet night on the farm.</p>'}
       <div class="row"><button class="btn" data-act="closeModal">Let’s go!</button></div>`);
   }
-  function redraw() { if (fs) return; main(); }
+  // Redraw the farm after a tap without moving the page (the app's render scrolls to the top).
+  function redraw() { if (fs) return; keepY(main); }
+  function keepY(fn) { const y = window.scrollY; fn(); window.scrollTo(0, y); }
+  let backY = null; // where the farm was scrolled before the stand, odd jobs or paying, to come back to the same spot
 
   // ---------------------------------------------------------------- shop
   const TABS = [['animals', '🐔 Animals & feed'], ['up', '⬆️ Upgrades'], ['farm', '🏡 Farm'], ['decor', '✨ Decorations']];
@@ -343,6 +382,7 @@
     show(p);
   }
   function show(p) {
+    if ($('.scene')) backY = window.scrollY;
     Object.assign(fs, { p, tries: 0, input: '', tray: [], locked: false, step: 'main', pick: null });
     const f = fm(), tiers = F.tiers(grade()), tier = tiers[(p.tier || f.tier) - 1];
     const status = STATUS[fs.mode] ? STATUS[fs.mode]() : fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : `🏪 Customer ${fs.n + 1} · +${fmt(fs.earned + fs.tips)}`;
@@ -597,7 +637,8 @@
       xp(2);
       save();
       redraw();
-      SC.flyMany(F.ITEMS[out].e, n, from, '#fbasket');
+      SC.flyMany(F.ITEMS[out].e, n, from, '#fdbasket');
+      SC.floatText(from, `+${n} ${F.ITEMS[out].e}`);
       K().checkBadges();
       return;
     }
@@ -690,7 +731,10 @@
     fs = null;
     if (arg === 'shop') return shop();
     if (arg === 'bank') return F.level(fm().xp).level >= F.BANK_LV ? bank() : main();
+    if (quiet) return keepY(main); // another device changed something: redraw in place
+    lastDock = null;
     main();
+    if (backY !== null) { window.scrollTo(0, backY); backY = null; }
     if (!quiet && st().settings.readAloud) MQ.speak(tipText());
   }
   const A = {

@@ -970,10 +970,32 @@ svg.vis.abacus { max-height: 160px; }
 .s0 .walker.w1, .s0 .walker.w2 { font-size: 1.5rem; }
 .cozy { position: absolute; left: 8px; top: 26px; font-size: 1.2rem; opacity: 0.9; }
 .farmhand { position: absolute; bottom: 12px; font-size: 1.9rem; animation: run 14s linear infinite; animation-delay: -4s; }
-.fquick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
-.fquick .btn { padding: 8px 12px; font-size: 0.92rem; }
 .fhelp { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 8px 12px; border-radius: 14px; background: #f3fbe8; box-shadow: inset 0 0 0 2px #b6dc95; font-weight: 700; font-size: 0.9rem; }
 .fhelp .btn { margin-left: auto; padding: 6px 12px; font-size: 0.85rem; }
+
+/* ---------- Sunny Farm: the dock at the bottom (money, basket, feed, quick actions) ---------- */
+#app.is-farm { padding-bottom: 150px; } /* room to scroll the last row above the dock */
+html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed or pen keeps it above the dock */
+.fdock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, 0.97); border-radius: 20px 20px 0 0; box-shadow: 0 -2px 0 var(--line), 0 -6px 18px rgba(20, 28, 48, 0.12); }
+.fdock-in { max-width: 616px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+.fdock-row { display: flex; align-items: center; gap: 6px; }
+.fstat { position: relative; display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 999px; background: #f1f5f2; box-shadow: inset 0 0 0 2px var(--line); font-weight: 900; font-size: 1rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.fstat.bump { animation: bump 0.45s; }
+.fstat .delta { position: absolute; right: -2px; top: -18px; font-style: normal; font-size: 0.8rem; font-weight: 900; padding: 0 6px; border-radius: 999px; animation: deltaup 1.4s ease-out forwards; }
+.fstat .delta.up { background: var(--good-soft); color: var(--good); }
+.fstat .delta.down { background: var(--bad-soft); color: var(--bad); }
+.fsell { margin-left: auto; padding: 8px 14px; font-size: 1rem; background: #5d9a31; box-shadow: 0 4px 0 #3f7020; white-space: nowrap; }
+.fsell:active { box-shadow: 0 1px 0 #3f7020; }
+.fdock-acts { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.fdock-acts::-webkit-scrollbar { display: none; }
+.fdock-acts .btn { flex: none; padding: 7px 11px; font-size: 0.88rem; box-shadow: 0 3px 0 var(--line), inset 0 0 0 2px var(--line); }
+.ftext { font-family: var(--display); font-weight: 600; font-size: 1.35rem; color: var(--good); background: rgba(255, 255, 255, 0.92); padding: 2px 10px; border-radius: 999px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); white-space: nowrap; }
+.ftext.minus { color: #a4561a; }
+@keyframes deltaup { 0% { opacity: 0; transform: translateY(6px); } 20% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-10px); } }
+@media (max-width: 480px) {
+  .fstat { padding: 5px 8px; font-size: 0.92rem; }
+  .fsell { padding: 7px 10px; font-size: 0.92rem; }
+}
 </style>
 </head>
 <body>
@@ -6359,6 +6381,19 @@ svg.vis.abacus { max-height: 160px; }
       d.animate([{ transform: 'translate(-50%, 0) scale(0.6)', opacity: 0 }, { transform: 'translate(-50%, -20px) scale(1)', opacity: 1, offset: 0.25 }, { transform: `translate(calc(-50% + ${(k - 1) * 14}px), -70px) scale(1.1)`, opacity: 0 }], { duration: 900, delay: k * 120, easing: 'ease-out', fill: 'both' }).onfinish = () => d.remove();
     }
   };
+  // A short label floats up from a spot: "+3 🥚" where the eggs were picked up, "−2 🌾" at the trough.
+  S.floatText = (el, text, { delay = 0, minus = false } = {}) => {
+    const r = box(el);
+    if (!r) return;
+    const d = document.createElement('div');
+    d.className = 'flyer ftext' + (minus ? ' minus' : '');
+    d.textContent = text;
+    d.style.left = r.left + r.width / 2 + 'px';
+    d.style.top = r.top + r.height * 0.35 + 'px';
+    document.body.appendChild(d);
+    if (reduced() || !document.body.animate) { setTimeout(() => d.remove(), 1200); return; }
+    d.animate([{ transform: 'translate(-50%, 0) scale(0.7)', opacity: 0 }, { transform: 'translate(-50%, -14px) scale(1.15)', opacity: 1, offset: 0.2 }, { transform: 'translate(-50%, -26px) scale(1)', opacity: 1, offset: 0.7 }, { transform: 'translate(-50%, -48px) scale(1)', opacity: 0 }], { duration: 1300, delay, easing: 'ease-out', fill: 'both' }).onfinish = () => d.remove();
+  };
   // A number counts up (or down) to its new value: the money pill after a sale.
   S.roll = (el, from, to, show, dur = 650) => {
     if (!el) return;
@@ -6500,18 +6535,51 @@ svg.vis.abacus { max-height: 160px; }
         <button class="tile" data-act="fSleep"><span class="ti">🌙</span><b>Sleep</b><small>Start day ${f.day + 1}</small></button>
       </div>
       ${SC.farm(f, g)}
-      <div class="fquick">
-        <span class="pill" id="ffeed">🌾 ${f.feed} feed</span>
-        ${ripe >= 2 ? '<button class="btn ghost" data-act="fPickAll">🧺 Pick all</button>' : ''}
-        ${empty >= 2 ? '<button class="btn ghost" data-act="fPlantAll">🌱 Plant all</button>' : ''}
-        ${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}${ready ? '<button class="btn ghost" data-act="fCollectAll">🥚 Collect all</button>' : ''}
-      </div>
       ${f.helper.hired ? `<div class="fhelp">🧑‍🌾 <span>Farmhand ${F.HELPER.name} ${f.helper.on ? `feeds the animals at night and collects in the morning · ${fmt(F.HELPER.wage[g === 'k' ? 0 : 1])} a day` : 'is taking a break'}</span><button class="btn ghost" data-act="fHelper">${f.helper.on ? 'Pause' : 'Back to work'}</button></div>` : ''}
       <h2>🧺 Basket</h2>
       <div class="fbasket" id="fbasket">${basket}</div>
       <p class="muted center">Sold ${f.stats.sold} things · earned ${fmt(f.stats.earned)} in all</p>
-    </main>`, 'is-farm');
+    </main>
+    <nav class="fdock" aria-label="Farm resources and quick actions"><div class="fdock-in">
+      <div class="fdock-row">
+        <span class="fstat" id="fdmoney" title="Money">💰 <b>${fmt(f.money)}</b></span>
+        <span class="fstat" id="fdbasket" title="In the basket">🧺 <b>${n}</b></span>
+        <span class="fstat" id="ffeed" title="Feed">🌾 <b>${f.feed}</b></span>
+        <button class="btn fsell" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Sell</button>
+      </div>
+      ${ripe || empty >= 2 || hungry || ready ? `<div class="fdock-acts">
+        ${ripe ? '<button class="btn ghost" data-act="fPickAll">🧺 Pick all</button>' : ''}
+        ${ready ? '<button class="btn ghost" data-act="fCollectAll">🥚 Collect all</button>' : ''}
+        ${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}
+        ${empty >= 2 ? '<button class="btn ghost" data-act="fPlantAll">🌱 Plant all</button>' : ''}
+      </div>` : ''}
+    </div></nav>`, 'is-farm');
     K().setCur('farm');
+    dockChanges({ money: f.money, basket: n, feed: f.feed });
+  }
+  // The dock numbers bump and show "+3" / "−2" when they change (after the things have flown there).
+  let lastDock = null;
+  function dockChanges(now) {
+    const before = lastDock;
+    lastDock = now;
+    if (!before) return;
+    const ids = { money: '#fdmoney', basket: '#fdbasket', feed: '#ffeed' };
+    for (const k of Object.keys(ids)) {
+      const d = now[k] - before[k];
+      if (!d) continue;
+      setTimeout(() => {
+        const el = $(ids[k]);
+        if (!el) return;
+        el.classList.remove('bump');
+        void el.offsetWidth;
+        el.classList.add('bump');
+        const t = document.createElement('i');
+        t.className = 'delta ' + (d > 0 ? 'up' : 'down');
+        t.textContent = (d > 0 ? '+' : '−') + (k === 'money' ? fmt(Math.abs(d)) : Math.abs(d));
+        el.appendChild(t);
+        setTimeout(() => t.remove(), 1400);
+      }, SC.reduced() ? 0 : 600);
+    }
   }
 
   function bed(i, el) {
@@ -6524,7 +6592,8 @@ svg.vis.abacus { max-height: 160px; }
       xp(1);
       save();
       redraw();
-      SC.flyMany(F.ITEMS[crop].e, n, from, '#fbasket');
+      SC.flyMany(F.ITEMS[crop].e, Math.min(n, 5), from, '#fdbasket');
+      SC.floatText(from, `+${n} ${F.ITEMS[crop].e}`);
       return;
     }
     if (s !== 'empty') {
@@ -6584,7 +6653,7 @@ svg.vis.abacus { max-height: 160px; }
     xp(got.length);
     save();
     redraw();
-    got.forEach(([r, e, n], k) => SC.flyMany(e, Math.min(n, 4), r, '#fbasket', { delay: k * 150 }));
+    got.forEach(([r, e, n], k) => { SC.flyMany(e, Math.min(n, 4), r, '#fdbasket', { delay: k * 150 }); SC.floatText(r, `+${n} ${e}`, { delay: k * 150 }); });
   }
   const penEl = (i) => document.querySelector(`.fpen[data-arg="${i}"]`);
   function pen(i, el) {
@@ -6596,9 +6665,11 @@ svg.vis.abacus { max-height: 160px; }
       xp(1);
       save();
       redraw();
-      SC.flyMany(it.e, n, from, '#fbasket');
+      SC.flyMany(it.e, Math.min(n, 5), from, '#fdbasket');
+      SC.floatText(from, `+${n} ${it.e}`);
       return;
     }
+    const eat = F.penEat(p);
     const r = F.feed(f, i);
     if (r === 'ok') {
       MQ.sfx('tap');
@@ -6606,7 +6677,7 @@ svg.vis.abacus { max-height: 160px; }
       save();
       redraw();
       const to = penEl(i);
-      SC.fly('🌾', from, to, { land: () => { MQ.sfx('correct'); SC.burst(penEl(i)); hop(i); } });
+      SC.fly('🌾', from, to, { land: () => { MQ.sfx('correct'); SC.burst(penEl(i)); hop(i); SC.floatText(penEl(i), `−${eat} 🌾`, { minus: true }); } });
       return;
     }
     if (r === 'nofeed') return K().modal(`<div class="bigemoji">🌾</div><div class="mtitle">Not enough feed</div><p>${F.penCount(p) > 1 ? F.penCount(p) + ' × ' : ''}${esc(F.ANIMALS[p.a].name)} ${F.penCount(p) > 1 ? 'eat' : 'eats'} ${F.penEat(p)} 🌾 a day. You have ${f.feed}.</p><div class="row"><button class="btn ghost" data-act="closeModal">Later</button><button class="btn" data-act="go" data-arg="farm:shop">Buy feed</button></div>`);
@@ -6630,7 +6701,7 @@ svg.vis.abacus { max-height: 160px; }
     if (short) K().toast(`Not enough feed for ${short} more ${short === 1 ? 'animal' : 'animals'}: buy 🌾 in the shop.`);
     save();
     redraw();
-    fedNow.forEach((i, k) => SC.fly('🌾', from, penEl(i), { delay: k * 140, land: () => { SC.burst(penEl(i), '❤️', 2); hop(i); } }));
+    fedNow.forEach((i, k) => SC.fly('🌾', from, penEl(i), { delay: k * 140, land: () => { SC.burst(penEl(i), '❤️', 2); hop(i); SC.floatText(penEl(i), `−${F.penEat(f.pens[i])} 🌾`, { minus: true }); } }));
   }
   function collectAll() {
     const f = fm(), got = [];
@@ -6640,7 +6711,7 @@ svg.vis.abacus { max-height: 160px; }
     xp(n);
     save();
     redraw();
-    got.forEach(([r, e, c], k) => SC.flyMany(e, c, r, '#fbasket', { delay: k * 200 }));
+    got.forEach(([r, e, c], k) => { SC.flyMany(e, Math.min(c, 5), r, '#fdbasket', { delay: k * 200 }); SC.floatText(r, `+${c} ${e}`, { delay: k * 200 }); });
   }
   function sleep() {
     if ($('.nightfx')) return;
@@ -6668,7 +6739,10 @@ svg.vis.abacus { max-height: 160px; }
       ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : '<p>A quiet night on the farm.</p>'}
       <div class="row"><button class="btn" data-act="closeModal">Let’s go!</button></div>`);
   }
-  function redraw() { if (fs) return; main(); }
+  // Redraw the farm after a tap without moving the page (the app's render scrolls to the top).
+  function redraw() { if (fs) return; keepY(main); }
+  function keepY(fn) { const y = window.scrollY; fn(); window.scrollTo(0, y); }
+  let backY = null; // where the farm was scrolled before the stand, odd jobs or paying, to come back to the same spot
 
   // ---------------------------------------------------------------- shop
   const TABS = [['animals', '🐔 Animals & feed'], ['up', '⬆️ Upgrades'], ['farm', '🏡 Farm'], ['decor', '✨ Decorations']];
@@ -6732,6 +6806,7 @@ svg.vis.abacus { max-height: 160px; }
     show(p);
   }
   function show(p) {
+    if ($('.scene')) backY = window.scrollY;
     Object.assign(fs, { p, tries: 0, input: '', tray: [], locked: false, step: 'main', pick: null });
     const f = fm(), tiers = F.tiers(grade()), tier = tiers[(p.tier || f.tier) - 1];
     const status = STATUS[fs.mode] ? STATUS[fs.mode]() : fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : `🏪 Customer ${fs.n + 1} · +${fmt(fs.earned + fs.tips)}`;
@@ -6986,7 +7061,8 @@ svg.vis.abacus { max-height: 160px; }
       xp(2);
       save();
       redraw();
-      SC.flyMany(F.ITEMS[out].e, n, from, '#fbasket');
+      SC.flyMany(F.ITEMS[out].e, n, from, '#fdbasket');
+      SC.floatText(from, `+${n} ${F.ITEMS[out].e}`);
       K().checkBadges();
       return;
     }
@@ -7079,7 +7155,10 @@ svg.vis.abacus { max-height: 160px; }
     fs = null;
     if (arg === 'shop') return shop();
     if (arg === 'bank') return F.level(fm().xp).level >= F.BANK_LV ? bank() : main();
+    if (quiet) return keepY(main); // another device changed something: redraw in place
+    lastDock = null;
     main();
+    if (backY !== null) { window.scrollTo(0, backY); backY = null; }
     if (!quiet && st().settings.readAloud) MQ.speak(tipText());
   }
   const A = {
