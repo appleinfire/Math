@@ -577,6 +577,28 @@
   F.project = (bal, grade, weeks = 6) => { const out = [bal]; for (let i = 0; i < weeks; i++) out.push(out[i] + F.interest(out[i], grade)); return out; };
   F.nextBankDay = (fm, today = U.dateKey()) => (fm.bank.since && fm.bank.bal ? 7 - (U.daysBetween(fm.bank.since, today) % 7) : 0);
 
+  // ---------------------------------------------------------------- grown-up preview
+  // The farm of a level-60 farmer, to look around in the grown-up preview (a copy of the profile; nothing is saved):
+  // everything open and owned, plenty of money, crops and animals at every stage, a full basket, a bank day waiting.
+  F.showcase = (st) => {
+    const fm = F.ensure(st), g = st.grade, k = g === 'k';
+    let xp = 0;
+    for (let L = 1; L < 60; L++) xp += F.need(L);
+    const today = U.dateKey();
+    Object.assign(fm, {
+      xp, money: k ? 5000 : 100000, feed: 200, stand: F.STANDS.length - 1, tier: F.tiers(g).length, goal: '',
+      beds: ['carrot', 'tomato', 'corn', 'pumpkin', 'strawberry', 'pineapple'].map((c, i) => ({ c, u: [0, 1, 2, 3, 5, 6][i], g: i % 2 ? 0 : 9 })),
+      pens: ['chicken', 'cow', 'bees', 'fishpond', 'sheep', 'unicorn'].map((a, i) => ({ a, g: i === 5 ? 0 : 9, fed: i % 3 === 0, ready: i % 2 ? 3 : 0, u: i % 4 })),
+      basket: {}, owned: {}, works: {},
+      helper: { hired: true, on: false },
+      bank: { bal: k ? 300 : 2500, since: addDays(today, -8), log: [] },
+    });
+    for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
+    for (const id of Object.keys(F.DECOR)) fm.owned[id] = true;
+    Object.keys(F.WORKS).forEach((id, i) => { fm.works[id] = i % 2 ? { r: null, g: 0, ready: 1, out: F.WORKS[id].recipes[0].out } : { r: null, g: 0, ready: 0, out: '' }; });
+    return fm;
+  };
+
   F.goalItem = (fm, grade) => (fm.goal ? F.shopItem(fm, grade, fm.goal) : null);
 
   // ---------------------------------------------------------------- XP

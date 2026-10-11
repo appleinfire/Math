@@ -5464,6 +5464,28 @@ svg.vis.abacus { max-height: 160px; }
   F.project = (bal, grade, weeks = 6) => { const out = [bal]; for (let i = 0; i < weeks; i++) out.push(out[i] + F.interest(out[i], grade)); return out; };
   F.nextBankDay = (fm, today = U.dateKey()) => (fm.bank.since && fm.bank.bal ? 7 - (U.daysBetween(fm.bank.since, today) % 7) : 0);
 
+  // ---------------------------------------------------------------- grown-up preview
+  // The farm of a level-60 farmer, to look around in the grown-up preview (a copy of the profile; nothing is saved):
+  // everything open and owned, plenty of money, crops and animals at every stage, a full basket, a bank day waiting.
+  F.showcase = (st) => {
+    const fm = F.ensure(st), g = st.grade, k = g === 'k';
+    let xp = 0;
+    for (let L = 1; L < 60; L++) xp += F.need(L);
+    const today = U.dateKey();
+    Object.assign(fm, {
+      xp, money: k ? 5000 : 100000, feed: 200, stand: F.STANDS.length - 1, tier: F.tiers(g).length, goal: '',
+      beds: ['carrot', 'tomato', 'corn', 'pumpkin', 'strawberry', 'pineapple'].map((c, i) => ({ c, u: [0, 1, 2, 3, 5, 6][i], g: i % 2 ? 0 : 9 })),
+      pens: ['chicken', 'cow', 'bees', 'fishpond', 'sheep', 'unicorn'].map((a, i) => ({ a, g: i === 5 ? 0 : 9, fed: i % 3 === 0, ready: i % 2 ? 3 : 0, u: i % 4 })),
+      basket: {}, owned: {}, works: {},
+      helper: { hired: true, on: false },
+      bank: { bal: k ? 300 : 2500, since: addDays(today, -8), log: [] },
+    });
+    for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
+    for (const id of Object.keys(F.DECOR)) fm.owned[id] = true;
+    Object.keys(F.WORKS).forEach((id, i) => { fm.works[id] = i % 2 ? { r: null, g: 0, ready: 1, out: F.WORKS[id].recipes[0].out } : { r: null, g: 0, ready: 0, out: '' }; });
+    return fm;
+  };
+
   F.goalItem = (fm, grade) => (fm.goal ? F.shopItem(fm, grade, fm.goal) : null);
 
   // ---------------------------------------------------------------- XP
@@ -6428,6 +6450,11 @@ svg.vis.abacus { max-height: 160px; }
     else t = 'Need money? Do odd jobs at the big market.';
     return t;
   }
+  // Grown-up preview: choose which money problems the customers bring (the level stays where it is set).
+  function pvTiers() {
+    const ts = F.tiers(grade()), cur = Math.min(fm().tier, ts.length);
+    return `<div class="pvlevels"><span>👀 Money problems customers bring:</span><div class="chips">${ts.map((t, i) => `<button class="chip ${cur === i + 1 ? 'sel' : ''}" data-act="fPvTier" data-arg="${i + 1}" aria-pressed="${cur === i + 1}">${i + 1}. ${esc(t.name)}${t.ahead ? ' ⭐' : ''}</button>`).join('')}</div><small class="muted">⭐ = ahead of the grade. Every 5th customer brings one level more.</small></div>`;
+  }
   function goalBar() {
     const g = F.goalItem(fm(), grade());
     if (!g) return '';
@@ -6454,6 +6481,7 @@ svg.vis.abacus { max-height: 160px; }
         <div class="fbar xp" role="progressbar" aria-valuenow="${pctv}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pctv}%"></span></div>
         <small class="muted">${f.xp - lv.from} / ${lv.to - lv.from} XP to level ${lv.level + 1} · Money problems: ${tier.ahead ? '⭐ ' : ''}${esc(tier.name)}</small>
       </section>
+      ${MQ.store.preview ? pvTiers() : ''}
       ${goalBar()}
       ${bankDay ? `<button class="fbankday" data-act="go" data-arg="farm:bank">🏦 <b>Bank day!</b> Your savings earned interest. Tap to collect it.</button>` : ''}
       ${tipLine()}
@@ -6819,7 +6847,7 @@ svg.vis.abacus { max-height: 160px; }
     const f = fm(), p = fs.p, before = f.money;
     const r = F.serve(f, grade(), p, first, solved);
     F.record(st(), first);
-    const move = F.adapt(f, grade(), first);
+    const move = MQ.store.preview ? null : F.adapt(f, grade(), first); // in the preview the chosen level stays
     fs.n++;
     fs.earned += r.paid;
     fs.tips += r.tip;
@@ -6850,7 +6878,7 @@ svg.vis.abacus { max-height: 160px; }
   function paid(first, solved, shown) {
     const f = fm();
     F.record(st(), first);
-    F.adapt(f, grade(), first);
+    if (!MQ.store.preview) F.adapt(f, grade(), first);
     const done = fs.done, before = f.money;
     document.querySelectorAll('.ftray .fcoin').forEach((c, k) => SC.fly(c.innerHTML, c, '#cashbox', { delay: k * 80, dur: 550, size: '1rem' }));
     fs.locked = true;
@@ -7056,6 +7084,7 @@ svg.vis.abacus { max-height: 160px; }
     fMarket: () => startMarket(),
     fWork: (a, el) => work(a, el),
     fPickAll: () => pickAll(),
+    fPvTier: (a) => { if (!MQ.store.preview) return; Object.assign(fm(), { tier: +a, streak: 0, miss: 0 }); main(); },
     fPlantAll: () => plantAllPicker(),
     fPlantAllCrop: (a) => plantAll(a),
     fUpgrades: () => { tab = 'up'; K().go('farm:shop'); },
@@ -8791,7 +8820,7 @@ svg.vis.abacus { max-height: 160px; }
         <p class="muted">Every mistake (in games and in tests) is saved as a skill to practice. Fresh questions of that skill come back in later games and tests, and in the 🛠️ Fix-it Lab; after 3 right answers on different days it counts as fixed. Now in repair: <b>${Object.keys(st.review).length}</b> · fixed so far: <b>${s.fixed || 0}</b>.</p>
         ${mist ? `<ul class="mist">${mist}</ul>` : '<p class="muted">No mistakes recorded yet.</p>'}</section>
       <section><h2>👀 Look at every level</h2>
-        <p class="muted">Open every world, level and test-prep level to see the questions ${esc(st.name)} will meet later. In the preview nothing is saved: no stars, creatures, crystals, statistics, mistakes or test results, and nothing is unlocked for ${esc(st.name)}. It ends when you tap <b>Exit</b>, come back here, or switch explorer.</p>
+        <p class="muted">Open every world, level and test-prep level to see the questions ${esc(st.name)} will meet later. 🌻 Sunny Farm opens as a level-60 farm: every animal, workshop, upgrade and decoration, plenty of money, a full basket and a bank day waiting; on the farm you can pick the level of money problems customers bring. In the preview nothing is saved: no stars, creatures, crystals, farm progress, statistics, mistakes or test results, and nothing is unlocked for ${esc(st.name)}. It ends when you tap <b>Exit</b>, come back here, or switch explorer.</p>
         <div class="row left"><button class="btn" data-act="startPreview">Start preview 👀</button></div></section>
       <section class="settings"><h2>Daily goal</h2>
         <p class="muted">A small daily target works better than long sessions now and then. The home screen shows a ring for today and the days of the week.</p>
@@ -8967,6 +8996,7 @@ svg.vis.abacus { max-height: 160px; }
     pvLevel: (a) => { ui.pvD = a; keepScroll({ cgtypes, kgtypes, lgtypes }[cur] || prep); },
     startPreview: () => {
       st = S.startPreview();
+      MQ.farm.showcase(st); // the farm opens fully too (on the copy)
       ui = {};
       toast('👀 Preview: every level is open, nothing is saved');
       go('map');

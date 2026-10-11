@@ -294,6 +294,36 @@ async function play(grade, tag, viewport) {
   if (kept !== 4) errors.push(`${tag}: farm not saved`);
   await page.click('.t-farm');
   if (!(await page.$('.bar [data-act=go][aria-label=Back]'))) errors.push(tag + ': no back button on the farm');
+  // grown-up preview: through the grown-ups lock, the farm opens as a level-60 farm; nothing is saved
+  const real = await page.evaluate(() => JSON.stringify(MQ.state.farm));
+  await page.click('[data-act=go][data-arg=home]');
+  await page.click('[data-act=go][data-arg=parent]');
+  const [ga, gb] = await page.evaluate(() => document.querySelector('.eqline').textContent.match(/\d+/g).map(Number));
+  await page.fill('#gate-in', String(ga * gb));
+  await page.click('[data-act=gate]');
+  await page.click('[data-act=startPreview]');
+  await page.evaluate(() => MQ.app.go('farm'));
+  await page.waitForSelector('.pvlevels [data-act=fPvTier]');
+  await snap('25-preview-farm');
+  const pv = await page.evaluate(() => ({ lv: MQ.farm.level(MQ.state.farm.xp).level, decor: Object.keys(MQ.state.farm.owned).length }));
+  if (pv.lv !== 60 || pv.decor < 20) errors.push(`${tag}: preview farm ${JSON.stringify(pv)}`);
+  await page.click('[data-act=fPvTier][data-arg="1"]');
+  await page.click('[data-act=fMarket]');
+  await page.waitForSelector('.fplay #fanswer');
+  const t = await page.evaluate(() => MQ.farmUI.playing().p.tier);
+  if (t > 2) errors.push(`${tag}: preview tier 1 brought tier ${t}`);
+  await answer(page, false);
+  await answer(page, false);
+  await page.waitForSelector('.fb.reveal');
+  await page.click('[data-act=fNext]');
+  await page.waitForSelector('.fplay #fanswer');
+  if ((await page.evaluate(() => MQ.state.farm.tier)) !== 1) errors.push(`${tag}: preview tier moved after misses`);
+  await page.click('[data-act=fQuit]');
+  await page.click('.pvbar [data-act=exitPreview]');
+  await page.waitForSelector('.home');
+  const back = await page.evaluate(() => JSON.stringify(MQ.state.farm));
+  if (back !== real) errors.push(`${tag}: the preview changed the real farm`);
+
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   if (overflow) errors.push(tag + ': horizontal overflow');
   await page.close();

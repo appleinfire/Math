@@ -373,4 +373,17 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   assert.strictEqual(big.beds.length, 8);
 }
 
+// ---------- the grown-up preview shows a level-60 farm with everything open
+for (const g of ['k', 'g2']) {
+  const st = { grade: g, farm: F.fresh() };
+  const fm = F.showcase(st);
+  assert.strictEqual(F.level(fm.xp).level, 60);
+  assert.strictEqual(fm.tier, F.tiers(g).length);
+  assert.ok(Object.keys(F.DECOR).every((id) => fm.owned[id]) && Object.keys(F.WORKS).every((id) => fm.works[id]));
+  assert.ok(fm.beds.some((b) => F.cropStage(b) === 'ready') && fm.beds.some((b) => F.cropStage(b) === 'seed'));
+  assert.ok(F.bankDue(fm) > 0, 'a bank day is waiting');
+  assert.ok(!F.shop(fm, g).some((x) => x.locked && !x.owned), 'nothing in the shop is locked (decorations after level 60 are already on the farm)');
+  assert.ok(F.customer(fm, g, { stock: fm.basket }), 'customers come');
+}
+
 console.log('farm tests passed ·', Object.entries(seen).map(([k, v]) => k + ' ' + v).join(', '));

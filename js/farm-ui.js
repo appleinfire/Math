@@ -68,6 +68,11 @@
     else t = 'Need money? Do odd jobs at the big market.';
     return t;
   }
+  // Grown-up preview: choose which money problems the customers bring (the level stays where it is set).
+  function pvTiers() {
+    const ts = F.tiers(grade()), cur = Math.min(fm().tier, ts.length);
+    return `<div class="pvlevels"><span>👀 Money problems customers bring:</span><div class="chips">${ts.map((t, i) => `<button class="chip ${cur === i + 1 ? 'sel' : ''}" data-act="fPvTier" data-arg="${i + 1}" aria-pressed="${cur === i + 1}">${i + 1}. ${esc(t.name)}${t.ahead ? ' ⭐' : ''}</button>`).join('')}</div><small class="muted">⭐ = ahead of the grade. Every 5th customer brings one level more.</small></div>`;
+  }
   function goalBar() {
     const g = F.goalItem(fm(), grade());
     if (!g) return '';
@@ -94,6 +99,7 @@
         <div class="fbar xp" role="progressbar" aria-valuenow="${pctv}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pctv}%"></span></div>
         <small class="muted">${f.xp - lv.from} / ${lv.to - lv.from} XP to level ${lv.level + 1} · Money problems: ${tier.ahead ? '⭐ ' : ''}${esc(tier.name)}</small>
       </section>
+      ${MQ.store.preview ? pvTiers() : ''}
       ${goalBar()}
       ${bankDay ? `<button class="fbankday" data-act="go" data-arg="farm:bank">🏦 <b>Bank day!</b> Your savings earned interest. Tap to collect it.</button>` : ''}
       ${tipLine()}
@@ -459,7 +465,7 @@
     const f = fm(), p = fs.p, before = f.money;
     const r = F.serve(f, grade(), p, first, solved);
     F.record(st(), first);
-    const move = F.adapt(f, grade(), first);
+    const move = MQ.store.preview ? null : F.adapt(f, grade(), first); // in the preview the chosen level stays
     fs.n++;
     fs.earned += r.paid;
     fs.tips += r.tip;
@@ -490,7 +496,7 @@
   function paid(first, solved, shown) {
     const f = fm();
     F.record(st(), first);
-    F.adapt(f, grade(), first);
+    if (!MQ.store.preview) F.adapt(f, grade(), first);
     const done = fs.done, before = f.money;
     document.querySelectorAll('.ftray .fcoin').forEach((c, k) => SC.fly(c.innerHTML, c, '#cashbox', { delay: k * 80, dur: 550, size: '1rem' }));
     fs.locked = true;
@@ -696,6 +702,7 @@
     fMarket: () => startMarket(),
     fWork: (a, el) => work(a, el),
     fPickAll: () => pickAll(),
+    fPvTier: (a) => { if (!MQ.store.preview) return; Object.assign(fm(), { tier: +a, streak: 0, miss: 0 }); main(); },
     fPlantAll: () => plantAllPicker(),
     fPlantAllCrop: (a) => plantAll(a),
     fUpgrades: () => { tab = 'up'; K().go('farm:shop'); },

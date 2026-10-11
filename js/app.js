@@ -1665,7 +1665,7 @@
         <p class="muted">Every mistake (in games and in tests) is saved as a skill to practice. Fresh questions of that skill come back in later games and tests, and in the 🛠️ Fix-it Lab; after 3 right answers on different days it counts as fixed. Now in repair: <b>${Object.keys(st.review).length}</b> · fixed so far: <b>${s.fixed || 0}</b>.</p>
         ${mist ? `<ul class="mist">${mist}</ul>` : '<p class="muted">No mistakes recorded yet.</p>'}</section>
       <section><h2>👀 Look at every level</h2>
-        <p class="muted">Open every world, level and test-prep level to see the questions ${esc(st.name)} will meet later. In the preview nothing is saved: no stars, creatures, crystals, statistics, mistakes or test results, and nothing is unlocked for ${esc(st.name)}. It ends when you tap <b>Exit</b>, come back here, or switch explorer.</p>
+        <p class="muted">Open every world, level and test-prep level to see the questions ${esc(st.name)} will meet later. 🌻 Sunny Farm opens as a level-60 farm: every animal, workshop, upgrade and decoration, plenty of money, a full basket and a bank day waiting; on the farm you can pick the level of money problems customers bring. In the preview nothing is saved: no stars, creatures, crystals, farm progress, statistics, mistakes or test results, and nothing is unlocked for ${esc(st.name)}. It ends when you tap <b>Exit</b>, come back here, or switch explorer.</p>
         <div class="row left"><button class="btn" data-act="startPreview">Start preview 👀</button></div></section>
       <section class="settings"><h2>Daily goal</h2>
         <p class="muted">A small daily target works better than long sessions now and then. The home screen shows a ring for today and the days of the week.</p>
@@ -1841,6 +1841,7 @@
     pvLevel: (a) => { ui.pvD = a; keepScroll({ cgtypes, kgtypes, lgtypes }[cur] || prep); },
     startPreview: () => {
       st = S.startPreview();
+      MQ.farm.showcase(st); // the farm opens fully too (on the copy)
       ui = {};
       toast('👀 Preview: every level is open, nothing is saved');
       go('map');
