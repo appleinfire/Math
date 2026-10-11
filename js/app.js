@@ -405,8 +405,10 @@
     if (!fm || !fm.started) return `<button class="tile t-farm wide" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>New! Grow, sell at your stand, count real money</small></span></button>`;
     const waiting = fm.beds.some((b) => F.cropStage(b) === 'ready') || fm.pens.some((p) => p.ready);
     const n = F.basketCount(fm);
-    const note = waiting ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Day ' + fm.day;
-    return `<button class="tile t-farm wide ${waiting || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
+    const bankDay = fm.bank && F.bankDue(fm) > 0 && F.interest(fm.bank.bal, st.grade) > 0;
+    const made = fm.works && Object.values(fm.works).some((w) => w.ready);
+    const note = bankDay ? '🏦 Bank day: interest is waiting!' : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Day ' + fm.day;
+    return `<button class="tile t-farm wide ${waiting || made || bankDay || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
   }
 
   // For grown-ups: how Sunny Farm is going (its money problems also count in the daily totals above).
@@ -416,6 +418,8 @@
     const s = fm.stats, tiers = F.tiers(st.grade), tier = tiers[Math.min(fm.tier, tiers.length) - 1];
     return `<section><h2>🌻 Sunny Farm</h2>
       <p>Farm level <b>${F.level(fm.xp).level}</b> · day ${fm.day} · money <b>${F.fmt(fm.money, st.grade)}</b> (earned ${F.fmt(s.earned, st.grade)}, spent ${F.fmt(s.spent, st.grade)})</p>
+      ${fm.bank && (fm.bank.bal || s.interest) ? `<p>🏦 Bank: <b>${F.fmt(fm.bank.bal, st.grade)}</b> saved · ${F.fmt(s.interest || 0, st.grade)} interest earned on ${s.bankDays || 0} bank days. ${esc(F.ruleText(st.grade))}</p>` : ''}
+      ${s.made ? `<p>🏭 ${s.made} things made in the workshops (each one starts with a question: how much more is it worth?).</p>` : ''}
       <p>${s.tasks} money problems from customers and odd jobs, <b>${pct(s.right, s.tasks)}%</b> right on the first try · ${s.vip} ⭐ challenge customers. Now practicing: <b>${esc(tier.name)}</b>${tier.ahead ? ' (ahead of grade)' : ''}.</p>
       <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p></section>`;
   }

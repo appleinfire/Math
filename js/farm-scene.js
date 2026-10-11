@@ -19,7 +19,7 @@
   S.icon = (id, e) => (SVG[id] ? `<span class="spi">${SVG[id]}</span>` : e);
 
   // Animals that are drawn from the side (they turn around when they walk the other way).
-  const SIDE = new Set(['🐔', '🐐', '🐑', '🐄', '🦆', '🐖', '🦙', '🐎', '🐓']);
+  const SIDE = new Set(['🐔', '🐐', '🐑', '🐄', '🦆', '🐖', '🦙', '🐎', '🐓', '🦃', '🦌', '🐟']);
   const WALK = { pony: '🐎' }; // a whole pony instead of the 🐴 head
   // Where each decoration stands: sky (floats), hill (on the horizon, left %), yard (in front, left %).
   const SPOTS = {
@@ -27,6 +27,9 @@
     tree: ['hill', 3], greenhouse: ['hill', 24], barn: ['hill', 58], cat: ['hill', 66], windmill: ['hill', 82],
     fence: ['fence'], scarecrow: ['bed'],
     flowers: ['yard', 30], pond: ['yard', 46], fountain: ['yard', 64], golden: ['yard', 78], dog: ['run'], tractor: ['drive'],
+    farmhouse: ['hill', 38], helicopter: ['sky'], ufo: ['sky'], dragon: ['sky'], fireworks: ['sky'],
+    // the fun park below the yard (a row that wraps, so it never gets crowded)
+    carousel: ['park'], ferris: ['park'], circus: ['park'], telescope: ['park'], rocket: ['park'], island: ['park'], sailboat: ['park'],
   };
 
   // ---------------------------------------------------------------- the farm scene
@@ -50,23 +53,44 @@
     let who;
     if (p.a === 'bees') {
       who = `<span class="hivebox">${SVG.hive}</span>${Array.from({ length: sg + 1 }, (_, k) => `<span class="bee" style="--k:${k}">🐝</span>`).join('')}`;
+    } else if (p.a === 'fishpond') {
+      who = Array.from({ length: sg + 1 }, (_, k) => `<span class="walker side fishy" style="--t:${6 + k * 2}s;--dl:-${k * 1.7}s;bottom:${16 + k * 20}px"><span class="bob">🐟</span></span>`).join('');
     } else {
       const e = sg === 0 ? a.baby : WALK[p.a] || a.e;
       const t = 7 + ((i * 3) % 5); // each animal walks at its own pace
       who = `<span class="walker ${SIDE.has(e) ? 'side' : ''}" style="--t:${t}s;--dl:-${(i * 2.3) % t}s"><span class="bob">${e}</span></span>`;
     }
     const label = `${a.name}, ${age.toLowerCase()}: ${p.ready ? `${p.ready} ${it.many} to collect` : p.fed ? 'fed' : `hungry, eats ${a.eat} feed`}`;
-    return `<button class="fpen pasture ${state} s${sg} a-${p.a}" data-act="fPen" data-arg="${i}" aria-label="${esc(label)}">${who}${loot}<span class="trough ${p.fed ? 'full' : ''}"></span><span class="pchip">${chip}</span><span class="flabel">${age}</span></button>`;
+    const sparkle = p.a === 'unicorn' ? '<span class="twinkles"><i>✨</i><i>✨</i><i>✨</i></span>' : '';
+    return `<button class="fpen pasture ${state} s${sg} a-${p.a}" data-act="fPen" data-arg="${i}" aria-label="${esc(label)}">${who}${sparkle}${loot}<span class="trough ${p.fed ? 'full' : ''}"></span><span class="pchip">${chip}</span><span class="flabel">${age}</span></button>`;
   }
+  function workHtml(id) {
+    const W = F.WORKS[id], w = fmWorks[id];
+    let inner, state, label;
+    if (w.ready) { state = 'ready'; inner = `<span class="wout">${F.ITEMS[w.out].e}</span>`; label = `Take ${w.ready}!`; }
+    else if (w.r !== null && w.r !== undefined) {
+      const r = W.recipes[w.r], left = r.days - w.g;
+      state = 'busy'; inner = `<span class="wout">${F.ITEMS[r.out].e}</span><span class="smoke">💨</span>`; label = `🌙 ${left} ${left === 1 ? 'night' : 'nights'}`;
+    } else { state = 'idle'; inner = ''; label = 'Make'; }
+    return `<button class="fwork ${state}" data-act="fWork" data-arg="${id}" aria-label="${esc(W.name)}: ${label}"><span class="wroof"></span><span class="wbig">${W.e}</span>${inner}<span class="flabel">${esc(W.name)} · ${label}</span></button>`;
+  }
+  let fmWorks = {};
   S.farm = (fm, grade) => {
+    fmWorks = fm.works || {};
     const has = (id) => !!fm.owned[id];
     const at = (zone) => Object.keys(fm.owned).filter((id) => F.DECOR[id] && (SPOTS[id] || [])[0] === zone);
     const sky = [];
     if (has('rainbow')) sky.push('<span class="rainbow">🌈</span>');
     if (has('balloon')) sky.push('<span class="balloon">🎈</span>');
     if (has('birdhouse')) sky.push('<span class="bird">🐦</span>');
+    if (has('helicopter')) sky.push('<span class="heli">🚁</span>');
+    if (has('ufo')) sky.push('<span class="ufo">🛸</span>');
+    if (has('dragon')) sky.push('<span class="dragon">🐉</span>');
+    if (has('fireworks')) sky.push('<span class="fw f1">🎆</span><span class="fw f2">🎇</span>');
     const hill = at('hill').map((id) => `<span class="deco d-${id}" style="left:${SPOTS[id][1]}%" title="${esc(F.DECOR[id].name)}">${S.icon(id, F.DECOR[id].e)}</span>`).join('');
     const yard = at('yard').map((id) => `<span class="deco d-${id}" style="left:${SPOTS[id][1]}%" title="${esc(F.DECOR[id].name)}">${F.DECOR[id].e}</span>`).join('');
+    const park = at('park').map((id) => `<span class="pk d-${id}" title="${esc(F.DECOR[id].name)}">${F.DECOR[id].e}</span>`).join('');
+    const works = Object.keys(fmWorks).filter((id) => F.WORKS[id]);
     const stand = F.STANDS[fm.stand], n = F.basketCount(fm);
     return `<section class="scene" aria-label="Your farm">
       <div class="sky">
@@ -76,10 +100,12 @@
       <div class="land">
         <div class="beds">${fm.beds.map(bedHtml).join('')}${has('scarecrow') ? '<span class="scarecrow" title="Scarecrow">🧑‍🌾</span>' : ''}</div>
         <div class="pens">${fm.pens.map(penHtml).join('')}</div>
+        ${works.length ? `<div class="works">${works.map(workHtml).join('')}</div>` : ''}
         <div class="yard">
           <button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
           ${yard}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}
         </div>
+        ${park ? `<div class="park">${park}</div>` : ''}
       </div>
     </section>`;
   };

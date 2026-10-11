@@ -55,10 +55,13 @@
     const cheapest = Math.min(...Object.entries(F.CROPS).filter(([, c]) => c.lv <= F.level(f.xp).level).map(([id]) => F.seedPrice(id, grade())));
     const hungry = f.pens.filter((p) => p.a && !p.fed);
     let t;
-    if (f.beds.some((b) => F.cropStage(b) === 'ready')) t = 'Your crops are ripe! Tap them to pick them.';
+    if (F.bankDue(f) > 0 && F.interest(f.bank.bal, grade()) > 0) t = 'It’s bank day! Your savings grew. Go to the bank to collect the interest.';
+    else if (Object.values(f.works).some((w) => w.ready)) t = 'Something is ready in your workshop! Tap it to take it.';
+    else if (f.beds.some((b) => F.cropStage(b) === 'ready')) t = 'Your crops are ripe! Tap them to pick them.';
     else if (f.pens.some((p) => p.ready)) t = 'Your animals made something! Tap them to collect it.';
     else if (hungry.length && f.feed >= F.ANIMALS[hungry[0].a].eat) t = 'Feed your animals before bed, so they grow and make things to sell.';
     else if (hungry.length) t = 'Out of feed! Buy feed 🌾 in the shop.';
+    else if (Object.entries(f.works).some(([id, w]) => w.r === null && F.WORKS[id].recipes.some((r, i) => F.canMake(f, id, i)))) t = 'You have what a workshop needs. Make something worth more!';
     else if (F.basketCount(f)) t = 'Your basket is full of good things. Open the stand and sell them!';
     else if (f.beds.some((b) => !b.c) && f.money >= cheapest) t = 'An empty garden bed! Tap it to plant seeds.';
     else if (f.beds.some((b) => b.c) || f.pens.some((p) => p.a && p.fed)) t = 'All done for today. Tap 🌙 Sleep to start a new day.';
@@ -68,12 +71,13 @@
   function goalBar() {
     const g = F.goalItem(fm(), grade());
     if (!g) return '';
-    const have = Math.min(fm().money, g.price), pctv = g.price ? Math.round((have / g.price) * 100) : 100;
-    const left = g.price - fm().money;
+    const total = fm().money + fm().bank.bal; // savings in the bank count toward the goal
+    const have = Math.min(total, g.price), pctv = g.price ? Math.round((have / g.price) * 100) : 100;
+    const left = g.price - total;
     return `<button class="fgoal" data-act="go" data-arg="farm:shop" aria-label="Saving goal">
       <span class="fgoal-e">${g.e}</span><span class="fgoal-t"><b>Saving for: ${esc(g.name)}</b>
       <span class="fbar"><span style="width:${pctv}%"></span></span>
-      <small>${left > 0 ? `${fmt(fm().money)} of ${fmt(g.price)} · ${fmt(left)} to go` : g.locked ? `You have enough! It opens at farm level ${g.lv}.` : 'You have enough! Buy it in the shop 🎉'}${left > 0 && g.locked ? ` · opens at level ${g.lv}` : ''}</small></span></button>`;
+      <small>${left > 0 ? `${fmt(total)} of ${fmt(g.price)}${fm().bank.bal ? ' (with the bank)' : ''} · ${fmt(left)} to go` : g.locked ? `You have enough! It opens at farm level ${g.lv}.` : fm().money >= g.price ? 'You have enough! Buy it in the shop 🎉' : 'You have enough with your bank savings! Take money out of the bank to buy it.'}${left > 0 && g.locked ? ` · opens at level ${g.lv}` : ''}</small></span></button>`;
   }
   function main() {
     const f = fm(), g = grade();
@@ -82,17 +86,20 @@
     const n = F.basketCount(f);
     const basket = Object.entries(f.basket).filter(([, c]) => c > 0).map(([id, c]) => `<span class="fchip">${F.ITEMS[id].e} ${c} <small>× ${fmt(F.price(id, g))}</small></span>`).join('') || '<span class="muted">Empty. Pick crops and collect from animals.</span>';
     const hungry = f.pens.some((p) => p.a && !p.fed), ready = f.pens.some((p) => p.ready);
+    const bankDay = F.bankDue(f) > 0 && F.interest(f.bank.bal, g) > 0;
     K().render(header('🌻 Sunny Farm') + `<main class="farm">
       <section class="flevel">
-        <div class="flv"><b>Farm level ${lv.level}</b><span>Day ${f.day} · ${F.STANDS[f.stand].e} ${esc(F.STANDS[f.stand].name)}</span></div>
+        <div class="flv"><b>Farm level ${lv.level} · ${esc(F.title(lv.level))}</b><span>Day ${f.day} · ${F.STANDS[f.stand].e} ${esc(F.STANDS[f.stand].name)}</span></div>
         <div class="fbar xp" role="progressbar" aria-valuenow="${pctv}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pctv}%"></span></div>
         <small class="muted">${f.xp - lv.from} / ${lv.to - lv.from} XP to level ${lv.level + 1} · Money problems: ${tier.ahead ? '⭐ ' : ''}${esc(tier.name)}</small>
       </section>
       ${goalBar()}
+      ${bankDay ? `<button class="fbankday" data-act="go" data-arg="farm:bank">🏦 <b>Bank day!</b> Your savings earned interest. Tap to collect it.</button>` : ''}
       ${tipLine()}
       <button class="btn big fstand" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Open the stand ${n ? `· ${n} to sell` : '· basket is empty'}</button>
       <div class="fbtns">
         <button class="tile" data-act="go" data-arg="farm:shop"><span class="ti">🛒</span><b>Shop</b><small>Animals, feed, more</small></button>
+        ${lv.level >= F.BANK_LV ? `<button class="tile ${bankDay ? 'hot' : ''}" data-act="go" data-arg="farm:bank"><span class="ti">🏦</span><b>Bank</b><small>${f.bank.bal ? fmt(f.bank.bal) + ' saved' : 'Save and earn'}</small></button>` : `<button class="tile locked" disabled><span class="ti">🏦</span><b>Bank</b><small>🔒 Level ${F.BANK_LV}</small></button>`}
         <button class="tile" data-act="fJobs"><span class="ti">🧹</span><b>Odd jobs</b><small>Earn at the big market</small></button>
         <button class="tile" data-act="fSleep"><span class="ti">🌙</span><b>Sleep</b><small>Start day ${f.day + 1}</small></button>
       </div>
@@ -208,6 +215,7 @@
     const made = {};
     news.made.forEach(([it, n]) => (made[it] = (made[it] || 0) + n));
     for (const [it, n] of Object.entries(made)) lines.push(`${F.ITEMS[it].e} +${n} ${esc(n === 1 ? F.ITEMS[it].name : F.ITEMS[it].many)} to collect`);
+    for (const it of news.cooked) lines.push(`${F.ITEMS[it].e} Your ${esc(F.ITEMS[it].name)} is ready in the workshop!`);
     for (const [a, sg] of news.grew) lines.push(`${F.ANIMALS[a].e} Your ${esc(F.ANIMALS[a].name.toLowerCase())} ${sg === 2 ? 'is all grown up!' : 'got bigger'}`);
     for (const [a, n] of Object.entries(count(news.hungry))) lines.push(`${F.ANIMALS[a].e} ${n > 1 ? n + ' ' : ''}${esc(F.ANIMALS[a].name.toLowerCase())}${n > 1 ? 's were' : ' was'} hungry and didn’t grow. Feed animals before bed!`);
     MQ.sfx('reward');
@@ -278,11 +286,13 @@
   function show(p) {
     Object.assign(fs, { p, tries: 0, input: '', tray: [], locked: false, step: 'main', pick: null });
     const f = fm(), tiers = F.tiers(grade()), tier = tiers[(p.tier || f.tier) - 1];
-    const status = fs.mode === 'pay' ? '🛒 Paying' : fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : `🏪 Customer ${fs.n + 1} · +${fmt(fs.earned + fs.tips)}`;
-    const label = fs.mode === 'pay' ? '🛒 Farm Shop' : p.vip ? '⭐ Challenge customer · big tip' : `🧮 ${esc(tier.name)}${tier.ahead ? ' ⭐' : ''}`;
+    const status = STATUS[fs.mode] ? STATUS[fs.mode]() : fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : `🏪 Customer ${fs.n + 1} · +${fmt(fs.earned + fs.tips)}`;
+    const label = LABEL[fs.mode] ? LABEL[fs.mode] : p.vip ? '⭐ Challenge customer · big tip' : `🧮 ${esc(tier.name)}${tier.ahead ? ' ⭐' : ''}`;
     const intro = fs.mode === 'jobs' ? '<small class="muted">At the big Farmers’ Market:</small><br>' : '';
     const stall = fs.mode === 'pay'
       ? SC.stall({ mode: 'pay', seller: '🧑‍🌾', shopper: st().companion, goods: fs.icon || '🛍️' })
+      : fs.mode === 'make' ? SC.stall({ mode: 'make', seller: st().companion, shopper: F.WORKS[fs.work].e, goods: Object.entries(fs.recipe.in).map(([id, n]) => `<i>${F.ITEMS[id].e}</i>`.repeat(Math.min(n, 4))).join('') })
+      : BANKISH.has(fs.mode) ? SC.stall({ mode: 'bank', seller: '🦉', shopper: st().companion, goods: '<i>🏦</i>' })
       : SC.stall({ mode: fs.mode, stand: fs.mode === 'jobs' ? 9 : f.stand, seller: st().companion, shopper: p.who[0], goods: SC.goods(p.sale), vip: p.vip });
     K().render(`<div class="play fplay" style="--wc:${p.vip ? '#b0569e' : '#e0a21b'}">
       <header class="playbar"><button class="iconbtn" data-act="fQuit" aria-label="Stop">✕</button><div class="pstatus">${status}</div>${moneyPill()}</header>
@@ -300,6 +310,15 @@
     if (st().settings.readAloud) speakIt();
   }
   const speakIt = () => { const p = fs && fs.p; if (p) MQ.speak(((p.who ? p.who[1] + ' ' : '') + MQ.toSpeech(p.text)).replace(/\$(\d+)\.(\d\d)/g, (_, d, c) => F.spoken(+d * 100 + +c, 'g2')).replace(/(\d+)¢/g, '$1 cents')); };
+  const BANKISH = new Set(['deposit', 'withdraw', 'interest']);
+  const STATUS = {
+    pay: () => '🛒 Paying',
+    make: () => `${F.WORKS[fs.work].e} ${esc(F.WORKS[fs.work].name)}`,
+    deposit: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
+    withdraw: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
+    interest: () => `🏦 Bank day ${fs.n + 1} of ${fs.weeks}`,
+  };
+  const LABEL = { pay: '🛒 Farm Shop', make: '🧮 Is it worth making?', deposit: '🏦 Put money in the bank', withdraw: '🏦 Take money out', interest: '🏦 Bank day: interest' };
   // the problem being answered now (paying too much asks for the change)
   const cur = () => (fs.step === 'change' ? fs.change : fs.p);
   function drawAnswer() {
@@ -312,14 +331,15 @@
     } else if (p.kind === 'choice') {
       box.innerHTML = fs.locked ? lockedHtml() : `<div class="choices n${p.choices.length}">${p.choices.map((c, i) => `<button class="choice" data-act="fChoose" data-arg="${i}">${esc(c)}</button>`).join('')}</div>`;
     } else {
-      const tray = fs.tray.length ? fs.tray.map((k, i) => `<button class="fcoin" data-act="fUncoin" data-arg="${i}" aria-label="Take back ${V.COIN[k].name}" ${fs.locked ? 'disabled' : ''}>${V.coins([k], true)}</button>`).join('') : `<span class="muted">${p.pay ? 'Your money goes here' : 'Tap coins below'}</span>`;
+      const tray = fs.tray.length ? fs.tray.map((k, i) => `<button class="fcoin" data-act="fUncoin" data-arg="${i}" aria-label="Take back ${V.COIN[k].name}" ${fs.locked ? 'disabled' : ''}>${V.coins([k], true)}</button>`).join('') : `<span class="muted">${p.pay || p.free ? 'Your money goes here' : 'Tap coins below'}</span>`;
       top += `<div class="ftray" aria-label="Picked money">${tray}</div>`;
       box.innerHTML = fs.locked ? lockedHtml() : `<div class="fpalette">${p.coinKinds.map((k) => `<button class="fcoin big" data-act="fCoin" data-arg="${k}" aria-label="${V.COIN[k].name}">${V.coins([k], true)}</button>`).join('')}</div>
-        <div class="row"><button class="btn ghost" data-act="fClear" ${fs.tray.length ? '' : 'disabled'}>Clear</button><button class="btn" data-act="fCheck" ${fs.tray.length ? '' : 'disabled'}>${p.pay ? 'Pay' : 'Done'} ✓</button></div>`;
+        <div class="row"><button class="btn ghost" data-act="fClear" ${fs.tray.length ? '' : 'disabled'}>Clear</button><button class="btn" data-act="fCheck" ${fs.tray.length ? '' : 'disabled'}>${p.go || (p.pay ? 'Pay' : 'Done')} ✓</button></div>`;
     }
     step.innerHTML = top;
   }
-  const lockedHtml = () => `<div class="row"><button class="btn big" data-act="fNext">${fs.mode === 'pay' ? 'Back to the farm' : 'Next customer'} →</button></div>`;
+  const NEXT = { pay: 'Back to the farm', make: 'Back to the farm', deposit: 'Back to the bank', withdraw: 'Back to the bank' };
+  const lockedHtml = () => `<div class="row"><button class="btn big" data-act="fNext">${fs.mode === 'interest' ? (fs.n < fs.weeks ? 'Next bank day' : 'Back to the bank') : NEXT[fs.mode] || 'Next customer'} →</button></div>`;
   function feedback(html, cls) {
     const el = $('#feedback');
     if (el) el.innerHTML = `<div class="fb ${cls}">${html}</div>`;
@@ -327,6 +347,18 @@
   function check(given) {
     if (!fs || fs.locked) return;
     const p = cur();
+    // The bank: any amount the child picks (up to what they have). Saving asks to count it first.
+    if (p.free && p.kind === 'coins' && fs.step === 'main') {
+      const sum = F.sumCoins(given);
+      if (!sum || sum > p.limit) return K().toast(`You can use up to ${fmt(p.limit)}`);
+      fs.amount = sum;
+      if (fs.mode === 'withdraw') return withdrawn();
+      fs.change = Object.assign({ text: `How much money are you putting in the bank?`, hint: 'Start with the money worth the most, then count on.', explain: `${given.slice().sort((a, b) => F.COINV[b] - F.COINV[a]).map((k) => fmt(F.COINV[k])).join(' + ')} = ${fmt(sum)}` }, grade() === 'k' || sum < 100 ? { kind: 'num', answer: sum } : { kind: 'choice', answer: fmt(sum), choices: F.moneyChoices(sum, grade()) });
+      fs.step = 'change';
+      fs.input = '';
+      MQ.sfx('coin');
+      return drawAnswer();
+    }
     // Paying: too much money is fine in 2nd grade (then: how much change?); kindergarten pays the exact amount.
     if (p.pay && p.kind === 'coins') {
       const sum = F.sumCoins(given);
@@ -359,12 +391,14 @@
     const first = fs.tries === 0;
     MQ.sfx('correct');
     if (fs.mode === 'pay') return paid(first, true);
+    if (TASKS.has(fs.mode)) return doneTask(first, true, '');
     finish(first, true, '');
   }
   function reveal() {
     const p = cur();
     const ans = p.kind === 'coins' ? '' : `The answer is <b>${esc(String(p.kind === 'num' ? p.answer + '¢' : p.answer))}</b>. `;
     if (fs.mode === 'pay') return paid(false, false, `${ans}${esc(p.explain)}`);
+    if (TASKS.has(fs.mode)) return doneTask(false, false, `${ans}<span class="explain">${esc(p.explain)}</span>`);
     finish(false, false, `${ans}<span class="explain">${esc(p.explain)}</span>`);
   }
   // A customer or an odd job is done.
@@ -420,17 +454,51 @@
     if (!ups.length && solved) autoNext = setTimeout(() => { if (fs && fs.locked && !$('#modal') && $('.fplay')) next(); }, 1500);
     K().checkBadges();
   }
+  // A workshop question, a deposit or a bank day is done: fs.done applies it and says what happened.
+  const TASKS = new Set(['make', 'deposit', 'interest']);
+  function doneTask(first, solved, shown) {
+    const f = fm(), before = f.money;
+    F.record(st(), first);
+    fs.locked = true;
+    fs.n++;
+    const msg = fs.done(first, solved);
+    save();
+    bumpMoney(before);
+    MQ.sfx('reward');
+    const sh = $('#shopper');
+    if (sh) sh.classList.add('happy');
+    if (fs.mode === 'deposit') document.querySelectorAll('.ftray .fcoin').forEach((c, k) => SC.fly(c.innerHTML, c, '#goods', { delay: k * 80, dur: 550, size: '1rem' }));
+    feedback(solved ? `${first ? 'Perfect!' : 'Got it!'} ${msg}` : `${shown}<br>${msg}`, solved ? 'ok' : 'reveal');
+    drawAnswer();
+    const ups = xp(solved ? (first ? 3 : 1) : 0);
+    save();
+    if (!ups.length && solved) autoNext = setTimeout(() => { if (fs && fs.locked && !$('#modal') && $('.fplay')) next(); }, 1700);
+    K().checkBadges();
+  }
+  function withdrawn() {
+    const f = fm(), before = f.money, amt = fs.amount;
+    F.withdraw(f, amt);
+    save();
+    document.querySelectorAll('.ftray .fcoin').forEach((c, k) => SC.fly(c.innerHTML, c, '#fmoney', { delay: k * 80, dur: 550, size: '1rem' }));
+    fs.locked = true;
+    bumpMoney(before);
+    MQ.sfx('coin');
+    feedback(`You took <b>${fmt(amt)}</b> out of the bank. It is in your wallet now.`, 'ok');
+    drawAnswer();
+    autoNext = setTimeout(() => { if (fs && fs.locked && !$('#modal') && $('.fplay')) next(); }, 1500);
+  }
   function next() {
     clearTimeout(autoNext);
     if (!fs) return main();
-    if (fs.mode === 'pay') { const back = fs.back || 'farm'; fs = null; return K().go(back); }
+    if (fs.mode === 'interest' && fs.n < fs.weeks) return interestQuestion();
+    if (fs.mode === 'pay' || TASKS.has(fs.mode) || fs.mode === 'withdraw') { const back = fs.back || 'farm'; fs = null; return K().go(back); }
     if (fs.mode === 'market' && !F.basketCount(fm())) return summary(true);
     nextCustomer();
   }
   function quit() {
     clearTimeout(autoNext);
     if (!fs) return main();
-    if (fs.mode === 'pay' || !fs.n) { const back = fs.back || 'farm'; fs = null; return K().go(back); }
+    if (fs.mode === 'pay' || TASKS.has(fs.mode) || fs.mode === 'withdraw' || !fs.n) { const back = fs.back || 'farm'; fs = null; return K().go(back); }
     summary(false);
   }
   function summary(soldOut) {
@@ -460,11 +528,109 @@
     if (d) { d.textContent = fs.input || '?'; d.classList.toggle('filled', !!fs.input); }
   }
 
+  // ---------------------------------------------------------------- workshops
+  function work(id, el) {
+    const f = fm(), w = f.works[id], W = F.WORKS[id];
+    if (!w) return;
+    if (w.ready) {
+      const out = w.out, n = F.takeMade(f, id), from = el && el.getBoundingClientRect();
+      MQ.sfx('correct');
+      xp(2);
+      save();
+      redraw();
+      SC.flyMany(F.ITEMS[out].e, n, from, '#fbasket');
+      K().checkBadges();
+      return;
+    }
+    if (w.r !== null && w.r !== undefined) {
+      const r = W.recipes[w.r], left = r.days - w.g;
+      return K().modal(`<div class="bigemoji">${F.ITEMS[r.out].e}</div><div class="mtitle">Making ${esc(F.ITEMS[r.out].name)}</div><p>Ready after ${left} more ${left === 1 ? 'night' : 'nights'}. Tap 🌙 Sleep.</p><div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
+    }
+    const L = F.level(f.xp).level, g = grade();
+    const rows = W.recipes.map((r, i) => {
+      const it = F.ITEMS[r.out], val = F.worth(r, g), locked = r.lv > L, ok = F.canMake(f, id, i);
+      const need = Object.entries(r.in).map(([x, n]) => `<span class="${(f.basket[x] || 0) >= n ? 'have' : 'miss'}">${n} ${F.ITEMS[x].e} <small>(${f.basket[x] || 0})</small></span>`).join(' + ');
+      return `<div class="fitem ${locked ? 'locked' : ''}"><span class="fe">${it.e}</span>
+        <span class="fitem-t"><b>${esc(cap(it.name))}</b><small class="need">${need}</small><small>${r.days} ${r.days === 1 ? 'night' : 'nights'} · sells for ${fmt(val.outVal)}</small></span>
+        <span class="fside">${locked ? `<span class="flock">🔒 Level ${r.lv}</span>` : `<button class="btn" data-act="fMake" data-arg="${id}:${i}" ${ok ? '' : 'disabled'}>Make</button>`}</span></div>`;
+    }).join('');
+    K().modal(`<div class="bigemoji">${W.e}</div><div class="mtitle">${esc(W.name)}</div><p class="muted">Turn what your farm makes into something worth more. The numbers in ( ) are what you have in the basket.</p><div class="fitems">${rows}</div><div class="row"><button class="btn ghost" data-act="closeModal">Not now</button></div>`);
+  }
+  function startMake(id, i) {
+    const r = F.WORKS[id].recipes[i];
+    if (!F.canMake(fm(), id, i)) return K().toast('Not enough in the basket yet');
+    K().closeModal();
+    fs = { mode: 'make', work: id, recipe: r, n: 0, earned: 0, tips: 0, xp: 0, back: 'farm',
+      done: () => { F.startMake(fm(), id, i); return `${F.WORKS[id].e} The ${esc(F.WORKS[id].name.toLowerCase())} is making ${F.ITEMS[r.out].e} ${esc(F.ITEMS[r.out].name)}. Ready after ${r.days} ${r.days === 1 ? 'night' : 'nights'}.`; } };
+    show(F.makeQuestion(r, grade()));
+  }
+
+  // ---------------------------------------------------------------- the bank
+  function bank() {
+    const f = fm(), g = grade(), b = f.bank, due = F.bankDue(f), interest = F.interest(b.bal, g);
+    const proj = F.project(b.bal, g, 6), top = Math.max(1, ...proj);
+    const bars = proj.map((v, k) => `<div class="bbar"><span class="bv">${fmt(v)}</span><span class="bfill" style="height:${Math.max(4, Math.round((v / top) * 100))}%"></span><small>${k === 0 ? 'Now' : 'Week ' + k}</small></div>`).join('');
+    const nextDay = F.nextBankDay(f);
+    const LOG = { in: ['⬇️', 'Saved'], out: ['⬆️', 'Took out'], interest: ['✨', 'Interest'] };
+    const log = b.log.map((x) => `<li><span>${LOG[x.kind][0]} ${LOG[x.kind][1]}</span><small>${x.d}</small><b class="${x.kind}">${x.kind === 'out' ? '−' : '+'}${fmt(x.amt)}</b></li>`).join('');
+    K().render(header('🏦 Farm Bank', 'farm') + `<main class="farm fbank">
+      <section class="bankcard">
+        <div class="bk"><small>In the bank</small><b id="fbankbal">${fmt(b.bal)}</b></div>
+        <div class="bk"><small>In your wallet</small><b>${fmt(f.money)}</b></div>
+      </section>
+      ${due > 0 && interest > 0 ? `<button class="btn big fstand" data-act="fInterest">✨ Bank day! Collect your interest${due > 1 ? ` (${due} weeks)` : ''}</button>` : ''}
+      <div class="row"><button class="btn" data-act="fDeposit" ${f.money ? '' : 'disabled'}>⬇️ Save money</button><button class="btn ghost" data-act="fWithdraw" ${b.bal ? '' : 'disabled'}>⬆️ Take money out</button></div>
+      <section class="flevel"><b>How the bank works</b>
+        <p>${esc(F.ruleText(g))} The money is safe in the bank, and you can take it out any time to spend it.</p>
+        <p class="muted">${b.bal ? (due > 0 ? 'Interest is waiting for you!' : `Next bank day in ${nextDay} ${nextDay === 1 ? 'day' : 'days'} (every 7 days).`) : 'Save some money to start your first bank week.'} The bank pays at most ${fmt(F.BANK_CAP[g === 'k' ? 0 : 1])} a week.</p></section>
+      ${b.bal ? `<h2>📈 If you keep it in the bank</h2><div class="bchart" role="img" aria-label="Savings growing week by week">${bars}</div><p class="muted">Each week the bank adds interest, and next week the interest earns interest too.</p>` : ''}
+      ${log ? `<h2>🧾 My bank book</h2><ul class="blog">${log}</ul>` : ''}
+    </main>`, 'is-farm');
+    K().setCur('farm:bank');
+  }
+  function bankKinds(max) {
+    if (grade() === 'k') return max >= 25 ? ['q', 'd', 'n', 'p'] : ['d', 'n', 'p'];
+    return payKinds(max);
+  }
+  function startDeposit() {
+    const f = fm();
+    if (!f.money) return;
+    fs = { mode: 'deposit', n: 0, earned: 0, tips: 0, xp: 0, back: 'farm:bank',
+      done: () => { F.deposit(fm(), fs.amount); return `<b>${fmt(fs.amount)}</b> is in the bank now. You have <b>${fmt(fm().bank.bal)}</b> saved.`; } };
+    show({ kind: 'coins', free: true, limit: f.money, go: 'Put in the bank', coinKinds: bankKinds(f.money), text: `Tap the coins${grade() === 'k' ? '' : ' and bills'} you want to save. You have <b>${fmt(f.money)}</b> in your wallet.`, hint: 'Start with the money worth the most, then count on.', explain: '' });
+  }
+  function startWithdraw() {
+    const f = fm();
+    if (!f.bank.bal) return;
+    fs = { mode: 'withdraw', n: 0, earned: 0, tips: 0, xp: 0, back: 'farm:bank' };
+    show({ kind: 'coins', free: true, limit: f.bank.bal, go: 'Take out', coinKinds: bankKinds(f.bank.bal), text: `Tap the coins${grade() === 'k' ? '' : ' and bills'} you want to take out. You have <b>${fmt(f.bank.bal)}</b> in the bank.`, hint: '', explain: '' });
+  }
+  function startInterest() {
+    const f = fm(), weeks = F.bankDue(f);
+    if (!weeks) return bank();
+    fs = { mode: 'interest', weeks, n: 0, earned: 0, tips: 0, xp: 0, back: 'farm:bank' };
+    interestQuestion();
+  }
+  // One bank day: work out this week's interest, then it is added.
+  function interestQuestion() {
+    const f = fm(), g = grade(), bal = f.bank.bal, [per, add] = F.bankRule(g), x = F.interest(bal, g), n = Math.floor(bal / per);
+    const capped = x < n * add;
+    fs.done = () => { const got = F.payInterest(fm(), g); return `The bank added <b>${fmt(got)}</b>. Now you have <b>${fmt(fm().bank.bal)}</b> saved.`; };
+    const unit = per === 100 ? 'whole dollar' : fmt(per);
+    const p = { type: 'interest', text: `You have <b>${fmt(bal)}</b> in the bank. The bank adds <b>${fmt(add)} for every ${unit}</b>${capped ? `, but at most <b>${fmt(x)}</b> a week` : ''}. How much interest do you get this week?`,
+      hint: per === 100 ? `How many whole dollars are in ${fmt(bal)}? Each one brings 10¢.` : `How many tens are in ${bal}? Each ten brings 1¢.`,
+      explain: `${fmt(bal)} has ${n} ${per === 100 ? 'whole dollars' : 'tens'}: ${n} × ${fmt(add)} = ${fmt(n * add)}${capped ? `, and the most is ${fmt(x)}` : ''}`, sale: {}, total: 0 };
+    Object.assign(p, g === 'k' || x < 100 ? { kind: 'num', answer: x, unit: '¢' } : { kind: 'choice', answer: fmt(x), choices: F.moneyChoices(x, g) });
+    if (!x) { F.payInterest(f, g); fs.n++; save(); return next(); } // nothing to work out on a tiny balance
+    show(p);
+  }
+
   // ---------------------------------------------------------------- routing
   function show_(arg, quiet = false) {
     clearTimeout(autoNext);
     fs = null;
     if (arg === 'shop') return shop();
+    if (arg === 'bank') return F.level(fm().xp).level >= F.BANK_LV ? bank() : main();
     main();
     if (!quiet && st().settings.readAloud) MQ.speak(tipText());
   }
@@ -475,6 +641,11 @@
     fCollectAll: () => collectAll(),
     fSleep: () => sleep(),
     fMarket: () => startMarket(),
+    fWork: (a, el) => work(a, el),
+    fMake: (a) => { const [id, i] = a.split(':'); startMake(id, +i); },
+    fDeposit: () => startDeposit(),
+    fWithdraw: () => startWithdraw(),
+    fInterest: () => startInterest(),
     fJobs: () => startJobs(),
     fTab: (a) => { tab = a; shop(); },
     fGoal: (a) => { fm().goal = a; save(); MQ.sfx('tap'); K().toast('⭐ Saving goal set'); shop(); },
@@ -506,6 +677,7 @@
       if (!fs || fs.locked) return;
       const p = cur();
       if (p.pay && F.sumCoins(fs.tray) + F.COINV[a] > fm().money) return K().toast(`You only have ${fmt(fm().money)}`);
+      if (p.free && F.sumCoins(fs.tray) + F.COINV[a] > p.limit) return K().toast(`You only have ${fmt(p.limit)} ${fs.mode === 'withdraw' ? 'in the bank' : 'in your wallet'}`);
       if (fs.tray.length >= 30) return;
       fs.tray.push(a);
       MQ.sfx('coin');

@@ -1,6 +1,6 @@
 // Offline cache: the app works without internet once it has been opened.
 // Other apps on the same github.io origin share the cache storage, so only this app's old caches are deleted.
-const CACHE = 'math-expedition-v5';
+const CACHE = 'math-expedition-v6';
 const FILES = ['./', 'index.html', 'css/style.css', 'js/util.js', 'js/visuals.js', 'js/generators.js', 'js/generators-k.js', 'js/puzzles.js', 'js/cogat.js', 'js/logic.js', 'js/content.js', 'js/content-k.js', 'js/testprep.js', 'js/farm.js', 'js/store.js', 'js/vendor/firebase-app-compat.js', 'js/vendor/firebase-auth-compat.js', 'js/vendor/firebase-firestore-compat.js', 'js/cloud-config.js', 'js/cloud.js', 'js/fx.js', 'js/farm-scene.js', 'js/farm-ui.js', 'js/app.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 self.addEventListener('install', (e) => e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting())));
 self.addEventListener('activate', (e) => e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith('math-expedition-') && k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())));
