@@ -671,7 +671,7 @@
   function bank() {
     const f = fm(), g = grade(), b = f.bank, due = F.bankDue(f), nights = F.nightsToBankDay(f.day);
     const nextBank = f.day + nights;
-    const proj = F.project(b.bal, g, 6), top = Math.max(1, ...proj);
+    const proj = F.project(b.bal, g, 6, b.acct), top = Math.max(1, ...proj);
     const bars = proj.map((v, k) => `<div class="bbar"><span class="bv">${fmt(v)}</span><span class="bfill" style="height:${Math.max(4, Math.round((v / top) * 100))}%"></span><small>${k === 0 ? 'Now' : 'Day ' + (nextBank + (k - 1) * F.BANK_WEEK)}</small></div>`).join('');
     // this bank week: 7 farm days, the last one is bank day
     const week = F.bankWeek(f.day).map((d) => `<li class="${d < f.day ? 'past' : d === f.day ? 'now' : ''} ${F.isBankDay(d) ? 'bank' : ''}"><small>Day</small><b>${d}</b>${F.isBankDay(d) ? '<i>🏦</i>' : d < f.day ? '<i>✓</i>' : '<i></i>'}</li>`).join('');
@@ -686,13 +686,31 @@
       <section class="bweek" aria-label="This bank week"><div class="bweek-t"><b>🏦 This bank week</b><small>Bank day is every ${F.BANK_WEEK}th farm day</small></div><ol>${week}</ol><p class="${due ? 'due' : ''}">${status}</p></section>
       ${due > 0 ? `<button class="btn big fstand" data-act="fInterest">✨ Collect your interest${due > 1 ? ` (${due} bank days)` : ''}</button>` : ''}
       <div class="row"><button class="btn" data-act="fDeposit" ${f.money ? '' : 'disabled'}>⬇️ Save money</button><button class="btn ghost" data-act="fWithdraw" ${b.bal ? '' : 'disabled'}>⬆️ Take money out</button></div>
+      ${accountCard()}
       <section class="flevel"><b>How the bank works</b>
-        <p>${esc(F.ruleText(g))} The money is safe in the bank, and you can take it out any time to spend it.</p>
-        <p class="muted">On the morning of bank day the bank looks at what you have saved, and the interest is for that money. The bank pays at most ${fmt(F.BANK_CAP[g === 'k' ? 0 : 1])} a week. If you miss bank days, up to ${F.BANK_MISSED} wait for you.</p></section>
+        <p>${esc(F.ruleText(g, b.acct))} The money is safe in the bank, and you can take it out any time to spend it.</p>
+        <p class="muted">On the morning of bank day the bank looks at what you have saved, and the interest is for that money. If you miss bank days, up to ${F.BANK_MISSED} wait for you.</p></section>
       ${b.bal ? `<h2>📈 If you keep it in the bank</h2><div class="bchart" role="img" aria-label="Savings growing week by week">${bars}</div><p class="muted">Each bank day the bank adds interest, and next time the interest earns interest too.</p>` : ''}
       ${log ? `<h2>🧾 My bank book</h2><ul class="blog">${log}</ul>` : ''}
     </main>`, 'is-farm');
     K().setCur('farm:bank');
+  }
+  // Your bank account: how much of the savings earns the big interest, and the next, better account.
+  function accountCard() {
+    const f = fm(), g = grade(), a = F.account(f), parts = F.interestParts(f.bank.bal, g, f.bank.acct);
+    const big = grade() === 'k' ? '1¢ for every 10¢' : '10¢ for every dollar', small = grade() === 'k' ? '1¢ for every 100¢' : '1¢ for every dollar';
+    const over = f.bank.bal > parts.top;
+    const x = F.shopItem(f, g, 'acct');
+    let up = '';
+    if (x) {
+      const btn = x.locked ? `<span class="flock">🔒 Level ${x.lv}</span>` : f.money >= x.price ? `<button class="btn" data-act="fBuy" data-arg="acct">Upgrade · ${fmt(x.price)}</button>` : f.goal === 'acct' ? '<span class="fown">⭐ Goal</span>' : `<button class="btn ghost" data-act="fGoal" data-arg="acct">⭐ Save up · ${fmt(x.price)}</button>`;
+      const nx = F.ACCOUNTS[(f.bank.acct || 0) + 1];
+      up = `<div class="bacct-next"><span class="fe">${nx.e}</span><span class="fitem-t"><b>${esc(nx.name)}</b><small>${big} up to ${fmt(nx.top[g === 'k' ? 0 : 1])}</small></span><span class="fside">${btn}</span></div>`;
+    }
+    return `<section class="flevel bacct"><b>${a.e} Your account: ${esc(a.name)}</b>
+      <p>${big} up to <b>${fmt(parts.top)}</b>, then ${small}.</p>
+      ${over ? `<p class="muted">You have ${fmt(f.bank.bal - parts.top)} above ${fmt(parts.top)}: that part only earns ${small}.${x ? ' A better account makes more of your savings earn the big interest.' : ''}</p>` : ''}
+      ${up || '<p class="muted">👑 The best account in the bank!</p>'}</section>`;
   }
   function bankKinds(max) {
     if (grade() === 'k') return max >= 25 ? ['q', 'd', 'n', 'p'] : ['d', 'n', 'p'];
@@ -721,14 +739,20 @@
   function interestQuestion() {
     const f = fm(), g = grade(), pend = f.bank.pend[0];
     if (!pend) return next();
-    const bal = pend.bal, [per, add] = F.bankRule(g), x = F.interest(bal, g), n = Math.floor(bal / per);
-    const capped = x < n * add;
+    const bal = pend.bal, { top, per, add, big, small, x } = F.interestParts(bal, g, f.bank.acct);
     fs.done = () => { const got = F.payInterest(fm(), g); return `The bank added <b>${fmt(got.x)}</b>. Now you have <b>${fmt(fm().bank.bal)}</b> saved.`; };
-    const unit = per === 100 ? 'whole dollar' : fmt(per);
-    const p = { type: 'interest', text: `Bank day, farm day ${pend.day}: that morning you had <b>${fmt(bal)}</b> in the bank. The bank adds <b>${fmt(add)} for every ${unit}</b>${capped ? `, but at most <b>${fmt(x)}</b> a week` : ''}. How much interest do you get this week?`,
-      hint: per === 100 ? `How many whole dollars are in ${fmt(bal)}? Each one brings 10¢.` : `How many tens are in ${bal}? Each ten brings 1¢.`,
-      explain: `${fmt(bal)} has ${n} ${per === 100 ? 'whole dollars' : 'tens'}: ${n} × ${fmt(add)} = ${fmt(n * add)}${capped ? `, and the most is ${fmt(x)}` : ''}`, sale: {}, total: 0 };
-    Object.assign(p, g === 'k' || x < 100 ? { kind: 'num', answer: x, unit: '¢' } : { kind: 'choice', answer: fmt(x), choices: F.moneyChoices(x, g) });
+    const unit = per === 100 ? 'whole dollar' : fmt(per), units = per === 100 ? 'whole dollars' : 'tens';
+    const lowUnit = g === 'k' ? '100¢' : 'whole dollar', over = bal > top, rest = bal - top;
+    const p = over
+      ? { type: 'interest', text: `Bank day, farm day ${pend.day}: that morning you had <b>${fmt(bal)}</b> in the bank. The bank adds <b>${fmt(add)} for every ${unit}</b> up to <b>${fmt(top)}</b>, and <b>1¢ for every ${lowUnit}</b> above ${fmt(top)}. How much interest do you get this week?`,
+        hint: `Split it into two parts. The first ${fmt(top)}: ${per === 100 ? 'each whole dollar brings 10¢' : 'each ten brings 1¢'}. The rest above ${fmt(top)}: each ${lowUnit} brings 1¢. Then add the two parts.`,
+        explain: `First ${fmt(top)}: ${big} × ${fmt(add)} = ${fmt(big * add)}. Above it: ${fmt(bal)} − ${fmt(top)} = ${fmt(rest)}, that is ${small} × 1¢ = ${fmt(small)}. ${fmt(big * add)} + ${fmt(small)} = ${fmt(x)}`, sale: {}, total: 0 }
+      : { type: 'interest', text: `Bank day, farm day ${pend.day}: that morning you had <b>${fmt(bal)}</b> in the bank. The bank adds <b>${fmt(add)} for every ${unit}</b> (up to ${fmt(top)}). How much interest do you get this week?`,
+        hint: per === 100 ? `How many whole dollars are in ${fmt(bal)}? Each one brings 10¢.` : `How many tens are in ${bal}? Each ten brings 1¢.`,
+        explain: `${fmt(bal)} has ${big} ${units}: ${big} × ${fmt(add)} = ${fmt(x)}`, sale: {}, total: 0 };
+    // likely slips on two-part interest: forgetting the part above the limit, or the big rate on all of it
+    const traps = over ? [big * add, Math.floor(bal / per) * add] : [];
+    Object.assign(p, g === 'k' || x < 100 ? { kind: 'num', answer: x, unit: '¢' } : { kind: 'choice', answer: fmt(x), choices: F.moneyChoices(x, g, traps) });
     if (!x) { F.payInterest(f, g); fs.n++; save(); return next(); } // nothing to work out on a tiny balance
     show(p);
   }
@@ -765,7 +789,7 @@
     fInterest: () => startInterest(),
     fJobs: () => startJobs(),
     fTab: (a) => { tab = a; shop(); },
-    fGoal: (a) => { fm().goal = a; save(); MQ.sfx('tap'); K().toast('⭐ Saving goal set'); shop(); },
+    fGoal: (a) => { fm().goal = a; save(); MQ.sfx('tap'); K().toast('⭐ Saving goal set'); if (document.querySelector('.fbank')) bank(); else shop(); },
     fPlant: (a) => {
       const [i, crop] = a.split(':'), price = F.seedPrice(crop, grade());
       K().closeModal();
@@ -779,8 +803,8 @@
       const x = F.shopItem(fm(), grade(), a);
       if (!x || fm().money < x.price) return;
       const icon = a.startsWith('decor:') ? SC.icon(a.slice(6), x.e) : x.e;
-      startPay(x.price, `${x.e} ${esc(x.name)}`, () => { F.buy(fm(), grade(), a); return `${x.e} ${esc(x.name)} is yours!`; }, icon);
-      fs.back = 'farm:shop';
+      startPay(x.price, `${x.e} ${esc(x.name)}`, () => { F.buy(fm(), grade(), a); return a === 'acct' ? `${x.e} ${esc(x.name.replace('Bank: ', ''))} is yours! More of your savings earn the big interest.` : `${x.e} ${esc(x.name)} is yours!`; }, icon);
+      fs.back = a === 'acct' ? 'farm:bank' : 'farm:shop'; // a new account: see it at the bank
     },
     fKey: (a) => key(a),
     fCheck: () => {

@@ -268,8 +268,18 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   assert.deepStrictEqual([f.money, f.bank.bal], [565, 435]);
   assert.strictEqual(F.interest(435, 'g2'), 40, '10¢ for each of 4 whole dollars');
   assert.strictEqual(F.interest(99, 'g2'), 0);
-  assert.strictEqual(F.interest(9000, 'g2'), 500, 'at most $5 a week');
+  assert.strictEqual(F.interest(5000, 'g2'), 500, '10¢ for each of the first 50 dollars');
+  assert.strictEqual(F.interest(9099, 'g2'), 540, 'above $50 (Piggy account) only 1¢ for each whole dollar: $5 + 40¢');
+  assert.deepStrictEqual(F.interestParts(12345, 'g2', 1), { top: 10000, per: 100, add: 10, big: 100, small: 23, x: 1023 }, 'Silver account: $10 on the first $100, 23¢ on $23.45');
   assert.strictEqual(F.interest(37, 'k'), 3, '1¢ for each of 3 tens');
+  assert.strictEqual(F.interest(799, 'k'), 52, 'kindergarten: 50¢ on the first 500¢, then 1¢ for each 100¢ (2 of them)');
+  assert.strictEqual(F.interest(799, 'k', 1), 79, 'kindergarten Silver account: 1¢ for each ten up to 1000¢');
+  // the small rate keeps big savings growing, but slowly: never as fast as the big rate
+  for (const g of ['k', 'g2']) for (let a = 0; a < F.ACCOUNTS.length; a++) {
+    const top = F.bankTop(a, g);
+    assert.strictEqual(F.interest(top, g, a), top / 10, `${g} account ${a}: 10% up to the limit`);
+    assert.strictEqual(F.interest(top * 3, g, a) - F.interest(top, g, a), Math.floor((top * 2) / 100), `${g} account ${a}: 1% above it`);
+  }
   assert.deepStrictEqual(F.bankWeek(1), [1, 2, 3, 4, 5, 6, 7]);
   assert.deepStrictEqual(F.bankWeek(7), [1, 2, 3, 4, 5, 6, 7]);
   assert.deepStrictEqual(F.bankWeek(8), [8, 9, 10, 11, 12, 13, 14]);
@@ -301,13 +311,44 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   // a bank from the calendar-week version gets bank days by farm days
   const cal = { grade: 'g2', farm: Object.assign(F.fresh(), { started: true, bank: { bal: 300, since: '2026-10-01', log: [{ d: '2026-10-01', kind: 'in', amt: 300 }] } }) };
   const up2 = F.ensure(cal);
-  assert.deepStrictEqual([up2.bank.bal, up2.bank.pend, 'since' in up2.bank, up2.bank.log.length], [300, [], false, 1]);
+  assert.deepStrictEqual([up2.bank.bal, up2.bank.pend, 'since' in up2.bank, up2.bank.log.length, up2.bank.acct], [300, [], false, 1, 0]);
   // a farm from the first version gets the workshops and the bank
   const old = { grade: 'g2', farm: F.fresh() };
   delete old.farm.works; delete old.farm.bank; delete old.farm.stats.made;
   old.farm.started = true;
   const up = F.ensure(old);
   assert.deepStrictEqual([up.works, up.bank.bal, up.stats.made], [{}, 0, 0]);
+}
+
+// ---------- bank accounts: bought like an upgrade, each one raises how much earns the big interest
+{
+  const st2 = { grade: 'g2' }, f = F.ensure(st2);
+  assert.strictEqual(F.account(f).name, 'Piggy account');
+  const lvXp = (L) => { let xp = 0; for (let i = 1; i < L; i++) xp += F.need(i); return xp; };
+  f.xp = lvXp(17);
+  f.money = 100000;
+  assert.ok(F.shopItem(f, 'g2', 'acct').locked, 'Silver account opens at level 18');
+  assert.strictEqual(F.buy(f, 'g2', 'acct'), null);
+  f.xp = lvXp(18);
+  const before = f.money, x = F.buy(f, 'g2', 'acct');
+  assert.ok(x && x.name === 'Bank: Silver account' && f.bank.acct === 1 && f.money === before - 3000);
+  assert.strictEqual(F.shopItem(f, 'g2', 'acct').name, 'Bank: Gold account', 'the next account is in the shop');
+  f.bank.bal = 12000;
+  for (let d = f.day; !F.isBankDay(d); d++) F.nextDay(f, 'g2');
+  assert.deepStrictEqual(F.payInterest(f, 'g2').x, 1000 + 20, 'Silver: $10 on the first $100 + 20¢ on $20');
+  f.xp = lvXp(60);
+  while (F.shopItem(f, 'g2', 'acct')) assert.ok(F.buy(f, 'g2', 'acct'));
+  assert.strictEqual(F.account(f).name, 'Royal vault');
+  // every account pays for itself in under 15 bank weeks when the savings fill it (2nd grade)
+  for (let a = 1; a < F.ACCOUNTS.length; a++) {
+    const top = F.ACCOUNTS[a].top[1], gain = F.interest(top, 'g2', a) - F.interest(top, 'g2', a - 1);
+    assert.ok(F.ACCOUNTS[a].cost[1] / gain < 15, `${F.ACCOUNTS[a].name} pays for itself`);
+    assert.ok(F.ACCOUNTS[a].cost[0] <= 99 && F.ACCOUNTS[a].lv > F.ACCOUNTS[a - 1].lv);
+  }
+  assert.ok(F.unlocksAt(18, 'g2').some((u) => /Silver account/.test(u.name)));
+  // the grown-up preview shows savings above the account limit (both parts of the interest)
+  const sc = F.showcase({ grade: 'g2', farm: JSON.parse(JSON.stringify(F.fresh())) });
+  assert.ok(sc.bank.bal > F.bankTop(sc.bank.acct, 'g2'));
 }
 
 // ---------- version 3: 6 beds and 6 pens, upgrades, planting all at once, the farmhand

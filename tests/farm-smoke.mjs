@@ -162,7 +162,8 @@ async function play(grade, tag, viewport) {
     f.pens = ['chicken', 'bees', 'cow', 'fishpond', 'turkey', 'unicorn'].map((a, i) => ({ a, g: i % 3 === 0 ? 0 : 9, fed: i % 2 === 0, ready: i % 3 === 1 ? 2 : 0, u: i % 4 }));
     Object.keys(MQ.farm.WORKS).forEach((id, i) => (f.works[id] = i % 3 === 2 ? { r: 0, g: 0, ready: 0, out: '' } : i % 3 === 1 ? { r: null, g: 0, ready: 1, out: MQ.farm.WORKS[id].recipes[0].out } : { r: null, g: 0, ready: 0, out: '' }));
     f.day = 14;
-    f.bank = { bal: 1234, log: [], pend: [{ day: 7, bal: 1234 }, { day: 14, bal: 1234 + MQ.farm.interest(1234, MQ.state.grade) }] };
+    const b0 = MQ.state.grade === 'k' ? 1234 : 6234; // above the Piggy account limit: interest in two parts
+    f.bank = { bal: b0, acct: 0, log: [], pend: [{ day: 7, bal: b0 }, { day: 14, bal: b0 + MQ.farm.interest(b0, MQ.state.grade) }] };
     MQ.store.save(); });
   await page.click('[data-act=go][data-arg=farm]');
   await snap('13-bigfarm');
@@ -203,6 +204,7 @@ async function play(grade, tag, viewport) {
   for (let i = 0; i < 2; i++) {
     await page.waitForSelector('.fplay #fanswer');
     if (i === 0) await snap('17-interest');
+    if (i === 0 && !/up to .* above/.test(await page.textContent('.fplay'))) errors.push(`${tag}: the interest question does not explain the two rates`);
     await answer(page, true);
     await page.waitForSelector('.fb.ok');
     if (await page.$('#modal')) await page.click('#modal [data-act=closeModal]');
@@ -210,7 +212,8 @@ async function play(grade, tag, viewport) {
   }
   await page.waitForSelector('.fbank');
   const bank1 = await page.evaluate(() => MQ.state.farm.bank);
-  const want = grade === 'k' ? 1234 + 50 + 50 : 1234 + 120 + 130;
+  // k: 50¢ on the first 500¢ + 1¢ for each 100¢ above; g2: $5 on the first $50 + 1¢ for each dollar above
+  const want = grade === 'k' ? 1234 + 57 + 57 : 6234 + 512 + 517;
   if (bank1.bal !== want || bank1.log.length !== 2) errors.push(`${tag}: bank after interest ${JSON.stringify(bank1)} (want ${want})`);
   const wallet = await page.evaluate(() => MQ.state.farm.money);
   await page.click('[data-act=fDeposit]');
@@ -235,6 +238,17 @@ async function play(grade, tag, viewport) {
   await snap('19-bankbook');
   const wd = await page.evaluate(() => MQ.state.farm.bank.bal);
   if (wd !== want + two - 25) errors.push(`${tag}: withdraw left ${wd}`);
+  // a better bank account, bought at the bank: more of the savings earn the big interest
+  if (!(await page.$('.bacct'))) errors.push(`${tag}: no account card at the bank`);
+  await page.evaluate(() => { MQ.state.farm.money += MQ.farm.shopItem(MQ.state.farm, MQ.state.grade, 'acct').price; MQ.app.go('farm:bank'); });
+  await page.click('.bacct [data-act=fBuy][data-arg=acct]');
+  await answer(page, true);
+  await page.waitForSelector('.fb.ok');
+  await page.click('[data-act=fNext]');
+  await page.waitForSelector('.fbank');
+  await snap('19b-account');
+  const acct = await page.evaluate(() => ({ a: MQ.state.farm.bank.acct, t: document.querySelector('.bacct').textContent }));
+  if (acct.a !== 1 || !/Silver account/.test(acct.t)) errors.push(`${tag}: account upgrade ${JSON.stringify(acct)}`);
 
   // a workshop: take what is ready, then make something (the question first), sleep, take it
   await page.click('[data-act=go][data-arg=farm]');
