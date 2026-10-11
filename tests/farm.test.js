@@ -291,4 +291,86 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   assert.deepStrictEqual([up.works, up.bank.bal, up.stats.made], [{}, 0, 0]);
 }
 
+// ---------- version 3: 6 beds and 6 pens, upgrades, planting all at once, the farmhand
+{
+  const lvXp = (L) => { let x = 0; for (let k = 1; k < L; k++) x += F.need(k); return x; };
+  assert.strictEqual(F.BEDS.length, 6);
+  assert.strictEqual(F.PENS.length, 6);
+  const f = F.ensure({ grade: 'g2' });
+  f.xp = lvXp(60);
+  f.money = 1e6;
+  while (F.buy(f, 'g2', 'bed')) { /* buy every bed */ }
+  while (F.buy(f, 'g2', 'pen')) { /* and every pen */ }
+  assert.deepStrictEqual([f.beds.length, f.pens.length], [6, 6], 'no more than 6 beds and 6 pens');
+  assert.ok(!F.shop(f, 'g2').some((x) => x.id === 'bed' || x.id === 'pen'));
+  // bed upgrades: +1 crop per star, a sprinkler, a greenhouse with a second harvest
+  const b = f.beds[1];
+  F.plant(f, 1, 'corn');
+  assert.deepStrictEqual([F.cropYield(b), F.cropDays(b)], [5, 3]);
+  for (let k = 0; k < F.BED_UP.length; k++) assert.ok(F.buy(f, 'g2', 'bedup:1'), 'upgrade ' + k);
+  assert.ok(F.shopItem(f, 'g2', 'bedup:1').owned, 'all bed upgrades done');
+  assert.strictEqual(F.buy(f, 'g2', 'bedup:1'), null);
+  assert.deepStrictEqual([b.u, F.bedStars(b), F.cropYield(b), F.cropDays(b), F.bedGlass(b)], [6, 4, 9, 2, true]);
+  b.g = 2;
+  assert.strictEqual(F.harvest(f, 1), 9);
+  assert.deepStrictEqual([b.c, b.g, b.again, b.u], ['corn', 0, true, 6], 'the greenhouse grows the same crop again');
+  b.g = 2;
+  F.harvest(f, 1);
+  assert.deepStrictEqual([b.c, b.again, b.u], [null, false, 6], 'then the bed is empty, and keeps its upgrades');
+  const fresh = F.ensure({ grade: 'g2' });
+  fresh.xp = lvXp(2);
+  fresh.money = 1000;
+  assert.strictEqual(F.buy(fresh, 'g2', 'bedup:0'), null, 'good soil opens at level 3');
+  // pen upgrades: room for more animals (costs one more animal), then a cozy barn (half of that)
+  f.pens[1] = { a: 'cow', g: 9, fed: false, ready: 0 };
+  assert.strictEqual(F.shopItem(f, 'g2', 'penup:1').price, 800);
+  F.buy(f, 'g2', 'penup:1');
+  F.buy(f, 'g2', 'penup:1');
+  assert.strictEqual(F.shopItem(f, 'g2', 'penup:1').price, 400);
+  F.buy(f, 'g2', 'penup:1');
+  assert.deepStrictEqual([F.penCount(f.pens[1]), F.penEat(f.pens[1]), F.penMakes(f.pens[1])], [3, 12, 7]);
+  assert.ok(!F.shop(f, 'g2').some((x) => x.id === 'penup:' + f.pens.findIndex((q) => !q.a)), 'empty pens have no upgrades');
+  // plant all: one payment for every empty bed
+  const g = F.ensure({ grade: 'k' });
+  g.xp = lvXp(5);
+  g.money = 100;
+  g.beds = [{ c: null, g: 0 }, { c: null, g: 0, u: 2 }, { c: 'carrot', g: 0 }];
+  assert.deepStrictEqual(F.emptyBeds(g), [0, 1]);
+  assert.strictEqual(F.plantAll(g, 'k', 'tomato', 2), true);
+  assert.deepStrictEqual([g.money, g.beds[0].c, g.beds[1].c, g.beds[1].u], [90, 'tomato', 'tomato', 2]);
+  assert.strictEqual(F.plantAll(g, 'k', 'tomato', 1), false, 'no empty beds left');
+  // the farmhand: hired at level 39, paid every night, feeds and collects; picks crops from level 48
+  const h = F.ensure({ grade: 'g2' });
+  h.money = 5000;
+  h.xp = lvXp(38);
+  assert.strictEqual(F.buy(h, 'g2', 'helper'), null, 'the farmhand comes at level 39');
+  h.xp = lvXp(39);
+  assert.ok(F.buy(h, 'g2', 'helper'));
+  assert.ok(F.shopItem(h, 'g2', 'helper').owned);
+  h.pens[0] = { a: 'chicken', g: 9, fed: false, ready: 0 };
+  h.feed = 10;
+  h.beds[0] = { c: 'carrot', g: 5 };
+  const m0 = h.money;
+  let news = F.nextDay(h, 'g2');
+  assert.deepStrictEqual(news.helper, { wage: 25, fed: 1, short: 0, collected: 2, picked: 0 });
+  assert.deepStrictEqual([h.money, h.basket.egg, h.feed, h.stats.wages], [m0 - 25, 2, 9, 25]);
+  h.xp = lvXp(48);
+  news = F.nextDay(h, 'g2');
+  assert.strictEqual(news.helper.picked, 3, 'from level 48 the farmhand picks ripe carrots too');
+  h.money = 10;
+  news = F.nextDay(h, 'g2');
+  assert.deepStrictEqual(news.helper, { unpaid: true, wage: 25 });
+  assert.strictEqual(h.pens[0].fed, false, 'an unpaid farmhand does not feed');
+  h.helper.on = false;
+  h.money = 1000;
+  assert.strictEqual(F.nextDay(h, 'g2').helper, null, 'a farmhand on a break is not paid');
+  // a farm from version 2 with 8 beds keeps them all
+  const big = F.ensure({ grade: 'g2' });
+  big.beds = Array.from({ length: 8 }, () => ({ c: null, g: 0 }));
+  big.xp = lvXp(60);
+  big.money = 1e6;
+  assert.strictEqual(F.buy(big, 'g2', 'bed'), null);
+  assert.strictEqual(big.beds.length, 8);
+}
+
 console.log('farm tests passed ·', Object.entries(seen).map(([k, v]) => k + ' ' + v).join(', '));

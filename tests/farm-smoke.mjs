@@ -158,8 +158,8 @@ async function play(grade, tag, viewport) {
   // a high-level farm: every tier, challenge customers, a level-up card
   await page.evaluate(() => { const f = MQ.state.farm; f.xp = 13227; /* 3 XP before level 50 */ f.tier = MQ.farm.tiers(MQ.state.grade).length; f.basket = { honey: 9, milk: 9, pumpkin: 9, egg: 9, truffle: 9, grapes: 9 }; f.customers = 4; f.stand = 3;
     Object.keys(MQ.farm.DECOR).forEach((id) => (f.owned[id] = true));
-    f.beds = ['carrot', 'strawberry', 'tomato', 'corn', 'pumpkin', 'sunflower', 'watermelon', null].map((c, i) => ({ c, g: i % 3 === 0 ? 9 : i % 3 }));
-    f.pens = ['chicken', 'bees', 'cow', 'fishpond', 'silkworm', 'turkey', 'reindeer', 'unicorn', 'alpaca', 'pony'].map((a, i) => ({ a, g: i % 3 === 0 ? 0 : 9, fed: i % 2 === 0, ready: i % 3 === 1 ? 2 : 0 }));
+    f.beds = ['carrot', 'strawberry', 'tomato', 'corn', 'pumpkin', null].map((c, i) => ({ c, g: i % 3 === 0 ? 9 : i % 3, u: i }));
+    f.pens = ['chicken', 'bees', 'cow', 'fishpond', 'turkey', 'unicorn'].map((a, i) => ({ a, g: i % 3 === 0 ? 0 : 9, fed: i % 2 === 0, ready: i % 3 === 1 ? 2 : 0, u: i % 4 }));
     Object.keys(MQ.farm.WORKS).forEach((id, i) => (f.works[id] = i % 3 === 2 ? { r: 0, g: 0, ready: 0, out: '' } : i % 3 === 1 ? { r: null, g: 0, ready: 1, out: MQ.farm.WORKS[id].recipes[0].out } : { r: null, g: 0, ready: 0, out: '' }));
     f.bank = { bal: 1234, since: MQ.farm.addDays(MQ.U.dateKey(), -15), log: [] };
     MQ.store.save(); });
@@ -242,6 +242,50 @@ async function play(grade, tag, viewport) {
   await page.click('.fwork.ready[data-arg=jamkitchen]');
   const jam = await page.evaluate(() => MQ.state.farm.basket.jam || 0);
   if (jam < 1) errors.push(`${tag}: no jam after a night`);
+
+  // version 3: upgrade a bed in the shop, plant every empty bed with one payment, pick all, hire the farmhand
+  await page.evaluate(() => { const f = MQ.state.farm; f.money += 5000; f.beds.forEach((b) => Object.assign(b, { c: null, g: 0 })); f.beds[0] = { c: 'carrot', g: 9, u: 0 }; f.beds[1] = { c: 'tomato', g: 9, u: 0 }; MQ.store.save(); });
+  await page.click('[data-act=go][data-arg="farm:shop"]');
+  await page.click('[data-act=fTab][data-arg=up]');
+  await page.waitForSelector('.fitems');
+  await snap('22-upgrades');
+  await page.click('[data-act=fBuy][data-arg="bedup:0"]');
+  await answer(page, true);
+  await page.waitForSelector('.fb.ok');
+  await page.click('[data-act=fNext]');
+  await page.waitForSelector('.fitems');
+  if ((await page.evaluate(() => MQ.state.farm.beds[0].u)) !== 1) errors.push(`${tag}: bed upgrade not bought`);
+  await page.click('[data-act=go][data-arg=farm]');
+  await page.click('[data-act=fPickAll]');
+  const picked = await page.evaluate(() => MQ.state.farm.beds.filter((b) => b.c).length);
+  if (picked !== 0) errors.push(`${tag}: pick all left ${picked} beds`);
+  await page.click('[data-act=fPlantAll]');
+  await page.waitForSelector('#modal .fseeds');
+  await page.click('#modal [data-act=fPlantAllCrop][data-arg=carrot]');
+  await page.waitForSelector('.fpalette');
+  await snap('23-plantall');
+  const cost = await page.evaluate(() => MQ.farmUI.playing().p.target);
+  if (cost !== 6 * (grade === 'k' ? 2 : 15)) errors.push(`${tag}: plant all costs ${cost}`);
+  await answer(page, true);
+  await page.waitForSelector('.fb.ok');
+  await page.click('[data-act=fNext]');
+  await page.waitForSelector('.scene');
+  const planted = await page.evaluate(() => MQ.state.farm.beds.filter((b) => b.c === 'carrot').length);
+  if (planted !== 6) errors.push(`${tag}: plant all planted ${planted}`);
+  await page.click('[data-act=go][data-arg="farm:shop"]');
+  await page.click('[data-act=fTab][data-arg=farm]');
+  await page.click('[data-act=fBuy][data-arg=helper]');
+  await answer(page, true);
+  await page.waitForSelector('.fb.ok');
+  await page.click('[data-act=fNext]');
+  await page.click('[data-act=go][data-arg=farm]');
+  await page.waitForSelector('.fhelp');
+  await snap('24-farmhand');
+  await page.click('[data-act=fSleep]');
+  await page.waitForSelector('#modal');
+  const morning = await page.evaluate(() => document.querySelector('#modal').textContent);
+  if (!/Sam was paid/.test(morning)) errors.push(`${tag}: no farmhand in the morning card: ${morning}`);
+  await page.click('#modal [data-act=closeModal]');
 
   // reloading keeps the farm; the home tile shows it
   await page.reload();

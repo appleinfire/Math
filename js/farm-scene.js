@@ -35,44 +35,51 @@
   // ---------------------------------------------------------------- the farm scene
   function bedHtml(b, i) {
     const s = F.cropStage(b);
-    if (s === 'empty') return `<button class="fbed soil empty" data-act="fBed" data-arg="${i}" aria-label="Empty garden bed: plant seeds"><span class="plus">＋</span><span class="flabel">Plant</span></button>`;
-    const c = F.CROPS[b.c], it = F.ITEMS[b.c], left = c.days - b.g;
-    const n = Math.min(c.yield, 4);
+    const stars = F.bedStars(b), ups = `${stars ? `<span class="bstars">${'★'.repeat(stars)}</span>` : ''}${F.bedWater(b) ? '<span class="bwater">💧</span>' : ''}`;
+    const glass = F.bedGlass(b) ? ' glass' : '';
+    if (s === 'empty') return `<button class="fbed soil empty${glass}" data-act="fBed" data-arg="${i}" aria-label="Empty garden bed: plant seeds"><span class="plus">＋</span>${ups}<span class="flabel">Plant</span></button>`;
+    const it = F.ITEMS[b.c], left = F.cropDays(b) - b.g, y = F.cropYield(b);
+    const n = Math.min(y, 4); // the label says how many; four fit on a small bed
     const sprite = s === 'ready' ? it.e : s === 'seed' ? '🌱' : '🌿';
     const plants = Array.from({ length: s === 'ready' ? n : 3 }, (_, k) => `<i style="--k:${k}">${sprite}</i>`).join('');
-    const label = s === 'ready' ? `Pick ${c.yield}!` : `${left} ${left === 1 ? 'day' : 'days'}`;
-    return `<button class="fbed soil ${s}" data-act="fBed" data-arg="${i}" aria-label="${esc(it.many)}: ${s === 'ready' ? 'ripe, tap to pick' : `ready in ${label}`}"><span class="plants">${plants}</span><span class="flabel">${s === 'ready' ? label : it.e + ' ' + label}</span></button>`;
+    const label = s === 'ready' ? `Pick ${y}!` : `${left} ${left === 1 ? 'day' : 'days'}`;
+    return `<button class="fbed soil ${s}${glass}" data-act="fBed" data-arg="${i}" aria-label="${esc(it.many)}: ${s === 'ready' ? 'ripe, tap to pick' : `ready in ${label}`}"><span class="plants">${plants}</span>${ups}${b.again ? '<span class="bagain" title="Second harvest">🔁</span>' : ''}<span class="flabel">${s === 'ready' ? label : it.e + ' ' + label}</span></button>`;
   }
   function penHtml(p, i) {
     if (!p.a) return `<button class="fpen pasture empty" data-act="go" data-arg="farm:shop" aria-label="Empty pen: buy an animal in the shop"><span class="plus">＋</span><span class="flabel">Buy an animal</span></button>`;
     const a = F.ANIMALS[p.a], sg = F.animalStage(p), it = F.ITEMS[a.item];
     const state = p.ready ? 'ready' : p.fed ? 'fed' : 'hungry';
     const age = ['Baby', 'Young', 'Grown-up'][sg];
-    const chip = p.ready ? `${it.e}×${p.ready}` : p.fed ? '❤️' : `🌾 ${a.eat}`;
+    const many = F.penCount(p);
+    const chip = p.ready ? `${it.e}×${p.ready}` : p.fed ? '❤️' : `🌾 ${F.penEat(p)}`;
     const loot = p.ready ? `<span class="loot">${Array.from({ length: Math.min(p.ready, 5) }, (_, k) => `<i style="--k:${k}">${it.e}</i>`).join('')}</span>` : '';
     let who;
     if (p.a === 'bees') {
-      who = `<span class="hivebox">${SVG.hive}</span>${Array.from({ length: sg + 1 }, (_, k) => `<span class="bee" style="--k:${k}">🐝</span>`).join('')}`;
+      who = `<span class="hivebox">${SVG.hive}</span>${Array.from({ length: Math.min(6, (sg + 1) * many) }, (_, k) => `<span class="bee" style="--k:${k}">🐝</span>`).join('')}`;
     } else if (p.a === 'fishpond') {
-      who = Array.from({ length: sg + 1 }, (_, k) => `<span class="walker side fishy" style="--t:${6 + k * 2}s;--dl:-${k * 1.7}s;bottom:${16 + k * 20}px"><span class="bob">🐟</span></span>`).join('');
+      who = Array.from({ length: Math.min(5, sg + many) }, (_, k) => `<span class="walker side fishy" style="--t:${6 + k * 2}s;--dl:-${k * 1.7}s;bottom:${14 + (k % 3) * 22}px"><span class="bob">🐟</span></span>`).join('');
     } else {
       const e = sg === 0 ? a.baby : WALK[p.a] || a.e;
-      const t = 7 + ((i * 3) % 5); // each animal walks at its own pace
-      who = `<span class="walker ${SIDE.has(e) ? 'side' : ''}" style="--t:${t}s;--dl:-${(i * 2.3) % t}s"><span class="bob">${e}</span></span>`;
+      // each animal walks at its own pace and height, so two or three in one pen don't overlap
+      who = Array.from({ length: many }, (_, k) => {
+        const t = 7 + ((i * 3 + k * 2) % 5);
+        return `<span class="walker ${SIDE.has(e) ? 'side' : ''} w${k}" style="--t:${t}s;--dl:-${(i * 2.3 + k * 3.1) % t}s"><span class="bob">${e}</span></span>`;
+      }).join('');
     }
-    const label = `${a.name}, ${age.toLowerCase()}: ${p.ready ? `${p.ready} ${it.many} to collect` : p.fed ? 'fed' : `hungry, eats ${a.eat} feed`}`;
+    const label = `${many > 1 ? many + ' × ' : ''}${a.name}, ${age.toLowerCase()}: ${p.ready ? `${p.ready} ${it.many} to collect` : p.fed ? 'fed' : `hungry, eats ${F.penEat(p)} feed`}`;
     const sparkle = p.a === 'unicorn' ? '<span class="twinkles"><i>✨</i><i>✨</i><i>✨</i></span>' : '';
-    return `<button class="fpen pasture ${state} s${sg} a-${p.a}" data-act="fPen" data-arg="${i}" aria-label="${esc(label)}">${who}${sparkle}${loot}<span class="trough ${p.fed ? 'full' : ''}"></span><span class="pchip">${chip}</span><span class="flabel">${age}</span></button>`;
+    return `<button class="fpen pasture ${state} s${sg} a-${p.a}" data-act="fPen" data-arg="${i}" aria-label="${esc(label)}">${who}${sparkle}${loot}<span class="trough ${p.fed ? 'full' : ''}"></span>${(p.u || 0) >= 3 ? '<span class="cozy" title="Cozy barn">🛖</span>' : ''}<span class="pchip">${chip}</span><span class="flabel">${age}${many > 1 ? ' × ' + many : ''}</span></button>`;
   }
   function workHtml(id) {
     const W = F.WORKS[id], w = fmWorks[id];
-    let inner, state, label;
-    if (w.ready) { state = 'ready'; inner = `<span class="wout">${F.ITEMS[w.out].e}</span>`; label = `Take ${w.ready}!`; }
+    // a small house: the workshop sign, and a badge with what it is doing
+    let badge, state, label;
+    if (w.ready) { state = 'ready'; badge = F.ITEMS[w.out].e; label = `take ${w.ready}`; }
     else if (w.r !== null && w.r !== undefined) {
       const r = W.recipes[w.r], left = r.days - w.g;
-      state = 'busy'; inner = `<span class="wout">${F.ITEMS[r.out].e}</span><span class="smoke">💨</span>`; label = `🌙 ${left} ${left === 1 ? 'night' : 'nights'}`;
-    } else { state = 'idle'; inner = ''; label = 'Make'; }
-    return `<button class="fwork ${state}" data-act="fWork" data-arg="${id}" aria-label="${esc(W.name)}: ${label}"><span class="wroof"></span><span class="wbig">${W.e}</span>${inner}<span class="flabel">${esc(W.name)} · ${label}</span></button>`;
+      state = 'busy'; badge = `🌙${left}`; label = `ready in ${left} ${left === 1 ? 'night' : 'nights'}`;
+    } else { state = 'idle'; badge = '＋'; label = 'make something'; }
+    return `<button class="fwork ${state}" data-act="fWork" data-arg="${id}" title="${esc(W.name)}" aria-label="${esc(W.name)}: ${label}"><span class="wroof"></span><span class="wbig">${W.e}</span>${state === 'busy' ? '<span class="smoke">💨</span>' : ''}<span class="wbadge">${badge}</span></button>`;
   }
   let fmWorks = {};
   S.farm = (fm, grade) => {
@@ -103,7 +110,7 @@
         ${works.length ? `<div class="works">${works.map(workHtml).join('')}</div>` : ''}
         <div class="yard">
           <button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
-          ${yard}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}
+          ${yard}${fm.helper && fm.helper.hired && fm.helper.on ? `<span class="farmhand" title="Farmhand ${F.HELPER.name}">🧑‍🌾</span>` : ''}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}
         </div>
         ${park ? `<div class="park">${park}</div>` : ''}
       </div>

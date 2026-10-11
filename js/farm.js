@@ -136,8 +136,41 @@
   F.FEED = { e: '🌾', price: [1, 5] }; // one bag
   F.FEED_PACKS = [5, 20];
   // More beds and pens: [unlock level, price k, price g2] for each one after the first ones.
-  F.BEDS = [[1, 0, 0], [1, 0, 0], [2, 5, 40], [4, 8, 80], [7, 12, 150], [11, 18, 250], [16, 25, 400], [21, 35, 600], [37, 45, 800], [48, 55, 1000]];
-  F.PENS = [[1, 0, 0], [2, 6, 60], [5, 12, 150], [8, 20, 300], [12, 30, 500], [17, 45, 800], [23, 60, 1200], [30, 80, 2000], [39, 90, 2500], [53, 99, 3000]];
+  // At most 6 beds and 6 pens, so the whole farm fits on a screen: after that the farm grows by upgrading them.
+  F.BEDS = [[1, 0, 0], [1, 0, 0], [2, 5, 40], [4, 8, 80], [7, 12, 150], [11, 18, 250]];
+  F.PENS = [[1, 0, 0], [2, 6, 60], [5, 12, 150], [8, 20, 300], [12, 30, 500], [17, 45, 800]];
+  // Upgrades for each bed, in this order (bed.u = how many are done): more crops, faster growth, a second harvest.
+  F.BED_UP = [
+    { name: 'Good soil ★', lv: 3, cost: [4, 40], note: '+1 crop every harvest', icon: '⭐' },
+    { name: 'Rich soil ★★', lv: 9, cost: [8, 100], note: '+1 more crop every harvest', icon: '⭐' },
+    { name: 'Sprinkler', lv: 14, cost: [12, 200], note: 'crops are ready 1 day sooner', icon: '💧' },
+    { name: 'Super soil ★★★', lv: 20, cost: [18, 350], note: '+1 more crop every harvest', icon: '⭐' },
+    { name: 'Mini greenhouse', lv: 37, cost: [30, 700], note: 'one packet of seeds gives two harvests', icon: '🏠' },
+    { name: 'Golden soil ★★★★', lv: 53, cost: [45, 1200], note: '+1 more crop every harvest', icon: '🌟' },
+  ];
+  // Upgrades for each pen (pen.u): room for a 2nd and a 3rd animal of the same kind, then a cozy barn (+1 every day).
+  // Room costs what one more animal costs; the cozy barn costs half of that.
+  F.PEN_UP = [
+    { name: 'Room for 2', lv: 6, note: 'a 2nd animal: twice the things to sell, twice the feed' },
+    { name: 'Room for 3', lv: 15, note: 'a 3rd animal: three times the things to sell and the feed' },
+    { name: 'Cozy barn', lv: 23, note: 'grown-ups give 1 more every day', half: true },
+  ];
+  F.bedStars = (b) => Math.min(b.u || 0, 2) + ((b.u || 0) >= 4 ? 1 : 0) + ((b.u || 0) >= 6 ? 1 : 0);
+  F.bedWater = (b) => (b.u || 0) >= 3;
+  F.bedGlass = (b) => (b.u || 0) >= 5;
+  F.cropDays = (b) => Math.max(1, F.CROPS[b.c].days - (F.bedWater(b) ? 1 : 0));
+  F.cropYield = (b) => F.CROPS[b.c].yield + F.bedStars(b);
+  F.penCount = (p) => 1 + Math.min(p.u || 0, 2);
+  F.penEat = (p) => F.ANIMALS[p.a].eat * F.penCount(p);
+  F.penMakes = (p) => F.ANIMALS[p.a].per * F.penCount(p) + ((p.u || 0) >= 3 ? 1 : 0);
+  F.upCost = (kind, i, grade, animal) => {
+    if (kind === 'bed') return F.BED_UP[i].cost[gi(grade)];
+    const a = F.ANIMALS[animal].cost[gi(grade)];
+    return F.PEN_UP[i].half ? Math.ceil(a / 2) : a;
+  };
+  // The farmhand feeds the animals every night and collects what they made in the morning, for a daily wage.
+  // From level 48 the farmhand also picks ripe crops.
+  F.HELPER = { lv: 39, picksLv: 48, hire: [20, 500], wage: [2, 25], name: 'Sam' };
   // The stand: a nicer stand brings tips for first-try right answers (part of the sale, at least 1¢).
   F.STANDS = [
     { e: '🪵', name: 'Wooden table', lv: 1, cost: [0, 0], tip: 0 },
@@ -265,6 +298,10 @@
       for (const r of w.recipes) if (r.lv === L && r.lv > w.lv) out.push({ e: F.ITEMS[r.out].e, name: `New recipe: ${F.ITEMS[r.out].many}` });
     }
     if (L === F.BANK_LV) out.push({ e: '🏦', name: 'The bank: save money and earn interest' });
+    for (const u of F.BED_UP) if (u.lv === L) out.push({ e: u.icon, name: 'Garden bed upgrade: ' + u.name });
+    for (const u of F.PEN_UP) if (u.lv === L) out.push({ e: '🏡', name: 'Pen upgrade: ' + u.name });
+    if (L === F.HELPER.lv) out.push({ e: '🧑‍🌾', name: `Farmhand ${F.HELPER.name}: feeds and collects for a wage` });
+    if (L === F.HELPER.picksLv) out.push({ e: '🧑‍🌾', name: `${F.HELPER.name} picks ripe crops too` });
     const t = F.TITLES.find((x) => x[0] === L);
     if (t && L > 1) out.push({ e: '🎖️', name: 'New title: ' + t[1] });
     return out;
@@ -303,6 +340,8 @@
     // farms from the first version: add what came later
     if (!fm.works) fm.works = {};
     if (!fm.bank) fm.bank = { bal: 0, since: '', log: [] };
+    if (!fm.helper) fm.helper = { hired: false, on: true };
+    if (!fm.stats.wages) fm.stats.wages = 0;
     for (const k of ['made', 'interest', 'bankDays']) if (!fm.stats[k]) fm.stats[k] = 0;
     return fm;
   };
@@ -314,21 +353,32 @@
   F.basketValue = (fm, grade) => U.sum(Object.entries(fm.basket).map(([id, n]) => n * F.price(id, grade)));
   F.cropStage = (bed) => {
     if (!bed.c) return 'empty';
-    const c = F.CROPS[bed.c];
-    return bed.g >= c.days ? 'ready' : bed.g === 0 ? 'seed' : 'sprout';
+    return bed.g >= F.cropDays(bed) ? 'ready' : bed.g === 0 ? 'seed' : 'sprout';
   };
   F.animalStage = (pen) => {
     const a = F.ANIMALS[pen.a];
     return pen.g >= a.grow[1] ? 2 : pen.g >= a.grow[0] ? 1 : 0; // 0 baby, 1 young, 2 grown-up
   };
-  F.plant = (fm, i, crop) => { fm.beds[i] = { c: crop, g: 0 }; };
+  // A bed keeps its upgrades (u) when it is planted and picked.
+  F.plant = (fm, i, crop) => { Object.assign(fm.beds[i], { c: crop, g: 0, again: false }); };
   F.harvest = (fm, i) => {
     const bed = fm.beds[i];
     if (F.cropStage(bed) !== 'ready') return 0;
-    const n = F.CROPS[bed.c].yield;
+    const n = F.cropYield(bed);
     fm.basket[bed.c] = (fm.basket[bed.c] || 0) + n;
-    fm.beds[i] = { c: null, g: 0 };
+    if (F.bedGlass(bed) && !bed.again) Object.assign(bed, { g: 0, again: true }); // the greenhouse grows a second harvest
+    else Object.assign(bed, { c: null, g: 0, again: false });
     return n;
+  };
+  F.emptyBeds = (fm) => fm.beds.map((b, i) => (b.c ? -1 : i)).filter((i) => i >= 0);
+  // Plant the same crop in n empty beds for one payment of n × the seed price.
+  F.plantAll = (fm, grade, crop, n) => {
+    const beds = F.emptyBeds(fm).slice(0, n), price = beds.length * F.seedPrice(crop, grade);
+    if (beds.length < n || fm.money < price || F.CROPS[crop].lv > F.level(fm.xp).level) return false;
+    fm.money -= price;
+    fm.stats.spent += price;
+    beds.forEach((i) => F.plant(fm, i, crop));
+    return true;
   };
   F.collect = (fm, i) => {
     const pen = fm.pens[i], n = pen.ready || 0;
@@ -339,7 +389,7 @@
     return n;
   };
   F.feed = (fm, i) => {
-    const pen = fm.pens[i], eat = F.ANIMALS[pen.a].eat;
+    const pen = fm.pens[i], eat = F.penEat(pen);
     if (pen.fed) return 'fed';
     if (fm.feed < eat) return 'nofeed';
     fm.feed -= eat;
@@ -347,8 +397,19 @@
     return 'ok';
   };
   // Night: crops grow a day, fed animals grow and grown-ups make something. Returns what happened for the morning card.
-  F.nextDay = (fm) => {
-    const news = { ripe: [], made: [], grew: [], hungry: [], cooked: [] };
+  F.nextDay = (fm, grade = 'g2') => {
+    const news = { ripe: [], made: [], grew: [], hungry: [], cooked: [], helper: null };
+    const hp = fm.helper;
+    if (hp && hp.hired && hp.on) { // the farmhand works tonight if there is money for the wage
+      const wage = F.HELPER.wage[gi(grade)];
+      if (fm.money < wage) news.helper = { unpaid: true, wage };
+      else {
+        fm.money -= wage;
+        fm.stats.wages = (fm.stats.wages || 0) + wage;
+        news.helper = { wage, fed: 0, short: 0, collected: 0, picked: 0 };
+        fm.pens.forEach((p, i) => { if (p.a && !p.fed) F.feed(fm, i) === 'ok' ? news.helper.fed++ : news.helper.short++; });
+      }
+    }
     for (const [id, w] of Object.entries(fm.works || {})) {
       if (w.r === null || w.r === undefined) continue;
       const r = F.WORKS[id].recipes[w.r];
@@ -364,11 +425,15 @@
       if (!p.a) return;
       if (!p.fed) { news.hungry.push(p.a); return; }
       const before = F.animalStage(p);
-      if (before === 2) { const a = F.ANIMALS[p.a]; p.ready = Math.min(9, (p.ready || 0) + a.per); news.made.push([a.item, a.per]); }
+      if (before === 2) { const a = F.ANIMALS[p.a], k = F.penMakes(p); p.ready = Math.min(30, (p.ready || 0) + k); news.made.push([a.item, k]); }
       p.g++;
       if (F.animalStage(p) > before) news.grew.push([p.a, F.animalStage(p)]);
       p.fed = false;
     });
+    if (news.helper && !news.helper.unpaid) { // in the morning: products into the basket, ripe crops too from level 48
+      fm.pens.forEach((p, i) => { news.helper.collected += F.collect(fm, i); });
+      if (F.level(fm.xp).level >= F.HELPER.picksLv) fm.beds.forEach((b, i) => { news.helper.picked += F.harvest(fm, i); });
+    }
     fm.day++;
     return news;
   };
@@ -383,6 +448,19 @@
     const nb = fm.beds.length, np = fm.pens.length;
     if (nb < F.BEDS.length) out.push({ id: 'bed', tab: 'farm', e: '🟫', name: 'Garden bed ' + (nb + 1), price: F.BEDS[nb][1 + g], lv: F.BEDS[nb][0], note: 'Grow more crops' });
     if (np < F.PENS.length) out.push({ id: 'pen', tab: 'farm', e: '🏡', name: 'Animal pen ' + (np + 1), price: F.PENS[np][1 + g], lv: F.PENS[np][0], note: 'Room for one more animal' });
+    fm.beds.forEach((b, i) => {
+      const up = F.BED_UP[b.u || 0];
+      if (up) out.push({ id: 'bedup:' + i, tab: 'up', e: up.icon, name: `Garden bed ${i + 1}: ${up.name}`, price: up.cost[g], lv: up.lv, note: up.note });
+      else out.push({ id: 'bedup:' + i, tab: 'up', e: '🏅', name: `Garden bed ${i + 1}: every upgrade`, price: 0, lv: 1, owned: true });
+    });
+    fm.pens.forEach((p, i) => {
+      if (!p.a) return;
+      const up = F.PEN_UP[p.u || 0], a = F.ANIMALS[p.a];
+      if (up) out.push({ id: 'penup:' + i, tab: 'up', e: a.e, name: `${a.name} pen: ${up.name}`, price: F.upCost('pen', p.u || 0, grade, p.a), lv: up.lv, note: up.note });
+      else out.push({ id: 'penup:' + i, tab: 'up', e: a.e, name: `${a.name} pen: every upgrade`, price: 0, lv: 1, owned: true });
+    });
+    const H = F.HELPER;
+    out.push({ id: 'helper', tab: 'farm', e: '🧑‍🌾', name: `Farmhand ${H.name}`, price: H.hire[g], lv: H.lv, owned: !!(fm.helper && fm.helper.hired), note: `Feeds the animals every night and collects in the morning. Wage: ${F.fmt(H.wage[g], grade)} a day.` });
     const ns = F.STANDS[fm.stand + 1];
     if (ns) out.push({ id: 'stand', tab: 'farm', e: ns.e, name: ns.name, price: ns.cost[g], lv: ns.lv, note: `Customers tip ${Math.round(ns.tip * 100)}% for right answers` });
     for (const [id, w] of Object.entries(F.WORKS)) out.push({ id: 'work:' + id, tab: 'farm', e: w.e, name: w.name, price: w.cost[g], lv: w.lv, owned: !!(fm.works || {})[id], note: 'Makes ' + w.recipes.map((r) => F.ITEMS[r.out].e).join(' ') + ' from what you grow' });
@@ -405,6 +483,9 @@
     else if (kind === 'stand') fm.stand++;
     else if (kind === 'decor') fm.owned[arg] = true;
     else if (kind === 'work') fm.works[arg] = { r: null, g: 0, ready: 0, out: '' };
+    else if (kind === 'bedup') fm.beds[+arg].u = (fm.beds[+arg].u || 0) + 1;
+    else if (kind === 'penup') fm.pens[+arg].u = (fm.pens[+arg].u || 0) + 1;
+    else if (kind === 'helper') fm.helper = { hired: true, on: true };
     if (fm.goal === id) fm.goal = '';
     return x;
   };
