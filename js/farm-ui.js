@@ -55,7 +55,7 @@
     const cheapest = Math.min(...Object.entries(F.CROPS).filter(([, c]) => c.lv <= F.level(f.xp).level).map(([id]) => F.seedPrice(id, grade())));
     const hungry = f.pens.filter((p) => p.a && !p.fed);
     let t;
-    if (F.bankDue(f) > 0 && F.interest(f.bank.bal, grade()) > 0) t = 'It’s bank day! Your savings grew. Go to the bank to collect the interest.';
+    if (F.bankDue(f) > 0) t = 'It’s bank day! Your savings grew. Go to the bank to collect the interest.';
     else if (Object.values(f.works).some((w) => w.ready)) t = 'Something is ready in your workshop! Tap it to take it.';
     else if (f.beds.some((b) => F.cropStage(b) === 'ready')) t = 'Your crops are ripe! Tap them to pick them.';
     else if (f.pens.some((p) => p.ready)) t = 'Your animals made something! Tap them to collect it.';
@@ -92,10 +92,10 @@
     const basket = Object.entries(f.basket).filter(([, c]) => c > 0).map(([id, c]) => `<span class="fchip">${F.ITEMS[id].e} ${c} <small>× ${fmt(F.price(id, g))}</small></span>`).join('') || '<span class="muted">Empty. Pick crops and collect from animals.</span>';
     const hungry = f.pens.some((p) => p.a && !p.fed), ready = f.pens.some((p) => p.ready);
     const ripe = f.beds.filter((b) => F.cropStage(b) === 'ready').length, empty = F.emptyBeds(f).length;
-    const bankDay = F.bankDue(f) > 0 && F.interest(f.bank.bal, g) > 0;
+    const bankDay = F.bankDue(f) > 0, nights = F.nightsToBankDay(f.day);
     K().render(header('🌻 Sunny Farm') + `<main class="farm">
       <section class="flevel">
-        <div class="flv"><b>Farm level ${lv.level} · ${esc(F.title(lv.level))}</b><span>Day ${f.day} · ${F.STANDS[f.stand].e} ${esc(F.STANDS[f.stand].name)}</span></div>
+        <div class="flv"><b>Farm level ${lv.level} · ${esc(F.title(lv.level))}</b><span>Farm day ${f.day} · ${F.STANDS[f.stand].e} ${esc(F.STANDS[f.stand].name)}</span></div>
         <div class="fbar xp" role="progressbar" aria-valuenow="${pctv}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pctv}%"></span></div>
         <small class="muted">${f.xp - lv.from} / ${lv.to - lv.from} XP to level ${lv.level + 1} · Money problems: ${tier.ahead ? '⭐ ' : ''}${esc(tier.name)}</small>
       </section>
@@ -106,9 +106,9 @@
       <button class="btn big fstand" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Open the stand ${n ? `· ${n} to sell` : '· basket is empty'}</button>
       <div class="fbtns">
         <button class="tile" data-act="go" data-arg="farm:shop"><span class="ti">🛒</span><b>Shop</b><small>Animals, feed, more</small></button>
-        ${lv.level >= F.BANK_LV ? `<button class="tile ${bankDay ? 'hot' : ''}" data-act="go" data-arg="farm:bank"><span class="ti">🏦</span><b>Bank</b><small>${f.bank.bal ? fmt(f.bank.bal) + ' saved' : 'Save and earn'}</small></button>` : `<button class="tile locked" disabled><span class="ti">🏦</span><b>Bank</b><small>🔒 Level ${F.BANK_LV}</small></button>`}
+        ${lv.level >= F.BANK_LV ? `<button class="tile ${bankDay ? 'hot' : ''}" data-act="go" data-arg="farm:bank"><span class="ti">🏦</span><b>Bank</b><small>${bankDay ? '🏦 Bank day today!' : f.bank.bal ? `${fmt(f.bank.bal)} · 🏦 in ${nights} ${nights === 1 ? 'night' : 'nights'}` : 'Save and earn'}</small></button>` : `<button class="tile locked" disabled><span class="ti">🏦</span><b>Bank</b><small>🔒 Level ${F.BANK_LV}</small></button>`}
         <button class="tile" data-act="fJobs"><span class="ti">🧹</span><b>Odd jobs</b><small>Earn at the big market</small></button>
-        <button class="tile" data-act="fSleep"><span class="ti">🌙</span><b>Sleep</b><small>Start day ${f.day + 1}</small></button>
+        <button class="tile" data-act="fSleep"><span class="ti">🌙</span><b>Sleep</b><small>Start farm day ${f.day + 1}</small></button>
       </div>
       ${SC.farm(f, g)}
       ${f.helper.hired ? `<div class="fhelp">🧑‍🌾 <span>Farmhand ${F.HELPER.name} ${f.helper.on ? `feeds the animals at night and collects in the morning · ${fmt(F.HELPER.wage[g === 'k' ? 0 : 1])} a day` : 'is taking a break'}</span><button class="btn ghost" data-act="fHelper">${f.helper.on ? 'Pause' : 'Back to work'}</button></div>` : ''}
@@ -123,7 +123,8 @@
         <span class="fstat" id="ffeed" title="Feed">🌾 <b>${f.feed}</b></span>
         <button class="btn fsell" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Sell</button>
       </div>
-      ${ripe || empty >= 2 || hungry || ready ? `<div class="fdock-acts">
+      ${bankDay || ripe || empty >= 2 || hungry || ready ? `<div class="fdock-acts">
+        ${bankDay ? '<button class="btn ghost" data-act="go" data-arg="farm:bank">🏦 Collect interest</button>' : ''}
         ${ripe ? '<button class="btn ghost" data-act="fPickAll">🧺 Pick all</button>' : ''}
         ${ready ? '<button class="btn ghost" data-act="fCollectAll">🥚 Collect all</button>' : ''}
         ${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}
@@ -304,6 +305,7 @@
     const made = {};
     news.made.forEach(([it, n]) => (made[it] = (made[it] || 0) + n));
     for (const [it, n] of Object.entries(made)) lines.push(`${F.ITEMS[it].e} +${n} ${esc(n === 1 ? F.ITEMS[it].name : F.ITEMS[it].many)} to collect`);
+    if (news.bankDay) lines.push('🏦 It’s bank day! Your savings earned interest: go to the bank to collect it.');
     const h = news.helper;
     if (h && h.unpaid) lines.push(`🧑‍🌾 ${F.HELPER.name} didn’t work last night: there wasn’t ${fmt(h.wage)} in your wallet for the wage.`);
     else if (h) lines.push(`🧑‍🌾 ${F.HELPER.name} was paid ${fmt(h.wage)}, fed ${h.fed} ${h.fed === 1 ? 'pen' : 'pens'}${h.collected ? `, collected ${h.collected}` : ''}${h.picked ? `, picked ${h.picked}` : ''}.${h.short ? ` Not enough feed for ${h.short}!` : ''}`);
@@ -311,7 +313,7 @@
     for (const [a, sg] of news.grew) lines.push(`${F.ANIMALS[a].e} Your ${esc(F.ANIMALS[a].name.toLowerCase())} ${sg === 2 ? 'is all grown up!' : 'got bigger'}`);
     for (const [a, n] of Object.entries(count(news.hungry))) lines.push(`${F.ANIMALS[a].e} ${n > 1 ? n + ' ' : ''}${esc(F.ANIMALS[a].name.toLowerCase())}${n > 1 ? 's were' : ' was'} hungry and didn’t grow. Feed animals before bed!`);
     MQ.sfx('reward');
-    K().modal(`<div class="bigemoji">☀️</div><div class="mtitle">Good morning! Day ${f.day}</div>
+    K().modal(`<div class="bigemoji">☀️</div><div class="mtitle">Good morning! Farm day ${f.day}</div>
       ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : '<p>A quiet night on the farm.</p>'}
       <div class="row"><button class="btn" data-act="closeModal">Let’s go!</button></div>`);
   }
@@ -415,7 +417,7 @@
     make: () => `${F.WORKS[fs.work].e} ${esc(F.WORKS[fs.work].name)}`,
     deposit: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
     withdraw: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
-    interest: () => `🏦 Bank day ${fs.n + 1} of ${fs.weeks}`,
+    interest: () => `🏦 Bank day ${fs.n + 1} of ${fs.weeks}`, // fs.n counts the bank days done
   };
   const LABEL = { pay: '🛒 Farm Shop', make: '🧮 Is it worth making?', deposit: '🏦 Put money in the bank', withdraw: '🏦 Take money out', interest: '🏦 Bank day: interest' };
   // the problem being answered now (paying too much asks for the change)
@@ -667,23 +669,27 @@
 
   // ---------------------------------------------------------------- the bank
   function bank() {
-    const f = fm(), g = grade(), b = f.bank, due = F.bankDue(f), interest = F.interest(b.bal, g);
+    const f = fm(), g = grade(), b = f.bank, due = F.bankDue(f), nights = F.nightsToBankDay(f.day);
+    const nextBank = f.day + nights;
     const proj = F.project(b.bal, g, 6), top = Math.max(1, ...proj);
-    const bars = proj.map((v, k) => `<div class="bbar"><span class="bv">${fmt(v)}</span><span class="bfill" style="height:${Math.max(4, Math.round((v / top) * 100))}%"></span><small>${k === 0 ? 'Now' : 'Week ' + k}</small></div>`).join('');
-    const nextDay = F.nextBankDay(f);
+    const bars = proj.map((v, k) => `<div class="bbar"><span class="bv">${fmt(v)}</span><span class="bfill" style="height:${Math.max(4, Math.round((v / top) * 100))}%"></span><small>${k === 0 ? 'Now' : 'Day ' + (nextBank + (k - 1) * F.BANK_WEEK)}</small></div>`).join('');
+    // this bank week: 7 farm days, the last one is bank day
+    const week = F.bankWeek(f.day).map((d) => `<li class="${d < f.day ? 'past' : d === f.day ? 'now' : ''} ${F.isBankDay(d) ? 'bank' : ''}"><small>Day</small><b>${d}</b>${F.isBankDay(d) ? '<i>🏦</i>' : d < f.day ? '<i>✓</i>' : '<i></i>'}</li>`).join('');
+    const status = due ? `✨ Bank day! The interest is waiting for you.` : F.isBankDay(f.day) ? `Today was bank day. The next one is farm day ${nextBank}.` : `${nights} more ${nights === 1 ? 'night' : 'nights'} until bank day (farm day ${nextBank}). Tap 🌙 Sleep on the farm to make a night pass.`;
     const LOG = { in: ['⬇️', 'Saved'], out: ['⬆️', 'Took out'], interest: ['✨', 'Interest'] };
-    const log = b.log.map((x) => `<li><span>${LOG[x.kind][0]} ${LOG[x.kind][1]}</span><small>${x.d}</small><b class="${x.kind}">${x.kind === 'out' ? '−' : '+'}${fmt(x.amt)}</b></li>`).join('');
+    const log = b.log.map((x) => `<li><span>${LOG[x.kind][0]} ${LOG[x.kind][1]}</span><small>${x.day ? 'Farm day ' + x.day : esc(x.d || '')}</small><b class="${x.kind}">${x.kind === 'out' ? '−' : '+'}${fmt(x.amt)}</b></li>`).join('');
     K().render(header('🏦 Farm Bank', 'farm') + `<main class="farm fbank">
       <section class="bankcard">
         <div class="bk"><small>In the bank</small><b id="fbankbal">${fmt(b.bal)}</b></div>
         <div class="bk"><small>In your wallet</small><b>${fmt(f.money)}</b></div>
       </section>
-      ${due > 0 && interest > 0 ? `<button class="btn big fstand" data-act="fInterest">✨ Bank day! Collect your interest${due > 1 ? ` (${due} weeks)` : ''}</button>` : ''}
+      <section class="bweek" aria-label="This bank week"><div class="bweek-t"><b>🏦 This bank week</b><small>Bank day is every ${F.BANK_WEEK}th farm day</small></div><ol>${week}</ol><p class="${due ? 'due' : ''}">${status}</p></section>
+      ${due > 0 ? `<button class="btn big fstand" data-act="fInterest">✨ Collect your interest${due > 1 ? ` (${due} bank days)` : ''}</button>` : ''}
       <div class="row"><button class="btn" data-act="fDeposit" ${f.money ? '' : 'disabled'}>⬇️ Save money</button><button class="btn ghost" data-act="fWithdraw" ${b.bal ? '' : 'disabled'}>⬆️ Take money out</button></div>
       <section class="flevel"><b>How the bank works</b>
         <p>${esc(F.ruleText(g))} The money is safe in the bank, and you can take it out any time to spend it.</p>
-        <p class="muted">${b.bal ? (due > 0 ? 'Interest is waiting for you!' : `Next bank day in ${nextDay} ${nextDay === 1 ? 'day' : 'days'} (every 7 days).`) : 'Save some money to start your first bank week.'} The bank pays at most ${fmt(F.BANK_CAP[g === 'k' ? 0 : 1])} a week.</p></section>
-      ${b.bal ? `<h2>📈 If you keep it in the bank</h2><div class="bchart" role="img" aria-label="Savings growing week by week">${bars}</div><p class="muted">Each week the bank adds interest, and next week the interest earns interest too.</p>` : ''}
+        <p class="muted">On the morning of bank day the bank looks at what you have saved, and the interest is for that money. The bank pays at most ${fmt(F.BANK_CAP[g === 'k' ? 0 : 1])} a week. If you miss bank days, up to ${F.BANK_MISSED} wait for you.</p></section>
+      ${b.bal ? `<h2>📈 If you keep it in the bank</h2><div class="bchart" role="img" aria-label="Savings growing week by week">${bars}</div><p class="muted">Each bank day the bank adds interest, and next time the interest earns interest too.</p>` : ''}
       ${log ? `<h2>🧾 My bank book</h2><ul class="blog">${log}</ul>` : ''}
     </main>`, 'is-farm');
     K().setCur('farm:bank');
@@ -713,11 +719,13 @@
   }
   // One bank day: work out this week's interest, then it is added.
   function interestQuestion() {
-    const f = fm(), g = grade(), bal = f.bank.bal, [per, add] = F.bankRule(g), x = F.interest(bal, g), n = Math.floor(bal / per);
+    const f = fm(), g = grade(), pend = f.bank.pend[0];
+    if (!pend) return next();
+    const bal = pend.bal, [per, add] = F.bankRule(g), x = F.interest(bal, g), n = Math.floor(bal / per);
     const capped = x < n * add;
-    fs.done = () => { const got = F.payInterest(fm(), g); return `The bank added <b>${fmt(got)}</b>. Now you have <b>${fmt(fm().bank.bal)}</b> saved.`; };
+    fs.done = () => { const got = F.payInterest(fm(), g); return `The bank added <b>${fmt(got.x)}</b>. Now you have <b>${fmt(fm().bank.bal)}</b> saved.`; };
     const unit = per === 100 ? 'whole dollar' : fmt(per);
-    const p = { type: 'interest', text: `You have <b>${fmt(bal)}</b> in the bank. The bank adds <b>${fmt(add)} for every ${unit}</b>${capped ? `, but at most <b>${fmt(x)}</b> a week` : ''}. How much interest do you get this week?`,
+    const p = { type: 'interest', text: `Bank day, farm day ${pend.day}: that morning you had <b>${fmt(bal)}</b> in the bank. The bank adds <b>${fmt(add)} for every ${unit}</b>${capped ? `, but at most <b>${fmt(x)}</b> a week` : ''}. How much interest do you get this week?`,
       hint: per === 100 ? `How many whole dollars are in ${fmt(bal)}? Each one brings 10¢.` : `How many tens are in ${bal}? Each ten brings 1¢.`,
       explain: `${fmt(bal)} has ${n} ${per === 100 ? 'whole dollars' : 'tens'}: ${n} × ${fmt(add)} = ${fmt(n * add)}${capped ? `, and the most is ${fmt(x)}` : ''}`, sale: {}, total: 0 };
     Object.assign(p, g === 'k' || x < 100 ? { kind: 'num', answer: x, unit: '¢' } : { kind: 'choice', answer: fmt(x), choices: F.moneyChoices(x, g) });

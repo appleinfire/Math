@@ -405,9 +405,9 @@
     if (!fm || !fm.started) return `<button class="tile t-farm wide" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>New! Grow, sell at your stand, count real money</small></span></button>`;
     const waiting = fm.beds.some((b) => F.cropStage(b) === 'ready') || fm.pens.some((p) => p.ready);
     const n = F.basketCount(fm);
-    const bankDay = fm.bank && F.bankDue(fm) > 0 && F.interest(fm.bank.bal, st.grade) > 0;
+    const bankDay = !!(fm.bank && fm.bank.pend && fm.bank.pend.length);
     const made = fm.works && Object.values(fm.works).some((w) => w.ready);
-    const note = bankDay ? '🏦 Bank day: interest is waiting!' : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Day ' + fm.day;
+    const note = bankDay ? '🏦 Bank day: interest is waiting!' : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
     return `<button class="tile t-farm wide ${waiting || made || bankDay || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
   }
 
