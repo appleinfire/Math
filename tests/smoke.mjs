@@ -653,7 +653,7 @@ async function run(viewport, tag) {
   await page.click('[data-act=closeModal]');
   if (!(await page.$('.pcard'))) errors.push(tag + ': game closed after back + keep playing');
   // Every screen offers a way back (header back button or result buttons)
-  for (const scr of ['map', 'trainer', 'journal', 'hatch', 'badges', 'parent', 'progress', 'fixit', 'lgtypes']) {
+  for (const scr of ['map', 'trainer', 'journal', 'hatch', 'badges', 'parent', 'progress', 'fixit', 'lgtypes', 'nntypes']) {
     await page.evaluate((x) => MQ.app.go(x), scr);
     if (!(await page.$('.bar [data-act=go][aria-label=Back]'))) errors.push(tag + ': no back button on ' + scr);
   }

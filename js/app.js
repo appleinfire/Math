@@ -1,8 +1,8 @@
 // UI: screens, game loop, rewards. Screens render into #app; clicks are routed through data-act attributes.
 (function () {
   const MQ = globalThis.MQ, U = MQ.U, S = MQ.store;
-  const D_NAMES = { 1: 'Sprout', 2: 'Explorer', 3: 'Ranger', 4: 'Expert', 5: 'Legend' };
-  const D_ICONS = { 1: '🌱', 2: '🧭', 3: '🏕️', 4: '🏔️', 5: '🐉' };
+  const D_NAMES = { 1: 'Sprout', 2: 'Explorer', 3: 'Ranger', 4: 'Expert', 5: 'Legend', 6: 'Genius' }; // 6: NNAT practice only
+  const D_ICONS = { 1: '🌱', 2: '🧭', 3: '🏕️', 4: '🏔️', 5: '🐉', 6: '💎' };
   const TRACK_COLOR = { k: '#e0a21b', g2: '#2bb3a3' };
   const DAILY_REWARD = 15;
   const FARM_FEED_BONUS = 5; // the Daily Quest also brings feed for Sunny Farm
@@ -69,8 +69,8 @@
   const pct = (c, a) => (a ? Math.round((c / a) * 100) : 0); // accuracy everywhere = right on the first try / answered
   const FIX_REWARD = 3;
   // The group a topic belongs to: a school track ('k', 'g2') or a test-prep family. Review questions stay in their group.
-  const familyOf = (t) => { const T = MQ.TOPICS[t]; return !T ? '' : t === 'kg_joey' ? 'joey' : T.kangaroo ? 'kangaroo' : T.cogat ? 'cogat' : T.logic ? 'logic' : T.track; };
-  const PAUSE_KINDS = ['check', 'kangaroo', 'joey', 'cogat', 'cogatk', 'logic', 'logick'];
+  const familyOf = (t) => { const T = MQ.TOPICS[t]; return !T ? '' : t === 'kg_joey' ? 'joey' : T.kangaroo ? 'kangaroo' : T.cogat ? 'cogat' : T.nnat ? 'nnat' : T.logic ? 'logic' : T.track; };
+  const PAUSE_KINDS = ['check', 'nnat', 'kangaroo', 'joey', 'cogat', 'cogatk', 'logic', 'logick'];
   // Links to our other apps (MQ.APPS). Each keeps its own profiles and progress. With an explorer open, the link
   // carries the name (#who=Mia), so the other app opens the profile with the same name.
   const appLinks = () => {
@@ -381,6 +381,7 @@
       </header>
       <div class="buddy"><span class="buddy-e">${st.companion}</span><div class="bubble" id="bubble">${esc(st.buddyName)}: ${esc(U.pick(MQ.SAY.hello))}</div></div>
       ${goalStrip()}
+      ${gateCard()}
       ${cont}
       <div class="tiles">
         <button class="tile t-map" data-act="go" data-arg="map"><span class="ti">🗺️</span><b>Expedition Map</b><small>${WORLDS().length} worlds · ${WORLDS().length * 6} levels</small></button>
@@ -392,7 +393,7 @@
         <button class="tile t-hatch" data-act="go" data-arg="hatch"><span class="ti">🥚</span><b>Hatchery</b><small>Rare eggs · ${MQ.EGG_PRICE} 💎</small></button>
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
         <button class="tile t-progress" data-act="go" data-arg="progress"><span class="ti">📈</span><b>My Progress</b><small>${weekAcc}</small></button>
-        <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>${PAUSE_KINDS.some((k) => S.paused(k)) ? '⏸️ You have an unfinished test: tap to continue' : 'Placement Check in the style of i-Ready' + (myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : '')}</small></span></button>
+        <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>${PAUSE_KINDS.some((k) => S.paused(k)) ? '⏸️ You have an unfinished test: tap to continue' : (st.grade === 'k' ? 'Placement Check in the style of i-Ready' : 'GATE (NNAT-3), i-Ready, CogAT, Kangaroo') + (myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : '')}</small></span></button>
       </div>
       <footer class="foot">${syncLine()}<button class="linkbtn" data-act="go" data-arg="parent">For grown-ups</button>${appLinks()}</footer>
     </main>`);
@@ -422,6 +423,40 @@
       ${s.made ? `<p>🏭 ${s.made} things made in the workshops (each one starts with a question: how much more is it worth?).</p>` : ''}
       <p>${s.tasks} money problems from customers and odd jobs, <b>${pct(s.right, s.tasks)}%</b> right on the first try · ${s.vip} ⭐ challenge customers. Now practicing: <b>${esc(tier.name)}</b>${tier.ahead ? ' (ahead of grade)' : ''}.</p>
       <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p></section>`;
+  }
+
+  // ---- GATE plan (2nd grade): the NNAT-3 test in February, the district's usual timeline, and this week's practice.
+  // Dates come from Eureka Union's GATE/HA Master Plan (invitations Dec 1–5, register by Jan 10–13, testing Feb 14–20,
+  // results Apr 1–12); the district's email has the exact dates each year.
+  const gatePlanOn = () => st.grade === 'g2' && st.settings.gatePlan !== false;
+  MQ.gateTimeline = (today = U.dateKey()) => {
+    const y = +today.slice(0, 4), md = today.slice(5);
+    const Y = md <= '04-12' ? y : y + 1; // the February coming up (or the one whose results are still due)
+    const at = (yy, m) => `${yy}-${m}`;
+    const test = at(Y, '02-14'), testEnd = at(Y, '02-20');
+    const days = U.daysBetween(today, test);
+    let step;
+    if (today < at(Y - 1, '12-01')) step = { icon: '📧', text: 'Invitations come by email in early December', when: at(Y - 1, '12-01') };
+    else if (today <= at(Y, '01-13')) step = { icon: '📝', text: 'Register by about January 10–13: the link is in the district email', when: at(Y, '01-13') };
+    else if (today < test) step = { icon: '🔷', text: 'Testing is February 14–20 (after school for grades 2–3)', when: test };
+    else if (today <= testEnd) step = { icon: '🍀', text: 'Test week! Sleep well, eat breakfast, and do your best', when: testEnd };
+    else step = { icon: '📬', text: 'Results come in early April: pick them up at school', when: at(Y, '04-01') };
+    return { year: Y, test, days, weeks: Math.max(0, Math.ceil(days / 7)), step };
+  };
+  function gateCard() {
+    if (!gatePlanOn()) return '';
+    const g = MQ.gateTimeline(), today = U.dateKey(), mon = MQ.weekStart(today);
+    const wk = U.range(0, 6).map((i) => S.addDays(mon, i));
+    const nd = st.nnatDays || {}, DAY = 6; // a practice day: at least 6 NNAT puzzles
+    const done = wk.filter((k) => (nd[k] || 0) >= DAY).length;
+    const dots = wk.map((k, i) => `<i class="${(nd[k] || 0) >= DAY ? 'on' : ''} ${k === today ? 'now' : ''}" title="${'MTWTFSS'[i]}">${'MTWTFSS'[i]}</i>`).join('');
+    const last = myContests('nnat').slice(-1)[0], since = last ? U.daysBetween(last.date, today) : 99;
+    const testNote = g.days > 0 ? (since >= 21 ? 'A practice test is due (every 3 weeks)' : `Next practice test in ${21 - since} ${21 - since === 1 ? 'day' : 'days'}`) : '';
+    const head = g.days > 7 ? `<b>${g.weeks} weeks</b> to the GATE test` : g.days > 0 ? `<b>${g.days} ${g.days === 1 ? 'day' : 'days'}</b> to the GATE test` : g.days >= -6 ? '<b>GATE test week</b>' : '<b>GATE test</b> done';
+    return `<button class="gatecard" data-act="go" data-arg="prep" aria-label="GATE plan">
+      <span class="gc-ic">🔷</span><span class="gc-t">${head} <small>NNAT-3 · usually Feb 14–20</small>
+      <small class="gc-step">${g.step.icon} ${esc(g.step.text)}</small>
+      ${g.days > 0 ? `<span class="gc-week"><span class="wdots">${dots}</span><small>${done} of 3 practice days this week${testNote ? ' · ' + testNote : ''}</small></span>` : ''}</span></button>`;
   }
 
   // The daily goal a grown-up set: a ring for today and a dot for each day of this week.
@@ -479,6 +514,12 @@
     if (sess.mode === 'check') {
       if (sess.resumeP) { const p = sess.resumeP; sess.resumeP = null; return p; } // back where the child stopped
       return MQ.prep.next(sess.eng);
+    }
+    if (sess.warm && sess.warm.length && (sess.asked === 0 || sess.asked === 2)) { // Daily Quest: NNAT warm-up
+      const t = sess.warm.shift();
+      const p = MQ.prep.fresh(t, U.clamp(mastery(t).passed + 1, 1, 6), new Set(sess.recent));
+      p.warm = true;
+      return p;
     }
     const rv = reviewProblem();
     if (rv) return rv;
@@ -553,7 +594,7 @@
       <section class="pcard" id="pcard"></section>
       <div id="answer" class="answer"></div>
     </div>`, 'is-play');
-    say(sess.mode === 'level' ? `${st.buddyName}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${st.buddyName}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${st.buddyName}: Lightning round! Go go go! ⚡` : sess.mode === 'daily' ? `${st.buddyName}: Today’s quest — 5 mixed puzzles!` : `${st.buddyName}: Let’s train! Every 5 in a row opens a chest. 🎁`);
+    say(sess.mode === 'level' ? `${st.buddyName}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${st.buddyName}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${st.buddyName}: Lightning round! Go go go! ⚡` : sess.mode === 'daily' ? `${st.buddyName}: Today’s quest — ${sess.warm && sess.warm.length ? '5 math puzzles and 2 GATE warm-ups 🔷' : '5 mixed puzzles'}!` : `${st.buddyName}: Let’s train! Every 5 in a row opens a chest. 🎁`);
     nextProblem();
     if (sess.timer) sess.interval = setInterval(tick, 1000);
   }
@@ -1026,6 +1067,7 @@
     const total = st.grade === 'k' ? 20 : 30;
     render(header('Test Prep') + `<main class="prep">
       <p class="lead">Get ready for the tests you take at school.</p>
+      ${st.grade === 'k' ? '' : nnatCard()}
       <article class="testcard" style="--pc:#5b63c9">
         <div class="tc-head"><span class="tc-ic">🎯</span><div><b>Placement Check</b><small>In the style of i-Ready · ${total} questions · about ${st.grade === 'k' ? 15 : 25} minutes</small></div>${infoBtn('check')}</div>
         <p>Questions about numbers, algebra, measurement and shapes. They get harder or easier as you answer, like i-Ready at school. No hints this time: just do your best, and make your best guess if you are not sure.</p>
@@ -1143,11 +1185,34 @@
   }
   // ---------------------------------------------------------------- Math Kangaroo style contest
   const myContests = (kind) => (st.tests.contests || []).filter((c) => c.kind === kind);
+  // NNAT-3: the test Eureka Union uses for GATE eligibility (from 2nd grade).
+  function nnatCard() {
+    const last = myContests('nnat').slice(-1)[0];
+    return `<article class="testcard nncard" style="--pc:#2e64b8">
+      <div class="tc-head"><span class="tc-ic">🔷</span><div><b>NNAT-3 practice · GATE</b><small>The picture-puzzle test Eureka Union uses for GATE · ${MQ.NNAT_TEST.n} puzzles · ${MQ.NNAT_TEST.minutes} minutes</small></div>${infoBtn('nnat')}</div>
+      <p>Shapes and colors only, no words and no numbers: find the piece that fits, see how shapes change, find what is missing, and put pictures together in your mind. To qualify for GATE a child needs the 98th percentile, so aim for nearly all right in 30 minutes.</p>
+      ${last ? `<div class="tc-last">Last practice test, ${fmtDate(last.date)}: <b>${last.right} of ${last.n}</b> right in ${last.minutes} min <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
+      ${resumeBox('nnat')}
+      <div class="row left">
+        <button class="btn ${pausedInfo('nnat') ? 'ghost' : ''}" data-act="startContest" data-arg="nnat:timed">${pausedInfo('nnat') ? 'New practice test' : `Practice test (${MQ.NNAT_TEST.minutes} min) ▶`}</button>
+        <button class="btn ghost" data-act="go" data-arg="nntypes">Practice by type</button>
+      </div>
+    </article>`;
+  }
+  function nntypes() {
+    render(header('NNAT-3 practice', 'prep') + `<main class="prep">
+      <p class="lead">Pick a kind of puzzle. They get harder as you get them right, up to 💎 Genius, which is harder than the real test. Every answer is explained.</p>
+      ${levelRow(6)}
+      <div class="kgtypes">${MQ.NNAT_TOPICS.map(typeTile).join('')}</div>
+      <p class="muted">The real test has no hints and no explanations, and 30 minutes for 48 puzzles: try the practice test now and then to get used to the pace.</p>
+    </main>`);
+    cur = 'nntypes';
+  }
   function cogatCard() {
     const k = st.grade === 'k', kind = k ? 'cogatk' : 'cogat', last = myContests(kind).slice(-1)[0];
     const n = k ? 18 : 45;
     return `<article class="testcard" style="--pc:#7a5cc9">
-      <div class="tc-head"><span class="tc-ic">🧠</span><div><b>${k ? 'Brain Games' : 'CogAT practice'}</b><small>${k ? 'Thinking puzzles in the style of CogAT' : 'GATE screening · Eureka Union tests every 2nd grader'} · ${n} questions</small></div>${infoBtn(kind)}</div>
+      <div class="tc-head"><span class="tc-ic">🧠</span><div><b>${k ? 'Brain Games' : 'CogAT practice'}</b><small>${k ? 'Thinking puzzles in the style of CogAT' : 'Reasoning test used by many districts and CSU Sacramento testing'} · ${n} questions</small></div>${infoBtn(kind)}</div>
       <p>${k ? 'Picture puzzles about patterns, shapes and things that go together. Every question is read aloud.' : 'Three parts like the real CogAT: <b>Verbal</b> (pictures that go together), <b>Quantitative</b> (number puzzles) and <b>Nonverbal</b> (shapes and paper folding). Pictures only, every question can be read aloud.'}</p>
       ${last ? `<div class="tc-last">Last practice test, ${fmtDate(last.date)}: <b>${last.right} of ${last.n}</b> right <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
       ${resumeBox(kind)}
@@ -1195,10 +1260,10 @@
     return `<button class="tile type" data-act="kgPractice" data-arg="${t}"><span class="ti">${T.icon}</span><b>${T.name}</b><small>${T.desc || ''}</small>${m.lv || fix ? `<span class="tstat">${m.lv ? MASTERY[m.lv][0] + ' ' + m.acc + '%' : ''}${fix ? ' · 🔧 ' + fix : ''}</span>` : ''}</button>`;
   };
   // In a grown-up preview, Practice by type can start at any level.
-  const levelRow = () => {
+  const levelRow = (top = 5) => {
     if (!S.preview) return '';
     const cur = ui.pvD || 'auto';
-    return `<div class="pvlevels"><span>👀 Start at level:</span><div class="segs six">${['auto', 1, 2, 3, 4, 5].map((d) => `<button class="seg ${String(cur) === String(d) ? 'sel' : ''}" data-act="pvLevel" data-arg="${d}" aria-pressed="${String(cur) === String(d)}">${d === 'auto' ? '🎯<b>Auto</b>' : `${D_ICONS[d]}<b>${d}</b>`}</button>`).join('')}</div></div>`;
+    return `<div class="pvlevels"><span>👀 Start at level:</span><div class="segs six">${['auto', ...U.range(1, top)].map((d) => `<button class="seg ${String(cur) === String(d) ? 'sel' : ''}" data-act="pvLevel" data-arg="${d}" aria-pressed="${String(cur) === String(d)}">${d === 'auto' ? '🎯<b>Auto</b>' : `${D_ICONS[d]}<b>${d}</b>`}</button>`).join('')}</div></div>`;
   };
   const infoBtn = (k) => `<button class="infobtn" data-act="info" data-arg="${k}" aria-label="What is this test?" title="What is this test?">i</button>`;
   function logicCard() {
@@ -1239,14 +1304,14 @@
     ct = P().newContest(kind, S.dueReview());
     ct.timed = !!timed;
     ct.left = ct.timed ? ct.seconds : 0;
-    ct.soft = kind === 'cogat'; // CogAT: a clock that only shows the time used, never stops the test
+    ct.soft = kind === 'cogat'; // CogAT: a clock that only shows the time used, never stops the test (NNAT: a real 30-minute clock)
     ct.used = 0;
     render('', 'is-contest');
     contestView();
     if (ct.timed || ct.soft) ct.interval = setInterval(contestTick, 1000);
   }
   const clock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-  const CT_TITLE = { kangaroo: '🦘 Math Kangaroo', joey: '🐣 Joey Puzzles', cogat: '🧠 CogAT practice', cogatk: '🧠 Brain Games', logic: '🧩 Logic challenge', logick: '🧩 Logic puzzles' };
+  const CT_TITLE = { nnat: '🔷 NNAT-3 practice', kangaroo: '🦘 Math Kangaroo', joey: '🐣 Joey Puzzles', cogat: '🧠 CogAT practice', cogatk: '🧠 Brain Games', logic: '🧩 Logic challenge', logick: '🧩 Logic puzzles' };
   const KID_TESTS = ['joey', 'cogatk', 'logick']; // kindergarten tests: no flags, stars instead of a score
   function contestTick() {
     if (!ct) return;
@@ -1270,7 +1335,7 @@
         ${ct.timed ? `<span class="stat timer ${ct.left <= 300 ? 'low' : ''}" id="ct-timer">⏱ ${clock(ct.left)}</span>` : ct.soft ? `<span class="stat timer soft" id="ct-timer" title="Time used">⏱ ${clock(ct.used)}</span>` : ''}</header>
       <nav class="ctnav" aria-label="Questions">${ct.items.map((x, k) => `<button class="ctdot ${k === i ? 'cur' : ''} ${ct.answers[k] !== null ? 'ans' : ''} ${ct.flags[k] ? 'flag' : ''} p${x.pts}" data-act="ctGo" data-arg="${k}" aria-label="Question ${k + 1}">${k + 1}</button>`).join('')}</nav>
       <section class="pcard">
-        <div class="pmeta"><span>Question ${i + 1} of ${n}${kangaroo ? ` · <b>${it.pts} points</b>` : it.sec ? ` · ${it.sec} · ${MQ.TOPICS[p.topic].name}` : ''}${it.rv ? ' · 🔁 Review' : ''}</span><span class="pmeta-r">${ct.flags[i] ? '🚩' : ''}${MQ.canSpeak() ? '<button class="speak" data-act="ctSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
+        <div class="pmeta"><span>Question ${i + 1} of ${n}${kangaroo ? ` · <b>${it.pts} points</b>` : ct.kind === 'nnat' ? '' : it.sec ? ` · ${it.sec} · ${MQ.TOPICS[p.topic].name}` : ''}${it.rv ? ' · 🔁 Review' : ''}</span><span class="pmeta-r">${ct.flags[i] ? '🚩' : ''}${MQ.canSpeak() ? '<button class="speak" data-act="ctSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
         <div class="ptext ${p.big ? 'eq' : ''} ${p.wordy ? 'wordy' : ''}">${p.text}</div>
         ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
       </section>
@@ -1312,6 +1377,7 @@
     later(checkBadges, 1200);
   }
   const CT_INFO = {
+    nnat: { title: 'NNAT-3 practice', color: '#2e64b8', more: 'nntypes', note: 'Original puzzles in the style of the NNAT-3; not affiliated with Pearson. The real NAI and percentile cannot be estimated from practice. Eureka Union’s GATE cut-off is the 98th percentile (NAI 132), so the goal is nearly all right within 30 minutes.' },
     kangaroo: { title: 'Math Kangaroo', color: '#d4703a', more: 'kgtypes', note: 'Original puzzles in the style of Math Kangaroo; not affiliated with Math Kangaroo USA. Past official papers are available from mathkangaroo.org.' },
     joey: { title: 'Joey Puzzles', color: '#e0a21b', more: '', note: 'Original puzzles in the style of Math Kangaroo, made for kindergarten.' },
     cogat: { title: 'CogAT practice', color: '#7a5cc9', more: 'cgtypes', note: 'Original questions in the style of CogAT; not affiliated with the publisher. Percentiles cannot be estimated from practice, so this shows how many were right in each part.' },
@@ -1324,7 +1390,11 @@
     const tile = (label, s) => (s ? `<div><b>${s.right} / ${s.n}</b><small>${label}</small></div>` : '');
     const tiles = kangaroo ? [3, 4, 5].map((p) => tile(`${p}-point puzzles`, res.sections[p])).join('')
       : res.kind.startsWith('cogat') ? MQ.COGAT_BATTERIES.map((b) => tile(`${b.icon} ${b.id}`, res.sections[b.id])).join('')
+      : res.kind === 'nnat' ? MQ.NNAT_TOPICS.map((t) => tile(`${MQ.TOPICS[t].icon} ${MQ.TOPICS[t].name}`, res.sections[MQ.TOPICS[t].name])).join('')
       : res.kind.startsWith('logic') ? ['Round 1', 'Round 2'].map((r) => tile(r, res.sections[r])).join('') : '';
+    // NNAT: how far up the levels the right answers go, and the pace (the real test is 48 puzzles in 30 minutes)
+    const nnRows = res.kind === 'nnat' && res.levels ? `<section class="pr-domains"><h2>By level</h2>${Object.entries(res.levels).map(([d, s]) => `<div class="pr-dom"><span class="pd-name">${D_ICONS[d]} ${D_NAMES[d]}</span><span class="lbar"><span class="lfill" style="width:${Math.round((s.right / s.n) * 100)}%"></span></span><span class="pd-lv">${s.right} of ${s.n}</span></div>`).join('')}
+      ${res.used ? `<p class="muted">Pace: <b>${Math.round(res.used / Math.max(1, res.n - res.blank))} seconds</b> a puzzle (the real test allows about ${Math.round((MQ.NNAT_TEST.minutes * 60) / MQ.NNAT_TEST.n)}).${res.blank ? ` ${res.blank} left blank: on the real test, a guess is better than a blank.` : ''}</p>` : ''}</section>` : '';
     const typeRows = (res.kind.startsWith('cogat') || res.kind.startsWith('logic')) && res.types ? `<section class="pr-domains">${Object.entries(res.types).map(([t, s]) => `<div class="pr-dom"><span class="pd-name">${MQ.TOPICS[t].icon} ${MQ.TOPICS[t].name}</span><span class="lbar"><span class="lfill" style="width:${Math.round((s.right / s.n) * 100)}%"></span></span><span class="pd-lv">${s.right} of ${s.n}</span></div>`).join('')}</section>` : '';
     render(header(info.title, 'prep') + `<main class="presult">
       <div class="pr-hero" style="box-shadow: inset 0 0 0 3px ${info.color}, 0 5px 0 ${info.color}">
@@ -1333,7 +1403,7 @@
         <div class="muted">${kangaroo ? `points · ${res.right} of ${res.n} right${res.blank ? ` · ${res.blank} blank` : ''}${res.timed ? ` · ${res.minutes} min` : ''}` : kids ? 'solved ' + '⭐'.repeat(Math.max(1, Math.round((res.right / res.n) * 3))) : `right · ${res.minutes} min${res.blank ? ` · ${res.blank} blank` : ''}`}</div>
       </div>
       ${tiles ? `<div class="sumgrid ${res.kind.startsWith('logic') ? 'two' : 'three'}">${tiles}</div>` : ''}
-      ${typeRows}
+      ${typeRows}${nnRows}
       ${res.items ? `<section><h2>Review</h2><ol class="rlist">${res.items.map((it, k) => `<li class="${it.ok ? 'ok' : 'no'}">
         <span class="rmark">${it.ok ? '✓' : '✗'}</span><div><div class="rq"><b>${k + 1}.</b> ${esc(it.q)}${kangaroo ? ` <span class="dchip">${it.pts} pts</span>` : ''}</div>
         <div class="ra">${it.ok ? `Your answer: <b>${it.letterG}</b>` : `Your answer: <b>${it.letterG || '—'}</b> · Right answer: <b>${it.letterA}</b>${/^picture/.test(it.a) ? '' : ` (${esc(it.a)})`}`}</div>
@@ -1359,12 +1429,20 @@
     </section>`;
   }
   function contestHistory() {
-    return kangarooHistory() + cogatHistory();
+    return (st.grade === 'k' ? '' : gateHistory()) + kangarooHistory() + cogatHistory();
+  }
+  // GATE in Eureka Union (from the district's GATE/HA Master Plan) and the NNAT-3 practice tests.
+  function gateHistory() {
+    const list = myContests('nnat');
+    const intro = `<h3>GATE: NNAT-3 practice</h3><p class="muted">Eureka Union decides GATE eligibility with one test, the <b>Naglieri Nonverbal Ability Test (NNAT-3)</b>: an NAI of <b>132 or more (98th percentile)</b> qualifies, and nothing else is counted. Testing starts in 2nd grade and each child gets <b>two tries</b> (the second the next year); a third try is possible through CSU Sacramento for a small fee, and private test results are not accepted. Usual timeline: invitations by email in early December, registration and consent by mid-January, testing in mid-February (after school for grades 2–3), results to pick up at school in early April. The district does not recommend a study guide but says getting to know the format builds confidence. The 2nd-grade test (Level C) has about 48 picture puzzles in 30 minutes; practice tests here use original puzzles in the same four kinds, and real NAI scores cannot be estimated from them.</p>`;
+    if (!list.length) return intro + '<p>No NNAT practice test yet. Start one from <b>Test Prep</b>.</p>';
+    const top = (c) => { const l = Object.entries(c.levels || {}).filter(([, x]) => x.n && x.right / x.n >= 0.75).map(([d]) => +d); return l.length ? D_ICONS[Math.max(...l)] + ' ' + D_NAMES[Math.max(...l)] : '—'; };
+    return intro + `<div class="tablewrap"><table class="topics"><thead><tr><th>Date</th><th>Right</th>${MQ.NNAT_TOPICS.map((t) => `<th title="${MQ.TOPICS[t].name}">${MQ.TOPICS[t].icon}</th>`).join('')}<th>Top level</th><th>Time</th></tr></thead><tbody>${list.slice().reverse().map((c) => `<tr><td>${fmtDate(c.date)}</td><td><b>${c.right} / ${c.n}</b></td>${MQ.NNAT_TOPICS.map((t) => { const x = c.sections[MQ.TOPICS[t].name]; return `<td>${x ? x.right + '/' + x.n : ''}</td>`; }).join('')}<td>${top(c)}</td><td>${c.used ? Math.round(c.used / 60) + ' min' : c.minutes + ' min'}</td></tr>`).join('')}</tbody></table></div><p class="muted small">Top level: the hardest level with at least 3 of 4 right. 💎 Genius is harder than the real test.</p>`;
   }
   function cogatHistory() {
     const k = st.grade === 'k', list = myContests(k ? 'cogatk' : 'cogat');
-    const intro = k ? '<h3>Brain Games (CogAT style)</h3><p class="muted">Thinking puzzles in the style of the CogAT, which Eureka Union gives in 2nd grade.</p>'
-      : '<h3>CogAT practice</h3><p class="muted">Eureka Union School District gives the CogAT to every 2nd grader each school year as one part of GATE screening (a school team and the district decide eligibility). Ask the school for the test date. This practice covers all three parts with original picture questions; real CogAT percentiles cannot be estimated from it.</p>';
+    const intro = k ? '<h3>Brain Games (CogAT style)</h3><p class="muted">Thinking puzzles in the style of the CogAT. GATE testing starts in 2nd grade (Eureka Union uses the NNAT-3); these games build the same kinds of thinking early.</p>'
+      : '<h3>CogAT practice</h3><p class="muted">The CogAT is used for gifted programs by many districts and is one of the tests for the extra testing chance through CSU Sacramento; Eureka Union itself uses the NNAT-3 (above). This practice covers all three CogAT parts with original picture questions; real CogAT percentiles cannot be estimated from it.</p>';
     if (!list.length) return intro + '<p>No practice test yet.</p>';
     const types = {};
     for (const c of list.slice(-3)) for (const [t, s] of Object.entries(c.types || {})) { const a = (types[t] = types[t] || { right: 0, n: 0 }); a.right += s.right; a.n += s.n; }
@@ -1412,7 +1490,9 @@
     const core = track().core;
     WORLDS().forEach((w, i) => { if (worldOpen(i) && i < WORLDS().length - 1) w.levels.forEach((l) => l.topics.forEach((t) => core.includes(t) && topics.add(t))); });
     if (topics.size < 3) core.slice(0, 5).forEach((t) => topics.add(t));
-    startSession({ mode: 'daily', topics: [...topics], d: track().daily, goal: 5, revFit: (r) => familyOf(r.topic) === st.grade });
+    // 2nd grade: two NNAT-3 warm-ups (the two kinds practiced least well), as the 1st and 3rd questions
+    const warm = gatePlanOn() ? MQ.NNAT_TOPICS.slice().sort((a, b) => (mastery(a).a ? mastery(a).acc : -1) - (mastery(b).a ? mastery(b).acc : -1)).slice(0, 2) : [];
+    startSession({ mode: 'daily', topics: [...topics], d: track().daily, goal: 5 + warm.length, warm, revFit: (r) => familyOf(r.topic) === st.grade });
   }
 
   // ---------------------------------------------------------------- journal, hatchery, badges
@@ -1564,7 +1644,7 @@
     const s = st.stats.topics[t];
     if (!s || !s.a) return { lv: 0, passed: 0, acc: 0, a: 0 };
     let passed = 0; // highest difficulty answered right at least 80% of the time (5 tries or more)
-    for (let d = 1; d <= 5; d++) { const b = s.byD[d]; if (b && b.a >= 5 && b.c / b.a >= 0.8) passed = d; }
+    for (let d = 1; d <= ((MQ.TOPICS[t] && MQ.TOPICS[t].maxD) || 5); d++) { const b = s.byD[d]; if (b && b.a >= 5 && b.c / b.a >= 0.8) passed = d; }
     return { lv: passed >= 5 ? 4 : passed >= 3 ? 3 : passed >= 1 ? 2 : 1, passed, acc: pct(s.c, s.a), a: s.a };
   }
   function skillMap() {
@@ -1679,6 +1759,7 @@
         <label class="toggle"><input type="checkbox" id="set-unlock" data-act="setting" data-arg="unlockAll" ${st.settings.unlockAll ? 'checked' : ''}> Unlock all worlds (skip ahead to match what is taught in class)</label>
         <label class="toggle"><input type="checkbox" id="set-voice" data-act="setting" data-arg="voice" ${st.settings.voice !== false ? 'checked' : ''}> Say “Great job!” or “Try again” out loud after each answer, and wait for the voice before the next problem</label>
         <label class="toggle"><input type="checkbox" id="set-read" data-act="setting" data-arg="readAloud" ${st.settings.readAloud ? 'checked' : ''}> Read every question aloud (for kids who don’t read yet; the 🔊 button always works)</label>
+        ${st.grade === 'g2' ? `<label class="toggle"><input type="checkbox" id="set-gate" data-act="setting" data-arg="gatePlan" ${st.settings.gatePlan !== false ? 'checked' : ''}> GATE plan: the countdown to the NNAT-3 test on the home screen and 2 NNAT warm-ups in the Daily Quest</label>` : ''}
         <div class="namerow"><label for="set-name">Child’s name</label><input id="set-name" class="field" maxlength="16" value="${esc(st.name)}">
           <label for="set-buddy">Buddy’s name</label><input id="set-buddy" class="field" maxlength="14" value="${esc(st.buddyName)}">
           <button class="btn ghost" data-act="saveNames">Save names</button></div>
@@ -1749,7 +1830,7 @@
     if (scr === 'parent' && S.preview) { endPreview(); toast('Preview ended'); }
     endContest();
     if (scr === 'farm') return MQ.farmUI.show(arg);
-    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, fixit, progress, parent: parentGate }[scr] || home)();
+    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, nntypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
 
   const ACTIONS = {
@@ -1833,12 +1914,12 @@
     kgPractice: (a) => {
       const T = MQ.TOPICS[a];
       if (!T) return prep();
-      const top = T.logic && st.grade === 'k' && !S.preview ? 2 : 5; // kindergarten logic stays at levels 1–2
+      const top = T.logic && st.grade === 'k' && !S.preview ? 2 : T.maxD || 5; // kindergarten logic stays at levels 1–2; NNAT goes to 6
       const fixed = S.preview && ui.pvD && ui.pvD !== 'auto' ? +ui.pvD : 0; // a grown-up picked the level
       startSession({ mode: 'trainer', topics: [a], auto: !fixed, d: fixed ? [fixed, fixed] : [2, 2], autoD: Math.min(2, top - 1) || 1, maxD: top, goal: 0, timer: 0, kgTopic: a,
         revFit: (r) => familyOf(r.topic) === familyOf(a) && r.d <= top });
     },
-    pvLevel: (a) => { ui.pvD = a; keepScroll({ cgtypes, kgtypes, lgtypes }[cur] || prep); },
+    pvLevel: (a) => { ui.pvD = a; keepScroll({ cgtypes, kgtypes, lgtypes, nntypes }[cur] || prep); },
     startPreview: () => {
       st = S.startPreview();
       MQ.farm.showcase(st); // the farm opens fully too (on the copy)
