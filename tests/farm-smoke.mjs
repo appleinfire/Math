@@ -161,7 +161,8 @@ async function play(grade, tag, viewport) {
     f.beds = ['carrot', 'strawberry', 'tomato', 'corn', 'pumpkin', null].map((c, i) => ({ c, g: i % 3 === 0 ? 9 : i % 3, u: i }));
     f.pens = ['chicken', 'bees', 'cow', 'fishpond', 'turkey', 'unicorn'].map((a, i) => ({ a, g: i % 3 === 0 ? 0 : 9, fed: i % 2 === 0, ready: i % 3 === 1 ? 2 : 0, u: i % 4 }));
     Object.keys(MQ.farm.WORKS).forEach((id, i) => (f.works[id] = i % 3 === 2 ? { r: 0, g: 0, ready: 0, out: '' } : i % 3 === 1 ? { r: null, g: 0, ready: 1, out: MQ.farm.WORKS[id].recipes[0].out } : { r: null, g: 0, ready: 0, out: '' }));
-    f.bank = { bal: 1234, since: MQ.farm.addDays(MQ.U.dateKey(), -15), log: [] };
+    f.day = 14;
+    f.bank = { bal: 1234, log: [], pend: [{ day: 7, bal: 1234 }, { day: 14, bal: 1234 + MQ.farm.interest(1234, MQ.state.grade) }] };
     MQ.store.save(); });
   await page.click('[data-act=go][data-arg=farm]');
   await snap('13-bigfarm');

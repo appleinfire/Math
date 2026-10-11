@@ -982,3 +982,19 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
   .fstat { padding: 5px 8px; font-size: 0.92rem; }
   .fsell { padding: 7px 10px; font-size: 0.92rem; }
 }
+
+/* ---------- Sunny Farm bank: this bank week (7 farm days, the last is bank day) ---------- */
+.bweek { margin-top: 14px; padding: 12px 14px; border-radius: var(--r); background: var(--card); box-shadow: inset 0 0 0 2px var(--line); }
+.bweek-t { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.bweek-t small { color: var(--ink-soft); font-weight: 800; }
+.bweek ol { list-style: none; padding: 0; margin: 10px 0 6px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.bweek li { display: flex; flex-direction: column; align-items: center; padding: 6px 2px; border-radius: 12px; background: #f1f5f2; box-shadow: inset 0 0 0 2px var(--line); line-height: 1.15; min-width: 0; }
+.bweek li small { font-size: 0.6rem; font-weight: 800; color: var(--ink-soft); }
+.bweek li b { font-family: var(--display); font-weight: 600; font-size: 1.05rem; }
+.bweek li i { font-style: normal; font-size: 0.85rem; min-height: 1.1em; color: var(--good); }
+.bweek li.past { background: #dff1e4; box-shadow: inset 0 0 0 2px #a9d8b8; }
+.bweek li.now { box-shadow: inset 0 0 0 3px var(--coral); background: #fff3f1; }
+.bweek li.bank { background: #e6f5ea; box-shadow: inset 0 0 0 3px #2f7d4f; }
+.bweek li.bank.now { box-shadow: inset 0 0 0 3px var(--coral); }
+.bweek p { margin: 4px 0 0; font-weight: 700; }
+.bweek p.due { color: #1f4f33; }

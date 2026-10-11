@@ -257,32 +257,51 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   const qk = F.makeQuestion(F.WORKS.jamkitchen.recipes[0], 'k');
   assert.strictEqual(qk.answer, 2);
 }
-// ---------- the bank
+// ---------- the bank: every 7th farm day is bank day; interest on what is saved that morning
 {
   const f = F.ensure({ grade: 'g2' });
   f.money = 1000;
-  assert.strictEqual(F.deposit(f, 2000, '2026-10-01'), false, 'only what is in the wallet');
-  assert.ok(F.deposit(f, 435, '2026-10-01'));
-  assert.deepStrictEqual([f.money, f.bank.bal, f.bank.since], [565, 435, '2026-10-01']);
+  f.pens = [];
+  f.beds = [];
+  assert.strictEqual(F.deposit(f, 2000), false, 'only what is in the wallet');
+  assert.ok(F.deposit(f, 435));
+  assert.deepStrictEqual([f.money, f.bank.bal], [565, 435]);
   assert.strictEqual(F.interest(435, 'g2'), 40, '10¢ for each of 4 whole dollars');
   assert.strictEqual(F.interest(99, 'g2'), 0);
   assert.strictEqual(F.interest(9000, 'g2'), 500, 'at most $5 a week');
   assert.strictEqual(F.interest(37, 'k'), 3, '1¢ for each of 3 tens');
-  assert.strictEqual(F.bankDue(f, '2026-10-07'), 0);
-  assert.strictEqual(F.bankDue(f, '2026-10-08'), 1);
-  assert.strictEqual(F.nextBankDay(f, '2026-10-05'), 3);
-  assert.strictEqual(F.payInterest(f, 'g2', '2026-10-08'), 40);
-  assert.deepStrictEqual([f.bank.bal, f.bank.since, f.stats.interest, f.stats.bankDays], [475, '2026-10-08', 40, 1]);
-  assert.strictEqual(F.bankDue(f, '2026-10-14'), 0, 'the next bank day is a week later');
-  assert.strictEqual(F.bankDue(f, '2027-01-01'), F.BANK_MISSED, 'at most 4 missed weeks are paid');
-  assert.strictEqual(F.bankDue(f, '2027-01-01'), F.BANK_MISSED, 'and asking again gives the same');
-  assert.ok(F.withdraw(f, 75, '2027-01-01'));
-  assert.deepStrictEqual([f.bank.bal, f.money], [400, 640]);
-  assert.strictEqual(F.withdraw(f, 401), false);
+  assert.deepStrictEqual(F.bankWeek(1), [1, 2, 3, 4, 5, 6, 7]);
+  assert.deepStrictEqual(F.bankWeek(7), [1, 2, 3, 4, 5, 6, 7]);
+  assert.deepStrictEqual(F.bankWeek(8), [8, 9, 10, 11, 12, 13, 14]);
+  assert.deepStrictEqual([F.nightsToBankDay(1), F.nightsToBankDay(6), F.nightsToBankDay(7), F.nightsToBankDay(13)], [6, 1, 7, 1]);
+  let bankDays = 0;
+  for (let d = f.day; d < 7; d++) if (F.nextDay(f, 'g2').bankDay) bankDays++;
+  assert.deepStrictEqual([f.day, bankDays, F.bankDue(f)], [7, 1, 1], 'farm day 7 is bank day');
+  assert.ok(F.deposit(f, 100), 'money saved after the morning');
+  const paid = F.payInterest(f, 'g2');
+  assert.deepStrictEqual(paid, { day: 7, bal: 435, x: 40 }, 'interest on what was saved in the morning');
+  assert.deepStrictEqual([f.bank.bal, F.bankDue(f), f.stats.interest, f.stats.bankDays], [575, 0, 40, 1]);
+  assert.deepStrictEqual(f.bank.log[0], { day: 7, kind: 'interest', amt: 40 });
+  assert.strictEqual(F.payInterest(f, 'g2'), null, 'nothing more to pay');
+  // missed bank days wait (at most 4), each with interest on interest
+  for (let i = 0; i < 7 * 6; i++) F.nextDay(f, 'g2');
+  assert.deepStrictEqual([f.day, F.bankDue(f)], [49, F.BANK_MISSED]);
+  assert.deepStrictEqual(f.bank.pend.map((x) => x.day), [14, 21, 28, 35], 'the first 4 missed bank days wait; later ones are skipped');
+  const xs = [];
+  while (F.bankDue(f)) xs.push(F.payInterest(f, 'g2').x);
+  assert.deepStrictEqual(xs, [50, 60, 60, 70], 'interest earns interest: 575 → 625 → 685 → 745 → 815');
+  assert.strictEqual(f.bank.bal, 815);
+  assert.ok(F.withdraw(f, 115));
+  assert.deepStrictEqual([f.bank.bal, f.bank.log[0].kind], [700, 'out']);
+  assert.strictEqual(F.withdraw(f, 701), false);
   assert.deepStrictEqual(F.project(400, 'g2', 3), [400, 440, 480, 520]);
-  assert.strictEqual(f.bank.log[0].kind, 'out');
   const empty = F.ensure({ grade: 'k' });
-  assert.strictEqual(F.bankDue(empty, '2030-01-01'), 0, 'no savings, no bank day');
+  for (let i = 0; i < 7; i++) F.nextDay(empty, 'k');
+  assert.strictEqual(F.bankDue(empty), 0, 'no savings, no bank day');
+  // a bank from the calendar-week version gets bank days by farm days
+  const cal = { grade: 'g2', farm: Object.assign(F.fresh(), { started: true, bank: { bal: 300, since: '2026-10-01', log: [{ d: '2026-10-01', kind: 'in', amt: 300 }] } }) };
+  const up2 = F.ensure(cal);
+  assert.deepStrictEqual([up2.bank.bal, up2.bank.pend, 'since' in up2.bank, up2.bank.log.length], [300, [], false, 1]);
   // a farm from the first version gets the workshops and the bank
   const old = { grade: 'g2', farm: F.fresh() };
   delete old.farm.works; delete old.farm.bank; delete old.farm.stats.made;
@@ -381,7 +400,7 @@ for (const g of ['k', 'g2']) {
   assert.strictEqual(fm.tier, F.tiers(g).length);
   assert.ok(Object.keys(F.DECOR).every((id) => fm.owned[id]) && Object.keys(F.WORKS).every((id) => fm.works[id]));
   assert.ok(fm.beds.some((b) => F.cropStage(b) === 'ready') && fm.beds.some((b) => F.cropStage(b) === 'seed'));
-  assert.ok(F.bankDue(fm) > 0, 'a bank day is waiting');
+  assert.ok(F.bankDue(fm) > 0 && F.isBankDay(fm.day), 'a bank day is waiting');
   assert.ok(!F.shop(fm, g).some((x) => x.locked && !x.owned), 'nothing in the shop is locked (decorations after level 60 are already on the farm)');
   assert.ok(F.customer(fm, g, { stock: fm.basket }), 'customers come');
 }

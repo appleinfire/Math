@@ -330,7 +330,7 @@
     t: 0, // when the farm last changed (for merging copies from two devices)
     stats: { sold: 0, earned: 0, spent: 0, tasks: 0, right: 0, vip: 0, jobs: 0, made: 0, interest: 0, bankDays: 0 },
     works: {}, // workshop id: { r: recipe index or null, g: nights, ready: items, out: item }
-    bank: { bal: 0, since: '', log: [] }, // since: the day the bank week started (interest every 7 days)
+    bank: { bal: 0, log: [], pend: [] }, // see the bank below: bank day is every 7th farm day
   });
   F.START_MONEY = [5, 30];
   F.ensure = (st) => {
@@ -339,7 +339,8 @@
     if (!fm.started) { fm.started = true; fm.money = F.START_MONEY[gi(st.grade)]; }
     // farms from the first version: add what came later
     if (!fm.works) fm.works = {};
-    if (!fm.bank) fm.bank = { bal: 0, since: '', log: [] };
+    if (!fm.bank) fm.bank = { bal: 0, log: [], pend: [] };
+    if (!fm.bank.pend) { fm.bank.pend = []; delete fm.bank.since; } // bank weeks used to be calendar weeks
     if (!fm.helper) fm.helper = { hired: false, on: true };
     if (!fm.stats.wages) fm.stats.wages = 0;
     for (const k of ['made', 'interest', 'bankDays']) if (!fm.stats[k]) fm.stats[k] = 0;
@@ -435,6 +436,7 @@
       if (F.level(fm.xp).level >= F.HELPER.picksLv) fm.beds.forEach((b, i) => { news.helper.picked += F.harvest(fm, i); });
     }
     fm.day++;
+    news.bankDay = fm.bank ? F.bankMorning(fm, grade) : false; // the morning of bank day: what is saved earns interest
     return news;
   };
 
@@ -528,54 +530,65 @@
   };
 
   // ---------------------------------------------------------------- the bank
-  // Money in the bank grows every week (7 real days): 10¢ for every whole dollar in 2nd grade, 1¢ for every 10¢ in
-  // kindergarten (10% a week, easy to work out). At most BANK_CAP a week, and at most 4 missed weeks are paid.
+  // Money in the bank grows every bank week of 7 farm days: every 7th farm day (day 7, 14, 21 …) is bank day. In the
+  // morning of bank day the bank looks at what is saved, and the interest on it waits until the child collects it at
+  // the bank (working it out first). The bank adds 10¢ for every whole dollar in 2nd grade, 1¢ for every 10¢ in
+  // kindergarten (10% a week, easy to work out), at most BANK_CAP a week. At most 4 bank days wait to be collected.
+  // bank = { bal, log: [{ day, kind, amt }], pend: [{ day, bal }] } — pend: bank days waiting, with the morning balance.
   F.BANK_LV = 10;
+  F.BANK_WEEK = 7;
   F.BANK_RULE = [[10, 1], [100, 10]]; // [for every …, add …] for k, g2
   F.BANK_CAP = [50, 500];
   F.BANK_MISSED = 4;
   F.bankRule = (grade) => F.BANK_RULE[gi(grade)];
-  F.ruleText = (grade) => (grade === 'k' ? 'The bank adds 1¢ for every 10¢ you save, every week.' : 'The bank adds 10¢ for every whole dollar you save, every week.');
+  F.ruleText = (grade) => (grade === 'k' ? 'The bank adds 1¢ for every 10¢ you save, every bank week.' : 'The bank adds 10¢ for every whole dollar you save, every bank week.');
   F.interest = (bal, grade) => { const [per, add] = F.bankRule(grade); return Math.min(F.BANK_CAP[gi(grade)], Math.floor(bal / per) * add); };
   const addDays = (key, n) => { const d = new Date(key + 'T12:00:00'); d.setDate(d.getDate() + n); return U.dateKey(d); };
   F.addDays = addDays;
-  const bankLog = (fm, kind, amt, today) => { fm.bank.log.unshift({ d: today, kind, amt }); fm.bank.log.length = Math.min(fm.bank.log.length, 12); };
-  F.deposit = (fm, amt, today = U.dateKey()) => {
+  const bankLog = (fm, kind, amt, day = fm.day) => { fm.bank.log.unshift({ day, kind, amt }); fm.bank.log.length = Math.min(fm.bank.log.length, 12); };
+  F.isBankDay = (day) => day % F.BANK_WEEK === 0;
+  // The farm days of this bank week (the last one is bank day).
+  F.bankWeek = (day) => { const first = Math.floor((day - 1) / F.BANK_WEEK) * F.BANK_WEEK + 1; return U.range(first, first + F.BANK_WEEK - 1); };
+  // Nights until the next bank day (on bank day itself: until the next one).
+  F.nightsToBankDay = (day) => (Math.floor(day / F.BANK_WEEK) + 1) * F.BANK_WEEK - day;
+  F.deposit = (fm, amt) => {
     if (!(amt > 0) || amt > fm.money) return false;
     fm.money -= amt;
-    if (!fm.bank.bal || !fm.bank.since) fm.bank.since = today; // the first week starts with the first savings
     fm.bank.bal += amt;
-    bankLog(fm, 'in', amt, today);
+    bankLog(fm, 'in', amt);
     return true;
   };
-  F.withdraw = (fm, amt, today = U.dateKey()) => {
+  F.withdraw = (fm, amt) => {
     if (!(amt > 0) || amt > fm.bank.bal) return false;
     fm.bank.bal -= amt;
     fm.money += amt;
-    bankLog(fm, 'out', amt, today);
+    bankLog(fm, 'out', amt);
     return true;
   };
-  // Bank days waiting (whole weeks since the bank week started), at most BANK_MISSED; older weeks are skipped.
-  F.bankDue = (fm, today = U.dateKey()) => {
-    const b = fm.bank;
-    if (!b.since || !b.bal) return 0;
-    const weeks = Math.floor(U.daysBetween(b.since, today) / 7);
-    if (weeks > F.BANK_MISSED) b.since = addDays(b.since, 7 * (weeks - F.BANK_MISSED));
-    return Math.max(0, Math.min(weeks, F.BANK_MISSED));
+  // Called each morning (from F.nextDay): on bank day, note what is in the bank, counting interest still waiting.
+  F.bankMorning = (fm, grade) => {
+    if (!F.isBankDay(fm.day) || fm.bank.pend.length >= F.BANK_MISSED) return false; // at most 4 bank days wait
+    // what will be in the bank once the bank days still waiting are paid (each earns on the one before)
+    let bal = fm.bank.bal;
+    for (const x of fm.bank.pend) bal += F.interest(bal, grade);
+    if (!bal) return false;
+    fm.bank.pend.push({ day: fm.day, bal });
+    return true;
   };
-  // Pay one week of interest. Returns the amount.
-  F.payInterest = (fm, grade, today = U.dateKey()) => {
-    const x = F.interest(fm.bank.bal, grade);
+  F.bankDue = (fm) => fm.bank.pend.length;
+  // Pay the oldest bank day waiting. Returns { day, bal, x }.
+  F.payInterest = (fm, grade) => {
+    const p = fm.bank.pend.shift();
+    if (!p) return null;
+    const x = F.interest(p.bal, grade);
     fm.bank.bal += x;
-    fm.bank.since = addDays(fm.bank.since, 7);
     fm.stats.interest += x;
     fm.stats.bankDays++;
-    bankLog(fm, 'interest', x, today);
-    return x;
+    bankLog(fm, 'interest', x, p.day);
+    return { day: p.day, bal: p.bal, x };
   };
-  // How the savings would grow, week by week, without adding or taking out money.
+  // How the savings would grow, bank week by bank week, without adding or taking out money.
   F.project = (bal, grade, weeks = 6) => { const out = [bal]; for (let i = 0; i < weeks; i++) out.push(out[i] + F.interest(out[i], grade)); return out; };
-  F.nextBankDay = (fm, today = U.dateKey()) => (fm.bank.since && fm.bank.bal ? 7 - (U.daysBetween(fm.bank.since, today) % 7) : 0);
 
   // ---------------------------------------------------------------- grown-up preview
   // The farm of a level-60 farmer, to look around in the grown-up preview (a copy of the profile; nothing is saved):
@@ -584,14 +597,14 @@
     const fm = F.ensure(st), g = st.grade, k = g === 'k';
     let xp = 0;
     for (let L = 1; L < 60; L++) xp += F.need(L);
-    const today = U.dateKey();
     Object.assign(fm, {
       xp, money: k ? 5000 : 100000, feed: 200, stand: F.STANDS.length - 1, tier: F.tiers(g).length, goal: '',
       beds: ['carrot', 'tomato', 'corn', 'pumpkin', 'strawberry', 'pineapple'].map((c, i) => ({ c, u: [0, 1, 2, 3, 5, 6][i], g: i % 2 ? 0 : 9 })),
       pens: ['chicken', 'cow', 'bees', 'fishpond', 'sheep', 'unicorn'].map((a, i) => ({ a, g: i === 5 ? 0 : 9, fed: i % 3 === 0, ready: i % 2 ? 3 : 0, u: i % 4 })),
       basket: {}, owned: {}, works: {},
       helper: { hired: true, on: false },
-      bank: { bal: k ? 300 : 2500, since: addDays(today, -8), log: [] },
+      day: 14,
+      bank: { bal: k ? 300 : 2500, log: [], pend: [{ day: 14, bal: k ? 300 : 2500 }] },
     });
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
     for (const id of Object.keys(F.DECOR)) fm.owned[id] = true;
