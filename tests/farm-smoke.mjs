@@ -165,6 +165,21 @@ async function play(grade, tag, viewport) {
     MQ.store.save(); });
   await page.click('[data-act=go][data-arg=farm]');
   await snap('13-bigfarm');
+  // tapping a pen far down the page keeps the page where it is; the dock at the bottom shows the change
+  {
+    const i = await page.evaluate(() => MQ.state.farm.pens.map((p, k) => (p.ready ? k : -1)).filter((k) => k >= 0).pop());
+    const penSel = `.fpen[data-arg="${i}"]`;
+    await page.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: 'center' }), penSel);
+    const before = await page.evaluate(() => ({ y: window.scrollY, basket: +document.querySelector('#fdbasket b').textContent }));
+    if (before.y < 200) errors.push(`${tag}: test setup did not scroll (${before.y})`);
+    await page.click(penSel, { force: true });
+    await page.waitForTimeout(300);
+    const after = await page.evaluate(() => ({ y: window.scrollY, basket: +document.querySelector('#fdbasket b').textContent, label: !!document.querySelector('.ftext') }));
+    if (Math.abs(after.y - before.y) > 2) errors.push(`${tag}: the page jumped from ${before.y} to ${after.y} after a tap`);
+    if (after.basket <= before.basket) errors.push(`${tag}: the dock basket did not grow (${before.basket} → ${after.basket})`);
+    if (!after.label) errors.push(`${tag}: no "+N" label where the tap was`);
+    if (shots) await page.screenshot({ path: path.join(shots, `farm-${tag}-13b-dock.png`) });
+  }
   await page.click('[data-act=fMarket]');
   for (let i = 0; i < 6; i++) {
     await page.waitForSelector('.fplay #fanswer');

@@ -167,6 +167,19 @@
       d.animate([{ transform: 'translate(-50%, 0) scale(0.6)', opacity: 0 }, { transform: 'translate(-50%, -20px) scale(1)', opacity: 1, offset: 0.25 }, { transform: `translate(calc(-50% + ${(k - 1) * 14}px), -70px) scale(1.1)`, opacity: 0 }], { duration: 900, delay: k * 120, easing: 'ease-out', fill: 'both' }).onfinish = () => d.remove();
     }
   };
+  // A short label floats up from a spot: "+3 🥚" where the eggs were picked up, "−2 🌾" at the trough.
+  S.floatText = (el, text, { delay = 0, minus = false } = {}) => {
+    const r = box(el);
+    if (!r) return;
+    const d = document.createElement('div');
+    d.className = 'flyer ftext' + (minus ? ' minus' : '');
+    d.textContent = text;
+    d.style.left = r.left + r.width / 2 + 'px';
+    d.style.top = r.top + r.height * 0.35 + 'px';
+    document.body.appendChild(d);
+    if (reduced() || !document.body.animate) { setTimeout(() => d.remove(), 1200); return; }
+    d.animate([{ transform: 'translate(-50%, 0) scale(0.7)', opacity: 0 }, { transform: 'translate(-50%, -14px) scale(1.15)', opacity: 1, offset: 0.2 }, { transform: 'translate(-50%, -26px) scale(1)', opacity: 1, offset: 0.7 }, { transform: 'translate(-50%, -48px) scale(1)', opacity: 0 }], { duration: 1300, delay, easing: 'ease-out', fill: 'both' }).onfinish = () => d.remove();
+  };
   // A number counts up (or down) to its new value: the money pill after a sale.
   S.roll = (el, from, to, show, dur = 650) => {
     if (!el) return;
