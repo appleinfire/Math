@@ -183,11 +183,18 @@ async function play(grade, tag, viewport) {
     if (shots) await page.screenshot({ path: path.join(shots, `farm-${tag}-13b-dock.png`) });
   }
   await page.click('[data-act=fMarket]');
+  const startCount = await page.evaluate(() => MQ.farm.basketCount(MQ.state.farm));
   for (let i = 0; i < 6; i++) {
     await page.waitForSelector('.fplay #fanswer');
     if (i === 0) await snap('14-vip');
+    if (!(await page.$('#fbbar li.want'))) errors.push(`${tag}: the basket bar does not mark what the customer wants`);
     await answer(page, true);
     await page.waitForSelector('.fb.ok');
+    // the basket bar at the stand: sold + left = what was in the basket when the stand opened
+    const bb = await page.evaluate(() => ({ label: document.querySelector('#fbbar').getAttribute('aria-label'), left: MQ.farm.basketCount(MQ.state.farm) }));
+    const m = /(\d+) sold, (\d+) left/.exec(bb.label || '');
+    if (!m || +m[2] !== bb.left || +m[1] + +m[2] !== startCount) errors.push(`${tag}: basket bar ${bb.label} (left ${bb.left}, started with ${startCount})`);
+    if (i === 1) await snap('14b-basketbar');
     if (await page.$('#modal')) { await snap('15-levelup'); await page.click('#modal [data-act=closeModal]'); }
     if (await page.$('[data-act=fNext]')) await page.click('[data-act=fNext]');
   }

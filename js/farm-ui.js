@@ -368,7 +368,7 @@
   }
   function startMarket() {
     if (!F.basketCount(fm())) return K().toast('The basket is empty');
-    fs = { mode: 'market', n: 0, earned: 0, tips: 0, xp: 0, sold: {} };
+    fs = { mode: 'market', n: 0, earned: 0, tips: 0, xp: 0, sold: {}, start: Object.assign({}, fm().basket) };
     nextCustomer();
   }
   function startJobs() {
@@ -383,6 +383,23 @@
     if (!p) return summary(true);
     show(p);
   }
+  // At the stand: what was in the basket when the stand opened, how much is sold and how much is left, per thing.
+  // The things this customer wants are marked.
+  function basketBar() {
+    if (!fs || fs.mode !== 'market' || !fs.start) return '';
+    const f = fm(), ids = Object.keys(fs.start).filter((id) => fs.start[id] > 0);
+    const want = new Set(fs.locked || !fs.p ? [] : Object.keys(fs.p.sale || {}));
+    const left = U.sum(ids.map((id) => f.basket[id] || 0)), sold = U.sum(ids.map((id) => fs.sold[id] || 0)), all = left + sold;
+    const chips = ids.map((id) => {
+      const l = f.basket[id] || 0, n = fs.sold[id] || 0;
+      return `<li class="${l ? '' : 'out'} ${want.has(id) ? 'want' : ''}" title="${esc(F.ITEMS[id].many)}: ${n} sold, ${l} left"><i>${F.ITEMS[id].e}</i><b>${l ? l : '✓'}</b>${n ? `<small>${n} sold</small>` : ''}</li>`;
+    }).join('');
+    return `<section class="fbbar" id="fbbar" aria-label="Basket: ${sold} sold, ${left} left">
+      <div class="fbbar-t"><span>🧺 Sold <b>${sold}</b> of ${all}</span><span><b>${left}</b> left to sell</span></div>
+      <span class="fbar"><span style="width:${all ? Math.round((sold / all) * 100) : 0}%"></span></span>
+      <ul>${chips}</ul></section>`;
+  }
+  const redrawBasket = () => { const el = $('#fbbar'); if (el) el.outerHTML = basketBar(); };
   function show(p) {
     if ($('.scene')) backY = window.scrollY;
     Object.assign(fs, { p, tries: 0, input: '', tray: [], locked: false, step: 'main', pick: null });
@@ -397,6 +414,7 @@
       : SC.stall({ mode: fs.mode, stand: fs.mode === 'jobs' ? 9 : f.stand, seller: st().companion, shopper: p.who[0], goods: SC.goods(p.sale), vip: p.vip });
     K().render(`<div class="play fplay" style="--wc:${p.vip ? '#b0569e' : '#e0a21b'}">
       <header class="playbar"><button class="iconbtn" data-act="fQuit" aria-label="Stop">✕</button><div class="pstatus">${status}</div>${moneyPill()}</header>
+      ${basketBar()}
       ${stall}
       <section class="pcard enter ${p.vip ? 'vip' : ''}" id="pcard">
         <div class="pmeta"><span>${label}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="fSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
@@ -515,6 +533,7 @@
     if (!p.jobs && !p.noPay) for (const [id, n] of Object.entries(p.sale)) fs.sold[id] = (fs.sold[id] || 0) + n;
     save();
     fs.locked = true;
+    redrawBasket();
     const thanks = p.noPay ? `${esc(p.who[1])} will come back with more money.` : p.jobs ? `You earned <b>${fmt(r.paid)}</b>.` : `${esc(p.who[1])} paid <b>${fmt(r.paid)}</b>${r.tip ? ` and tipped <b>${fmt(r.tip)}</b>` : ''}.`;
     if (solved) feedback(`${first ? U.pick(['Great job!', 'Thank you, farmer!', 'Perfect!', 'You got it!']) : 'Got it!'} ${thanks}${move === 'up' ? '<br>⬆️ Harder money problems unlocked!' : ''}`, 'ok');
     else feedback(`${shown}<br>${thanks}`, 'reveal');
@@ -614,6 +633,7 @@
       <h1 class="title">${title}</h1>
       <p class="lead">${s.mode === 'jobs' ? `${s.n} ${s.n === 1 ? 'job' : 'jobs'}` : `${s.n} ${s.n === 1 ? 'customer' : 'customers'}`} · earned <b>${fmt(s.earned + s.tips)}</b>${s.tips ? ` (tips ${fmt(s.tips)})` : ''} · +${s.xp} XP</p>
       ${sold ? `<p class="muted">Sold: ${sold}</p>` : ''}
+      ${s.mode === 'market' && F.basketCount(fm()) ? `<p class="muted">Still in the basket: ${Object.entries(fm().basket).filter(([, n]) => n > 0).map(([id, n]) => `${F.ITEMS[id].e} ${n}`).join(' · ')}</p>` : ''}
       <p>Money now: <b>${fmt(fm().money)}</b></p>
       <div class="row"><button class="btn ghost" data-act="go" data-arg="farm:shop">🛒 Shop</button><button class="btn" data-act="go" data-arg="farm">Back to the farm</button></div>
     </main>`);
