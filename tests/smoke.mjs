@@ -211,7 +211,7 @@ async function run(viewport, tag) {
   await page.click('.result [data-act=go][data-arg=home]');
   await page.waitForSelector('.home');
   await page.click('[data-act=daily]');
-  await solve(5);
+  await solve(7); // 5 math puzzles + 2 NNAT warm-ups for a 2nd grader (GATE plan)
   await page.waitForSelector('.result');
   await snap('09-daily');
 
