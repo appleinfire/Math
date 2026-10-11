@@ -1023,3 +1023,17 @@ svg.nn.design { width: 156px; }
 .gc-t .gc-step { color: #1f3f78; font-weight: 800; font-size: 0.9rem; }
 .gc-week { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
 .gatecard .wdots i.on { background: #2e64b8; color: #ffffff; box-shadow: none; }
+
+/* Sunny Farm stand: the basket — sold and left to sell, per thing */
+.fbbar { margin: 10px 0 0; padding: 8px 12px 10px; border-radius: 16px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); display: flex; flex-direction: column; gap: 6px; }
+.fbbar + .stall { margin-top: 8px; }
+.fbbar-t { display: flex; justify-content: space-between; gap: 8px; font-weight: 800; font-size: 0.95rem; }
+.fbbar-t b { font-family: var(--display); font-weight: 600; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.fbbar ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.fbbar li { display: flex; align-items: center; gap: 4px; padding: 3px 9px 3px 6px; border-radius: 999px; background: #fff8e6; box-shadow: inset 0 0 0 2px #f1dca6; line-height: 1.1; }
+.fbbar li i { font-style: normal; font-size: 1.2rem; }
+.fbbar li b { font-family: var(--display); font-weight: 600; font-variant-numeric: tabular-nums; }
+.fbbar li small { color: var(--ink-soft); font-weight: 700; font-size: 0.72rem; }
+.fbbar li.want { background: #fff0c2; box-shadow: inset 0 0 0 2px #e0a21b; }
+.fbbar li.out { opacity: 0.55; background: #eef7ee; box-shadow: inset 0 0 0 2px #bfe0c4; }
+.fbbar li.out b { color: var(--good); }
