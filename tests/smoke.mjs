@@ -211,7 +211,7 @@ async function run(viewport, tag) {
   await page.click('.result [data-act=go][data-arg=home]');
   await page.waitForSelector('.home');
   await page.click('[data-act=daily]');
-  await solve(5);
+  await solve(7); // 5 math puzzles + 2 NNAT warm-ups for a 2nd grader (GATE plan)
   await page.waitForSelector('.result');
   await snap('09-daily');
 
@@ -653,7 +653,7 @@ async function run(viewport, tag) {
   await page.click('[data-act=closeModal]');
   if (!(await page.$('.pcard'))) errors.push(tag + ': game closed after back + keep playing');
   // Every screen offers a way back (header back button or result buttons)
-  for (const scr of ['map', 'trainer', 'journal', 'hatch', 'badges', 'parent', 'progress', 'fixit', 'lgtypes']) {
+  for (const scr of ['map', 'trainer', 'journal', 'hatch', 'badges', 'parent', 'progress', 'fixit', 'lgtypes', 'nntypes']) {
     await page.evaluate((x) => MQ.app.go(x), scr);
     if (!(await page.$('.bar [data-act=go][aria-label=Back]'))) errors.push(tag + ': no back button on ' + scr);
   }

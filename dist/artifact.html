@@ -182,6 +182,7 @@ p { margin: 0.4em 0; }
 .dchip { display: inline-block; font-size: 0.78rem; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: #e8edf3; color: var(--ink-soft); letter-spacing: 0.02em; white-space: nowrap; }
 .dchip.d4 { background: #e3e6ff; color: #4a50a8; }
 .dchip.d5 { background: #f8dcf0; color: #93367f; }
+.dchip.d6 { background: #1f2a44; color: #ffd76a; }
 
 .pcard { background: var(--card); border-radius: 22px; padding: 16px 16px 14px; box-shadow: inset 0 0 0 2px var(--line), 0 6px 0 var(--line); border-top: 6px solid var(--wc); }
 .pcard.enter { animation: slidein 0.28s ease-out; }
@@ -1007,6 +1008,27 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
 .bweek li.bank.now { box-shadow: inset 0 0 0 3px var(--coral); }
 .bweek p { margin: 4px 0 0; font-weight: 700; }
 .bweek p.due { color: #1f4f33; }
+
+/* ---------- NNAT-3 style practice (js/nnat.js) ---------- */
+.nnwrap { display: flex; justify-content: center; margin: 10px 0 4px; }
+.nnwrap svg.nn { max-width: 100%; height: auto; max-height: none; }
+svg.nn.design { width: 156px; }
+.choices.pics .choice svg.nn, .choices.ct .copt svg.nn { width: 64px; height: 64px; }
+.choices.n5.pics:has(svg.nn):not(.ct) { grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.choices.n5.pics:has(svg.nn) .choice { min-height: 78px; padding: 6px; }
+@media (max-width: 480px) {
+  .choices.n5.pics:has(svg.nn):not(.ct) { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* GATE plan card on the home screen (2nd grade) */
+.gatecard { display: flex; align-items: flex-start; gap: 12px; width: 100%; margin-top: 12px; border: 0; text-align: left; border-radius: var(--r); padding: 12px 14px; background: #eaf1fb; box-shadow: inset 0 0 0 3px #2e64b8, 0 4px 0 #234d8f; color: var(--ink); }
+.gatecard:active { transform: translateY(3px); box-shadow: inset 0 0 0 3px #2e64b8, 0 1px 0 #234d8f; }
+.gc-ic { font-size: 2rem; line-height: 1; flex: none; }
+.gc-t { display: flex; flex-direction: column; gap: 3px; min-width: 0; font-size: 1.02rem; }
+.gc-t small { color: var(--ink-soft); font-weight: 700; font-size: 0.82rem; }
+.gc-t .gc-step { color: #1f3f78; font-weight: 800; font-size: 0.9rem; }
+.gc-week { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.gatecard .wdots i.on { background: #2e64b8; color: #ffffff; box-shadow: none; }
 </style>
 <div id="app"><p style="padding:40px;text-align:center">Loading Math Expedition…</p></div>
   <script>
@@ -2570,7 +2592,7 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
   MQ.G = { N, C, M, O, Ln, E, BLANK, NAMES }; // shared with generators-k.js and puzzles
 
   MQ.makeProblem = (topic, d) => {
-    const p = MQ.TOPICS[topic].gen(U.clamp(d, 1, 5));
+    const p = MQ.TOPICS[topic].gen(U.clamp(d, 1, MQ.TOPICS[topic].maxD || 5)); // NNAT practice goes up to an Expert level 6
     p.topic = topic;
     p.d = d;
     return p;
@@ -3786,6 +3808,350 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
 })();
 </script>
   <script>
+// NNAT-3 style practice (Naglieri Nonverbal Ability Test, 3rd edition), the test Eureka Union uses for GATE eligibility
+// (NAI 132 / 98th percentile, from 2nd grade). Level C (2nd grade) has four kinds of nonverbal puzzles, all pictures:
+//   Pattern Completion · Reasoning by Analogy · Serial Reasoning · Spatial Visualization
+// Every item has 5 answer pictures, like the real test, and a `say` line for the short spoken directions.
+// Levels 1–5 go from easy to hard; level 6 (Expert) is harder than most real Level C items, for the 98th-percentile goal.
+// All items are original and generated here; nothing is copied from the real test.
+(function () {
+  const MQ = (globalThis.MQ = globalThis.MQ || {});
+  const U = MQ.U;
+  const { C } = MQ.G;
+  const { rnd, pick, shuffle } = U;
+  MQ.NNAT_FALLBACKS = {};
+
+  // ---------------------------------------------------------------- drawing
+  const COL = { blue: '#2e64b8', yellow: '#f5c518', white: '#ffffff', ink: '#1f2a44', sky: '#9cc3ef' };
+  const INK = '#1f2a44';
+  const r1 = (x) => Math.round(x * 10) / 10;
+  const rad = (d) => (d * Math.PI) / 180;
+  const svg = (w, h, body, cls = '') => `<svg class="vis nn ${cls}" viewBox="0 0 ${w} ${h}" width="${w}" role="img" aria-label="picture" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
+  const SHAPES = ['circle', 'square', 'triangle', 'diamond', 'cross', 'half', 'arrow'];
+  const TURNY = ['triangle', 'half', 'arrow']; // shapes that look different after a quarter turn
+  const POS = { c: [0.5, 0.5], tl: [0.28, 0.28], tr: [0.72, 0.28], bl: [0.28, 0.72], br: [0.72, 0.72] };
+  const SPOTS = { 1: [[0.5, 0.5]], 2: [[0.3, 0.5], [0.7, 0.5]], 3: [[0.5, 0.28], [0.28, 0.72], [0.72, 0.72]], 4: [[0.3, 0.3], [0.7, 0.3], [0.3, 0.7], [0.7, 0.7]] };
+  function shapeAt(shape, cx, cy, r, fill, rot) {
+    const st = `fill="${COL[fill] || fill}" stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"`;
+    const turn = (pts) => pts.map(([x, y]) => { const a = rad(rot), X = x * r, Y = y * r; return `${r1(cx + X * Math.cos(a) - Y * Math.sin(a))},${r1(cy + X * Math.sin(a) + Y * Math.cos(a))}`; }).join(' ');
+    switch (shape) {
+      case 'circle': return `<circle cx="${r1(cx)}" cy="${r1(cy)}" r="${r1(r)}" ${st}/>`;
+      case 'square': return `<polygon points="${turn([[-0.85, -0.85], [0.85, -0.85], [0.85, 0.85], [-0.85, 0.85]])}" ${st}/>`;
+      case 'diamond': return `<polygon points="${turn([[0, -1], [1, 0], [0, 1], [-1, 0]])}" ${st}/>`;
+      case 'triangle': return `<polygon points="${turn([[0, -1], [0.95, 0.75], [-0.95, 0.75]])}" ${st}/>`;
+      case 'cross': return `<polygon points="${turn([[-0.32, -1], [0.32, -1], [0.32, -0.32], [1, -0.32], [1, 0.32], [0.32, 0.32], [0.32, 1], [-0.32, 1], [-0.32, 0.32], [-1, 0.32], [-1, -0.32], [-0.32, -0.32]])}" ${st}/>`;
+      case 'half': { // a half disc, flat side down when rot = 0
+        const pts = [];
+        for (let k = 0; k <= 12; k++) { const a = Math.PI + (Math.PI * k) / 12; pts.push([Math.cos(a), Math.sin(a) * 1 + 0.45]); }
+        return `<polygon points="${turn(pts)}" ${st}/>`;
+      }
+      case 'arrow': return `<polygon points="${turn([[0, -1], [0.75, -0.15], [0.28, -0.15], [0.28, 1], [-0.28, 1], [-0.28, -0.15], [-0.75, -0.15]])}" ${st}/>`;
+      default: return '';
+    }
+  }
+  // A figure in a box: { bg, shape, fill, big, pos, rot, n }
+  function figBody(f, x, y, s) {
+    let b = `<rect x="${x + 1}" y="${y + 1}" width="${s - 2}" height="${s - 2}" rx="4" fill="${COL[f.bg || 'white']}" stroke="#b9c6d6" stroke-width="2"/>`;
+    if (!f.shape) return b;
+    const n = f.n || 1;
+    const r = (f.big === false || n > 1 ? 0.17 : 0.3) * s;
+    const spots = n > 1 ? SPOTS[n] : [POS[f.pos || 'c']];
+    for (const [px, py] of spots) b += shapeAt(f.shape, x + px * s, y + py * s, r, f.fill || 'blue', f.rot || 0);
+    return b;
+  }
+  const fig = (f, s = 64) => svg(s, s, figBody(f, 0, 0, s), 'fig');
+  // What a figure looks like (two figures with the same key look the same: a turned circle is still a circle).
+  const keyOf = (f) => {
+    const n = f.n || 1, turny = TURNY.includes(f.shape);
+    return JSON.stringify([f.bg || 'white', f.shape || '', f.fill || '', n > 1 ? false : f.big !== false, n > 1 ? 'c' : f.pos || 'c', turny ? ((f.rot || 0) % 360 + 360) % 360 : 0, n]);
+  };
+  const QBOX = (x, y, s) => `<rect x="${x + 2}" y="${y + 2}" width="${s - 4}" height="${s - 4}" rx="5" fill="#ffffff" stroke="${INK}" stroke-width="2.5" stroke-dasharray="6 4"/><text x="${x + s / 2}" y="${y + s / 2 + 9}" font-size="26" font-family="Nunito, sans-serif" font-weight="900" fill="${INK}" text-anchor="middle">?</text>`;
+  // A matrix of figures (rows of cells); null = the missing one.
+  function matrix(cells, s = 64) {
+    const R = cells.length, Cn = cells[0].length, g = 6;
+    let b = '';
+    cells.forEach((row, r) => row.forEach((f, c) => { const x = c * (s + g), y = r * (s + g); b += f ? figBody(f, x, y, s) : QBOX(x, y, s); }));
+    return `<div class="vis nnwrap">${svg(Cn * (s + g) - g, R * (s + g) - g, b, 'mx')}</div>`;
+  }
+  // Five answer pictures: the right one and four that are close. Returns a choice problem.
+  function five(type, text, say, right, wrongs, draw, o = {}) {
+    const all = shuffle([right, ...wrongs.slice(0, 4)]);
+    const values = all.map((_, i) => 'picture ' + (i + 1));
+    return C(text, values[all.indexOf(right)], values, Object.assign({ choiceHtml: all.map(draw), say, nnat: type }, o));
+  }
+  // Pick wrong answers: unique, not the right one, preferring the given order.
+  function distinct(right, cands, key, n = 4) {
+    const seen = new Set([key(right)]), out = [];
+    for (const c of cands) { const k = key(c); if (!seen.has(k)) { seen.add(k); out.push(c); } if (out.length === n) break; }
+    return out.length === n ? out : null;
+  }
+
+  // ---------------------------------------------------------------- 1. Pattern Completion
+  // A big design made of tiles with a hole; which piece fills the hole?
+  // tile = { bg, m } where m is a small mark shape (or ''); a piece is a k×k block of tiles.
+  const BGS = ['blue', 'yellow', 'white'];
+  const MARKS = ['circle', 'diamond', 'square', 'cross'];
+  function tileBody(t, x, y, s) {
+    let b = `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${COL[t.bg]}" stroke="#d3dbe6" stroke-width="0.6"/>`;
+    if (t.m) b += shapeAt(t.m, x + s / 2, y + s / 2, s * 0.27, t.mf || (t.bg === 'blue' ? 'white' : 'blue'), 0);
+    return b;
+  }
+  const pieceKey = (piece) => piece.map((row) => row.map((t) => t.bg + (t.m || '') + (t.mf || '')).join(',')).join('|');
+  function pieceSvg(piece, s = 30) {
+    const k = piece.length;
+    let b = '';
+    piece.forEach((row, r) => row.forEach((t, c) => { b += tileBody(t, c * s, r * s, s); }));
+    b += `<rect x="1" y="1" width="${k * s - 2}" height="${k * s - 2}" fill="none" stroke="${INK}" stroke-width="2"/>`;
+    return svg(k * s, k * s, b, 'piece');
+  }
+  // Designs: a rule from (row, col) to a tile, on an n×n board.
+  function design(d) {
+    const [A, B, Cc] = shuffle(BGS), [m1, m2] = U.sample(MARKS, 2), N = d <= 2 ? 5 : 6;
+    const rules = {
+      1: [(r) => ({ bg: [A, B][r % 2] }), (r, c) => ({ bg: [A, B][c % 2] })],
+      2: [(r, c) => ({ bg: [A, B][(r + c) % 2] }), (r, c) => ({ bg: [A, B][r % 2], m: c % 2 ? m1 : '' })],
+      3: [(r, c) => ({ bg: [A, B, Cc][(r + c) % 3] }), (r, c) => ({ bg: [A, B][(r + c) % 2], m: [m1, m2][r % 2] })],
+      4: [(r, c) => ({ bg: [A, B, Cc][(r + c) % 3], m: c % 2 ? m1 : '' }), (r, c) => ({ bg: [A, B][Math.floor(r / 2) % 2 ^ Math.floor(c / 2) % 2], m: (r + c) % 2 ? m1 : '' })],
+      5: [(r, c) => ({ bg: [A, B, Cc][(r + 2 * c) % 3], m: [m1, '', m2][(r + c) % 3] }), (r, c) => ({ bg: [A, B][(r % 3 === 0) || (c % 3 === 0) ? 0 : 1], m: r === c || r + c === N - 1 ? m1 : '' })],
+      6: [ // symmetric rings and diagonals: the hole is off-centre, so the piece comes from the mirror side
+        (r, c) => { const ring = Math.min(r, c, N - 1 - r, N - 1 - c); return { bg: [A, B, Cc][ring % 3], m: r === c || r + c === N - 1 ? m1 : '' }; },
+        (r, c) => ({ bg: [A, B, Cc][(Math.abs(r - (N - 1) / 2) + Math.abs(c - (N - 1) / 2)) % 3 | 0], m: (r + c) % 2 ? m2 : '' }),
+      ],
+    };
+    return { N, rule: pick(rules[d]) };
+  }
+  function nn_pattern(d) {
+    for (let t = 0; t < 200; t++) {
+      const { N, rule } = design(d);
+      const k = d <= 3 ? 1 : 2;
+      const hr = rnd(0, N - k), hc = rnd(0, N - k);
+      const tileAt = (r, c) => rule(((r % N) + N) % N, ((c % N) + N) % N);
+      const take = (r0, c0, f = (t2) => t2) => U.range(0, k - 1).map((r) => U.range(0, k - 1).map((c) => f(tileAt(r0 + r, c0 + c), r, c)));
+      const right = take(hr, hc);
+      const swap = (bgA, bgB) => (t2) => Object.assign({}, t2, { bg: t2.bg === bgA ? bgB : t2.bg === bgB ? bgA : t2.bg });
+      const cands = shuffle([
+        take(hr, hc + 1), take(hr + 1, hc), take(hr, hc - 1), take(hr - 1, hc),
+        right.map((row) => row.slice().reverse()), right.slice().reverse(),
+        right.map((row) => row.map(swap('blue', 'yellow'))), right.map((row) => row.map(swap('yellow', 'white'))),
+        right.map((row, r) => row.map((t2, c) => (r === k - 1 && c === k - 1 ? Object.assign({}, t2, { m: t2.m ? '' : 'circle' }) : t2))),
+      ]);
+      // spare wrong pieces: one tile with another color or another mark (always different, a little less tricky)
+      const spare = [];
+      for (let i = 0; i < 12; i++) {
+        const rr = rnd(0, k - 1), cc = rnd(0, k - 1);
+        spare.push(right.map((row, r) => row.map((t2, c) => (r === rr && c === cc ? (i % 2 ? Object.assign({}, t2, { bg: pick(BGS.filter((x) => x !== t2.bg)) }) : Object.assign({}, t2, { m: pick(['', ...MARKS].filter((x) => x !== (t2.m || ''))) })) : t2))));
+      }
+      const wrongs = distinct(right, [...cands, ...spare], pieceKey);
+      if (!wrongs) continue;
+      const ts = 26;
+      let b = '';
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+        const inHole = r >= hr && r < hr + k && c >= hc && c < hc + k;
+        if (!inHole) b += tileBody(tileAt(r, c), c * ts, r * ts, ts);
+      }
+      b += `<rect x="${hc * ts + 1}" y="${hr * ts + 1}" width="${k * ts - 2}" height="${k * ts - 2}" fill="#ffffff" stroke="${INK}" stroke-width="2.5" stroke-dasharray="5 3"/>`;
+      b += `<rect x="1" y="1" width="${N * ts - 2}" height="${N * ts - 2}" fill="none" stroke="${INK}" stroke-width="2.5"/>`;
+      return five('pattern', `Look at the design. Which piece fits in the empty space?<div class="vis nnwrap">${svg(N * ts, N * ts, b, 'design')}</div>`, 'Look at the design. Which piece fits in the empty space?', right, wrongs, (pc) => pieceSvg(pc, k === 1 ? 46 : 30), {
+        hint: 'Follow the colors and marks along the row and down the column into the empty space.',
+        explain: k === 1 ? 'The design repeats: the tile that fits keeps the same pattern of colors and marks as its row and its column.' : 'The design repeats (or is the same on both sides): the piece that fits continues every row and every column through the hole.',
+      });
+    }
+    MQ.NNAT_FALLBACKS[d] = (MQ.NNAT_FALLBACKS[d] || 0) + 1; // counted by the tests: this level could not be made
+    return nn_pattern(1);
+  }
+
+  // ---------------------------------------------------------------- 2. Reasoning by Analogy
+  // How does a figure change across a row (and down a column)? Apply the same change to the last one.
+  const T = {
+    turn: { ok: (f) => TURNY.includes(f.shape), do: (f) => Object.assign({}, f, { rot: ((f.rot || 0) + 90) % 360 }), say: 'turns a quarter turn' },
+    flip: { ok: (f) => TURNY.includes(f.shape), do: (f) => Object.assign({}, f, { rot: ((f.rot || 0) + 180) % 360 }), say: 'turns upside down' },
+    color: { ok: (f) => f.fill !== 'white', do: (f) => Object.assign({}, f, { fill: f.fill === 'blue' ? 'yellow' : 'blue' }), say: 'changes color' },
+    size: { ok: (f) => (f.n || 1) === 1 && (f.pos || 'c') === 'c', do: (f) => Object.assign({}, f, { big: f.big === false }), say: 'changes size' },
+    more: { ok: (f) => (f.n || 1) < 3, do: (f) => Object.assign({}, f, { n: (f.n || 1) + 1, big: false, pos: 'c' }), say: 'gets one more' },
+    bg: { ok: () => true, do: (f) => Object.assign({}, f, { bg: f.bg === 'white' ? 'sky' : 'white' }), say: 'gets a new background' },
+    move: { ok: (f) => (f.n || 1) === 1 && f.big === false && (f.pos || 'c') !== 'c', do: (f) => Object.assign({}, f, { pos: { tl: 'tr', tr: 'br', br: 'bl', bl: 'tl' }[f.pos] }), say: 'moves to the next corner' },
+  };
+  COL.sky = '#cfe3f7';
+  const base = (o = {}) => Object.assign({ bg: 'white', shape: pick(SHAPES), fill: pick(['blue', 'yellow']), big: true, pos: 'c', rot: pick([0, 90, 180, 270]), n: 1 }, o);
+  const SAYS = { 1: [['color', 'size', 'more']], 2: [['turn', 'flip', 'color', 'move']], 3: [['turn', 'color', 'size', 'more', 'move']] };
+  function nn_analogy(d) {
+    for (let t = 0; t < 300; t++) {
+      if (d <= 2) { // A → B, C → ?   (one change, two different figures)
+        const name = pick(SAYS[d][0]), tr = T[name];
+        const small = name === 'move';
+        const a = base(small ? { big: false, pos: pick(['tl', 'tr', 'bl', 'br']), shape: pick(TURNY) } : name === 'turn' || name === 'flip' ? { shape: pick(TURNY) } : {});
+        const c = Object.assign({}, a, { shape: pick(SHAPES.filter((x) => x !== a.shape && (!['turn', 'flip'].includes(name) || TURNY.includes(x)))), fill: pick(['blue', 'yellow']) });
+        if (!tr.ok(a) || !tr.ok(c)) continue;
+        const right = tr.do(c);
+        const others = Object.keys(T).filter((k) => k !== name && T[k].ok(c)).map((k) => T[k].do(c));
+        const wrongs = distinct(right, [c, tr.do(tr.do(c)), ...shuffle(others), Object.assign({}, right, { shape: a.shape }), tr.do(a)], keyOf);
+        if (!wrongs) continue;
+        return five('analogy', `The first picture changes into the second. Change the third picture in the same way.${matrix([[a, tr.do(a)], [c, null]])}`, 'The first picture changes into the second. Which picture shows the third one changed in the same way?', right, wrongs, (f) => fig(f), { hint: 'Say what changed from the first picture to the second. Do the same to the third.', explain: `Across the row the figure ${tr.say}, so the ${c.shape} ${tr.say} too.` });
+      }
+      if (d === 3) { // 2×2: one change across, another change down
+        const [na, nd] = U.sample(SAYS[3][0], 2), ta = T[na], td = T[nd];
+        const a = base(['move'].includes(na) || ['move'].includes(nd) ? { big: false, pos: pick(['tl', 'tr', 'bl', 'br']) } : {});
+        if (!ta.ok(a) || !td.ok(a) || !ta.ok(td.do(a)) || !td.ok(ta.do(a))) continue;
+        const b = ta.do(a), c = td.do(a), right = ta.do(c);
+        if (keyOf(ta.do(td.do(a))) !== keyOf(td.do(ta.do(a)))) continue;
+        const wrongs = distinct(right, [b, c, a, ta.do(ta.do(c)), td.do(td.do(b)), ...Object.keys(T).filter((k) => T[k].ok(c) && k !== na).map((k) => T[k].do(c))], keyOf);
+        if (!wrongs) continue;
+        return five('analogy', `Look across and down. Which picture goes in the empty box?${matrix([[a, b], [c, null]])}`, 'Look how the pictures change across and down. Which picture goes in the empty box?', right, wrongs, (f) => fig(f), { hint: 'Find what changes across the top row, and what changes down the left column. The empty box gets both changes.', explain: `Across, the figure ${ta.say}; down, it ${td.say}. The empty box has both changes.` });
+      }
+      // 3×3: each row starts with its own figure; columns apply 0, 1 and 2 steps of a change (level 6: two changes at once)
+      // the main change keeps going (turning, one more, the next corner), so the last box needs two steps
+      const n1 = pick(d === 4 ? ['turn', 'more'] : ['turn', 'more', 'move']);
+      const n2 = d === 6 ? pick(['color', 'bg', 'turn', 'more'].filter((k) => k !== n1 && !(n1 === 'move' && k === 'more'))) : null;
+      const step = (f) => { let g = T[n1].do(f); if (n2) g = T[n2].do(g); return g; };
+      const opts = n1 === 'move' ? { big: false, pos: pick(['tl', 'tr', 'bl', 'br']) } : {};
+      const turning = n1 === 'turn' || n2 === 'turn';
+      const rows = U.sample(SHAPES.filter((x) => !turning || TURNY.includes(x)), 3).map((shape) => base(Object.assign({}, opts, { shape, n: 1 })));
+      const grid = rows.map((f) => [f, step(f), step(step(f))]);
+      if (!grid.every((row) => row.every((f, i) => i === 0 || (T[n1].ok(row[i - 1]) && (!n2 || T[n2].ok(T[n1].do(row[i - 1]))))))) continue;
+      const right = grid[2][2];
+      const cells = grid.map((row, r) => row.map((f, c) => (r === 2 && c === 2 ? null : f)));
+      const wrongs = distinct(right, [grid[2][1], step(right), grid[1][2], Object.assign({}, right, { shape: grid[0][0].shape }), T[n1].do(grid[2][1]), n2 ? T[n2].do(grid[2][1]) : grid[2][0], grid[2][0]], keyOf);
+      if (!wrongs) continue;
+      return five('analogy', `Each row changes in the same way. Which picture goes in the empty box?${matrix(cells, 58)}`, 'Each row changes in the same way. Which picture goes in the empty box?', right, wrongs, (f) => fig(f, 58), { hint: 'Look at the first two rows: what happens from the first picture to the second, and again to the third?', explain: `In every row the figure ${T[n1].say}${n2 ? ' and ' + T[n2].say : ''} at each step, two times by the last box.` });
+    }
+    MQ.NNAT_FALLBACKS[d] = (MQ.NNAT_FALLBACKS[d] || 0) + 1; // counted by the tests: this level could not be made
+    return nn_analogy(1);
+  }
+
+  // ---------------------------------------------------------------- 3. Serial Reasoning
+  // A 3×3 grid where each row and each column has every value once (shape, color, size, …); find the missing one.
+  function nn_serial(d) {
+    for (let t = 0; t < 300; t++) {
+      const attrs = { 1: ['shape'], 2: ['fill'], 3: ['shape', 'fill'], 4: ['shape', 'fill', 'n'], 5: ['shape', 'fill', 'rot'], 6: ['shape', 'fill', 'n', 'rot'] }[d];
+      const shapes = U.sample(attrs.includes('rot') ? TURNY : SHAPES, 3);
+      const vals = { shape: shapes, fill: ['blue', 'yellow', 'white'], rot: [0, 90, 180], n: [1, 2, 3] };
+      // each attribute gets its own Latin-square shift (rows move the values one step left or right)
+      const shift = {}, off = {};
+      for (const a of attrs) { shift[a] = pick([1, 2]); off[a] = rnd(0, 2); }
+      const fixed = { shape: shapes[0], fill: pick(['blue', 'yellow']), big: true, rot: 0, n: attrs.includes('n') ? 1 : pick([1, 1, 2]), bg: 'white' };
+      const cellAt = (r, c) => {
+        const f = Object.assign({}, fixed, { pos: 'c' });
+        for (const a of attrs) {
+          f[a] = vals[a][(c + shift[a] * r + off[a]) % 3];
+        }
+        return f;
+      };
+      const grid = U.range(0, 2).map((r) => U.range(0, 2).map((c) => cellAt(r, c)));
+      if (new Set(grid.flat().map(keyOf)).size !== (attrs.length === 1 ? 3 : 9)) continue; // two attributes moving the same way would repeat cells
+      const [mr, mc] = d === 1 ? [2, 2] : [rnd(0, 2), rnd(0, 2)];
+      const right = grid[mr][mc];
+      // wrong answers: copy a neighbour in the row or column, or break one attribute
+      const breakOne = (a) => {
+        return Object.assign({}, right, { [a]: pick(vals[a].filter((v) => v !== right[a])) });
+      };
+      const neighbours = [grid[mr][(mc + 1) % 3], grid[mr][(mc + 2) % 3], grid[(mr + 1) % 3][mc], grid[(mr + 2) % 3][mc]];
+      // and pictures that change something the grid never changes (a color, a shape, the size or the number)
+      const extra = [];
+      if (!attrs.includes('fill')) for (const fl of ['blue', 'yellow', 'white'].filter((x) => x !== right.fill)) extra.push(Object.assign({}, right, { fill: fl }));
+      if (!attrs.includes('shape')) for (const sh of U.sample(SHAPES.filter((x) => x !== right.shape), 2)) extra.push(Object.assign({}, right, { shape: sh }));
+      if (!attrs.includes('n')) extra.push(Object.assign({}, right, { n: 2 }), Object.assign({}, right, { big: false }));
+      const wrongs = distinct(right, shuffle([...neighbours, ...attrs.map(breakOne), ...attrs.map(breakOne), ...extra]), keyOf);
+      if (!wrongs) continue;
+      const cells = grid.map((row, r) => row.map((f, c) => (r === mr && c === mc ? null : f)));
+      const names = { shape: 'shape', fill: 'color', rot: 'direction', n: 'number of shapes' };
+      return five('serial', `Which picture goes in the empty box?${matrix(cells, 58)}`, 'Look at each row and each column. Which picture goes in the empty box?', right, wrongs, (f) => fig(f, 58), {
+        hint: `Each row and each column uses every ${attrs.map((a) => names[a]).join(' and every ')} once. What is missing in this row and this column?`,
+        explain: `Every row and every column has each ${attrs.map((a) => names[a]).join(', each ')} one time, so the empty box gets the one that is still missing.`,
+      });
+    }
+    MQ.NNAT_FALLBACKS[d] = (MQ.NNAT_FALLBACKS[d] || 0) + 1; // counted by the tests: this level could not be made
+    return nn_serial(1);
+  }
+
+  // ---------------------------------------------------------------- 4. Spatial Visualization
+  // Line drawings: the first two pictures in a row are put together to make the third.
+  // Levels 1–3: put together (everything shows). Levels 4–6: lines that are in both pictures disappear.
+  const PARTS = ['top', 'bottom', 'left', 'right', 'd1', 'd2', 'vm', 'hm', 'ring', 'dot'];
+  function linesBody(parts, x, y, s) {
+    const p = (a) => x + a * s, q = (a) => y + a * s, w = 'stroke="' + INK + '" stroke-width="4" stroke-linecap="round"';
+    let b = `<rect x="${x + 1}" y="${y + 1}" width="${s - 2}" height="${s - 2}" rx="4" fill="#ffffff" stroke="#b9c6d6" stroke-width="2"/>`;
+    const L = (x1, y1, x2, y2) => `<line x1="${r1(p(x1))}" y1="${r1(q(y1))}" x2="${r1(p(x2))}" y2="${r1(q(y2))}" ${w}/>`;
+    for (const k of parts) {
+      if (k === 'top') b += L(0.2, 0.2, 0.8, 0.2);
+      if (k === 'bottom') b += L(0.2, 0.8, 0.8, 0.8);
+      if (k === 'left') b += L(0.2, 0.2, 0.2, 0.8);
+      if (k === 'right') b += L(0.8, 0.2, 0.8, 0.8);
+      if (k === 'd1') b += L(0.2, 0.2, 0.8, 0.8);
+      if (k === 'd2') b += L(0.8, 0.2, 0.2, 0.8);
+      if (k === 'vm') b += L(0.5, 0.2, 0.5, 0.8);
+      if (k === 'hm') b += L(0.2, 0.5, 0.8, 0.5);
+      if (k === 'ring') b += `<circle cx="${r1(p(0.5))}" cy="${r1(q(0.5))}" r="${r1(s * 0.2)}" fill="none" ${w}/>`;
+      if (k === 'dot') b += `<circle cx="${r1(p(0.5))}" cy="${r1(q(0.5))}" r="${r1(s * 0.07)}" fill="${COL.blue}" stroke="${INK}" stroke-width="2"/>`;
+    }
+    return b;
+  }
+  const linesKey = (ps) => ps.slice().sort().join(',');
+  const linesFig = (ps, s = 58) => svg(s, s, linesBody(ps, 0, 0, s), 'lines');
+  function nn_spatial(d) {
+    const xor = d >= 4;
+    const size = { 1: [1, 2], 2: [2, 2], 3: [2, 3], 4: [2, 3], 5: [3, 3], 6: [3, 4] }[d];
+    const join = (a, b) => (xor ? [...a.filter((k) => !b.includes(k)), ...b.filter((k) => !a.includes(k))] : [...new Set([...a, ...b])]);
+    for (let t = 0; t < 300; t++) {
+      const rowPair = () => {
+        const a = U.sample(PARTS, rnd(size[0], size[1]));
+        const b = U.sample(PARTS, rnd(size[0], size[1]));
+        return [a, b];
+      };
+      const rows = [rowPair(), rowPair(), rowPair()];
+      // every row must show the rule clearly: at levels 1–3 something new is added; at 4–6 some lines cancel
+      if (rows.some(([a, b]) => linesKey(a) === linesKey(b) || join(a, b).length === 0)) continue;
+      if (xor && !rows.slice(0, 2).some(([a, b]) => a.some((k) => b.includes(k)))) continue; // a full row shows lines cancelling
+      if (xor && !rows[2][0].some((k) => rows[2][1].includes(k))) continue; // the question uses it too
+      if (!xor && rows.some(([a, b]) => a.some((k) => b.includes(k)))) continue; // levels 1–3: no shared lines, so "put together" is the only reading
+      const [a3, b3] = rows[2];
+      const right = join(a3, b3);
+      const union = [...new Set([...a3, ...b3])];
+      const cands = [
+        xor ? union : a3.filter((k) => b3.includes(k)),
+        right.slice(0, -1), [...right, pick(PARTS.filter((k) => !right.includes(k)))],
+        a3, b3, right.map((k) => ({ top: 'bottom', bottom: 'top', left: 'right', right: 'left', d1: 'd2', d2: 'd1' }[k] || k)),
+        [...right.slice(1), pick(PARTS.filter((k) => !right.includes(k)))],
+      ].filter((ps) => ps.length);
+      const wrongs = distinct(right, shuffle(cands), linesKey);
+      if (!wrongs || !right.length) continue;
+      const S = 58, g = 6;
+      let b = '';
+      rows.forEach(([a, bb], r) => {
+        const yy = r * (S + g);
+        b += linesBody(a, 0, yy, S);
+        b += `<text x="${S + 9}" y="${yy + S / 2 + 7}" font-size="20" font-weight="900" fill="${INK}" text-anchor="middle" font-family="Nunito, sans-serif">+</text>`;
+        b += linesBody(bb, S + 18, yy, S);
+        b += `<text x="${2 * S + 27}" y="${yy + S / 2 + 7}" font-size="20" font-weight="900" fill="${INK}" text-anchor="middle" font-family="Nunito, sans-serif">=</text>`;
+        b += r === 2 ? QBOX(2 * S + 36, yy, S) : linesBody(join(a, bb), 2 * S + 36, yy, S);
+      });
+      return five('spatial', `Put the first two pictures together. Which picture goes in the empty box?<div class="vis nnwrap">${svg(3 * S + 36, 3 * S + 2 * g, b, 'spatial')}</div>`, 'In each row the first two pictures are put together to make the third. Which picture goes in the empty box?', right, wrongs, (ps) => linesFig(ps), {
+        hint: xor ? 'Look at the first two rows: a line that is in both pictures disappears. Lines in only one picture stay.' : 'Every line from the first picture and every line from the second picture is in the third.',
+        explain: xor ? 'Lines that are in both pictures cancel out; lines that are in only one of them stay.' : 'The third picture has all the lines of the first and second pictures together.',
+      });
+    }
+    MQ.NNAT_FALLBACKS[d] = (MQ.NNAT_FALLBACKS[d] || 0) + 1; // counted by the tests: this level could not be made
+    return nn_spatial(1);
+  }
+
+  // ---------------------------------------------------------------- registry
+  const TT = (name, icon, gen, desc) => ({ name, icon, std: 'NNAT-3 style · nonverbal', gen, track: 'prep', nnat: true, maxD: 6, desc });
+  Object.assign(MQ.TOPICS, {
+    nn_pattern: TT('Pattern Completion', '🧩', nn_pattern, 'A big design has a hole. Find the piece that fits it.'),
+    nn_analogy: TT('Reasoning by Analogy', '🔁', nn_analogy, 'See how a shape changes across a row, then change the last one the same way.'),
+    nn_serial: TT('Serial Reasoning', '🔢', nn_serial, 'Every row and column uses each shape and color once. Find the missing one.'),
+    nn_spatial: TT('Spatial Visualization', '🧊', nn_spatial, 'Put two line drawings together in your mind. At higher levels, lines in both disappear.'),
+  });
+  MQ.NNAT_TOPICS = ['nn_pattern', 'nn_analogy', 'nn_serial', 'nn_spatial'];
+  // The practice test: 48 questions in 30 minutes, about like Level C (more analogy and serial items, fewer spatial ones),
+  // getting harder from the first question to the last, with the kinds mixed.
+  MQ.NNAT_TEST = { n: 48, minutes: 30, mix: { nn_pattern: 13, nn_analogy: 15, nn_serial: 14, nn_spatial: 6 } };
+  MQ.nnatPlan = () => {
+    const pool = shuffle(Object.entries(MQ.NNAT_TEST.mix).flatMap(([t, k]) => Array(k).fill(t)));
+    return pool.map((t, i) => ({ topic: t, d: 1 + Math.floor((i * 6) / MQ.NNAT_TEST.n) }));
+  };
+})();
+</script>
+  <script>
 // Logic Lab: reasoning puzzles that school math topics do not cover, and that Math Kangaroo and CogAT reward.
 //   lg_order      who is tallest / where everyone stands in a line, from clues
 //   lg_whois      who has which pet (or fruit, shirt, sport): cross out what is impossible
@@ -4817,6 +5183,9 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
       levels.forEach((d, r) => { for (const t of U.shuffle(topics)) items.push({ p: make(t, d), pts: 1, sec: r ? 'Round 2' : 'Round 1' }); });
     } else if (kind === 'joey') {
       for (let i = 0; i < 12; i++) items.push({ p: make('kg_joey', 1), pts: 1 });
+    } else if (kind === 'nnat') {
+      // NNAT-3 style: 48 questions, the four kinds mixed, getting harder from the first to the last (levels 1–6)
+      for (const x of MQ.nnatPlan()) items.push({ p: make(x.topic, x.d), pts: 1, sec: MQ.TOPICS[x.topic].name });
     } else if (kind === 'cogat' || kind === 'cogatk') {
       // CogAT style: battery by battery, each question type in a row, getting harder within the type.
       const levels = kind === 'cogat' ? [1, 2, 3, 4, 5] : [1, 1];
@@ -4839,13 +5208,16 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
       p.review = true;
       items[at] = Object.assign({}, items[at], { p, rv: true });
     }
-    return { kind, items, answers: items.map(() => null), flags: items.map(() => false), i: 0, seconds: kind === 'kangaroo' ? P.KANGAROO_MINUTES * 60 : 0, started: Date.now() };
+    return { kind, items, answers: items.map(() => null), flags: items.map(() => false), i: 0, seconds: kind === 'kangaroo' ? P.KANGAROO_MINUTES * 60 : kind === 'nnat' ? MQ.NNAT_TEST.minutes * 60 : 0, started: Date.now() };
   };
   P.scoreContest = (ct) => {
     const graded = ct.items.map((it, i) => ({ it, given: ct.answers[i], ok: ct.answers[i] !== null && ct.answers[i] === it.p.answer }));
     // Sections: point values for Kangaroo, batteries for CogAT. Types: accuracy per kind of question.
-    const sections = {}, types = {};
+    const sections = {}, types = {}, levels = {};
     for (const g of graded) {
+      const l = (levels[g.it.p.d] = levels[g.it.p.d] || { right: 0, n: 0 });
+      l.n++;
+      if (g.ok) l.right++;
       const s = (sections[g.it.sec || g.it.pts] = sections[g.it.sec || g.it.pts] || { right: 0, n: 0 });
       const t = (types[g.it.p.topic] = types[g.it.p.topic] || { right: 0, n: 0 });
       s.n++; t.n++;
@@ -4856,10 +5228,11 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
       date: U.dateKey(), kind: ct.kind,
       score: U.sum(graded.filter((g) => g.ok).map((g) => g.it.pts)), max: U.sum(ct.items.map((it) => it.pts)),
       right: graded.filter((g) => g.ok).length, blank: graded.filter((g) => g.given === null).length, n: graded.length,
-      sections, types, minutes: Math.max(1, Math.round((Date.now() - ct.started) / 60000)), timed: !!ct.timed,
+      sections, types, levels, minutes: Math.max(1, Math.round((Date.now() - ct.started) / 60000)), timed: !!ct.timed,
+      used: ct.timed && ct.seconds ? ct.seconds - Math.max(0, ct.left || 0) : null, // seconds on the clock
       items: graded.map((g) => ({
         t: g.it.p.topic, d: g.it.p.d, pts: g.it.pts, sec: g.it.sec || '', ok: g.ok, rv: !!g.it.rv,
-        q: String(g.it.p.text).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160),
+        q: String(g.it.p.text).replace(/<svg[\s\S]*?<\/svg>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160), // pictures dropped
         g: g.given === null ? '' : g.given, a: g.it.p.answer, e: g.it.p.explain || '',
         letterG: g.given === null ? '' : 'ABCDE'[g.it.p.choices.indexOf(g.given)], letterA: 'ABCDE'[g.it.p.choices.indexOf(g.it.p.answer)],
       })),
@@ -4889,24 +5262,31 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
       checks: 'Counting, comparing, simple patterns and shapes, and listening carefully to the question.',
       how: 'Play the 12 puzzles with a grown-up nearby. Every question can be read aloud with 🔊. There is no clock.',
     },
+    nnat: {
+      title: 'NNAT-3 practice', icon: '🔷',
+      what: 'Practice for the Naglieri Nonverbal Ability Test, 3rd edition (NNAT-3): picture puzzles with shapes and colors, no words and no numbers. It measures reasoning, not what was taught in class.',
+      where: 'Eureka Union School District uses the NNAT-3 as the only test for GATE eligibility: an NAI of 132 or more (98th percentile) qualifies. Testing starts in 2nd grade, every child may test twice (a second try the next year), and the district tests in February. Invitations go out in early December; register by mid-January.',
+      checks: 'Four kinds of puzzles: Pattern Completion (the piece that fits a design), Reasoning by Analogy (how shapes change across and down), Serial Reasoning (each row and column uses every shape and color once), and Spatial Visualization (putting pictures together in your mind). The 2nd-grade test (Level C) has about 48 puzzles in 30 minutes.',
+      how: 'The district does not recommend a study guide but says getting to know the format builds confidence. Use “Practice by type” in short sessions (it gets harder as answers are right, up to a Genius level harder than the test), and take the 48-question practice test with the 30-minute clock now and then to practice the pace: about 35 seconds a puzzle. Real NAI scores and percentiles cannot be estimated from practice.',
+    },
     cogat: {
       title: 'CogAT practice', icon: '🧠',
       what: 'Practice for the Cognitive Abilities Test (CogAT), which measures reasoning, not what was taught in class.',
-      where: 'Eureka Union School District gives the CogAT to every 2nd grader as one part of GATE screening. Many other districts use it for gifted programs too.',
+      where: 'Many school districts use the CogAT for gifted (GATE) programs. Eureka Union uses the NNAT-3 for GATE instead (see NNAT-3 practice); the CogAT is one of the tests for the extra testing chance through CSU Sacramento, and its reasoning puzzles are good practice for any thinking test.',
       checks: 'Three parts: Verbal (picture analogies, sentence completion, picture classification), Quantitative (number analogies, number puzzles, number series) and Nonverbal (figure matrices, figure classification, paper folding).',
       how: 'Short sessions of “Practice by type” work best; a full 45-question test now and then shows progress in each part. Real CogAT percentiles cannot be estimated from practice.',
     },
     cogatk: {
       title: 'Brain Games', icon: '🧠',
       what: 'Picture thinking puzzles in the style of the CogAT, made for kindergarten.',
-      where: 'Eureka Union gives the CogAT in 2nd grade; these games build the same kinds of thinking early.',
+      where: 'GATE testing starts in 2nd grade (Eureka Union uses the NNAT-3, a picture-puzzle test); these games build the same kinds of thinking early.',
       checks: 'Seeing patterns, things that go together, and how shapes change.',
       how: 'Play a few puzzles at a time. Every question is read aloud.',
     },
     logic: {
       title: 'Logic Lab', icon: '🧩',
       what: 'Logic puzzles in words: put people in order from clues, find who has what, decide what must be true, count all the ways, and catch the fibber.',
-      where: 'Not a school test, but the same thinking is in Math Kangaroo, CogAT and the word problems on i-Ready, and it helps in reading too.',
+      where: 'Not a school test, but the same thinking is in Math Kangaroo, CogAT, NNAT and the word problems on i-Ready, and it helps in reading too.',
       checks: 'Careful reading, using only what is said, trying possibilities and checking them. Levels 4–5 are advanced puzzles for kids who want more.',
       how: 'Use “Practice by type” (it gets harder as answers are right, and every answer is explained). The 12-puzzle challenge mixes all types at the advanced levels.',
     },
@@ -5814,6 +6194,7 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
     tips: {}, // topic: date a strategy tip was last shown
     tests: { checks: [], contests: [] }, // Placement Check and mock contest results (newest last)
     seen: {}, // test-prep topic: recently shown question keys (oldest first), so retakes bring new questions
+    nnatDays: {}, // 'YYYY-MM-DD': NNAT-3 practice puzzles answered that day (the GATE plan counts practice days)
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
     settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true },
   });
@@ -6017,6 +6398,8 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
     out.review = Object.assign({}, old.review || {});
     for (const [k, v] of Object.entries(nw.review || {})) if (!out.review[k] || (v.last || '') >= (out.review[k].last || '')) out.review[k] = v;
     out.tips = Object.assign({}, old.tips || {}, nw.tips || {});
+    out.nnatDays = Object.assign({}, old.nnatDays || {});
+    for (const [d, n] of Object.entries(nw.nnatDays || {})) out.nnatDays[d] = max(n, (old.nnatDays || {})[d]);
     // Sunny Farm: the copy changed last wins as a whole (money is spent, animals move), by the farm's own clock,
     // so a device that only opened the farm can't replace a farm played on another device.
     if (old.farm && (!nw.farm || (old.farm.t || 0) > (nw.farm.t || 0))) out.farm = JSON.parse(JSON.stringify(old.farm));
@@ -6108,6 +6491,12 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
     if (!firstTry && given !== undefined) {
       st.mistakes.unshift({ topic: p.topic, d: p.d, text: p.text.replace(/<li>/g, ' • ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 140), given: String(given), answer: String(p.answer), date: day });
       st.mistakes.length = Math.min(st.mistakes.length, 40);
+    }
+    if (MQ.TOPICS[p.topic] && MQ.TOPICS[p.topic].nnat) { // NNAT practice days for the GATE plan (kept for 120 days)
+      const nd = (st.nnatDays = st.nnatDays || {});
+      nd[day] = (nd[day] || 0) + 1;
+      const ks = Object.keys(nd).sort();
+      while (ks.length > 120) delete nd[ks.shift()];
     }
     const keys = Object.keys(st.days).sort();
     while (keys.length > 730) delete st.days[keys.shift()];
@@ -7272,8 +7661,8 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
 // UI: screens, game loop, rewards. Screens render into #app; clicks are routed through data-act attributes.
 (function () {
   const MQ = globalThis.MQ, U = MQ.U, S = MQ.store;
-  const D_NAMES = { 1: 'Sprout', 2: 'Explorer', 3: 'Ranger', 4: 'Expert', 5: 'Legend' };
-  const D_ICONS = { 1: '🌱', 2: '🧭', 3: '🏕️', 4: '🏔️', 5: '🐉' };
+  const D_NAMES = { 1: 'Sprout', 2: 'Explorer', 3: 'Ranger', 4: 'Expert', 5: 'Legend', 6: 'Genius' }; // 6: NNAT practice only
+  const D_ICONS = { 1: '🌱', 2: '🧭', 3: '🏕️', 4: '🏔️', 5: '🐉', 6: '💎' };
   const TRACK_COLOR = { k: '#e0a21b', g2: '#2bb3a3' };
   const DAILY_REWARD = 15;
   const FARM_FEED_BONUS = 5; // the Daily Quest also brings feed for Sunny Farm
@@ -7340,8 +7729,8 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
   const pct = (c, a) => (a ? Math.round((c / a) * 100) : 0); // accuracy everywhere = right on the first try / answered
   const FIX_REWARD = 3;
   // The group a topic belongs to: a school track ('k', 'g2') or a test-prep family. Review questions stay in their group.
-  const familyOf = (t) => { const T = MQ.TOPICS[t]; return !T ? '' : t === 'kg_joey' ? 'joey' : T.kangaroo ? 'kangaroo' : T.cogat ? 'cogat' : T.logic ? 'logic' : T.track; };
-  const PAUSE_KINDS = ['check', 'kangaroo', 'joey', 'cogat', 'cogatk', 'logic', 'logick'];
+  const familyOf = (t) => { const T = MQ.TOPICS[t]; return !T ? '' : t === 'kg_joey' ? 'joey' : T.kangaroo ? 'kangaroo' : T.cogat ? 'cogat' : T.nnat ? 'nnat' : T.logic ? 'logic' : T.track; };
+  const PAUSE_KINDS = ['check', 'nnat', 'kangaroo', 'joey', 'cogat', 'cogatk', 'logic', 'logick'];
   // Links to our other apps (MQ.APPS). Each keeps its own profiles and progress. With an explorer open, the link
   // carries the name (#who=Mia), so the other app opens the profile with the same name.
   const appLinks = () => {
@@ -7652,6 +8041,7 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
       </header>
       <div class="buddy"><span class="buddy-e">${st.companion}</span><div class="bubble" id="bubble">${esc(st.buddyName)}: ${esc(U.pick(MQ.SAY.hello))}</div></div>
       ${goalStrip()}
+      ${gateCard()}
       ${cont}
       <div class="tiles">
         <button class="tile t-map" data-act="go" data-arg="map"><span class="ti">🗺️</span><b>Expedition Map</b><small>${WORLDS().length} worlds · ${WORLDS().length * 6} levels</small></button>
@@ -7663,7 +8053,7 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
         <button class="tile t-hatch" data-act="go" data-arg="hatch"><span class="ti">🥚</span><b>Hatchery</b><small>Rare eggs · ${MQ.EGG_PRICE} 💎</small></button>
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
         <button class="tile t-progress" data-act="go" data-arg="progress"><span class="ti">📈</span><b>My Progress</b><small>${weekAcc}</small></button>
-        <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>${PAUSE_KINDS.some((k) => S.paused(k)) ? '⏸️ You have an unfinished test: tap to continue' : 'Placement Check in the style of i-Ready' + (myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : '')}</small></span></button>
+        <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>${PAUSE_KINDS.some((k) => S.paused(k)) ? '⏸️ You have an unfinished test: tap to continue' : (st.grade === 'k' ? 'Placement Check in the style of i-Ready' : 'GATE (NNAT-3), i-Ready, CogAT, Kangaroo') + (myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : '')}</small></span></button>
       </div>
       <footer class="foot">${syncLine()}<button class="linkbtn" data-act="go" data-arg="parent">For grown-ups</button>${appLinks()}</footer>
     </main>`);
@@ -7693,6 +8083,40 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
       ${s.made ? `<p>🏭 ${s.made} things made in the workshops (each one starts with a question: how much more is it worth?).</p>` : ''}
       <p>${s.tasks} money problems from customers and odd jobs, <b>${pct(s.right, s.tasks)}%</b> right on the first try · ${s.vip} ⭐ challenge customers. Now practicing: <b>${esc(tier.name)}</b>${tier.ahead ? ' (ahead of grade)' : ''}.</p>
       <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p></section>`;
+  }
+
+  // ---- GATE plan (2nd grade): the NNAT-3 test in February, the district's usual timeline, and this week's practice.
+  // Dates come from Eureka Union's GATE/HA Master Plan (invitations Dec 1–5, register by Jan 10–13, testing Feb 14–20,
+  // results Apr 1–12); the district's email has the exact dates each year.
+  const gatePlanOn = () => st.grade === 'g2' && st.settings.gatePlan !== false;
+  MQ.gateTimeline = (today = U.dateKey()) => {
+    const y = +today.slice(0, 4), md = today.slice(5);
+    const Y = md <= '04-12' ? y : y + 1; // the February coming up (or the one whose results are still due)
+    const at = (yy, m) => `${yy}-${m}`;
+    const test = at(Y, '02-14'), testEnd = at(Y, '02-20');
+    const days = U.daysBetween(today, test);
+    let step;
+    if (today < at(Y - 1, '12-01')) step = { icon: '📧', text: 'Invitations come by email in early December', when: at(Y - 1, '12-01') };
+    else if (today <= at(Y, '01-13')) step = { icon: '📝', text: 'Register by about January 10–13: the link is in the district email', when: at(Y, '01-13') };
+    else if (today < test) step = { icon: '🔷', text: 'Testing is February 14–20 (after school for grades 2–3)', when: test };
+    else if (today <= testEnd) step = { icon: '🍀', text: 'Test week! Sleep well, eat breakfast, and do your best', when: testEnd };
+    else step = { icon: '📬', text: 'Results come in early April: pick them up at school', when: at(Y, '04-01') };
+    return { year: Y, test, days, weeks: Math.max(0, Math.ceil(days / 7)), step };
+  };
+  function gateCard() {
+    if (!gatePlanOn()) return '';
+    const g = MQ.gateTimeline(), today = U.dateKey(), mon = MQ.weekStart(today);
+    const wk = U.range(0, 6).map((i) => S.addDays(mon, i));
+    const nd = st.nnatDays || {}, DAY = 6; // a practice day: at least 6 NNAT puzzles
+    const done = wk.filter((k) => (nd[k] || 0) >= DAY).length;
+    const dots = wk.map((k, i) => `<i class="${(nd[k] || 0) >= DAY ? 'on' : ''} ${k === today ? 'now' : ''}" title="${'MTWTFSS'[i]}">${'MTWTFSS'[i]}</i>`).join('');
+    const last = myContests('nnat').slice(-1)[0], since = last ? U.daysBetween(last.date, today) : 99;
+    const testNote = g.days > 0 ? (since >= 21 ? 'A practice test is due (every 3 weeks)' : `Next practice test in ${21 - since} ${21 - since === 1 ? 'day' : 'days'}`) : '';
+    const head = g.days > 7 ? `<b>${g.weeks} weeks</b> to the GATE test` : g.days > 0 ? `<b>${g.days} ${g.days === 1 ? 'day' : 'days'}</b> to the GATE test` : g.days >= -6 ? '<b>GATE test week</b>' : '<b>GATE test</b> done';
+    return `<button class="gatecard" data-act="go" data-arg="prep" aria-label="GATE plan">
+      <span class="gc-ic">🔷</span><span class="gc-t">${head} <small>NNAT-3 · usually Feb 14–20</small>
+      <small class="gc-step">${g.step.icon} ${esc(g.step.text)}</small>
+      ${g.days > 0 ? `<span class="gc-week"><span class="wdots">${dots}</span><small>${done} of 3 practice days this week${testNote ? ' · ' + testNote : ''}</small></span>` : ''}</span></button>`;
   }
 
   // The daily goal a grown-up set: a ring for today and a dot for each day of this week.
@@ -7750,6 +8174,12 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
     if (sess.mode === 'check') {
       if (sess.resumeP) { const p = sess.resumeP; sess.resumeP = null; return p; } // back where the child stopped
       return MQ.prep.next(sess.eng);
+    }
+    if (sess.warm && sess.warm.length && (sess.asked === 0 || sess.asked === 2)) { // Daily Quest: NNAT warm-up
+      const t = sess.warm.shift();
+      const p = MQ.prep.fresh(t, U.clamp(mastery(t).passed + 1, 1, 6), new Set(sess.recent));
+      p.warm = true;
+      return p;
     }
     const rv = reviewProblem();
     if (rv) return rv;
@@ -7824,7 +8254,7 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
       <section class="pcard" id="pcard"></section>
       <div id="answer" class="answer"></div>
     </div>`, 'is-play');
-    say(sess.mode === 'level' ? `${st.buddyName}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${st.buddyName}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${st.buddyName}: Lightning round! Go go go! ⚡` : sess.mode === 'daily' ? `${st.buddyName}: Today’s quest — 5 mixed puzzles!` : `${st.buddyName}: Let’s train! Every 5 in a row opens a chest. 🎁`);
+    say(sess.mode === 'level' ? `${st.buddyName}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${st.buddyName}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${st.buddyName}: Lightning round! Go go go! ⚡` : sess.mode === 'daily' ? `${st.buddyName}: Today’s quest — ${sess.warm && sess.warm.length ? '5 math puzzles and 2 GATE warm-ups 🔷' : '5 mixed puzzles'}!` : `${st.buddyName}: Let’s train! Every 5 in a row opens a chest. 🎁`);
     nextProblem();
     if (sess.timer) sess.interval = setInterval(tick, 1000);
   }
@@ -8297,6 +8727,7 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
     const total = st.grade === 'k' ? 20 : 30;
     render(header('Test Prep') + `<main class="prep">
       <p class="lead">Get ready for the tests you take at school.</p>
+      ${st.grade === 'k' ? '' : nnatCard()}
       <article class="testcard" style="--pc:#5b63c9">
         <div class="tc-head"><span class="tc-ic">🎯</span><div><b>Placement Check</b><small>In the style of i-Ready · ${total} questions · about ${st.grade === 'k' ? 15 : 25} minutes</small></div>${infoBtn('check')}</div>
         <p>Questions about numbers, algebra, measurement and shapes. They get harder or easier as you answer, like i-Ready at school. No hints this time: just do your best, and make your best guess if you are not sure.</p>
@@ -8414,11 +8845,34 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
   }
   // ---------------------------------------------------------------- Math Kangaroo style contest
   const myContests = (kind) => (st.tests.contests || []).filter((c) => c.kind === kind);
+  // NNAT-3: the test Eureka Union uses for GATE eligibility (from 2nd grade).
+  function nnatCard() {
+    const last = myContests('nnat').slice(-1)[0];
+    return `<article class="testcard nncard" style="--pc:#2e64b8">
+      <div class="tc-head"><span class="tc-ic">🔷</span><div><b>NNAT-3 practice · GATE</b><small>The picture-puzzle test Eureka Union uses for GATE · ${MQ.NNAT_TEST.n} puzzles · ${MQ.NNAT_TEST.minutes} minutes</small></div>${infoBtn('nnat')}</div>
+      <p>Shapes and colors only, no words and no numbers: find the piece that fits, see how shapes change, find what is missing, and put pictures together in your mind. To qualify for GATE a child needs the 98th percentile, so aim for nearly all right in 30 minutes.</p>
+      ${last ? `<div class="tc-last">Last practice test, ${fmtDate(last.date)}: <b>${last.right} of ${last.n}</b> right in ${last.minutes} min <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
+      ${resumeBox('nnat')}
+      <div class="row left">
+        <button class="btn ${pausedInfo('nnat') ? 'ghost' : ''}" data-act="startContest" data-arg="nnat:timed">${pausedInfo('nnat') ? 'New practice test' : `Practice test (${MQ.NNAT_TEST.minutes} min) ▶`}</button>
+        <button class="btn ghost" data-act="go" data-arg="nntypes">Practice by type</button>
+      </div>
+    </article>`;
+  }
+  function nntypes() {
+    render(header('NNAT-3 practice', 'prep') + `<main class="prep">
+      <p class="lead">Pick a kind of puzzle. They get harder as you get them right, up to 💎 Genius, which is harder than the real test. Every answer is explained.</p>
+      ${levelRow(6)}
+      <div class="kgtypes">${MQ.NNAT_TOPICS.map(typeTile).join('')}</div>
+      <p class="muted">The real test has no hints and no explanations, and 30 minutes for 48 puzzles: try the practice test now and then to get used to the pace.</p>
+    </main>`);
+    cur = 'nntypes';
+  }
   function cogatCard() {
     const k = st.grade === 'k', kind = k ? 'cogatk' : 'cogat', last = myContests(kind).slice(-1)[0];
     const n = k ? 18 : 45;
     return `<article class="testcard" style="--pc:#7a5cc9">
-      <div class="tc-head"><span class="tc-ic">🧠</span><div><b>${k ? 'Brain Games' : 'CogAT practice'}</b><small>${k ? 'Thinking puzzles in the style of CogAT' : 'GATE screening · Eureka Union tests every 2nd grader'} · ${n} questions</small></div>${infoBtn(kind)}</div>
+      <div class="tc-head"><span class="tc-ic">🧠</span><div><b>${k ? 'Brain Games' : 'CogAT practice'}</b><small>${k ? 'Thinking puzzles in the style of CogAT' : 'Reasoning test used by many districts and CSU Sacramento testing'} · ${n} questions</small></div>${infoBtn(kind)}</div>
       <p>${k ? 'Picture puzzles about patterns, shapes and things that go together. Every question is read aloud.' : 'Three parts like the real CogAT: <b>Verbal</b> (pictures that go together), <b>Quantitative</b> (number puzzles) and <b>Nonverbal</b> (shapes and paper folding). Pictures only, every question can be read aloud.'}</p>
       ${last ? `<div class="tc-last">Last practice test, ${fmtDate(last.date)}: <b>${last.right} of ${last.n}</b> right <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
       ${resumeBox(kind)}
@@ -8466,10 +8920,10 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
     return `<button class="tile type" data-act="kgPractice" data-arg="${t}"><span class="ti">${T.icon}</span><b>${T.name}</b><small>${T.desc || ''}</small>${m.lv || fix ? `<span class="tstat">${m.lv ? MASTERY[m.lv][0] + ' ' + m.acc + '%' : ''}${fix ? ' · 🔧 ' + fix : ''}</span>` : ''}</button>`;
   };
   // In a grown-up preview, Practice by type can start at any level.
-  const levelRow = () => {
+  const levelRow = (top = 5) => {
     if (!S.preview) return '';
     const cur = ui.pvD || 'auto';
-    return `<div class="pvlevels"><span>👀 Start at level:</span><div class="segs six">${['auto', 1, 2, 3, 4, 5].map((d) => `<button class="seg ${String(cur) === String(d) ? 'sel' : ''}" data-act="pvLevel" data-arg="${d}" aria-pressed="${String(cur) === String(d)}">${d === 'auto' ? '🎯<b>Auto</b>' : `${D_ICONS[d]}<b>${d}</b>`}</button>`).join('')}</div></div>`;
+    return `<div class="pvlevels"><span>👀 Start at level:</span><div class="segs six">${['auto', ...U.range(1, top)].map((d) => `<button class="seg ${String(cur) === String(d) ? 'sel' : ''}" data-act="pvLevel" data-arg="${d}" aria-pressed="${String(cur) === String(d)}">${d === 'auto' ? '🎯<b>Auto</b>' : `${D_ICONS[d]}<b>${d}</b>`}</button>`).join('')}</div></div>`;
   };
   const infoBtn = (k) => `<button class="infobtn" data-act="info" data-arg="${k}" aria-label="What is this test?" title="What is this test?">i</button>`;
   function logicCard() {
@@ -8510,14 +8964,14 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
     ct = P().newContest(kind, S.dueReview());
     ct.timed = !!timed;
     ct.left = ct.timed ? ct.seconds : 0;
-    ct.soft = kind === 'cogat'; // CogAT: a clock that only shows the time used, never stops the test
+    ct.soft = kind === 'cogat'; // CogAT: a clock that only shows the time used, never stops the test (NNAT: a real 30-minute clock)
     ct.used = 0;
     render('', 'is-contest');
     contestView();
     if (ct.timed || ct.soft) ct.interval = setInterval(contestTick, 1000);
   }
   const clock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-  const CT_TITLE = { kangaroo: '🦘 Math Kangaroo', joey: '🐣 Joey Puzzles', cogat: '🧠 CogAT practice', cogatk: '🧠 Brain Games', logic: '🧩 Logic challenge', logick: '🧩 Logic puzzles' };
+  const CT_TITLE = { nnat: '🔷 NNAT-3 practice', kangaroo: '🦘 Math Kangaroo', joey: '🐣 Joey Puzzles', cogat: '🧠 CogAT practice', cogatk: '🧠 Brain Games', logic: '🧩 Logic challenge', logick: '🧩 Logic puzzles' };
   const KID_TESTS = ['joey', 'cogatk', 'logick']; // kindergarten tests: no flags, stars instead of a score
   function contestTick() {
     if (!ct) return;
@@ -8541,7 +8995,7 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
         ${ct.timed ? `<span class="stat timer ${ct.left <= 300 ? 'low' : ''}" id="ct-timer">⏱ ${clock(ct.left)}</span>` : ct.soft ? `<span class="stat timer soft" id="ct-timer" title="Time used">⏱ ${clock(ct.used)}</span>` : ''}</header>
       <nav class="ctnav" aria-label="Questions">${ct.items.map((x, k) => `<button class="ctdot ${k === i ? 'cur' : ''} ${ct.answers[k] !== null ? 'ans' : ''} ${ct.flags[k] ? 'flag' : ''} p${x.pts}" data-act="ctGo" data-arg="${k}" aria-label="Question ${k + 1}">${k + 1}</button>`).join('')}</nav>
       <section class="pcard">
-        <div class="pmeta"><span>Question ${i + 1} of ${n}${kangaroo ? ` · <b>${it.pts} points</b>` : it.sec ? ` · ${it.sec} · ${MQ.TOPICS[p.topic].name}` : ''}${it.rv ? ' · 🔁 Review' : ''}</span><span class="pmeta-r">${ct.flags[i] ? '🚩' : ''}${MQ.canSpeak() ? '<button class="speak" data-act="ctSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
+        <div class="pmeta"><span>Question ${i + 1} of ${n}${kangaroo ? ` · <b>${it.pts} points</b>` : ct.kind === 'nnat' ? '' : it.sec ? ` · ${it.sec} · ${MQ.TOPICS[p.topic].name}` : ''}${it.rv ? ' · 🔁 Review' : ''}</span><span class="pmeta-r">${ct.flags[i] ? '🚩' : ''}${MQ.canSpeak() ? '<button class="speak" data-act="ctSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
         <div class="ptext ${p.big ? 'eq' : ''} ${p.wordy ? 'wordy' : ''}">${p.text}</div>
         ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
       </section>
@@ -8583,6 +9037,7 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
     later(checkBadges, 1200);
   }
   const CT_INFO = {
+    nnat: { title: 'NNAT-3 practice', color: '#2e64b8', more: 'nntypes', note: 'Original puzzles in the style of the NNAT-3; not affiliated with Pearson. The real NAI and percentile cannot be estimated from practice. Eureka Union’s GATE cut-off is the 98th percentile (NAI 132), so the goal is nearly all right within 30 minutes.' },
     kangaroo: { title: 'Math Kangaroo', color: '#d4703a', more: 'kgtypes', note: 'Original puzzles in the style of Math Kangaroo; not affiliated with Math Kangaroo USA. Past official papers are available from mathkangaroo.org.' },
     joey: { title: 'Joey Puzzles', color: '#e0a21b', more: '', note: 'Original puzzles in the style of Math Kangaroo, made for kindergarten.' },
     cogat: { title: 'CogAT practice', color: '#7a5cc9', more: 'cgtypes', note: 'Original questions in the style of CogAT; not affiliated with the publisher. Percentiles cannot be estimated from practice, so this shows how many were right in each part.' },
@@ -8595,7 +9050,11 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
     const tile = (label, s) => (s ? `<div><b>${s.right} / ${s.n}</b><small>${label}</small></div>` : '');
     const tiles = kangaroo ? [3, 4, 5].map((p) => tile(`${p}-point puzzles`, res.sections[p])).join('')
       : res.kind.startsWith('cogat') ? MQ.COGAT_BATTERIES.map((b) => tile(`${b.icon} ${b.id}`, res.sections[b.id])).join('')
+      : res.kind === 'nnat' ? MQ.NNAT_TOPICS.map((t) => tile(`${MQ.TOPICS[t].icon} ${MQ.TOPICS[t].name}`, res.sections[MQ.TOPICS[t].name])).join('')
       : res.kind.startsWith('logic') ? ['Round 1', 'Round 2'].map((r) => tile(r, res.sections[r])).join('') : '';
+    // NNAT: how far up the levels the right answers go, and the pace (the real test is 48 puzzles in 30 minutes)
+    const nnRows = res.kind === 'nnat' && res.levels ? `<section class="pr-domains"><h2>By level</h2>${Object.entries(res.levels).map(([d, s]) => `<div class="pr-dom"><span class="pd-name">${D_ICONS[d]} ${D_NAMES[d]}</span><span class="lbar"><span class="lfill" style="width:${Math.round((s.right / s.n) * 100)}%"></span></span><span class="pd-lv">${s.right} of ${s.n}</span></div>`).join('')}
+      ${res.used ? `<p class="muted">Pace: <b>${Math.round(res.used / Math.max(1, res.n - res.blank))} seconds</b> a puzzle (the real test allows about ${Math.round((MQ.NNAT_TEST.minutes * 60) / MQ.NNAT_TEST.n)}).${res.blank ? ` ${res.blank} left blank: on the real test, a guess is better than a blank.` : ''}</p>` : ''}</section>` : '';
     const typeRows = (res.kind.startsWith('cogat') || res.kind.startsWith('logic')) && res.types ? `<section class="pr-domains">${Object.entries(res.types).map(([t, s]) => `<div class="pr-dom"><span class="pd-name">${MQ.TOPICS[t].icon} ${MQ.TOPICS[t].name}</span><span class="lbar"><span class="lfill" style="width:${Math.round((s.right / s.n) * 100)}%"></span></span><span class="pd-lv">${s.right} of ${s.n}</span></div>`).join('')}</section>` : '';
     render(header(info.title, 'prep') + `<main class="presult">
       <div class="pr-hero" style="box-shadow: inset 0 0 0 3px ${info.color}, 0 5px 0 ${info.color}">
@@ -8604,7 +9063,7 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
         <div class="muted">${kangaroo ? `points · ${res.right} of ${res.n} right${res.blank ? ` · ${res.blank} blank` : ''}${res.timed ? ` · ${res.minutes} min` : ''}` : kids ? 'solved ' + '⭐'.repeat(Math.max(1, Math.round((res.right / res.n) * 3))) : `right · ${res.minutes} min${res.blank ? ` · ${res.blank} blank` : ''}`}</div>
       </div>
       ${tiles ? `<div class="sumgrid ${res.kind.startsWith('logic') ? 'two' : 'three'}">${tiles}</div>` : ''}
-      ${typeRows}
+      ${typeRows}${nnRows}
       ${res.items ? `<section><h2>Review</h2><ol class="rlist">${res.items.map((it, k) => `<li class="${it.ok ? 'ok' : 'no'}">
         <span class="rmark">${it.ok ? '✓' : '✗'}</span><div><div class="rq"><b>${k + 1}.</b> ${esc(it.q)}${kangaroo ? ` <span class="dchip">${it.pts} pts</span>` : ''}</div>
         <div class="ra">${it.ok ? `Your answer: <b>${it.letterG}</b>` : `Your answer: <b>${it.letterG || '—'}</b> · Right answer: <b>${it.letterA}</b>${/^picture/.test(it.a) ? '' : ` (${esc(it.a)})`}`}</div>
@@ -8630,12 +9089,20 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
     </section>`;
   }
   function contestHistory() {
-    return kangarooHistory() + cogatHistory();
+    return (st.grade === 'k' ? '' : gateHistory()) + kangarooHistory() + cogatHistory();
+  }
+  // GATE in Eureka Union (from the district's GATE/HA Master Plan) and the NNAT-3 practice tests.
+  function gateHistory() {
+    const list = myContests('nnat');
+    const intro = `<h3>GATE: NNAT-3 practice</h3><p class="muted">Eureka Union decides GATE eligibility with one test, the <b>Naglieri Nonverbal Ability Test (NNAT-3)</b>: an NAI of <b>132 or more (98th percentile)</b> qualifies, and nothing else is counted. Testing starts in 2nd grade and each child gets <b>two tries</b> (the second the next year); a third try is possible through CSU Sacramento for a small fee, and private test results are not accepted. Usual timeline: invitations by email in early December, registration and consent by mid-January, testing in mid-February (after school for grades 2–3), results to pick up at school in early April. The district does not recommend a study guide but says getting to know the format builds confidence. The 2nd-grade test (Level C) has about 48 picture puzzles in 30 minutes; practice tests here use original puzzles in the same four kinds, and real NAI scores cannot be estimated from them.</p>`;
+    if (!list.length) return intro + '<p>No NNAT practice test yet. Start one from <b>Test Prep</b>.</p>';
+    const top = (c) => { const l = Object.entries(c.levels || {}).filter(([, x]) => x.n && x.right / x.n >= 0.75).map(([d]) => +d); return l.length ? D_ICONS[Math.max(...l)] + ' ' + D_NAMES[Math.max(...l)] : '—'; };
+    return intro + `<div class="tablewrap"><table class="topics"><thead><tr><th>Date</th><th>Right</th>${MQ.NNAT_TOPICS.map((t) => `<th title="${MQ.TOPICS[t].name}">${MQ.TOPICS[t].icon}</th>`).join('')}<th>Top level</th><th>Time</th></tr></thead><tbody>${list.slice().reverse().map((c) => `<tr><td>${fmtDate(c.date)}</td><td><b>${c.right} / ${c.n}</b></td>${MQ.NNAT_TOPICS.map((t) => { const x = c.sections[MQ.TOPICS[t].name]; return `<td>${x ? x.right + '/' + x.n : ''}</td>`; }).join('')}<td>${top(c)}</td><td>${c.used ? Math.round(c.used / 60) + ' min' : c.minutes + ' min'}</td></tr>`).join('')}</tbody></table></div><p class="muted small">Top level: the hardest level with at least 3 of 4 right. 💎 Genius is harder than the real test.</p>`;
   }
   function cogatHistory() {
     const k = st.grade === 'k', list = myContests(k ? 'cogatk' : 'cogat');
-    const intro = k ? '<h3>Brain Games (CogAT style)</h3><p class="muted">Thinking puzzles in the style of the CogAT, which Eureka Union gives in 2nd grade.</p>'
-      : '<h3>CogAT practice</h3><p class="muted">Eureka Union School District gives the CogAT to every 2nd grader each school year as one part of GATE screening (a school team and the district decide eligibility). Ask the school for the test date. This practice covers all three parts with original picture questions; real CogAT percentiles cannot be estimated from it.</p>';
+    const intro = k ? '<h3>Brain Games (CogAT style)</h3><p class="muted">Thinking puzzles in the style of the CogAT. GATE testing starts in 2nd grade (Eureka Union uses the NNAT-3); these games build the same kinds of thinking early.</p>'
+      : '<h3>CogAT practice</h3><p class="muted">The CogAT is used for gifted programs by many districts and is one of the tests for the extra testing chance through CSU Sacramento; Eureka Union itself uses the NNAT-3 (above). This practice covers all three CogAT parts with original picture questions; real CogAT percentiles cannot be estimated from it.</p>';
     if (!list.length) return intro + '<p>No practice test yet.</p>';
     const types = {};
     for (const c of list.slice(-3)) for (const [t, s] of Object.entries(c.types || {})) { const a = (types[t] = types[t] || { right: 0, n: 0 }); a.right += s.right; a.n += s.n; }
@@ -8683,7 +9150,9 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
     const core = track().core;
     WORLDS().forEach((w, i) => { if (worldOpen(i) && i < WORLDS().length - 1) w.levels.forEach((l) => l.topics.forEach((t) => core.includes(t) && topics.add(t))); });
     if (topics.size < 3) core.slice(0, 5).forEach((t) => topics.add(t));
-    startSession({ mode: 'daily', topics: [...topics], d: track().daily, goal: 5, revFit: (r) => familyOf(r.topic) === st.grade });
+    // 2nd grade: two NNAT-3 warm-ups (the two kinds practiced least well), as the 1st and 3rd questions
+    const warm = gatePlanOn() ? MQ.NNAT_TOPICS.slice().sort((a, b) => (mastery(a).a ? mastery(a).acc : -1) - (mastery(b).a ? mastery(b).acc : -1)).slice(0, 2) : [];
+    startSession({ mode: 'daily', topics: [...topics], d: track().daily, goal: 5 + warm.length, warm, revFit: (r) => familyOf(r.topic) === st.grade });
   }
 
   // ---------------------------------------------------------------- journal, hatchery, badges
@@ -8835,7 +9304,7 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
     const s = st.stats.topics[t];
     if (!s || !s.a) return { lv: 0, passed: 0, acc: 0, a: 0 };
     let passed = 0; // highest difficulty answered right at least 80% of the time (5 tries or more)
-    for (let d = 1; d <= 5; d++) { const b = s.byD[d]; if (b && b.a >= 5 && b.c / b.a >= 0.8) passed = d; }
+    for (let d = 1; d <= ((MQ.TOPICS[t] && MQ.TOPICS[t].maxD) || 5); d++) { const b = s.byD[d]; if (b && b.a >= 5 && b.c / b.a >= 0.8) passed = d; }
     return { lv: passed >= 5 ? 4 : passed >= 3 ? 3 : passed >= 1 ? 2 : 1, passed, acc: pct(s.c, s.a), a: s.a };
   }
   function skillMap() {
@@ -8950,6 +9419,7 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
         <label class="toggle"><input type="checkbox" id="set-unlock" data-act="setting" data-arg="unlockAll" ${st.settings.unlockAll ? 'checked' : ''}> Unlock all worlds (skip ahead to match what is taught in class)</label>
         <label class="toggle"><input type="checkbox" id="set-voice" data-act="setting" data-arg="voice" ${st.settings.voice !== false ? 'checked' : ''}> Say “Great job!” or “Try again” out loud after each answer, and wait for the voice before the next problem</label>
         <label class="toggle"><input type="checkbox" id="set-read" data-act="setting" data-arg="readAloud" ${st.settings.readAloud ? 'checked' : ''}> Read every question aloud (for kids who don’t read yet; the 🔊 button always works)</label>
+        ${st.grade === 'g2' ? `<label class="toggle"><input type="checkbox" id="set-gate" data-act="setting" data-arg="gatePlan" ${st.settings.gatePlan !== false ? 'checked' : ''}> GATE plan: the countdown to the NNAT-3 test on the home screen and 2 NNAT warm-ups in the Daily Quest</label>` : ''}
         <div class="namerow"><label for="set-name">Child’s name</label><input id="set-name" class="field" maxlength="16" value="${esc(st.name)}">
           <label for="set-buddy">Buddy’s name</label><input id="set-buddy" class="field" maxlength="14" value="${esc(st.buddyName)}">
           <button class="btn ghost" data-act="saveNames">Save names</button></div>
@@ -9020,7 +9490,7 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
     if (scr === 'parent' && S.preview) { endPreview(); toast('Preview ended'); }
     endContest();
     if (scr === 'farm') return MQ.farmUI.show(arg);
-    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, fixit, progress, parent: parentGate }[scr] || home)();
+    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, nntypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
 
   const ACTIONS = {
@@ -9104,12 +9574,12 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
     kgPractice: (a) => {
       const T = MQ.TOPICS[a];
       if (!T) return prep();
-      const top = T.logic && st.grade === 'k' && !S.preview ? 2 : 5; // kindergarten logic stays at levels 1–2
+      const top = T.logic && st.grade === 'k' && !S.preview ? 2 : T.maxD || 5; // kindergarten logic stays at levels 1–2; NNAT goes to 6
       const fixed = S.preview && ui.pvD && ui.pvD !== 'auto' ? +ui.pvD : 0; // a grown-up picked the level
       startSession({ mode: 'trainer', topics: [a], auto: !fixed, d: fixed ? [fixed, fixed] : [2, 2], autoD: Math.min(2, top - 1) || 1, maxD: top, goal: 0, timer: 0, kgTopic: a,
         revFit: (r) => familyOf(r.topic) === familyOf(a) && r.d <= top });
     },
-    pvLevel: (a) => { ui.pvD = a; keepScroll({ cgtypes, kgtypes, lgtypes }[cur] || prep); },
+    pvLevel: (a) => { ui.pvD = a; keepScroll({ cgtypes, kgtypes, lgtypes, nntypes }[cur] || prep); },
     startPreview: () => {
       st = S.startPreview();
       MQ.farm.showcase(st); // the farm opens fully too (on the copy)

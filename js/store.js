@@ -36,6 +36,7 @@
     tips: {}, // topic: date a strategy tip was last shown
     tests: { checks: [], contests: [] }, // Placement Check and mock contest results (newest last)
     seen: {}, // test-prep topic: recently shown question keys (oldest first), so retakes bring new questions
+    nnatDays: {}, // 'YYYY-MM-DD': NNAT-3 practice puzzles answered that day (the GATE plan counts practice days)
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
     settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true },
   });
@@ -239,6 +240,8 @@
     out.review = Object.assign({}, old.review || {});
     for (const [k, v] of Object.entries(nw.review || {})) if (!out.review[k] || (v.last || '') >= (out.review[k].last || '')) out.review[k] = v;
     out.tips = Object.assign({}, old.tips || {}, nw.tips || {});
+    out.nnatDays = Object.assign({}, old.nnatDays || {});
+    for (const [d, n] of Object.entries(nw.nnatDays || {})) out.nnatDays[d] = max(n, (old.nnatDays || {})[d]);
     // Sunny Farm: the copy changed last wins as a whole (money is spent, animals move), by the farm's own clock,
     // so a device that only opened the farm can't replace a farm played on another device.
     if (old.farm && (!nw.farm || (old.farm.t || 0) > (nw.farm.t || 0))) out.farm = JSON.parse(JSON.stringify(old.farm));
@@ -330,6 +333,12 @@
     if (!firstTry && given !== undefined) {
       st.mistakes.unshift({ topic: p.topic, d: p.d, text: p.text.replace(/<li>/g, ' • ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 140), given: String(given), answer: String(p.answer), date: day });
       st.mistakes.length = Math.min(st.mistakes.length, 40);
+    }
+    if (MQ.TOPICS[p.topic] && MQ.TOPICS[p.topic].nnat) { // NNAT practice days for the GATE plan (kept for 120 days)
+      const nd = (st.nnatDays = st.nnatDays || {});
+      nd[day] = (nd[day] || 0) + 1;
+      const ks = Object.keys(nd).sort();
+      while (ks.length > 120) delete nd[ks.shift()];
     }
     const keys = Object.keys(st.days).sort();
     while (keys.length > 730) delete st.days[keys.shift()];

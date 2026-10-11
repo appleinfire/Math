@@ -78,7 +78,11 @@ Practice for the tests used in California schools. The app is not affiliated wit
   - **Practice by type**: 12 kinds of puzzles in contest style (counting shapes, balance scales, who is taller, calendar, coins, paths on a grid, flip and turn, cube towers, what comes next, hidden digits, age puzzles, and a hand-written bank of classics), each adapting its difficulty and explaining every answer.
   - Original puzzles in the contest's style; official past papers are sold by Math Kangaroo USA.
 - **Joey Puzzles** — kindergarten (Math Kangaroo starts in 1st grade): 12 picture puzzles with 5 answers, read aloud, no clock.
-- **CogAT practice** — 2nd grade. Eureka Union School District gives the CogAT to every 2nd grader as one part of GATE screening (ask the school for the date). The 2nd-grade test is all pictures with spoken directions, in three parts, and the app practices all nine question types:
+- **NNAT-3 practice (GATE)** — 2nd grade. Eureka Union decides GATE eligibility with one test, the Naglieri Nonverbal Ability Test, 3rd edition (from the district's GATE/HA Master Plan): an NAI of 132 or more (98th percentile) qualifies, testing starts in 2nd grade, every child gets two tries (the second the next year; a third through CSU Sacramento), invitations go out in early December, registration closes in mid-January, testing is in mid-February and results come in early April. The 2nd-grade test (Level C) is about 48 picture puzzles in 30 minutes, shapes and colors only. The app (`js/nnat.js`) generates original puzzles of its four kinds — **Pattern Completion** (the piece that fits a design), **Reasoning by Analogy** (how shapes change across and down, 2×2 and 3×3), **Serial Reasoning** (each row and column uses every shape, color, number or direction once) and **Spatial Visualization** (two line drawings put together; at higher levels lines in both cancel) — with 5 answer pictures each, like the real test.
+  - **Practice by type**: adapts like the other test-prep practice, up to a 💎 Genius level 6 that is harder than the real test (for the 98th-percentile goal); every answer is explained.
+  - **Practice test**: 48 puzzles, the four kinds mixed and getting harder from the first to the last, with a real 30-minute clock that ends the test. Results by kind, by level (how far up the right answers go), the pace in seconds per puzzle, and a review. No NAI or percentile is estimated.
+  - **For grown-ups** shows the district's GATE facts and every practice test (right answers per kind, top level, time).
+- **CogAT practice** — 2nd grade. Many districts use the CogAT for gifted programs, and it is one of the tests for the extra testing chance through CSU Sacramento (Eureka Union itself uses the NNAT-3, see above). The 2nd-grade test is all pictures with spoken directions, in three parts, and the app practices all nine question types:
   - Verbal: picture analogies, sentence completion (spoken question, picture answers), picture classification;
   - Quantitative: number analogies with groups of pictures, number puzzles with picture equations, number series on an abacus;
   - Nonverbal: figure matrices, figure classification, paper folding.
@@ -139,6 +143,7 @@ js/vendor/            Firebase JS SDK 10.14.1 (compat builds), served with the a
 js/testprep.js        Placement Check (grade ladder, adaptive questions, level estimate, practice plan) and mock contests
 js/puzzles.js         Math Kangaroo style puzzle generators, hand-written puzzle bank, Joey puzzles
 js/cogat.js           CogAT style question generators (Verbal, Quantitative, Nonverbal)
+js/nnat.js            NNAT-3 style picture puzzles (GATE): pattern, reasoning by analogy, serial reasoning, spatial visualization
 js/logic.js           Logic Lab generators (order, who has what, yes/no/can't tell, situations, counting, truth-tellers)
 js/farm.js            Sunny Farm rules: prices, crops, animals, shop, levels, money problems for customers
 js/farm-ui.js         Sunny Farm screens: farm, shop, stand, odd jobs, paying with coins
@@ -159,8 +164,10 @@ node tests/generators.test.js      # 312,000 generated problems checked
 node tests/store.test.js           # merging progress from two devices, mistakes to practice, family keys
 node tests/testprep.test.js        # Placement Check accuracy on simulated children, mock tests with review questions
 node tests/farm.test.js            # Sunny Farm economy, days, shop, and thousands of customer problems for both grades
+node tests/nnat.test.js            # NNAT-3 style puzzles: 4 kinds × 6 levels, the 48-question practice test and its scoring
 node tests/smoke.mjs               # two children, both grades, played in Chromium (needs Playwright)
 node tests/farm-smoke.mjs          # Sunny Farm played by a 2nd grader and a kindergartner in Chromium
+node tests/nnat-smoke.mjs          # GATE plan card, NNAT warm-ups, practice by type and the timed practice test in Chromium
 node tests/cloud-e2e.mjs           # two devices syncing through the real Firebase project
 python3 tools/build.py             # refresh the single-file version in dist/
 ```

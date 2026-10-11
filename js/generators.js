@@ -920,7 +920,7 @@
   MQ.G = { N, C, M, O, Ln, E, BLANK, NAMES }; // shared with generators-k.js and puzzles
 
   MQ.makeProblem = (topic, d) => {
-    const p = MQ.TOPICS[topic].gen(U.clamp(d, 1, 5));
+    const p = MQ.TOPICS[topic].gen(U.clamp(d, 1, MQ.TOPICS[topic].maxD || 5)); // NNAT practice goes up to an Expert level 6
     p.topic = topic;
     p.d = d;
     return p;

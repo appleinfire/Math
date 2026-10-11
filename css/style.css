@@ -173,6 +173,7 @@ p { margin: 0.4em 0; }
 .dchip { display: inline-block; font-size: 0.78rem; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: #e8edf3; color: var(--ink-soft); letter-spacing: 0.02em; white-space: nowrap; }
 .dchip.d4 { background: #e3e6ff; color: #4a50a8; }
 .dchip.d5 { background: #f8dcf0; color: #93367f; }
+.dchip.d6 { background: #1f2a44; color: #ffd76a; }
 
 .pcard { background: var(--card); border-radius: 22px; padding: 16px 16px 14px; box-shadow: inset 0 0 0 2px var(--line), 0 6px 0 var(--line); border-top: 6px solid var(--wc); }
 .pcard.enter { animation: slidein 0.28s ease-out; }
@@ -998,3 +999,24 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
 .bweek li.bank.now { box-shadow: inset 0 0 0 3px var(--coral); }
 .bweek p { margin: 4px 0 0; font-weight: 700; }
 .bweek p.due { color: #1f4f33; }
+
+/* ---------- NNAT-3 style practice (js/nnat.js) ---------- */
+.nnwrap { display: flex; justify-content: center; margin: 10px 0 4px; }
+.nnwrap svg.nn { max-width: 100%; height: auto; max-height: none; }
+svg.nn.design { width: 156px; }
+.choices.pics .choice svg.nn, .choices.ct .copt svg.nn { width: 64px; height: 64px; }
+.choices.n5.pics:has(svg.nn):not(.ct) { grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.choices.n5.pics:has(svg.nn) .choice { min-height: 78px; padding: 6px; }
+@media (max-width: 480px) {
+  .choices.n5.pics:has(svg.nn):not(.ct) { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* GATE plan card on the home screen (2nd grade) */
+.gatecard { display: flex; align-items: flex-start; gap: 12px; width: 100%; margin-top: 12px; border: 0; text-align: left; border-radius: var(--r); padding: 12px 14px; background: #eaf1fb; box-shadow: inset 0 0 0 3px #2e64b8, 0 4px 0 #234d8f; color: var(--ink); }
+.gatecard:active { transform: translateY(3px); box-shadow: inset 0 0 0 3px #2e64b8, 0 1px 0 #234d8f; }
+.gc-ic { font-size: 2rem; line-height: 1; flex: none; }
+.gc-t { display: flex; flex-direction: column; gap: 3px; min-width: 0; font-size: 1.02rem; }
+.gc-t small { color: var(--ink-soft); font-weight: 700; font-size: 0.82rem; }
+.gc-t .gc-step { color: #1f3f78; font-weight: 800; font-size: 0.9rem; }
+.gc-week { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.gatecard .wdots i.on { background: #2e64b8; color: #ffffff; box-shadow: none; }

@@ -174,6 +174,9 @@
       levels.forEach((d, r) => { for (const t of U.shuffle(topics)) items.push({ p: make(t, d), pts: 1, sec: r ? 'Round 2' : 'Round 1' }); });
     } else if (kind === 'joey') {
       for (let i = 0; i < 12; i++) items.push({ p: make('kg_joey', 1), pts: 1 });
+    } else if (kind === 'nnat') {
+      // NNAT-3 style: 48 questions, the four kinds mixed, getting harder from the first to the last (levels 1–6)
+      for (const x of MQ.nnatPlan()) items.push({ p: make(x.topic, x.d), pts: 1, sec: MQ.TOPICS[x.topic].name });
     } else if (kind === 'cogat' || kind === 'cogatk') {
       // CogAT style: battery by battery, each question type in a row, getting harder within the type.
       const levels = kind === 'cogat' ? [1, 2, 3, 4, 5] : [1, 1];
@@ -196,13 +199,16 @@
       p.review = true;
       items[at] = Object.assign({}, items[at], { p, rv: true });
     }
-    return { kind, items, answers: items.map(() => null), flags: items.map(() => false), i: 0, seconds: kind === 'kangaroo' ? P.KANGAROO_MINUTES * 60 : 0, started: Date.now() };
+    return { kind, items, answers: items.map(() => null), flags: items.map(() => false), i: 0, seconds: kind === 'kangaroo' ? P.KANGAROO_MINUTES * 60 : kind === 'nnat' ? MQ.NNAT_TEST.minutes * 60 : 0, started: Date.now() };
   };
   P.scoreContest = (ct) => {
     const graded = ct.items.map((it, i) => ({ it, given: ct.answers[i], ok: ct.answers[i] !== null && ct.answers[i] === it.p.answer }));
     // Sections: point values for Kangaroo, batteries for CogAT. Types: accuracy per kind of question.
-    const sections = {}, types = {};
+    const sections = {}, types = {}, levels = {};
     for (const g of graded) {
+      const l = (levels[g.it.p.d] = levels[g.it.p.d] || { right: 0, n: 0 });
+      l.n++;
+      if (g.ok) l.right++;
       const s = (sections[g.it.sec || g.it.pts] = sections[g.it.sec || g.it.pts] || { right: 0, n: 0 });
       const t = (types[g.it.p.topic] = types[g.it.p.topic] || { right: 0, n: 0 });
       s.n++; t.n++;
@@ -213,10 +219,11 @@
       date: U.dateKey(), kind: ct.kind,
       score: U.sum(graded.filter((g) => g.ok).map((g) => g.it.pts)), max: U.sum(ct.items.map((it) => it.pts)),
       right: graded.filter((g) => g.ok).length, blank: graded.filter((g) => g.given === null).length, n: graded.length,
-      sections, types, minutes: Math.max(1, Math.round((Date.now() - ct.started) / 60000)), timed: !!ct.timed,
+      sections, types, levels, minutes: Math.max(1, Math.round((Date.now() - ct.started) / 60000)), timed: !!ct.timed,
+      used: ct.timed && ct.seconds ? ct.seconds - Math.max(0, ct.left || 0) : null, // seconds on the clock
       items: graded.map((g) => ({
         t: g.it.p.topic, d: g.it.p.d, pts: g.it.pts, sec: g.it.sec || '', ok: g.ok, rv: !!g.it.rv,
-        q: String(g.it.p.text).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160),
+        q: String(g.it.p.text).replace(/<svg[\s\S]*?<\/svg>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160), // pictures dropped
         g: g.given === null ? '' : g.given, a: g.it.p.answer, e: g.it.p.explain || '',
         letterG: g.given === null ? '' : 'ABCDE'[g.it.p.choices.indexOf(g.given)], letterA: 'ABCDE'[g.it.p.choices.indexOf(g.it.p.answer)],
       })),
@@ -246,24 +253,31 @@
       checks: 'Counting, comparing, simple patterns and shapes, and listening carefully to the question.',
       how: 'Play the 12 puzzles with a grown-up nearby. Every question can be read aloud with 🔊. There is no clock.',
     },
+    nnat: {
+      title: 'NNAT-3 practice', icon: '🔷',
+      what: 'Practice for the Naglieri Nonverbal Ability Test, 3rd edition (NNAT-3): picture puzzles with shapes and colors, no words and no numbers. It measures reasoning, not what was taught in class.',
+      where: 'Eureka Union School District uses the NNAT-3 as the only test for GATE eligibility: an NAI of 132 or more (98th percentile) qualifies. Testing starts in 2nd grade, every child may test twice (a second try the next year), and the district tests in February. Invitations go out in early December; register by mid-January.',
+      checks: 'Four kinds of puzzles: Pattern Completion (the piece that fits a design), Reasoning by Analogy (how shapes change across and down), Serial Reasoning (each row and column uses every shape and color once), and Spatial Visualization (putting pictures together in your mind). The 2nd-grade test (Level C) has about 48 puzzles in 30 minutes.',
+      how: 'The district does not recommend a study guide but says getting to know the format builds confidence. Use “Practice by type” in short sessions (it gets harder as answers are right, up to a Genius level harder than the test), and take the 48-question practice test with the 30-minute clock now and then to practice the pace: about 35 seconds a puzzle. Real NAI scores and percentiles cannot be estimated from practice.',
+    },
     cogat: {
       title: 'CogAT practice', icon: '🧠',
       what: 'Practice for the Cognitive Abilities Test (CogAT), which measures reasoning, not what was taught in class.',
-      where: 'Eureka Union School District gives the CogAT to every 2nd grader as one part of GATE screening. Many other districts use it for gifted programs too.',
+      where: 'Many school districts use the CogAT for gifted (GATE) programs. Eureka Union uses the NNAT-3 for GATE instead (see NNAT-3 practice); the CogAT is one of the tests for the extra testing chance through CSU Sacramento, and its reasoning puzzles are good practice for any thinking test.',
       checks: 'Three parts: Verbal (picture analogies, sentence completion, picture classification), Quantitative (number analogies, number puzzles, number series) and Nonverbal (figure matrices, figure classification, paper folding).',
       how: 'Short sessions of “Practice by type” work best; a full 45-question test now and then shows progress in each part. Real CogAT percentiles cannot be estimated from practice.',
     },
     cogatk: {
       title: 'Brain Games', icon: '🧠',
       what: 'Picture thinking puzzles in the style of the CogAT, made for kindergarten.',
-      where: 'Eureka Union gives the CogAT in 2nd grade; these games build the same kinds of thinking early.',
+      where: 'GATE testing starts in 2nd grade (Eureka Union uses the NNAT-3, a picture-puzzle test); these games build the same kinds of thinking early.',
       checks: 'Seeing patterns, things that go together, and how shapes change.',
       how: 'Play a few puzzles at a time. Every question is read aloud.',
     },
     logic: {
       title: 'Logic Lab', icon: '🧩',
       what: 'Logic puzzles in words: put people in order from clues, find who has what, decide what must be true, count all the ways, and catch the fibber.',
-      where: 'Not a school test, but the same thinking is in Math Kangaroo, CogAT and the word problems on i-Ready, and it helps in reading too.',
+      where: 'Not a school test, but the same thinking is in Math Kangaroo, CogAT, NNAT and the word problems on i-Ready, and it helps in reading too.',
       checks: 'Careful reading, using only what is said, trying possibilities and checking them. Levels 4–5 are advanced puzzles for kids who want more.',
       how: 'Use “Practice by type” (it gets harder as answers are right, and every answer is explained). The 12-puzzle challenge mixes all types at the advanced levels.',
     },
