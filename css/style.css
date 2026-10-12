@@ -659,6 +659,11 @@ svg.vis.abacus { max-height: 160px; }
 .pchart svg { width: 100%; max-width: 460px; height: auto; display: block; margin: 0 auto; }
 .pchart figcaption { font-size: 0.78rem; color: var(--ink-soft); font-weight: 700; text-align: center; margin-top: 2px; }
 .pchart .cdot:hover circle:last-of-type { r: 6; }
+.pchart { position: relative; }
+.pchart .cdot, .pchart .cbar { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.pchart .cdot.on circle:last-of-type { r: 7; }
+.pchart .cbar.on rect:first-child { fill: #2bb3a3; }
+.ctip { position: absolute; pointer-events: none; background: var(--ink, #1f2a44); color: #fff; font-size: 0.8rem; font-weight: 800; padding: 5px 9px; border-radius: 10px; width: max-content; max-width: calc(100% - 8px); text-align: center; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18); z-index: 2; }
 .verdict { margin: 4px 0; font-weight: 800; }
 .verdict.up { color: var(--good); }
 .verdict.down { color: #a4561a; }
