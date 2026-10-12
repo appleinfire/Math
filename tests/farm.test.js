@@ -91,6 +91,25 @@ fm.money = 0;
 assert.strictEqual(F.buy(fm, 'g2', 'feed:5'), null, 'no money, no feed');
 assert.strictEqual(fm.stats.spent, 60 + 50 + 100 + 100 + 15);
 
+// ---------- the market truck at the stand: wholesale prices, no tip, the pile is gone
+{
+  for (const g of ['k', 'g2']) for (const id of Object.keys(F.ITEMS)) {
+    const w = F.wholesale(id, g), p = F.price(id, g);
+    assert.ok(w >= 1 && (w < p || p === 1), `${id} (${g}): wholesale ${w} is less than ${p}`);
+    if (g === 'g2') assert.strictEqual(w % 5, 0, `${id}: wholesale is a multiple of 5¢`);
+  }
+  assert.deepStrictEqual([F.wholesale('egg', 'g2'), F.wholesale('tomato', 'g2'), F.wholesale('egg', 'k')], [5, 10, 1]);
+  assert.strictEqual(F.truckLoad({ egg: 9, tomato: 9 }, 'g2', F.tiers('g2')[3]), null, 'no pile of 10');
+  assert.deepStrictEqual(F.truckLoad({ egg: 30, tomato: 12 }, 'g2', F.tiers('g2')[3]), { id: 'egg', q: 30, each: 5, total: 150 });
+  assert.deepStrictEqual(F.truckLoad({ egg: 30 }, 'k', F.tiers('k')[0]), { id: 'egg', q: 10, each: 1, total: 10 }, 'kindergarten: as many as fit in 10¢');
+  const f = F.ensure({ grade: 'g2' });
+  f.xp = 1e6; f.tier = 4; f.stand = 6; f.basket = { egg: 30, milk: 3 };
+  const p = F.customer(f, 'g2', { stock: f.basket, truck: true });
+  const m0 = f.money, r = F.serve(f, 'g2', p, true, true);
+  assert.deepStrictEqual([p.truck, r.paid, r.tip, f.money - m0, f.basket], [true, 150, 0, 150, { milk: 3 }]);
+  assert.ok(!F.customer(f, 'g2', { stock: f.basket, truck: true }).truck, 'no pile left: a regular customer');
+}
+
 // ---------- XP pays level gifts; tiers climb and fall
 const f2 = F.ensure({ grade: 'g2' });
 const m0 = f2.money;
@@ -149,7 +168,7 @@ function checkProblem(p, grade, stock, label) {
   let total = 0;
   for (const [id, n] of Object.entries(p.sale)) {
     assert.ok(n >= 1 && n <= stock[id], `${label}: sells what is in stock (${id} ${n}/${stock[id]})`);
-    total += n * F.price(id, grade);
+    total += n * (p.truck ? F.wholesale(id, grade) : F.price(id, grade));
   }
   if (p.type === 'deal') assert.ok(p.total < total, label + ' a deal costs less than one by one');
   else assert.strictEqual(p.total, total, label + ' total = items × prices');
@@ -163,7 +182,7 @@ function checkProblem(p, grade, stock, label) {
     assert.ok(p.target > 0 && F.fewest(p.target, p.coinKinds), label + ' coins can make the target');
     assert.ok(F.isRight(p, F.fewest(p.target, p.coinKinds)));
   }
-  if (['count', 'collect', 'total', 'two', 'multiply'].includes(p.type)) {
+  if (['count', 'collect', 'total', 'two', 'multiply', 'truck'].includes(p.type)) {
     const ans = p.kind === 'coins' ? p.target : p.kind === 'num' ? p.answer : p.answer;
     assert.strictEqual(String(ans), String(p.kind === 'choice' ? F.fmt(p.total, grade) : p.total), `${label}: answer is the sale total`);
   }
@@ -185,6 +204,23 @@ for (const grade of ['k', 'g2']) {
       checkProblem(p, grade, stock, `${grade} tier ${ti} ${p && p.type}`);
       seen[grade + ':' + p.type] = (seen[grade + ':' + p.type] || 0) + 1;
       if (p.type !== 'count' || ti === 1 || p.tier) assert.ok(p.tier >= ti, 'tier recorded');
+    }
+    // the market truck: a whole pile of one thing at the wholesale price, within the tier's money range
+    for (let i = 0; i < 300; i++) {
+      const f = F.ensure({ grade });
+      f.tier = ti;
+      f.xp = 1e6;
+      const stock = {};
+      U.sample(Object.keys(F.ITEMS), U.rnd(1, 8)).forEach((id) => (stock[id] = U.rnd(1, 60)));
+      const p = F.customer(f, grade, { stock, truck: true });
+      const load = F.truckLoad(stock, grade, tiers[ti - 1]);
+      if (!load) { assert.ok(!p.truck, 'no pile, no truck'); continue; }
+      checkProblem(p, grade, stock, `${grade} tier ${ti} truck`);
+      const [[id, q]] = Object.entries(p.sale);
+      assert.ok(p.truck && p.who === F.TRUCK && q >= F.TRUCK_MIN && p.total <= F.truckCap(grade, tiers[ti - 1]), `${grade} tier ${ti}: a truck load ${id} ${q} for ${p.total}`);
+      assert.ok(Object.entries(stock).every(([x, n]) => Math.min(n, Math.floor(F.truckCap(grade, tiers[ti - 1]) / F.wholesale(x, grade))) <= q || n < F.TRUCK_MIN), 'the truck takes the biggest pile it can');
+      seen[grade + ':truck'] = (seen[grade + ':truck'] || 0) + 1;
+      assert.ok(!F.customer(f, grade, { stock, truck: true, vip: true }).truck && !F.customer(f, grade, { stock, truck: true, jobs: true }).truck, 'a challenge customer or odd job is never the truck');
     }
     // every type of the tier comes up with a full basket
     const f = F.ensure({ grade });

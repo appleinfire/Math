@@ -415,7 +415,8 @@
     clearTimeout(autoNext);
     const f = fm(), jobs = fs.mode === 'jobs';
     const vip = !jobs && (f.customers + 1) % F.VIP_EVERY === 0;
-    const p = F.customer(f, grade(), { stock: jobs ? F.jobStock(f) : f.basket, vip, jobs });
+    const truck = !jobs && !vip && (f.customers + 1) % F.TRUCK_EVERY === 0;
+    const p = F.customer(f, grade(), { stock: jobs ? F.jobStock(f) : f.basket, vip, jobs, truck });
     if (!p) return summary(true);
     show(p);
   }
@@ -441,7 +442,7 @@
     Object.assign(fs, { p, tries: 0, input: '', tray: [], locked: false, step: 'main', pick: null });
     const f = fm(), tiers = F.tiers(grade()), tier = tiers[(p.tier || f.tier) - 1];
     const status = STATUS[fs.mode] ? STATUS[fs.mode]() : fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : `🏪 Customer ${fs.n + 1} · +${fmt(fs.earned + fs.tips)}`;
-    const label = LABEL[fs.mode] ? LABEL[fs.mode] : p.vip ? '⭐ Challenge customer · big tip' : `🧮 ${esc(tier.name)}${tier.ahead ? ' ⭐' : ''}`;
+    const label = LABEL[fs.mode] ? LABEL[fs.mode] : p.vip ? '⭐ Challenge customer · big tip' : p.truck ? '🚚 Buys a lot at once' : `🧮 ${esc(tier.name)}${tier.ahead ? ' ⭐' : ''}`;
     const intro = fs.mode === 'jobs' ? '<small class="muted">At the big Farmers’ Market:</small><br>' : '';
     const stall = fs.mode === 'pay'
       ? SC.stall({ mode: 'pay', seller: '🧑‍🌾', shopper: st().companion, goods: fs.icon || '🛍️' })

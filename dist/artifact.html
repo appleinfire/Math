@@ -5558,6 +5558,12 @@ svg.nn.design { width: 156px; }
   F.tiers = (grade) => F.TIERS[grade === 'k' ? 'k' : 'g2'];
   F.tierOpen = (fm, grade) => F.tiers(grade).filter((t) => t.lv <= F.level(fm.xp).level).length; // 1-based count
   F.VIP_EVERY = 5; // every 5th customer is a ⭐ challenge customer
+  // A big farm makes more than customers carry away (2–3 things each). When a pile builds up, every 3rd customer is
+  // the market truck: it buys a whole pile of one thing at the wholesale price, with one money problem of the child's
+  // tier. It pays at most 50¢ or $5 (F.truckCap), so a problem still brings about the money a customer does.
+  F.TRUCK = ['🚚', 'The market truck'];
+  F.TRUCK_EVERY = 3;
+  F.TRUCK_MIN = 10; // a pile: at least this many of one thing
 
   // ---------------------------------------------------------------- money words
   F.COINV = { p: 1, n: 5, d: 10, q: 25, b: 100, f: 500, t: 1000, w: 2000 };
@@ -6187,14 +6193,56 @@ svg.nn.design { width: 156px; }
     Object.assign(base, { text: q.text, hint: q.hint, explain: q.explain });
     return Object.assign(base, total < 100 ? { kind: 'num', answer: total, unit: '¢' } : { kind: 'choice', answer: fmt(total), choices: F.moneyChoices(total, grade, q.traps) });
   };
+  // The wholesale price: about half (2nd grade: a multiple of 5¢, nice for counting by 5s and 10s).
+  F.wholesale = (id, grade) => {
+    const p = F.price(id, grade);
+    return grade === 'k' ? Math.max(1, Math.floor(p / 2)) : Math.max(5, Math.floor(p / 10) * 5);
+  };
+  // At most the tier's money range, and never more than 50¢ (kindergarten) or $5: a truck pays a bit more than a
+  // customer, for a lot more things. Expensive things are for customers (a truck can't take 10 of them).
+  F.truckCap = (grade, tier) => Math.min(tier.max, grade === 'k' ? 50 : 500);
+  // The pile the truck buys now: the biggest one it can take at least F.TRUCK_MIN of within F.truckCap.
+  F.truckLoad = (stock, grade, tier) => {
+    let best = null;
+    for (const [id, n] of Object.entries(stock)) {
+      if (n < F.TRUCK_MIN) continue;
+      const each = F.wholesale(id, grade), q = Math.min(n, Math.floor(F.truckCap(grade, tier) / each));
+      if (q >= F.TRUCK_MIN && (!best || q > best.q)) best = { id, q, each, total: q * each };
+    }
+    return best;
+  };
+  // The truck's problem: count the money the driver pays (kindergarten, odd prices), or count by 5s and 10s /
+  // multiply (2nd grade).
+  F.truckProblem = (stock, grade, tier) => {
+    const L = F.truckLoad(stock, grade, tier);
+    if (!L) return null;
+    const { id, q, each, total } = L, fmt = (c) => F.fmt(c, grade), it = F.ITEMS[id];
+    const buys = `buys <b>${things(id, q)}</b> at the wholesale price, <b>${fmt(each)} each</b> (less than customers pay, but all at once).`;
+    const base = { type: 'truck', truck: true, sale: { [id]: q }, total, visual: row(id, q) + `<span class="ftag">🚚 ${fmt(each)} each</span>` };
+    const easy = each === 5 || each === 10;
+    if (grade !== 'k' && (easy || tier.types.includes('multiply') || tier.types.includes('deal'))) {
+      const tens = Math.floor(q / 10), rest = q % 10;
+      const hint = easy
+        ? (q >= 10 ? `10 ${it.many} make ${fmt(10 * each)}. Count the tens first: ${tens} × ${fmt(10 * each)}${rest ? `, then count the other ${rest} by ${each}s` : ''}.` : `Count by ${each}s: ${each}, ${2 * each}, ${3 * each}…`)
+        : rest ? `${q} × ${fmt(each)}: split ${q} into ${tens * 10} and ${rest}, find each part, then add.` : `${q} is ${tens} tens: find 10 × ${fmt(each)} first, then ${tens} × that.`;
+      const explain = easy && q >= 10 ? `${tens} × ${fmt(10 * each)} = ${fmt(tens * 10 * each)}${rest ? `, ${rest} × ${fmt(each)} = ${fmt(rest * each)}; ${fmt(tens * 10 * each)} + ${fmt(rest * each)} = ${fmt(total)}` : ''}` : `${q} × ${fmt(each)} = ${fmt(total)}`;
+      const traps = [(q - 1) * each, (q + 1) * each, total + 10 * each, total - 10 * each];
+      return Object.assign(base, { text: `${buys} How much does it pay?`, hint, explain }, total < 100 ? { kind: 'num', answer: total, unit: '¢' } : { kind: 'choice', answer: fmt(total), choices: F.moneyChoices(total, grade, traps) });
+    }
+    const coins = F.coinsFor(total, tier.coins) || F.fewest(total, tier.coins);
+    if (!coins) return null;
+    return ask(Object.assign(base, { text: `${buys} The driver pays with these. How much money is it?`, visual: base.visual + MQ.V.coins(coins, grade === 'k' || tier === F.tiers(grade)[0]), hint: 'Start with the money worth the most, then count on.', explain: `${coins.map((k) => fmt(F.COINV[k])).join(' + ')} = ${fmt(total)}` }), total, grade);
+  };
   const FALLBACK = ['count', 'collect', 'total', 'two'];
   // The next customer: a problem of the child's tier (one tier up for a ⭐ challenge customer).
   // stock: what can be sold (the basket; odd jobs use a pretend crate). Returns null when nothing can be sold.
-  F.customer = (fm, grade, { stock, vip = false, jobs = false } = {}) => {
+  F.customer = (fm, grade, { stock, vip = false, jobs = false, truck = false } = {}) => {
     const all = F.tiers(grade);
     const ti = Math.min(all.length, Math.max(1, fm.tier) + (vip ? 1 : 0));
     const tier = all[ti - 1];
     if (!Object.values(stock).some((n) => n > 0)) return null;
+    const t = truck && !vip && !jobs ? F.truckProblem(stock, grade, tier) : null;
+    if (t) return Object.assign(t, { who: F.TRUCK, vip: false, jobs: false, tier: ti, ahead: !!tier.ahead });
     const types = U.shuffle(tier.types).concat(FALLBACK);
     for (const type of types) {
       const p = F.problem(type, { grade, tier, stock });
@@ -6229,7 +6277,7 @@ svg.nn.design { width: 156px; }
     } else if (!p.noPay) {
       for (const [id, n] of Object.entries(p.sale)) { fm.basket[id] = Math.max(0, (fm.basket[id] || 0) - n); if (!fm.basket[id]) delete fm.basket[id]; fm.stats.sold += n; }
       res.paid = p.total;
-      if (firstTry) res.tip = p.vip ? F.VIP_TIP(grade, p.total) : F.tip(fm, p.total);
+      if (firstTry) res.tip = p.vip ? F.VIP_TIP(grade, p.total) : p.truck ? 0 : F.tip(fm, p.total); // wholesale: no tip
     }
     fm.money += res.paid + res.tip;
     fm.stats.earned += res.paid + res.tip;
@@ -7340,7 +7388,8 @@ svg.nn.design { width: 156px; }
     clearTimeout(autoNext);
     const f = fm(), jobs = fs.mode === 'jobs';
     const vip = !jobs && (f.customers + 1) % F.VIP_EVERY === 0;
-    const p = F.customer(f, grade(), { stock: jobs ? F.jobStock(f) : f.basket, vip, jobs });
+    const truck = !jobs && !vip && (f.customers + 1) % F.TRUCK_EVERY === 0;
+    const p = F.customer(f, grade(), { stock: jobs ? F.jobStock(f) : f.basket, vip, jobs, truck });
     if (!p) return summary(true);
     show(p);
   }
@@ -7366,7 +7415,7 @@ svg.nn.design { width: 156px; }
     Object.assign(fs, { p, tries: 0, input: '', tray: [], locked: false, step: 'main', pick: null });
     const f = fm(), tiers = F.tiers(grade()), tier = tiers[(p.tier || f.tier) - 1];
     const status = STATUS[fs.mode] ? STATUS[fs.mode]() : fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : `🏪 Customer ${fs.n + 1} · +${fmt(fs.earned + fs.tips)}`;
-    const label = LABEL[fs.mode] ? LABEL[fs.mode] : p.vip ? '⭐ Challenge customer · big tip' : `🧮 ${esc(tier.name)}${tier.ahead ? ' ⭐' : ''}`;
+    const label = LABEL[fs.mode] ? LABEL[fs.mode] : p.vip ? '⭐ Challenge customer · big tip' : p.truck ? '🚚 Buys a lot at once' : `🧮 ${esc(tier.name)}${tier.ahead ? ' ⭐' : ''}`;
     const intro = fs.mode === 'jobs' ? '<small class="muted">At the big Farmers’ Market:</small><br>' : '';
     const stall = fs.mode === 'pay'
       ? SC.stall({ mode: 'pay', seller: '🧑‍🌾', shopper: st().companion, goods: fs.icon || '🛍️' })
