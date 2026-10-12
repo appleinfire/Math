@@ -88,16 +88,19 @@ MQ.state = null;
   assert.deepStrictEqual([MQ.state.review['time|3'].box, MQ.state.review['time|3'].miss], [0, 2]);
   // Long-term statistics: every answer counts in its month, per topic.
   assert.deepStrictEqual(MQ.state.months['2026-10'].add20, [6, 5]);
+  // ... and in its day, per topic, so the progress chart can show one dot per day.
+  assert.deepStrictEqual([MQ.state.topicDays['2026-10-10'].add20, MQ.state.topicDays['2026-10-11'].add20, MQ.state.topicDays['2026-10-14'].add20], [[3, 2], [1, 1], [2, 2]]);
   // The list never grows without end.
   for (let i = 0; i < 120; i++) S.miss('t' + i, 1);
   assert.strictEqual(Object.keys(MQ.state.review).length, S.REVIEW_MAX);
   // Merging: each skill keeps the copy practiced most recently; months keep the copy with more answers.
-  const ra = Object.assign(base(), { rev: 10, review: { 'add20|2': { topic: 'add20', d: 2, box: 2, due: '2026-10-20', miss: 1, last: '2026-10-17' }, 'time|1': { topic: 'time', d: 1, box: 0, due: '2026-10-01', miss: 1, last: '2026-10-01' } }, months: { '2026-10': { add20: [9, 7] } } });
-  const rb = Object.assign(base(), { rev: 20, review: { 'add20|2': { topic: 'add20', d: 2, box: 0, due: '2026-10-12', miss: 2, last: '2026-10-12' } }, months: { '2026-10': { add20: [4, 4], time: [2, 1] }, '2026-09': { time: [3, 3] } } });
+  const ra = Object.assign(base(), { rev: 10, review: { 'add20|2': { topic: 'add20', d: 2, box: 2, due: '2026-10-20', miss: 1, last: '2026-10-17' }, 'time|1': { topic: 'time', d: 1, box: 0, due: '2026-10-01', miss: 1, last: '2026-10-01' } }, months: { '2026-10': { add20: [9, 7] } }, topicDays: { '2026-10-17': { add20: [9, 7] } } });
+  const rb = Object.assign(base(), { rev: 20, review: { 'add20|2': { topic: 'add20', d: 2, box: 0, due: '2026-10-12', miss: 2, last: '2026-10-12' } }, months: { '2026-10': { add20: [4, 4], time: [2, 1] }, '2026-09': { time: [3, 3] } }, topicDays: { '2026-10-17': { add20: [4, 4] }, '2026-10-12': { time: [2, 1] } } });
   const rm = S.mergeProfiles(ra, rb);
   assert.strictEqual(rm.review['add20|2'].box, 2, 'the more recent practice wins');
   assert.ok(rm.review['time|1'], 'skills from both devices are kept');
   assert.deepStrictEqual(rm.months, { '2026-10': { add20: [9, 7], time: [2, 1] }, '2026-09': { time: [3, 3] } });
+  assert.deepStrictEqual(rm.topicDays, { '2026-10-17': { add20: [9, 7] }, '2026-10-12': { time: [2, 1] } }, 'daily counts per topic merge like months');
   assert.deepStrictEqual(S.mergeProfiles(rb, ra).review, rm.review, 'review merge does not depend on order');
   MQ.U.dateKey = realKey;
   MQ.state = null;
