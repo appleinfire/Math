@@ -170,7 +170,7 @@ async function play(grade, tag, viewport) {
   if (jobs !== 4) errors.push(`${tag}: jobs ${jobs}`);
 
   // a high-level farm: every tier, challenge customers, a level-up card
-  await page.evaluate(() => { const f = MQ.state.farm; f.xp = 13227; /* 3 XP before level 50 */ f.tier = MQ.farm.tiers(MQ.state.grade).length; f.basket = { honey: 9, milk: 9, pumpkin: 9, egg: 9, truffle: 9, grapes: 9 }; f.customers = 4; f.stand = 3;
+  await page.evaluate(() => { const f = MQ.state.farm; f.xp = 13227; /* 3 XP before level 50 */ f.tier = MQ.farm.tiers(MQ.state.grade).length; f.basket = { honey: 9, milk: 9, pumpkin: 9, egg: 40, truffle: 9, grapes: 9 }; f.customers = 4; f.stand = 3;
     Object.keys(MQ.farm.DECOR).forEach((id) => (f.owned[id] = true));
     f.beds = ['carrot', 'strawberry', 'tomato', 'corn', 'pumpkin', null].map((c, i) => ({ c, g: i % 3 === 0 ? 9 : i % 3, u: i }));
     f.pens = ['chicken', 'bees', 'cow', 'fishpond', 'turkey', 'unicorn'].map((a, i) => ({ a, g: i % 3 === 0 ? 0 : 9, fed: i % 2 === 0, ready: i % 3 === 1 ? 2 : 0, u: i % 4 }));
@@ -198,9 +198,12 @@ async function play(grade, tag, viewport) {
   }
   await page.click('[data-act=fMarket]');
   const startCount = await page.evaluate(() => MQ.farm.basketCount(MQ.state.farm));
+  let trucks = 0;
   for (let i = 0; i < 6; i++) {
     await page.waitForSelector('.fplay #fanswer');
     if (i === 0) await snap('14-vip');
+    const truck = await page.evaluate(() => { const p = MQ.farmUI.playing().p; return p.truck ? { q: p.sale.egg, eggs: MQ.state.farm.basket.egg } : null; });
+    if (truck) { trucks++; await snap('14c-truck'); }
     if (!(await page.$('#fbbar li.want'))) errors.push(`${tag}: the basket bar does not mark what the customer wants`);
     await answer(page, true);
     await page.waitForSelector('.fb.ok');
@@ -209,6 +212,7 @@ async function play(grade, tag, viewport) {
     const m = /(\d+) sold, (\d+) left/.exec(bb.label || '');
     if (!m || +m[2] !== bb.left || +m[1] + +m[2] !== startCount) errors.push(`${tag}: basket bar ${bb.label} (left ${bb.left}, started with ${startCount})`);
     if (i === 1) await snap('14b-basketbar');
+    if (truck) { const eggs = await page.evaluate(() => MQ.state.farm.basket.egg || 0); if (!(truck.q >= 10 && eggs === truck.eggs - truck.q)) errors.push(`${tag}: the market truck took ${truck.q} eggs (${truck.eggs} → ${eggs})`); }
     if (await page.$('#modal')) { await snap('15-levelup'); await page.click('#modal [data-act=closeModal]'); }
     if (await page.$('[data-act=fNext]')) await page.click('[data-act=fNext]');
   }
@@ -216,6 +220,7 @@ async function play(grade, tag, viewport) {
   await page.waitForSelector('.result');
   const vip = await page.evaluate(() => MQ.state.farm.stats.vip);
   if (vip < 1) errors.push(`${tag}: no challenge customer served`);
+  if (trucks < 1) errors.push(`${tag}: the market truck never came for 40 eggs`);
   // the bank: two bank days waiting (interest questions), then save money and take some out
   await page.click('[data-act=go][data-arg=farm]');
   await page.click('.fbankday');
