@@ -314,6 +314,10 @@ async function run(viewport, tag) {
   const daily = await page.evaluate(() => document.querySelectorAll('.pchart .cdot').length);
   if (daily < 9 || daily > 11) errors.push(tag + ': one month should show a dot per day, got ' + daily);
   await snap('18b-progress-days');
+  // A tap on a dot shows its numbers (phones and tablets never show the SVG <title>).
+  await page.click('.pchart .cdot >> nth=-1');
+  const tip = await page.evaluate(() => (document.querySelector('.pchart .ctip') || {}).textContent || '');
+  if (!/% right \(\d+ of \d+\)/.test(tip)) errors.push(tag + ': tapping a chart dot shows no numbers, got ' + JSON.stringify(tip));
   await page.click('[data-act=progRange][data-arg="6m"]');
   await page.selectOption('.progress select[data-act=progTopic]', 'add20');
   await page.waitForFunction(() => document.querySelector('.progress select').value === 'add20');

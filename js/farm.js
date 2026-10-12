@@ -336,7 +336,7 @@
     miss: 0,
     customers: 0,
     t: 0, // when the farm last changed (for merging copies from two devices)
-    stats: { sold: 0, earned: 0, spent: 0, tasks: 0, right: 0, vip: 0, jobs: 0, made: 0, interest: 0, bankDays: 0 },
+    stats: { sold: 0, earned: 0, spent: 0, tasks: 0, right: 0, vip: 0, jobs: 0, made: 0, interest: 0, bankDays: 0, saved: 0, tookOut: 0 }, // saved / tookOut: all money ever put in / taken out of the bank
     works: {}, // workshop id: { r: recipe index or null, g: nights, ready: items, out: item }
     bank: { bal: 0, acct: 0, log: [], pend: [] }, // see the bank below: bank day is every 7th farm day
   });
@@ -353,6 +353,8 @@
     if (!fm.helper) fm.helper = { hired: false, on: true };
     if (!fm.stats.wages) fm.stats.wages = 0;
     for (const k of ['made', 'interest', 'bankDays']) if (!fm.stats[k]) fm.stats[k] = 0;
+    // totals saved and taken out came later: what is in the bank and is not interest was saved
+    if (fm.stats.saved == null) { fm.stats.saved = Math.max(0, fm.bank.bal - fm.stats.interest); fm.stats.tookOut = 0; }
     return fm;
   };
 
@@ -612,6 +614,7 @@
     if (!(amt > 0) || amt > fm.money) return false;
     fm.money -= amt;
     fm.bank.bal += amt;
+    fm.stats.saved += amt;
     bankLog(fm, 'in', amt);
     return true;
   };
@@ -619,6 +622,7 @@
     if (!(amt > 0) || amt > fm.bank.bal) return false;
     fm.bank.bal -= amt;
     fm.money += amt;
+    fm.stats.tookOut += amt;
     bankLog(fm, 'out', amt);
     return true;
   };
@@ -644,6 +648,12 @@
     bankLog(fm, 'interest', x, p.day);
     return { day: p.day, bal: p.bal, x };
   };
+  // All-time bank summary: what is in the bank now, split into the child's own money and interest
+  // (interest counts as spent last, so taking money out uses up the child's own money first).
+  F.bankSummary = (fm) => {
+    const s = fm.stats, interest = Math.min(fm.bank.bal, s.interest);
+    return { saved: s.saved, tookOut: s.tookOut, interest: s.interest, days: s.bankDays, bal: fm.bank.bal, own: fm.bank.bal - interest, fromInterest: interest };
+  };
   // How the savings would grow, bank week by bank week, without adding or taking out money.
   F.project = (bal, grade, weeks = 6, acct = 0) => { const out = [bal]; for (let i = 0; i < weeks; i++) out.push(out[i] + F.interest(out[i], grade, acct)); return out; };
 
@@ -663,6 +673,7 @@
       day: 14,
       bank: { bal: k ? 1234 : 12345, acct: 1, log: [], pend: [{ day: 14, bal: k ? 1234 : 12345 }] }, // above the Silver limit: both rates
     });
+    Object.assign(fm.stats, k ? { saved: 1100, tookOut: 100, interest: 234, bankDays: 9 } : { saved: 11000, tookOut: 1000, interest: 2345, bankDays: 9 }); // adds up to the bank above
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
     for (const id of Object.keys(F.DECOR)) fm.owned[id] = true;
     Object.keys(F.WORKS).forEach((id, i) => { fm.works[id] = i % 2 ? { r: null, g: 0, ready: 1, out: F.WORKS[id].recipes[0].out } : { r: null, g: 0, ready: 0, out: '' }; });

@@ -750,9 +750,21 @@
         <p>${esc(F.ruleText(g, b.acct))} The money is safe in the bank, and you can take it out any time to spend it.</p>
         <p class="muted">On the morning of bank day the bank looks at what you have saved, and the interest is for that money. If you miss bank days, up to ${F.BANK_MISSED} wait for you.</p></section>
       ${b.bal ? `<h2>📈 If you keep it in the bank</h2><div class="bchart" role="img" aria-label="Savings growing week by week">${bars}</div><p class="muted">Each bank day the bank adds interest, and next time the interest earns interest too.</p>` : ''}
+      ${bankSummary()}
       ${log ? `<h2>🧾 My bank book</h2><ul class="blog">${log}</ul>` : ''}
     </main>`, 'is-farm');
     K().setCur('farm:bank');
+  }
+  // All time: how much the child saved and took out, how much the bank added, and what the money in the bank is made of.
+  function bankSummary() {
+    const s = F.bankSummary(fm());
+    if (!s.saved) return '';
+    const tile = (cls, label, v) => `<div class="${cls}"><small>${label}</small><b>${fmt(v)}</b></div>`;
+    return `<h2>📊 My savings, all time</h2><section class="bsum">
+      <div class="bsum-k">${tile('in', '⬇️ Saved', s.saved)}${tile('int', '✨ Interest', s.interest)}${s.tookOut ? tile('out', '⬆️ Took out', s.tookOut) : ''}</div>
+      ${s.bal ? `<div class="bsum-bar" aria-hidden="true">${s.own ? `<span class="own" style="flex-grow:${s.own}"></span>` : ''}${s.fromInterest ? `<span class="int" style="flex-grow:${s.fromInterest}"></span>` : ''}</div>
+      <p class="bsum-t">In the bank now: <b>${fmt(s.bal)}</b> = <b class="own">${fmt(s.own)}</b> your money + <b class="int">${fmt(s.fromInterest)}</b> interest</p>` : ''}
+      <p class="muted">${s.interest ? `The bank added ${fmt(s.interest)} in ${s.days} bank ${s.days === 1 ? 'day' : 'days'}, just because you saved.` : 'On bank day the bank adds interest to what you saved.'}</p></section>`;
   }
   // Your bank account: how much of the savings earns the big interest, and the next, better account.
   function accountCard() {

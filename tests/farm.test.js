@@ -342,6 +342,11 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   assert.ok(F.withdraw(f, 115));
   assert.deepStrictEqual([f.bank.bal, f.bank.log[0].kind], [700, 'out']);
   assert.strictEqual(F.withdraw(f, 701), false);
+  // all-time summary: saved 435 + 100, took out 115, interest 40 + 50 + 60 + 60 + 70; the rest of the bank is own money
+  assert.deepStrictEqual(F.bankSummary(f), { saved: 535, tookOut: 115, interest: 280, days: 5, bal: 700, own: 420, fromInterest: 280 });
+  assert.strictEqual(f.stats.saved - f.stats.tookOut + f.stats.interest, f.bank.bal, 'the totals add up to what is in the bank');
+  F.withdraw(f, 600);
+  assert.deepStrictEqual([F.bankSummary(f).own, F.bankSummary(f).fromInterest], [0, 100], 'taking money out uses your own money first');
   assert.deepStrictEqual(F.project(400, 'g2', 3), [400, 440, 480, 520]);
   const empty = F.ensure({ grade: 'k' });
   for (let i = 0; i < 7; i++) F.nextDay(empty, 'k');
@@ -350,6 +355,11 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   const cal = { grade: 'g2', farm: Object.assign(F.fresh(), { started: true, bank: { bal: 300, since: '2026-10-01', log: [{ d: '2026-10-01', kind: 'in', amt: 300 }] } }) };
   const up2 = F.ensure(cal);
   assert.deepStrictEqual([up2.bank.bal, up2.bank.pend, 'since' in up2.bank, up2.bank.log.length, up2.bank.acct], [300, [], false, 1, 0]);
+  // a bank from before the all-time totals: what is in the bank and is not interest was saved
+  const pre = { grade: 'g2', farm: Object.assign(F.fresh(), { started: true, bank: { bal: 900, acct: 0, log: [], pend: [] } }) };
+  delete pre.farm.stats.saved; delete pre.farm.stats.tookOut;
+  pre.farm.stats.interest = 150;
+  assert.deepStrictEqual([F.ensure(pre).stats.saved, pre.farm.stats.tookOut], [750, 0]);
   // a farm from the first version gets the workshops and the bank
   const old = { grade: 'g2', farm: F.fresh() };
   delete old.farm.works; delete old.farm.bank; delete old.farm.stats.made;
@@ -387,6 +397,10 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   // the grown-up preview shows savings above the account limit (both parts of the interest)
   const sc = F.showcase({ grade: 'g2', farm: JSON.parse(JSON.stringify(F.fresh())) });
   assert.ok(sc.bank.bal > F.bankTop(sc.bank.acct, 'g2'));
+  for (const g of ['k', 'g2']) {
+    const x = F.showcase({ grade: g, farm: JSON.parse(JSON.stringify(F.fresh())) });
+    assert.strictEqual(x.stats.saved - x.stats.tookOut + x.stats.interest, x.bank.bal, g + ': the preview bank totals add up');
+  }
 }
 
 // ---------- version 3: 6 beds and 6 pens, upgrades, planting all at once, the farmhand

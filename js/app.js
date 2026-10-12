@@ -1614,7 +1614,7 @@
     if (tr.change <= -3) return `<p class="verdict down">📉 Accuracy is down about <b>${-tr.change}</b> points ${span}. Harder levels can do that; Fix-it Lab and easier practice help.</p>`;
     return `<p class="verdict">➡️ Steady ${span}: about the same accuracy.</p>`;
   }
-  // One series, one axis: a line with dots (hover or long-press a dot for the numbers).
+  // One series, one axis: a line with dots (tap a dot for its numbers, see chartTip).
   function lineChart(pts, o) {
     if (!pts.length) return '';
     const W = 340, H = o.h || 170, L = 36, R = 12, T = 12, B = 24, PW = W - L - R, PH = H - T - B;
@@ -1628,7 +1628,7 @@
     g += pts.map((p, i) => ((pts.length - 1 - i) % every === 0 ? `<text x="${x(p.t) > W - R - 16 ? W - 2 : x(p.t)}" y="${H - 6}" text-anchor="${x(p.t) > W - R - 16 ? 'end' : 'middle'}" ${font}>${p.label}</text>` : '')).join('');
     if (o.trend) g += `<line x1="${x(o.trend.t0)}" y1="${y(o.trend.y0)}" x2="${x(o.trend.t1)}" y2="${y(o.trend.y1)}" stroke="#9aa6b8" stroke-width="2" stroke-dasharray="5 4"/>`;
     if (pts.length > 1) g += `<polyline points="${pts.map((p) => `${x(p.t)},${y(p.y)}`).join(' ')}" fill="none" stroke="${o.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
-    g += pts.map((p) => `<g class="cdot"><circle cx="${x(p.t)}" cy="${y(p.y)}" r="12" fill="transparent"/><circle cx="${x(p.t)}" cy="${y(p.y)}" r="4.5" fill="${o.color}" stroke="#ffffff" stroke-width="2"/><title>${esc(p.tip)}</title></g>`).join('');
+    g += pts.map((p) => `<g class="cdot" data-act="chartTip" data-arg="${esc(p.tip)}"><circle cx="${x(p.t)}" cy="${y(p.y)}" r="12" fill="transparent"/><circle cx="${x(p.t)}" cy="${y(p.y)}" r="4.5" fill="${o.color}" stroke="#ffffff" stroke-width="2"/><title>${esc(p.tip)}</title></g>`).join('');
     return `<figure class="pchart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria)}">${g}</svg>${o.caption ? `<figcaption>${o.caption}</figcaption>` : ''}</figure>`;
   }
   function barChart(pts, o) {
@@ -1640,7 +1640,7 @@
     let g = `<line x1="${L}" y1="${T + PH}" x2="${L + PW}" y2="${T + PH}" stroke="#c9d3dc"/><text x="${L - 6}" y="${T + 4}" text-anchor="end" ${font}>${max}</text><text x="${L - 6}" y="${T + PH}" text-anchor="end" ${font}>0</text>`;
     g += pts.map((p, i) => {
       const h = Math.max(2, (p.a / max) * PH), cx = L + slot * i + slot / 2;
-      return `<g><rect x="${cx - bw / 2}" y="${T + PH - h}" width="${bw}" height="${h}" rx="3" fill="#8fd3c9"/><rect x="${cx - slot / 2}" y="${T}" width="${slot}" height="${PH}" fill="transparent"/><title>${esc(p.tipA)}</title></g>` +
+      return `<g class="cbar" data-act="chartTip" data-arg="${esc(p.tipA)}"><rect x="${cx - bw / 2}" y="${T + PH - h}" width="${bw}" height="${h}" rx="3" fill="#8fd3c9"/><rect x="${cx - slot / 2}" y="${T}" width="${slot}" height="${PH}" fill="transparent"/><title>${esc(p.tipA)}</title></g>` +
         ((n - 1 - i) % every === 0 ? `<text x="${cx}" y="${H - 6}" text-anchor="middle" ${font}>${p.label}</text>` : '');
     }).join('');
     return `<figure class="pchart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria)}">${g}</svg></figure>`;
@@ -1957,6 +1957,22 @@
       st.trainer = { topics: [a], diff: Math.min(5, mastery(a).passed + 1), mode: 'endless' };
       S.save();
       startTrainer();
+    },
+    // A tap on a chart dot or bar shows its numbers above it (the SVG <title> only shows on mouse hover).
+    chartTip: (a, el) => {
+      const fig = el.closest('.pchart'), old = fig.querySelector('.ctip'), was = old && old.textContent === a;
+      fig.querySelectorAll('.ctip').forEach((t) => t.remove());
+      fig.querySelectorAll('.on').forEach((g) => g.classList.remove('on'));
+      if (was) return; // a second tap on the same dot hides it
+      el.classList.add('on');
+      const tip = document.createElement('div'), r = el.getBoundingClientRect(), f = fig.getBoundingClientRect();
+      tip.className = 'ctip';
+      tip.textContent = a;
+      fig.appendChild(tip);
+      const left = Math.min(Math.max(r.left + r.width / 2 - f.left - tip.offsetWidth / 2, 4), f.width - tip.offsetWidth - 4);
+      tip.style.left = left + 'px';
+      const above = r.top - f.top - tip.offsetHeight - 2; // no room above (a dot near 100%): below the dot
+      tip.style.top = (above >= 2 ? above : r.bottom - f.top + 2) + 'px';
     },
     progRange: (a) => { prog().range = a; keepScroll(cur === 'progress' ? progress : parent); },
     progTopic: (a) => { prog().topic = a; keepScroll(cur === 'progress' ? progress : parent); },
