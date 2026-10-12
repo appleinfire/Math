@@ -30,6 +30,7 @@
     daily: { last: '', streak: 0, best: 0 },
     days: {}, // 'YYYY-MM-DD': { a, c } — answers and first-try right answers, kept for two years
     months: {}, // 'YYYY-MM': { topic: [answers, right] } — long-term accuracy per topic
+    topicDays: {}, // 'YYYY-MM-DD': { topic: [answers, right] } — accuracy per topic by day, kept for about half a year
     mistakes: [],
     review: {}, // 'topic|d': { topic, d, box, due, miss, last } — mistakes to practice again (see S.miss / S.hit)
     goal: { perDay: 0, days: 5 }, // daily goal set by a grown-up: problems per day (0 = off), days per week
@@ -236,6 +237,12 @@
       const o = (out.months[m] = out.months[m] || {});
       for (const [t, v] of Object.entries(ts)) if (!o[t] || o[t][0] < v[0]) o[t] = v.slice();
     }
+    // daily accuracy per topic: the same, cell by cell
+    out.topicDays = JSON.parse(JSON.stringify(old.topicDays || {}));
+    for (const [d, ts] of Object.entries(nw.topicDays || {})) {
+      const o = (out.topicDays[d] = out.topicDays[d] || {});
+      for (const [t, v] of Object.entries(ts)) if (!o[t] || o[t][0] < v[0]) o[t] = v.slice();
+    }
     // mistakes to practice: the copy that was practiced more recently wins for each skill
     out.review = Object.assign({}, old.review || {});
     for (const [k, v] of Object.entries(nw.review || {})) if (!out.review[k] || (v.last || '') >= (out.review[k].last || '')) out.review[k] = v;
@@ -330,6 +337,9 @@
     const mk = day.slice(0, 7), mt = ((st.months[mk] = st.months[mk] || {})[p.topic] = st.months[mk][p.topic] || [0, 0]);
     mt[0]++;
     if (firstTry) mt[1]++;
+    const td = (st.topicDays = st.topicDays || {}), dt = ((td[day] = td[day] || {})[p.topic] = td[day][p.topic] || [0, 0]);
+    dt[0]++;
+    if (firstTry) dt[1]++;
     if (!firstTry && given !== undefined) {
       st.mistakes.unshift({ topic: p.topic, d: p.d, text: p.text.replace(/<li>/g, ' • ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 140), given: String(given), answer: String(p.answer), date: day });
       st.mistakes.length = Math.min(st.mistakes.length, 40);
@@ -344,6 +354,8 @@
     while (keys.length > 730) delete st.days[keys.shift()];
     const months = Object.keys(st.months).sort();
     while (months.length > 36) delete st.months[months.shift()];
+    const tdays = Object.keys(st.topicDays).sort();
+    while (tdays.length > 200) delete st.topicDays[tdays.shift()];
     if (!p.d) return null;
     if (firstTry) return S.hit(p.topic, p.d);
     S.miss(p.topic, p.d);

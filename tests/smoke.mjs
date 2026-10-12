@@ -308,6 +308,13 @@ async function run(viewport, tag) {
   const pv = await page.evaluate(() => ({ verdict: document.querySelector('.verdict').className, dots: document.querySelectorAll('.pchart .cdot').length, skills: document.querySelectorAll('.skill').length }));
   if (!/up/.test(pv.verdict) || pv.dots < 20 || pv.skills < 12) errors.push(tag + ': progress screen wrong ' + JSON.stringify(pv));
   await snap('18-progress');
+  // One month: a dot for every day practiced (every 3rd day, plus today's level), not one per week.
+  await page.click('[data-act=progRange][data-arg="1m"]');
+  await page.waitForFunction(() => /by day/.test(document.querySelector('.progress h2').textContent));
+  const daily = await page.evaluate(() => document.querySelectorAll('.pchart .cdot').length);
+  if (daily < 9 || daily > 11) errors.push(tag + ': one month should show a dot per day, got ' + daily);
+  await snap('18b-progress-days');
+  await page.click('[data-act=progRange][data-arg="6m"]');
   await page.selectOption('.progress select[data-act=progTopic]', 'add20');
   await page.waitForFunction(() => document.querySelector('.progress select').value === 'add20');
   const monthly = await page.evaluate(() => document.querySelectorAll('.pchart .cdot').length);
