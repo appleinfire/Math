@@ -81,6 +81,8 @@ assert.ok(F.buy(fm, 'g2', 'animal:chicken'));
 assert.strictEqual(fm.pens[1].a, 'chicken');
 assert.ok(F.buy(fm, 'g2', 'feed:20'));
 assert.strictEqual(fm.feed, 24);
+assert.strictEqual(F.buy(fm, 'g2', 'feed:50'), null, 'the big feed pack opens at level 6');
+assert.deepStrictEqual(F.shop(fm, 'g2').filter((x) => x.id.startsWith('feed:')).map((x) => [x.id, x.price, x.locked]), [['feed:5', 25, false], ['feed:20', 100, false], ['feed:50', 250, true], ['feed:100', 500, true]]);
 assert.ok(F.buy(fm, 'g2', 'decor:fence'));
 assert.strictEqual(F.buy(fm, 'g2', 'decor:fence'), null, 'one fence is enough');
 fm.goal = 'decor:tractor';
@@ -390,6 +392,29 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   F.buy(f, 'g2', 'penup:1');
   assert.deepStrictEqual([F.penCount(f.pens[1]), F.penEat(f.pens[1]), F.penMakes(f.pens[1])], [3, 12, 7]);
   assert.ok(!F.shop(f, 'g2').some((x) => x.id === 'penup:' + f.pens.findIndex((q) => !q.a)), 'empty pens have no upgrades');
+  // selling a pen to Rosa: half of the shop price for every animal and for the barn; the pen is new again
+  f.pens[1].ready = 4;
+  assert.deepStrictEqual(F.resale(f.pens[1], 'g2'), { cost: 800, each: 400, n: 3, barn: 200, total: 1400 });
+  const sm = f.money, milk = f.basket.milk || 0;
+  assert.strictEqual(F.sellPen(f, 'g2', 1), 1400);
+  assert.deepStrictEqual([f.money - sm, f.basket.milk - milk, f.pens[1]], [1400, 4, { a: null, g: 0, fed: false, ready: 0 }], 'paid, collected first, empty pen');
+  assert.strictEqual(F.sellPen(f, 'g2', 1), 0, 'an empty pen sells for nothing');
+  assert.strictEqual(F.shopItem(f, 'g2', 'penup:1'), null, 'its upgrades are gone');
+  assert.ok(F.buy(f, 'g2', 'animal:unicorn'), 'a new kind in the empty pen');
+  assert.deepStrictEqual([f.pens[1].a, f.pens[1].u, F.shopItem(f, 'g2', 'penup:1').price], ['unicorn', undefined, 12000]);
+  f.pens.forEach((q, i) => { if (!q.a) f.pens[i] = { a: 'chicken', g: 0, fed: false, ready: 0 }; });
+  assert.strictEqual(F.shopItem(f, 'g2', 'animal:cow').blocked, 'Sell animals to free a pen', 'all pens full: sell to make room');
+  // kindergarten prices are odd: Rosa rounds up, never pays more than the shop price
+  for (const g of ['k', 'g2']) for (const [id, an] of Object.entries(F.ANIMALS)) for (let u = 0; u <= 3; u++) {
+    const r = F.resale({ a: id, u }, g), paid = an.cost[g === 'k' ? 0 : 1] * (1 + Math.min(u, 2)) + (u >= 3 ? F.upCost('pen', 2, g, id) : 0);
+    assert.ok(r.total > 0 && r.total < paid, `${id} u${u} (${g}) sells for less than it cost`);
+    assert.ok(r.total * 2 <= paid + 4, `${id} u${u} (${g}) sells for about half`);
+    const q = F.sellQuestion({ a: id, u }, g);
+    assert.ok(q.text && q.hint && q.explain && q.who, `${id} sell question`);
+    if (q.kind === 'num') assert.strictEqual(q.answer, r.total);
+    else { assert.strictEqual(q.answer, F.fmt(r.total, g)); assert.ok(q.choices.includes(q.answer) && new Set(q.choices).size === q.choices.length); }
+    assert.ok(F.isRight(q, q.kind === 'num' ? String(q.answer) : q.answer));
+  }
   // plant all: one payment for every empty bed
   const g = F.ensure({ grade: 'k' });
   g.xp = lvXp(5);
