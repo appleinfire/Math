@@ -91,8 +91,8 @@
     return words || MQ.toSpeech(p.answer.replace(/^\$/, '')) || '';
   }
 
-  function header(title, back = 'home') {
-    return `<header class="bar"><button class="iconbtn" data-act="go" data-arg="${back}" aria-label="Back">←</button><h1>${title}</h1>${gemPill()}<button class="mini-av" data-act="go" data-arg="who" aria-label="Switch explorer (now ${esc(st.name)})" title="Switch explorer">${st.companion}</button></header>`;
+  function header(title, back = 'home', backAct = 'go') {
+    return `<header class="bar"><button class="iconbtn" data-act="${backAct}" data-arg="${back}" aria-label="Back">←</button><h1>${title}</h1>${gemPill()}<button class="mini-av" data-act="go" data-arg="who" aria-label="Switch explorer (now ${esc(st.name)})" title="Switch explorer">${st.companion}</button></header>`;
   }
   function say(text) {
     const b = $('#bubble');
@@ -763,6 +763,7 @@
     sess.answered++;
     if (ok) sess.correct++;
     MQ.prep.answer(sess.eng, sess.p, ok, Array.isArray(given) ? given.join(', ') : given);
+    (sess.eng.full = sess.eng.full || []).push(MQ.prep.snapshot(sess.p, given)); // for the full review (kept with the paused check)
     S.record(sess.p, ok, Array.isArray(given) ? given.join(', ') : given); // statistics and mistakes to practice, no feedback
     S.save();
     MQ.sfx('tap');
@@ -1147,6 +1148,8 @@
     list.push(res);
     while (list.length > 12) list.shift();
     list.slice(0, -3).forEach((c) => { delete c.items; }); // keep the answer review only for the latest checks
+    const full = sess.eng.full || [];
+    if (full.length === res.items.length) S.setFull('check', res.id, full); // a check paused in an older version has gaps
     addGems(20);
     S.save();
     sess = null;
@@ -1178,10 +1181,53 @@
     </main>`);
   }
   function reviewCheck(res) {
-    render(header('Review answers', 'prep') + `<main class="review"><ol class="rlist">${res.items.map((it) => `<li class="${it.ok ? 'ok' : 'no'}">
+    const full = S.full(res.id);
+    render(header('Review answers', 'prep') + `<main class="review">${full ? TAP_HINT : ''}<ol class="rlist">${res.items.map((it, k) => `<li class="${it.ok ? 'ok' : 'no'}${full ? ' rtap' : ''}" ${full ? `data-act="viewQ" data-arg="${res.id}:${k}" data-q="${k}"` : ''}>
       <span class="rmark">${it.ok ? '✓' : '✗'}</span><div><div class="rq">${esc(it.q)}</div>
-      ${it.ok ? `<div class="ra">Your answer: <b>${esc(it.given)}</b></div>` : `<div class="ra">Your answer: <b>${esc(it.given || '—')}</b> · Right answer: <b>${esc(it.a)}</b></div>${it.e ? `<div class="re">${esc(it.e)}</div>` : ''}`}</div></li>`).join('')}</ol>
+      ${it.ok ? `<div class="ra">Your answer: <b>${esc(it.given)}</b></div>` : `<div class="ra">Your answer: <b>${esc(it.given || '—')}</b> · Right answer: <b>${esc(it.a)}</b></div>${it.e ? `<div class="re">${esc(it.e)}</div>` : ''}`}</div>${full ? '<span class="rgo" aria-hidden="true">›</span>' : ''}</li>`).join('')}</ol>
       <div class="row"><button class="btn ghost" data-act="viewCheck" data-arg="${res.id}">Back to results</button></div></main>`);
+  }
+  const TAP_HINT = '<p class="muted small rhint">Tap a question to see it again with all the answers.</p>';
+  // One question of the latest test, as it was shown: the picture, every answer, the child's pick and the right one.
+  function viewQuestion(arg) {
+    const [id, kk] = String(arg).split(':'), k = +kk;
+    const check = myChecks().find((x) => x.id === id), res = check || (st.tests.contests || []).find((x) => x.id === id);
+    const full = res && res.items && S.full(id);
+    if (!full || !full[k] || !res.items[k]) return prep();
+    const q = full[k], it = res.items[k], n = full.length, blank = q.given === null;
+    const list = (v) => (Array.isArray(v) ? v : v === null ? [] : [v]).map(String);
+    const right = list(q.answer), mine = list(q.given);
+    const status = it.ok ? '<b class="qr-ok">✓ Right</b>' : blank ? '<b class="qr-blank">— Left blank</b>' : '<b class="qr-no">✗ Not right</b>';
+    const meta = `Question ${k + 1} of ${n}${res.kind === 'kangaroo' ? ` · ${it.pts} points` : ''}${it.sec ? ` · ${esc(it.sec)}` : ''}`;
+    let answers;
+    if (q.choices && (q.kind === 'choice' || q.kind === 'multi' || !check)) {
+      answers = `<div class="choices ct qrev n${q.choices.length} ${q.choiceHtml ? 'pics' : ''}">${q.choices.map((c, i) => {
+        const isR = right.includes(String(c)), isG = mine.includes(String(c));
+        return `<div class="choice ${isR ? 'right' : isG ? 'nope' : ''}"><span class="letter">${'ABCDE'[i] || ''}</span><span class="copt">${q.choiceHtml ? q.choiceHtml[i] : fmtChoice(String(c))}</span>${isG ? `<span class="qtag">${isR ? '✓ ' : '✗ '}${esc(st.name)}</span>` : isR ? '<span class="qtag">✓ Right answer</span>' : ''}</div>`;
+      }).join('')}</div>${blank ? '<p class="muted center">No answer was picked.</p>' : ''}`;
+    } else {
+      answers = `<p class="ra qr-line">${esc(st.name)}: <b>${blank ? '—' : fmtAnswer(Object.assign({}, q, { answer: q.given }))}</b>${it.ok ? '' : ` · Right answer: <b>${fmtAnswer(q)}</b>`}</p>`;
+    }
+    render(header(check ? 'Review answers' : (CT_INFO[res.kind] || CT_INFO.kangaroo).title, id + ':' + k, 'qBack') + `<main class="qreview">
+      <section class="pcard"><div class="pmeta"><span>${meta}</span><span>${status}</span></div>
+        <div class="ptext ${q.big ? 'eq' : ''} ${q.wordy ? 'wordy' : ''}">${q.text}</div>
+        ${q.visual ? `<div class="pvis">${q.visual}</div>` : ''}</section>
+      ${answers}
+      ${!it.ok && (q.explain || it.e) ? `<div class="re qr-explain">💡 ${esc(q.explain || it.e)}</div>` : ''}
+      <div class="ctbar">
+        <button class="btn ghost" data-act="viewQ" data-arg="${id}:${k - 1}" ${k === 0 ? 'disabled' : ''}>← Prev</button>
+        <button class="btn ghost" data-act="qBack" data-arg="${id}:${k}">📋 All</button>
+        <button class="btn" data-act="viewQ" data-arg="${id}:${k + 1}" ${k === n - 1 ? 'disabled' : ''}>Next →</button>
+      </div></main>`);
+    cur = 'qreview';
+  }
+  // Back from one question to the list, scrolled to that question.
+  function questionBack(arg) {
+    const [id, k] = String(arg).split(':');
+    const check = myChecks().find((x) => x.id === id), c = (st.tests.contests || []).find((x) => x.id === id);
+    if (check && check.items) reviewCheck(check); else if (c) contestResult(c, false); else return prep();
+    const li = document.querySelector(`.rlist [data-q="${k}"]`);
+    if (li) li.scrollIntoView({ block: 'center' });
   }
   // ---------------------------------------------------------------- Math Kangaroo style contest
   const myContests = (kind) => (st.tests.contests || []).filter((c) => c.kind === kind);
@@ -1361,6 +1407,7 @@
     // every answered question counts in the statistics and brings mistakes back later (blanks were not tried)
     ct.items.forEach((it, k) => { if (ct.answers[k] !== null) S.record(it.p, ct.answers[k] === it.p.answer, ct.answers[k]); });
     const res = P().scoreContest(ct);
+    S.setFull(ct.kind, res.id, ct.items.map((it, k) => P().snapshot(it.p, ct.answers[k])));
     S.clearPaused(ct.kind);
     endContest();
     const list = st.tests.contests;
@@ -1386,6 +1433,7 @@
     logick: { title: 'Logic puzzles', color: '#2f8f83', more: 'lgtypes', note: 'Original logic puzzles for kindergarten, read aloud.' },
   };
   function contestResult(res, fresh) {
+    const full = res.items && S.full(res.id);
     const info = CT_INFO[res.kind] || CT_INFO.kangaroo, kangaroo = res.kind === 'kangaroo', kids = KID_TESTS.includes(res.kind);
     const tile = (label, s) => (s ? `<div><b>${s.right} / ${s.n}</b><small>${label}</small></div>` : '');
     const tiles = kangaroo ? [3, 4, 5].map((p) => tile(`${p}-point puzzles`, res.sections[p])).join('')
@@ -1404,10 +1452,10 @@
       </div>
       ${tiles ? `<div class="sumgrid ${res.kind.startsWith('logic') ? 'two' : 'three'}">${tiles}</div>` : ''}
       ${typeRows}${nnRows}
-      ${res.items ? `<section><h2>Review</h2><ol class="rlist">${res.items.map((it, k) => `<li class="${it.ok ? 'ok' : 'no'}">
+      ${res.items ? `<section><h2>Review</h2>${full ? TAP_HINT : ''}<ol class="rlist">${res.items.map((it, k) => `<li class="${it.ok ? 'ok' : 'no'}${full ? ' rtap' : ''}" ${full ? `data-act="viewQ" data-arg="${res.id}:${k}" data-q="${k}"` : ''}>
         <span class="rmark">${it.ok ? '✓' : '✗'}</span><div><div class="rq"><b>${k + 1}.</b> ${esc(it.q)}${kangaroo ? ` <span class="dchip">${it.pts} pts</span>` : ''}</div>
         <div class="ra">${it.ok ? `Your answer: <b>${it.letterG}</b>` : `Your answer: <b>${it.letterG || '—'}</b> · Right answer: <b>${it.letterA}</b>${/^picture/.test(it.a) ? '' : ` (${esc(it.a)})`}`}</div>
-        ${!it.ok && it.e ? `<div class="re">${esc(it.e)}</div>` : ''}</div></li>`).join('')}</ol></section>` : ''}
+        ${!it.ok && it.e ? `<div class="re">${esc(it.e)}</div>` : ''}</div>${full ? '<span class="rgo" aria-hidden="true">›</span>' : ''}</li>`).join('')}</ol></section>` : ''}
       <div class="row"><button class="btn ghost" data-act="go" data-arg="prep">Test Prep</button><button class="btn ghost" data-act="go" data-arg="home">Home</button>${info.more ? `<button class="btn" data-act="go" data-arg="${info.more}">Practice by type</button>` : ''}</div>
       <p class="muted small center">${info.note}</p>
     </main>`);
@@ -1917,6 +1965,8 @@
     ctLeave: () => { closeModal(); saveContest(); endContest(); prep(); },
     resumeTest: (a) => resumeTest(a),
     restartTest: (a) => { const [kind, act, arg] = a.split('|'); closeModal(); ui.restartOk = kind; ACTIONS[act](arg); },
+    viewQ: (a) => viewQuestion(a),
+    qBack: (a) => questionBack(a),
     viewContest: (a) => { const c = (st.tests.contests || []).find((x) => x.id === a); c ? contestResult(c, false) : prep(); },
     kgPractice: (a) => {
       const T = MQ.TOPICS[a];

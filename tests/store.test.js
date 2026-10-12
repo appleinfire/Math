@@ -130,6 +130,14 @@ MQ.state = null;
   assert.strictEqual(pv.crystals, 999, 'remote changes go to the stored profile, not the preview copy');
   const back = S.endPreview();
   assert.ok(!S.preview && back.crystals === 12 && !back.settings.unlockAll && !back.levels['tide-0'] && !Object.keys(back.review).length, 'ending the preview brings back the real profile');
+  // Full questions for the review: the latest test of each kind, on this device only, never in the synced profile.
+  S.setFull('kangaroo', 'k1', [{ text: 'a' }]);
+  S.setFull('kangaroo', 'k2', [{ text: 'b' }]);
+  S.setFull('cogat', 'c1', [{ text: 'c' }]);
+  assert.deepStrictEqual([S.full('k1'), S.full('k2'), S.full('c1')], [null, [{ text: 'b' }], [{ text: 'c' }]], 'a newer test of the same kind replaces the older one');
+  assert.ok(!JSON.stringify(back).includes('"text":"b"'), 'full questions are not in the profile');
+  S.reset();
+  assert.strictEqual(S.full('c1'), null, 'erasing progress erases them too');
   delete globalThis.localStorage;
   MQ.state = null;
 }

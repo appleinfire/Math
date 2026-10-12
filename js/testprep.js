@@ -117,6 +117,12 @@
       given: given === undefined ? '' : String(given), a: Array.isArray(p.answer) ? p.answer.join(', ') : String(p.answer), e: p.explain || '',
     });
   };
+  // A question as it was shown, with the child's answer (null when left blank), for the full review (kept on the device).
+  P.snapshot = (p, given) => ({
+    text: p.text, visual: p.visual || '', kind: p.kind, big: !!p.big, wordy: !!p.wordy, unit: p.unit || '',
+    choices: p.choices || null, choiceHtml: p.choiceHtml || null, answer: p.answer, explain: p.explain || '',
+    given: given === undefined || given === '' ? null : given,
+  });
   P.result = (eng) => {
     const overall = overallNow(eng);
     const domains = {};
