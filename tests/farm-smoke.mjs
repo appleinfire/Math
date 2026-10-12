@@ -264,6 +264,9 @@ async function play(grade, tag, viewport) {
   await snap('19-bankbook');
   const wd = await page.evaluate(() => MQ.state.farm.bank.bal);
   if (wd !== want + two - 25) errors.push(`${tag}: withdraw left ${wd}`);
+  // the all-time summary: saved, the bank added, took out, and what the money in the bank is made of
+  const sum = await page.evaluate(() => { const s = MQ.farm.bankSummary(MQ.state.farm), el = document.querySelector('.bsum'); return { s, n: el ? el.querySelectorAll('.bsum-k > div').length : 0, bar: !!(el && el.querySelector('.bsum-bar')), t: el ? el.textContent : '' }; });
+  if (sum.s.saved !== two || sum.s.tookOut !== 25 || !sum.s.interest || sum.n !== 3 || !sum.bar || sum.s.own + sum.s.fromInterest !== wd) errors.push(`${tag}: bank summary ${JSON.stringify(sum)}`);
   // a better bank account, bought at the bank: more of the savings earn the big interest
   if (!(await page.$('.bacct'))) errors.push(`${tag}: no account card at the bank`);
   await page.evaluate(() => { MQ.state.farm.money += MQ.farm.shopItem(MQ.state.farm, MQ.state.grade, 'acct').price; MQ.app.go('farm:bank'); });

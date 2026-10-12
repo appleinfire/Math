@@ -937,6 +937,21 @@ svg.vis.abacus { max-height: 160px; }
 .bbar:first-child .bfill { background: #2f7d4f; }
 .bbar .bv { font-size: 0.62rem; font-weight: 900; color: var(--ink-soft); white-space: nowrap; }
 .bbar small { font-size: 0.66rem; font-weight: 800; color: var(--ink-soft); white-space: nowrap; }
+.bsum { padding: 12px; border-radius: var(--r); background: var(--card); box-shadow: inset 0 0 0 2px var(--line); }
+.bsum-k { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; }
+.bsum-k div { display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-radius: 12px; background: #e6f5ea; text-align: center; }
+.bsum-k .int { background: var(--sun-soft); }
+.bsum-k .out { background: #f1f4f6; }
+.bsum-k small { color: var(--ink-soft); font-weight: 800; font-size: 0.8rem; }
+.bsum-k b { font-family: var(--display); font-weight: 600; font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+.bsum-bar { display: flex; height: 16px; margin-top: 12px; border-radius: 8px; overflow: hidden; background: var(--line); }
+.bsum-bar span { min-width: 6px; }
+.bsum-bar .own, .bsum-t b.own { background: #2f7d4f; }
+.bsum-bar .int, .bsum-t b.int { background: var(--sun); }
+.bsum-t { margin: 6px 0 0; font-weight: 700; }
+.bsum-t b.own, .bsum-t b.int { padding: 0 6px; border-radius: 6px; color: #fff; }
+.bsum-t b.int { color: var(--ink); }
+.bsum p.muted { margin: 6px 0 0; font-size: 0.85rem; }
 .blog { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
 .blog li { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 12px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); font-weight: 700; }
 .blog small { color: var(--ink-soft); }

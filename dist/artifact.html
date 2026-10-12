@@ -946,6 +946,21 @@ svg.vis.abacus { max-height: 160px; }
 .bbar:first-child .bfill { background: #2f7d4f; }
 .bbar .bv { font-size: 0.62rem; font-weight: 900; color: var(--ink-soft); white-space: nowrap; }
 .bbar small { font-size: 0.66rem; font-weight: 800; color: var(--ink-soft); white-space: nowrap; }
+.bsum { padding: 12px; border-radius: var(--r); background: var(--card); box-shadow: inset 0 0 0 2px var(--line); }
+.bsum-k { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; }
+.bsum-k div { display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-radius: 12px; background: #e6f5ea; text-align: center; }
+.bsum-k .int { background: var(--sun-soft); }
+.bsum-k .out { background: #f1f4f6; }
+.bsum-k small { color: var(--ink-soft); font-weight: 800; font-size: 0.8rem; }
+.bsum-k b { font-family: var(--display); font-weight: 600; font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+.bsum-bar { display: flex; height: 16px; margin-top: 12px; border-radius: 8px; overflow: hidden; background: var(--line); }
+.bsum-bar span { min-width: 6px; }
+.bsum-bar .own, .bsum-t b.own { background: #2f7d4f; }
+.bsum-bar .int, .bsum-t b.int { background: var(--sun); }
+.bsum-t { margin: 6px 0 0; font-weight: 700; }
+.bsum-t b.own, .bsum-t b.int { padding: 0 6px; border-radius: 6px; color: #fff; }
+.bsum-t b.int { color: var(--ink); }
+.bsum p.muted { margin: 6px 0 0; font-size: 0.85rem; }
 .blog { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
 .blog li { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 12px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); font-weight: 700; }
 .blog small { color: var(--ink-soft); }
@@ -5664,7 +5679,7 @@ svg.nn.design { width: 156px; }
     miss: 0,
     customers: 0,
     t: 0, // when the farm last changed (for merging copies from two devices)
-    stats: { sold: 0, earned: 0, spent: 0, tasks: 0, right: 0, vip: 0, jobs: 0, made: 0, interest: 0, bankDays: 0 },
+    stats: { sold: 0, earned: 0, spent: 0, tasks: 0, right: 0, vip: 0, jobs: 0, made: 0, interest: 0, bankDays: 0, saved: 0, tookOut: 0 }, // saved / tookOut: all money ever put in / taken out of the bank
     works: {}, // workshop id: { r: recipe index or null, g: nights, ready: items, out: item }
     bank: { bal: 0, acct: 0, log: [], pend: [] }, // see the bank below: bank day is every 7th farm day
   });
@@ -5681,6 +5696,8 @@ svg.nn.design { width: 156px; }
     if (!fm.helper) fm.helper = { hired: false, on: true };
     if (!fm.stats.wages) fm.stats.wages = 0;
     for (const k of ['made', 'interest', 'bankDays']) if (!fm.stats[k]) fm.stats[k] = 0;
+    // totals saved and taken out came later: what is in the bank and is not interest was saved
+    if (fm.stats.saved == null) { fm.stats.saved = Math.max(0, fm.bank.bal - fm.stats.interest); fm.stats.tookOut = 0; }
     return fm;
   };
 
@@ -5940,6 +5957,7 @@ svg.nn.design { width: 156px; }
     if (!(amt > 0) || amt > fm.money) return false;
     fm.money -= amt;
     fm.bank.bal += amt;
+    fm.stats.saved += amt;
     bankLog(fm, 'in', amt);
     return true;
   };
@@ -5947,6 +5965,7 @@ svg.nn.design { width: 156px; }
     if (!(amt > 0) || amt > fm.bank.bal) return false;
     fm.bank.bal -= amt;
     fm.money += amt;
+    fm.stats.tookOut += amt;
     bankLog(fm, 'out', amt);
     return true;
   };
@@ -5972,6 +5991,12 @@ svg.nn.design { width: 156px; }
     bankLog(fm, 'interest', x, p.day);
     return { day: p.day, bal: p.bal, x };
   };
+  // All-time bank summary: what is in the bank now, split into the child's own money and interest
+  // (interest counts as spent last, so taking money out uses up the child's own money first).
+  F.bankSummary = (fm) => {
+    const s = fm.stats, interest = Math.min(fm.bank.bal, s.interest);
+    return { saved: s.saved, tookOut: s.tookOut, interest: s.interest, days: s.bankDays, bal: fm.bank.bal, own: fm.bank.bal - interest, fromInterest: interest };
+  };
   // How the savings would grow, bank week by bank week, without adding or taking out money.
   F.project = (bal, grade, weeks = 6, acct = 0) => { const out = [bal]; for (let i = 0; i < weeks; i++) out.push(out[i] + F.interest(out[i], grade, acct)); return out; };
 
@@ -5991,6 +6016,7 @@ svg.nn.design { width: 156px; }
       day: 14,
       bank: { bal: k ? 1234 : 12345, acct: 1, log: [], pend: [{ day: 14, bal: k ? 1234 : 12345 }] }, // above the Silver limit: both rates
     });
+    Object.assign(fm.stats, k ? { saved: 1100, tookOut: 100, interest: 234, bankDays: 9 } : { saved: 11000, tookOut: 1000, interest: 2345, bankDays: 9 }); // adds up to the bank above
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
     for (const id of Object.keys(F.DECOR)) fm.owned[id] = true;
     Object.keys(F.WORKS).forEach((id, i) => { fm.works[id] = i % 2 ? { r: null, g: 0, ready: 1, out: F.WORKS[id].recipes[0].out } : { r: null, g: 0, ready: 0, out: '' }; });
@@ -7740,9 +7766,21 @@ svg.nn.design { width: 156px; }
         <p>${esc(F.ruleText(g, b.acct))} The money is safe in the bank, and you can take it out any time to spend it.</p>
         <p class="muted">On the morning of bank day the bank looks at what you have saved, and the interest is for that money. If you miss bank days, up to ${F.BANK_MISSED} wait for you.</p></section>
       ${b.bal ? `<h2>📈 If you keep it in the bank</h2><div class="bchart" role="img" aria-label="Savings growing week by week">${bars}</div><p class="muted">Each bank day the bank adds interest, and next time the interest earns interest too.</p>` : ''}
+      ${bankSummary()}
       ${log ? `<h2>🧾 My bank book</h2><ul class="blog">${log}</ul>` : ''}
     </main>`, 'is-farm');
     K().setCur('farm:bank');
+  }
+  // All time: how much the child saved and took out, how much the bank added, and what the money in the bank is made of.
+  function bankSummary() {
+    const s = F.bankSummary(fm());
+    if (!s.saved) return '';
+    const tile = (cls, label, v) => `<div class="${cls}"><small>${label}</small><b>${fmt(v)}</b></div>`;
+    return `<h2>📊 My savings, all time</h2><section class="bsum">
+      <div class="bsum-k">${tile('in', '⬇️ Saved', s.saved)}${tile('int', '✨ Interest', s.interest)}${s.tookOut ? tile('out', '⬆️ Took out', s.tookOut) : ''}</div>
+      ${s.bal ? `<div class="bsum-bar" aria-hidden="true">${s.own ? `<span class="own" style="flex-grow:${s.own}"></span>` : ''}${s.fromInterest ? `<span class="int" style="flex-grow:${s.fromInterest}"></span>` : ''}</div>
+      <p class="bsum-t">In the bank now: <b>${fmt(s.bal)}</b> = <b class="own">${fmt(s.own)}</b> your money + <b class="int">${fmt(s.fromInterest)}</b> interest</p>` : ''}
+      <p class="muted">${s.interest ? `The bank added ${fmt(s.interest)} in ${s.days} bank ${s.days === 1 ? 'day' : 'days'}, just because you saved.` : 'On bank day the bank adds interest to what you saved.'}</p></section>`;
   }
   // Your bank account: how much of the savings earns the big interest, and the next, better account.
   function accountCard() {
