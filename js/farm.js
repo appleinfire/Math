@@ -134,7 +134,7 @@
   };
   F.recipes = () => Object.entries(F.WORKS).flatMap(([w, x]) => x.recipes.map((r, i) => Object.assign({ work: w, i }, r)));
   F.FEED = { e: '🌾', price: [1, 5] }; // one bag
-  F.FEED_PACKS = [5, 20];
+  F.FEED_PACKS = [[5, 1], [20, 1], [50, 6], [100, 15]]; // [bags, level]: big packs for a farm with many animals
   // More beds and pens: [unlock level, price k, price g2] for each one after the first ones.
   // At most 6 beds and 6 pens, so the whole farm fits on a screen: after that the farm grows by upgrading them.
   F.BEDS = [[1, 0, 0], [1, 0, 0], [2, 5, 40], [4, 8, 80], [7, 12, 150], [11, 18, 250]];
@@ -301,6 +301,7 @@
     F.ACCOUNTS.forEach((a, i) => { if (i && a.lv === L) out.push({ e: a.e, name: `Bank: ${a.name} (more savings earn the big interest)` }); });
     for (const u of F.BED_UP) if (u.lv === L) out.push({ e: u.icon, name: 'Garden bed upgrade: ' + u.name });
     for (const u of F.PEN_UP) if (u.lv === L) out.push({ e: '🏡', name: 'Pen upgrade: ' + u.name });
+    for (const [n, lv] of F.FEED_PACKS) if (lv === L && L > 1) out.push({ e: F.FEED.e, name: `Feed: ${n} bags in one pack` });
     if (L === F.HELPER.lv) out.push({ e: '🧑‍🌾', name: `Farmhand ${F.HELPER.name}: feeds and collects for a wage` });
     if (L === F.HELPER.picksLv) out.push({ e: '🧑‍🌾', name: `${F.HELPER.name} picks ripe crops too` });
     const t = F.TITLES.find((x) => x[0] === L);
@@ -399,6 +400,26 @@
     pen.fed = true;
     return 'ok';
   };
+  // Selling a pen's animals to the neighbour, to make room for another kind. Farmer Rosa pays half of what they cost
+  // in the shop: every animal in the pen (the 2nd and 3rd came with "Room for"), and half of the cozy barn. The pen's
+  // upgrades go with the animals (they cost what one more animal of that kind costs), so the pen is new again.
+  F.NEIGHBOR = ['👩‍🌾', 'Farmer Rosa'];
+  F.resale = (p, grade) => {
+    const g = gi(grade), cost = F.ANIMALS[p.a].cost[g], each = Math.ceil(cost / 2), n = F.penCount(p);
+    const barn = (p.u || 0) >= 3 ? Math.ceil(F.upCost('pen', 2, grade, p.a) / 2) : 0;
+    return { cost, each, n, barn, total: n * each + barn };
+  };
+  // Things the animals already made go to the basket first. Returns what Rosa paid (0 for an empty pen).
+  F.sellPen = (fm, grade, i) => {
+    const p = fm.pens[i];
+    if (!p || !p.a) return 0;
+    F.collect(fm, i);
+    const { total } = F.resale(p, grade);
+    fm.money += total;
+    fm.stats.animalsSold = (fm.stats.animalsSold || 0) + F.penCount(p);
+    fm.pens[i] = { a: null, g: 0, fed: false, ready: 0 };
+    return total;
+  };
   // Night: crops grow a day, fed animals grow and grown-ups make something. Returns what happened for the morning card.
   F.nextDay = (fm, grade = 'g2') => {
     const news = { ripe: [], made: [], grew: [], hungry: [], cooked: [], helper: null };
@@ -447,8 +468,8 @@
   F.shop = (fm, grade) => {
     const L = F.level(fm.xp).level, g = gi(grade), out = [];
     const freePen = fm.pens.some((p) => !p.a);
-    for (const n of F.FEED_PACKS) out.push({ id: 'feed:' + n, tab: 'animals', e: F.FEED.e, name: `${n} bags of feed`, price: n * F.FEED.price[g], lv: 1, note: `You have ${fm.feed} 🌾` });
-    for (const [id, a] of Object.entries(F.ANIMALS)) out.push({ id: 'animal:' + id, tab: 'animals', e: a.e, name: a.name, price: a.cost[g], lv: a.lv, note: `${F.ITEMS[a.item].e} ${F.fmt(F.price(a.item, grade), grade)} each · eats ${a.eat} 🌾 a day`, blocked: !freePen && 'Needs an empty pen' });
+    for (const [n, lv] of F.FEED_PACKS) out.push({ id: 'feed:' + n, tab: 'animals', e: F.FEED.e, name: `${n} bags of feed`, price: n * F.FEED.price[g], lv, note: `You have ${fm.feed} 🌾` });
+    for (const [id, a] of Object.entries(F.ANIMALS)) out.push({ id: 'animal:' + id, tab: 'animals', e: a.e, name: a.name, price: a.cost[g], lv: a.lv, note: `${F.ITEMS[a.item].e} ${F.fmt(F.price(a.item, grade), grade)} each · eats ${a.eat} 🌾 a day`, blocked: !freePen && 'Sell animals to free a pen' });
     const nb = fm.beds.length, np = fm.pens.length;
     if (nb < F.BEDS.length) out.push({ id: 'bed', tab: 'farm', e: '🟫', name: 'Garden bed ' + (nb + 1), price: F.BEDS[nb][1 + g], lv: F.BEDS[nb][0], note: 'Grow more crops' });
     if (np < F.PENS.length) out.push({ id: 'pen', tab: 'farm', e: '🏡', name: 'Animal pen ' + (np + 1), price: F.PENS[np][1 + g], lv: F.PENS[np][0], note: 'Room for one more animal' });
@@ -823,6 +844,25 @@
     const ins = Object.entries(r.in).map(([id, n]) => `${n} ${F.ITEMS[id].e} ${n === 1 ? F.ITEMS[id].name : F.ITEMS[id].many}`).join(' and ');
     const tags = Object.entries(r.in).map(([id, n]) => `<span class="ftag">${n} × ${F.ITEMS[id].e} ${fmt(F.price(id, grade))}</span>`).join('<b>+</b>');
     return ask({ type: 'make', text: `Make ${F.ITEMS[r.out].e} <b>${F.ITEMS[r.out].name}</b> from <b>${ins}</b>? Sold one by one they bring <b>${fmt(w.inVal)}</b>. The ${F.ITEMS[r.out].name} sells for <b>${fmt(w.outVal)}</b>. How much <b>more</b> money do you get by making it?`, visual: `<div class="ftags">${tags}<b>→</b><span class="ftag">${F.ITEMS[r.out].e} ${fmt(w.outVal)}</span></div>`, hint: `Count up from ${fmt(w.inVal)} to ${fmt(w.outVal)}.`, explain: `${fmt(w.outVal)} − ${fmt(w.inVal)} = ${fmt(w.gain)} more`, sale: {}, total: 0 }, w.gain, grade);
+  };
+  // How much Rosa pays for a pen. Kindergarten counts the coins she pays with; 2nd grade works out half of the shop
+  // price (one animal) or adds it up (more animals, the barn).
+  F.sellQuestion = (p, grade) => {
+    const fmt = (c) => F.fmt(c, grade), a = F.ANIMALS[p.a], { cost, each, n, barn, total } = F.resale(p, grade);
+    const what = `${n > 1 ? n + ' × ' : ''}${a.e} ${a.name}${barn ? ' and the cozy barn' : ''}`;
+    const base = { type: 'sell', who: F.NEIGHBOR, sale: {}, total: 0 };
+    if (grade === 'k') {
+      const coins = F.fewest(total, total >= 25 ? ['q', 'd', 'n', 'p'] : ['d', 'n', 'p']);
+      return ask(Object.assign(base, { text: `buys your <b>${what}</b> for half of the shop price. She pays with these coins. How much money is it?`, visual: MQ.V.coins(coins, false), hint: 'Start with the money worth the most, then count on.', explain: `${coins.map((k) => fmt(F.COINV[k])).join(' + ')} = ${fmt(total)}` }), total, grade);
+    }
+    let q;
+    if (n === 1 && !barn) q = { text: `wants to buy your <b>${what}</b>. It costs <b>${fmt(cost)}</b> in the shop, and she pays <b>half</b> of that. How much does she pay?`, hint: `Half means two equal parts: what number plus the same number makes ${fmt(cost)}?`, explain: `${fmt(each)} + ${fmt(each)} = ${fmt(cost)}, so half of ${fmt(cost)} is ${fmt(each)}`, traps: [cost] };
+    else {
+      const parts = Array(n).fill(fmt(each)).concat(barn ? [fmt(barn)] : []);
+      q = { text: `wants to buy your <b>${what}</b>. She pays <b>${fmt(each)} for each ${a.name.toLowerCase()}</b>${barn ? ` and <b>${fmt(barn)} for the barn</b>` : ''}. How much does she pay in all?`, hint: `Add ${fmt(each)} ${n} ${n === 1 ? 'time' : 'times'}${barn ? `, then add ${fmt(barn)} for the barn` : ''}.`, explain: `${parts.join(' + ')} = ${fmt(total)}`, traps: [n * each, each + barn, (n + 1) * each].filter((x) => x !== total) };
+    }
+    Object.assign(base, { text: q.text, hint: q.hint, explain: q.explain });
+    return Object.assign(base, total < 100 ? { kind: 'num', answer: total, unit: '¢' } : { kind: 'choice', answer: fmt(total), choices: F.moneyChoices(total, grade, q.traps) });
   };
   const FALLBACK = ['count', 'collect', 'total', 'two'];
   // The next customer: a problem of the child's tier (one tier up for a ⭐ challenge customer).

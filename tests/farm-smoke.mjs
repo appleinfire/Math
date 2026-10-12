@@ -134,6 +134,20 @@ async function play(grade, tag, viewport) {
   await page.waitForSelector('.fitems');
   const feed = await page.evaluate(() => MQ.state.farm.feed);
   if (feed < 7) errors.push(`${tag}: feed after buying ${feed}`);
+  // sell the chicken to Rosa: a money question, then the pen is empty for another kind
+  const sell = await page.evaluate(() => ({ money: MQ.state.farm.money, pay: MQ.farm.resale(MQ.state.farm.pens[0], MQ.state.grade).total }));
+  await page.click('[data-act=fSellAsk][data-arg="0"]');
+  await page.waitForSelector('#modal [data-act=fSell]');
+  await snap('10b-sell-ask');
+  await page.click('#modal [data-act=fSell]');
+  await page.waitForSelector('.fplay #fanswer');
+  await snap('10c-sell');
+  await answer(page, true);
+  await page.waitForSelector('.fb.ok');
+  const sold = await page.evaluate(() => ({ money: MQ.state.farm.money, pen: MQ.state.farm.pens[0].a }));
+  if (sold.money !== sell.money + sell.pay || sold.pen !== null) errors.push(`${tag}: selling the chicken ${JSON.stringify(sold)} (before ${JSON.stringify(sell)})`);
+  await page.click('[data-act=fNext]');
+  await page.waitForSelector('.fitems [data-act=fBuy][data-arg="animal:chicken"]');
   await page.click('[data-act=fTab][data-arg=decor]');
   await page.click('[data-act=fGoal] >> nth=0');
   await page.waitForSelector('.fgoal');
