@@ -133,9 +133,28 @@
     delete all[kind];
     Object.keys(all).length ? put(PAUSE(MQ.state.id), all) : del(PAUSE(MQ.state.id));
   };
+  // The latest test of each kind with every question as it was shown (pictures and all the answers), for the review.
+  // Kept on this device only: too big to sync (an NNAT-3 practice test is about 340 KB). The test just finished is
+  // also kept in memory, so it can be reviewed even when storage is full or in the grown-up preview.
+  const FULL = (id) => 'math-expedition-full-' + id;
+  let lastFull = null;
+  S.setFull = (kind, resId, items) => {
+    lastFull = { id: resId, items };
+    if (!MQ.state || S.preview) return;
+    const all = get(FULL(MQ.state.id)) || {};
+    all[kind] = { id: resId, items };
+    put(FULL(MQ.state.id), all);
+  };
+  S.full = (resId) => {
+    if (lastFull && lastFull.id === resId) return lastFull.items;
+    const all = (MQ.state && !S.preview && get(FULL(MQ.state.id))) || {};
+    const x = Object.values(all).find((v) => v && v.id === resId);
+    return x ? x.items : null;
+  };
   S.remove = (id) => {
     del(PKEY(id));
     del(PAUSE(id));
+    del(FULL(id));
     delete memory[id];
     index.order = index.order.filter((x) => x !== id);
     if (index.active === id) index.active = null;
@@ -165,6 +184,8 @@
     const { id, name, grade, companion, buddyName } = MQ.state;
     MQ.state = Object.assign(fresh(grade), { id, name, grade, companion, buddyName, resetAt: Date.now() });
     del(PAUSE(id));
+    del(FULL(id));
+    lastFull = null;
     S.save();
   };
   S.exportCode = () => btoa(unescape(encodeURIComponent(JSON.stringify(MQ.state))));
@@ -276,6 +297,7 @@
   S.removeRemote = (id) => {
     if (!index.order.includes(id)) return false;
     del(PKEY(id));
+    del(FULL(id));
     delete memory[id];
     index.order = index.order.filter((x) => x !== id);
     if (index.active === id) index.active = null;

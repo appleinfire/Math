@@ -537,6 +537,27 @@ body[data-track="k"] { --paper: #eef2fb; }
 .rq { font-weight: 700; }
 .ra { font-size: 0.9rem; color: var(--ink-soft); }
 .re { font-size: 0.88rem; margin-top: 2px; }
+.rlist li.rtap { cursor: pointer; align-items: center; -webkit-tap-highlight-color: transparent; }
+.rlist li.rtap > div { flex: 1; min-width: 0; }
+.rlist li.rtap:active { transform: translateY(2px); }
+.rgo { flex: none; font-size: 1.6rem; font-weight: 900; color: var(--ink-soft); }
+.rhint { margin: 0 0 8px; }
+/* one question of the latest test, reviewed: nothing in it can be tapped */
+.qreview { display: flex; flex-direction: column; gap: 12px; }
+.qreview .pcard .ptext, .qreview .pcard .pvis { pointer-events: none; }
+.qreview .pmeta b { font-family: var(--body); }
+.qr-ok { color: var(--good); }
+.qr-no { color: var(--bad); }
+.qr-blank { color: var(--ink-soft); }
+.choices.qrev .choice { position: relative; cursor: default; }
+.choices.qrev .choice:active { transform: none; }
+.choices.qrev .choice.nope { opacity: 1; }
+.choices.qrev .choice.right .letter { background: var(--good); color: #fff; }
+.choices.qrev .choice.nope .letter { background: var(--bad); color: #fff; }
+.choices.qrev .qtag { margin-left: auto; font-family: var(--body); font-size: 0.8rem; font-weight: 900; white-space: nowrap; }
+.choices.qrev.pics .qtag { margin: 4px 0 0; }
+.qr-line { font-size: 1.05rem; text-align: center; color: var(--ink); }
+.qr-explain { background: var(--sun-soft); border-radius: 14px; padding: 10px 12px; font-weight: 700; }
 
 /* ================= Math Kangaroo style contest ================= */
 .contest { display: flex; flex-direction: column; gap: 12px; }

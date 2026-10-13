@@ -380,6 +380,16 @@ async function run(viewport, tag) {
   await page.waitForSelector('.rlist');
   if ((await page.$$('.rlist li')).length !== 30) errors.push(tag + ': review does not list all answers');
   await snap('32-check-review');
+  // every question of the latest check opens as it was shown, even the ones before the pause
+  if ((await page.$$('.rlist li.rtap')).length !== 30) errors.push(tag + ': not every checked question opens in the review');
+  await page.click('.rlist li[data-q="2"]');
+  await page.waitForSelector('.qreview .pcard .ptext');
+  if (!/Question 3 of 30/.test(await page.textContent('.qreview .pmeta'))) errors.push(tag + ': review opens the wrong question');
+  await page.click('.qreview .ctbar [data-act=viewQ] >> nth=1');
+  await page.waitForFunction(() => /Question 4 of 30/.test(document.querySelector('.qreview .pmeta').textContent));
+  await snap('32b-check-question');
+  await page.click('.qreview .ctbar [data-act=qBack]');
+  await page.waitForSelector('.review .rlist');
   await page.click('[data-act=viewCheck]');
   await page.click('[data-act=practicePlan]');
   await page.waitForSelector('.pcard');
@@ -468,6 +478,18 @@ async function run(viewport, tag) {
   if ((await page.evaluate(() => MQ.state.stats.attempts)) - attempts0 !== 18) errors.push(tag + ': contest answers not counted in statistics');
   if (!(await page.evaluate(() => Object.keys(MQ.state.review).some((k) => k.startsWith('kg_'))))) errors.push(tag + ': contest mistakes not saved to practice');
   await snap('41-kangaroo-result');
+  // the review opens each puzzle with all five answers: the right one green, a wrong pick red, a blank left plain
+  await page.click('.rlist li[data-q="3"]'); // skipped
+  await page.waitForSelector('.qreview');
+  const blankQ = await page.evaluate(() => [document.querySelectorAll('.qrev .choice').length, document.querySelectorAll('.qrev .choice.right').length, document.querySelectorAll('.qrev .choice.nope').length, document.querySelector('.qreview .pmeta').textContent]);
+  if (blankQ[0] !== 5 || blankQ[1] !== 1 || blankQ[2] !== 0 || !/Left blank/.test(blankQ[3])) errors.push(tag + ': blank puzzle review ' + JSON.stringify(blankQ));
+  await page.click('.qreview .ctbar [data-act=viewQ] >> nth=1'); // Next: question 5 was answered wrong
+  await page.waitForFunction(() => /Question 5 of/.test(document.querySelector('.qreview .pmeta').textContent));
+  const wrongQ = await page.evaluate(() => [document.querySelectorAll('.qrev .choice.right').length, document.querySelectorAll('.qrev .choice.nope').length]);
+  if (wrongQ.join() !== '1,1') errors.push(tag + ': wrong puzzle review ' + wrongQ);
+  await snap('41b-kangaroo-question');
+  await page.click('.qreview .ctbar [data-act=qBack]');
+  await page.waitForSelector('.presult .rlist');
   if (!kres1.res || kres1.res.score !== kres1.expect || kres1.res.max !== 96 || !kres1.res.timed) errors.push(`${tag}: kangaroo score ${kres1.res && kres1.res.score} != ${kres1.expect}`);
   if (await page.evaluate(() => !!(MQ.app.contest()))) errors.push(tag + ': contest still running after finish');
   // practice one puzzle type with picture answers
