@@ -32,12 +32,33 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 | **📈 My Progress** | Accuracy (right on the first try) with a dot for every day practiced (by week when the practice spans over 2 months, by month over 200 days; a single topic too), over 1, 3 or 6 months or all time, with a trend line and a plain verdict ("Getting better: +8 points over 3 months"). Problems per week, right / not yet counts, days practiced. A **skill map** shows every topic as 🌱 started → 🌿 practicing → ⭐ solid → 🏆 mastered (80% right on 5+ tries at that difficulty); tap a skill to practice it. Charts of every practice test over time. Daily totals are kept for two years, per-topic daily totals for 200 practice days and per-topic monthly totals for three years. |
 | **Strategy tips** | After two misses of the same kind of problem in one session, the next question of that kind starts with a short tip ("Make a ten: 8 + 5 → 8 + 2 + 3"). Every topic has tips, at most one a day per topic. |
 | **Daily goal** | A grown-up can set problems per day (10–50) and goal days per week. The home screen shows a ring for today and the days of the week; a badge for a week that reaches the goal. |
-| **Hatchery** | Spend 30 💎 on an egg, tap it 3 times, and hatch one of 14 rare creatures that only come from eggs. |
-| **Badges & ranks** | 29 badges (streaks, collections, daily habit, lightning rounds, challenge problems, Sunny Farm). Explorer level grows with XP. |
+| **Hatchery** | A ladder of eggs to save crystals for (see below): Meadow 30 💎 → Crystal 80 💎 → Legendary 200 💎 → Dragon 500 💎 → a secret Royal Dragon Egg for 1,000 💎. 59 creatures in all; a bought egg always holds a new one. |
+| **Badges & ranks** | 35 badges (streaks, collections, the Hatchery, daily habit, lightning rounds, challenge problems, Sunny Farm). Explorer level grows with XP. |
 | **Hints** | A wrong answer gets a strategy hint and one more try ("make a ten", "count up", "break a ten"). A second miss shows the answer with an explanation. |
 | **Voice** | After each answer a voice says "Great job!" or a gentle "Oops! Try again." The next problem waits until the voice has finished; the **Next →** button skips the wait. Questions can be read aloud with 🔊 (automatic for kindergarten). Both can be turned off per child in *For grown-ups*. |
 | **Navigation** | Every screen has a back button; result screens have Home. **👥 Switch** on the home screen (or the small avatar in the top bar) changes the child without reloading. The browser's back gesture moves between screens and asks before leaving a game. |
 | **For grown-ups** | Protected by a multiplication question. Shows progress over time (the same charts as My Progress), accuracy per topic with the standard code, activity for the last 14 days, recent mistakes and how many are in repair, test history, the daily goal, settings (sound, *unlock all worlds*), save codes and reset. **👀 Look at every level** starts a grown-up preview: every world and level is open, Practice by type can start at any level 1–5, Sunny Farm opens as a level-60 farm, and nothing is saved (no stars, crystals, statistics, mistakes or test results, nothing unlocked for the child, nothing synced). A purple bar shows it is on; **Exit**, opening For grown-ups again, switching explorer or reloading ends it. |
+
+## 🥚 Hatchery
+
+Crystals earned in the game buy eggs. The eggs open one after another, so there is always a next goal to save for. The data is in `js/content.js` (`MQ.EGGS`, `MQ.EGG_CREATURES`), the pictures in `js/creature-art.js`.
+
+| Egg | Price | Opens after | Inside | Hatching |
+|---|---|---|---|---|
+| 🥚 Meadow | 30 💎 | from the start | 20 real animals (emoji): the 14 first rare animals and a tiger, gorilla, bison, snow monkey, humpback whale, mandarin duck | 3 taps, confetti |
+| 💎 Crystal | 80 💎 | 5 Meadow creatures | 16 fairy-tale critters: Ember Fox, Frost Owl, Moon Rabbit, Golden Wish-Fish, Little Humpbacked Horse, Silver Hoof, Frog Prince, Pixie… | 5 taps, crystal confetti and a shimmer |
+| 🌟 Legendary | 200 💎 | 5 Crystal creatures | 12 heroes of myths and legends: Firebird, Griffin, Pegasus, Mermaid, Genie, Merlin, Kraken, Yeti, Kitsune… | 7 taps on a dark full-screen scene, golden light, a fanfare, golden rain |
+| 🐉 Dragon | 500 💎 | 3 Legendary creatures | 10 dragons: Ember, Frost, Storm, Forest, Ocean, Crystal, Moon, Sun, Rainbow, Cosmic | 9 taps, the screen shakes, the cracks glow in the dragon's color, a roar, the dragon flies around, then the child names it |
+| 👑 Royal Dragon (secret, shown as ???) | 1,000 💎 | all 10 dragons | the Royal Dragon | 12 taps, like a dragon |
+
+- **Pictures.** Real animals stay emoji. The 39 magical creatures are flat, colorful SVGs drawn in code (about 53 KB in all, no image files): one dragon drawing in eleven color schemes, each with its own crest, tail tip and sparkles. Legendary cards shine gold with turning light rays; dragon cards are dark and glow in the dragon's color.
+- **Every card teaches something.** Each magical creature's card has *Legend says…* and a *Real fact* (the Moon Rabbit: the dark spots on the Moon are old lava plains).
+- **Dragons grow** from first-try right answers given after they hatched: 🐣 Baby (in its eggshell) → Young (50) → Grown-up (150) → Elder with a crown (400). Each new stage is celebrated on the home screen. The dragon's card shows how many right answers are left until it grows.
+- **Dragon treasure.** Every grown-up or elder dragon adds +2 💎 to the Daily Quest reward.
+- **A buddy from the collection.** Any discovered creature can become the expedition buddy (⭐ Make … my buddy on its card): it replaces the starting companion on the home screen, in the top bar, in games and at the farm stand. A dragon buddy talks under its own name. *Back to 🦊 Pip* returns the first companion.
+- **Saving up.** The Hatchery tile on the home screen shows a progress bar towards the best open egg (“🐉 Dragon Egg · 340 / 500 💎”), and level, quest and training results say how many crystals are left.
+- **About how long it takes** at about 50 💎 a day: a Crystal Egg every couple of days, the first Legendary Egg in about two weeks, the first dragon in about a month, everything in about half a year. Prices are in `MQ.EGGS`.
+- **Badges:** Crystal Keeper, Legend Hunter, Dragon Tamer, Dragon Master, Dragon Whisperer, Master of the Hatchery. *Living Encyclopedia* counts the map and the Meadow Eggs.
 
 ## 🌻 Sunny Farm
 
@@ -139,6 +160,7 @@ js/generators.js      2nd-grade problem generators, 14 topics × 5 difficulties
 js/generators-k.js    kindergarten problem generators, 10 topics × 5 difficulties
 js/content.js         2nd-grade worlds and creatures, grade tracks, badges, buddy phrases
 js/content-k.js       kindergarten worlds and baby animals
+js/creature-art.js    Hatchery pictures: magical creatures, dragons at each growth stage, eggs (SVG drawn in code)
 js/store.js           one saved profile per child (localStorage), stats, merging copies from two devices
 js/cloud.js           family sync through Firebase (code + PIN, live updates, offline queue)
 js/cloud-config.js    Firebase project settings (public identifiers)
@@ -165,6 +187,7 @@ No build step or dependencies are needed to run it. After changing code, run:
 ```
 node tests/generators.test.js      # 312,000 generated problems checked
 node tests/store.test.js           # merging progress from two devices, mistakes to practice, family keys
+node tests/hatchery.test.js        # eggs, creature pictures (valid SVG), dragon growth and treasure, the buddy
 node tests/testprep.test.js        # Placement Check accuracy on simulated children, mock tests with review questions
 node tests/farm.test.js            # Sunny Farm economy, days, shop, and thousands of customer problems for both grades
 node tests/nnat.test.js            # NNAT-3 style puzzles: 4 kinds × 6 levels, the 48-question practice test and its scoring

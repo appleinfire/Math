@@ -52,6 +52,8 @@
   const levelOpen = (w, i) => worldOpen(worldIndex(w.id)) && (st.settings.unlockAll || i === 0 || !!st.levels[w.id + '-' + (i - 1)]);
   const worldStars = (w) => w.levels.reduce((s, _, i) => s + ((st.levels[w.id + '-' + i] || {}).stars || 0), 0);
   const starStr = (n, of = 3) => '<span class="stars">' + U.range(1, of).map((i) => `<i class="${i <= n ? 'on' : ''}">★</i>`).join('') + '</span>';
+  const face = () => MQ.face(st); // the buddy on screen: a creature chosen from the collection, or the starting companion
+  const bname = () => MQ.buddyName(st);
   const gemPill = () => `<span class="pill gem" aria-label="crystals">💎 <b id="gems">${st.crystals}</b></span>`;
   const levelName = (lv, i) => (lv.type === 'boss' ? 'Guardian' : lv.type === 'challenge' ? 'Challenge' : 'Level ' + (i + 1));
   const levelIcon = (lv, i) => (lv.type === 'boss' ? '👑' : lv.type === 'challenge' ? '⚡' : String(i + 1));
@@ -92,7 +94,7 @@
   }
 
   function header(title, back = 'home', backAct = 'go') {
-    return `<header class="bar"><button class="iconbtn" data-act="${backAct}" data-arg="${back}" aria-label="Back">←</button><h1>${title}</h1>${gemPill()}<button class="mini-av" data-act="go" data-arg="who" aria-label="Switch explorer (now ${esc(st.name)})" title="Switch explorer">${st.companion}</button></header>`;
+    return `<header class="bar"><button class="iconbtn" data-act="${backAct}" data-arg="${back}" aria-label="Back">←</button><h1>${title}</h1>${gemPill()}<button class="mini-av" data-act="go" data-arg="who" aria-label="Switch explorer (now ${esc(st.name)})" title="Switch explorer">${face()}</button></header>`;
   }
   function say(text) {
     const b = $('#bubble');
@@ -148,17 +150,33 @@
     }
     if (any) { S.save(); MQ.sfx('reward'); }
   }
+  // Creature cards. Magical creatures are drawn (js/creature-art.js); Legendary ones shine gold, dragons glow in their
+  // element's color. A dragon's card shows its name, how grown-up it is and how many right answers until it grows.
+  const TAGS = { crystal: '💎 Crystal Egg', legend: '🌟 Legendary', dragon: '🐉 Dragon', royal: '👑 Royal Dragon' };
+  const elStyle = (c) => (c.dragon ? ` style="--el:${MQ.DRAGON_LOOK[c.id].el}"` : '');
+  const fxBack = (c) => ({ crystal: '<span class="fx-glow"></span>', legend: '<span class="fx-rays"></span>', dragon: '<span class="fx-rays"></span><span class="fx-sparks"></span>', royal: '<span class="fx-rays"></span><span class="fx-sparks"></span>' }[c.rarity] || '');
+  const picture = (c) => (MQ.hasArt(c.id) ? `<div class="cart">${fxBack(c)}${MQ.look(st, c)}</div>` : `<div class="cemoji">${c.emoji}</div>`);
+  function dragonGrowth(c) {
+    const d = st.dragons[c.id];
+    if (!d) return '';
+    const s = MQ.dragonStage(st, c.id), fed = MQ.dragonFed(st, c.id), next = MQ.DRAGON_STAGES[s + 1];
+    const from = MQ.DRAGON_STAGES[s].at;
+    return `<div class="dgrow"><span>${MQ.DRAGON_STAGES[s].name} dragon</span>${next
+      ? `<span class="dbar"><i style="width:${Math.round(((fed - from) / (next.at - from)) * 100)}%"></i></span><small>${next.at - fed} more right ${next.at - fed === 1 ? 'answer' : 'answers'} to grow</small>`
+      : '<small>Fully grown ✨</small>'}</div>`;
+  }
   function creatureCard(c, reveal = false) {
-    const w = MQ.worldById(c.world);
-    return `<div class="creature ${reveal ? 'reveal' : ''} r-${c.rarity}">
+    const w = MQ.worldById(c.world), egg = c.egg && MQ.eggById(c.egg), d = c.dragon && st.dragons[c.id];
+    return `<div class="creature ${reveal ? 'reveal' : ''} r-${c.rarity}"${elStyle(c)}>
       <div class="creature-inner">
         <div class="cfront">?</div>
         <div class="cback">
-          <div class="ctag">${c.rarity === 'common' ? 'Discovered' : c.rarity}</div>
-          <div class="cemoji">${c.emoji}</div>
-          <div class="cname">${c.name}</div>
+          <div class="ctag">${TAGS[c.rarity] || (c.rarity === 'common' ? 'Discovered' : c.rarity)}</div>
+          ${picture(c)}
+          <div class="cname">${d ? esc(d.name) : c.name}</div>
+          ${d ? `<div class="ckind">${c.name}</div>${dragonGrowth(c)}` : ''}
           <p class="cfact">${c.fact}</p>
-          <div class="cwhere">${w ? w.emoji + ' ' + w.name : '🥚 Hatchery'}</div>
+          <div class="cwhere">${w ? w.emoji + ' ' + w.name : egg ? egg.icon + ' ' + egg.name : '🥚 Hatchery'}</div>
         </div>
       </div></div>`;
   }
@@ -178,7 +196,7 @@
       <div class="profiles">${list.map((p) => {
         const lv = MQ.levelFromXp(p.xp).level;
         return `<button class="profile" data-act="openProfile" data-arg="${p.id}" style="--pc:${TRACK_COLOR[p.grade] || '#2bb3a3'}">
-          <span class="pav">${p.companion}</span><b>${esc(p.name)}</b>${gradeChip(p.grade)}
+          <span class="pav">${MQ.face(p)}</span><b>${esc(p.name)}</b>${gradeChip(p.grade)}
           <small>Level ${lv} · 💎 ${p.crystals} · ${Object.keys(p.creatures).length} creatures</small></button>`;
       }).join('')}
         <button class="profile add" data-act="go" data-arg="new"><span class="pav">＋</span><b>New explorer</b><small>Add a brother or sister</small></button>
@@ -373,24 +391,24 @@
     }
     render(`<main class="home">
       <header class="hello">
-        <div class="avatar" aria-hidden="true">${st.companion}</div>
+        <div class="avatar" aria-hidden="true">${face()}</div>
         <div class="who"><div class="hi">Hi, ${esc(st.name)}!</div>
           <div class="rank">${gradeChip(st.grade)} Level ${lv.level} · ${MQ.rankTitle(lv.level)}</div>
           <div class="xp" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pct}%"></span></div></div>
         <div class="hello-r">${gemPill()}<button class="pill switch" data-act="go" data-arg="who">👥 ${S.profiles().length > 1 ? 'Switch' : 'Add / switch'}</button></div>
       </header>
-      <div class="buddy"><span class="buddy-e">${st.companion}</span><div class="bubble" id="bubble">${esc(st.buddyName)}: ${esc(U.pick(MQ.SAY.hello))}</div></div>
+      <div class="buddy"><span class="buddy-e">${face()}</span><div class="bubble" id="bubble">${esc(bname())}: ${esc(U.pick(MQ.SAY.hello))}</div></div>
       ${goalStrip()}
       ${gateCard()}
       ${cont}
       <div class="tiles">
         <button class="tile t-map" data-act="go" data-arg="map"><span class="ti">🗺️</span><b>Expedition Map</b><small>${WORLDS().length} worlds · ${WORLDS().length * 6} levels</small></button>
         <button class="tile t-endless" data-act="go" data-arg="trainer"><span class="ti">♾️</span><b>Endless Training</b><small>Pick topics & difficulty</small></button>
-        <button class="tile t-daily ${dailyDone ? 'done' : ''}" data-act="daily"><span class="ti">${dailyDone ? '✅' : '📅'}</span><b>Daily Quest</b><small>${dailyDone ? 'Done today · 🔥 ' + st.daily.streak : '+' + DAILY_REWARD + ' 💎 · streak ' + st.daily.streak}</small></button>
+        <button class="tile t-daily ${dailyDone ? 'done' : ''}" data-act="daily"><span class="ti">${dailyDone ? '✅' : '📅'}</span><b>Daily Quest</b><small>${dailyDone ? 'Done today · 🔥 ' + st.daily.streak : '+' + (DAILY_REWARD + MQ.dragonTreasure(st)) + ' 💎 · streak ' + st.daily.streak}</small></button>
         <button class="tile t-fixit ${toFix ? 'hot' : ''}" data-act="go" data-arg="fixit"><span class="ti">🛠️</span><b>Fix-it Lab</b><small>${toFix ? `${toFix} to fix today` : inRepair ? 'All done today ✓' : 'No mistakes to fix'}</small></button>
         <button class="tile t-journal" data-act="go" data-arg="journal"><span class="ti">📔</span><b>Field Journal</b><small>${have} / ${total} creatures</small></button>
         ${farmTile()}
-        <button class="tile t-hatch" data-act="go" data-arg="hatch"><span class="ti">🥚</span><b>Hatchery</b><small>Rare eggs · ${MQ.EGG_PRICE} 💎</small></button>
+        ${hatchTile()}
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
         <button class="tile t-progress" data-act="go" data-arg="progress"><span class="ti">📈</span><b>My Progress</b><small>${weekAcc}</small></button>
         <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>${PAUSE_KINDS.some((k) => S.paused(k)) ? '⏸️ You have an unfinished test: tap to continue' : (st.grade === 'k' ? 'Placement Check in the style of i-Ready' : 'GATE (NNAT-3), i-Ready, CogAT, Kangaroo') + (myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : '')}</small></span></button>
@@ -398,6 +416,7 @@
       <footer class="foot">${syncLine()}<button class="linkbtn" data-act="go" data-arg="parent">For grown-ups</button>${appLinks()}</footer>
     </main>`);
     cur = 'home';
+    later(growCheck, 900);
   }
 
   // Sunny Farm: level, money and what's waiting (ripe crops, things to collect, a full basket).
@@ -590,11 +609,11 @@
     const color = sess.world ? sess.world.color : sess.mode === 'daily' ? '#e09a2b' : sess.mode === 'check' ? '#5b63c9' : sess.mode === 'fixit' ? '#3c9d5d' : '#ff6b5b';
     render(`<div class="play" style="--wc:${color}">
       <header class="playbar"><button class="iconbtn" data-act="quit" aria-label="Stop">✕</button><div class="pstatus" id="pstatus"></div>${gemPill()}</header>
-      <div class="buddy small"><span class="buddy-e">${st.companion}</span><div class="bubble" id="bubble"></div></div>
+      <div class="buddy small"><span class="buddy-e">${face()}</span><div class="bubble" id="bubble"></div></div>
       <section class="pcard" id="pcard"></section>
       <div id="answer" class="answer"></div>
     </div>`, 'is-play');
-    say(sess.mode === 'level' ? `${st.buddyName}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${st.buddyName}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${st.buddyName}: Lightning round! Go go go! ⚡` : sess.mode === 'daily' ? `${st.buddyName}: Today’s quest — ${sess.warm && sess.warm.length ? '5 math puzzles and 2 GATE warm-ups 🔷' : '5 mixed puzzles'}!` : `${st.buddyName}: Let’s train! Every 5 in a row opens a chest. 🎁`);
+    say(sess.mode === 'level' ? `${bname()}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${bname()}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${bname()}: Lightning round! Go go go! ⚡` : sess.mode === 'daily' ? `${bname()}: Today’s quest — ${sess.warm && sess.warm.length ? '5 math puzzles and 2 GATE warm-ups 🔷' : '5 mixed puzzles'}!` : `${bname()}: Let’s train! Every 5 in a row opens a chest. 🎁`);
     nextProblem();
     if (sess.timer) sess.interval = setInterval(tick, 1000);
   }
@@ -688,19 +707,19 @@
     const p = sess.p;
     if (p.kind === 'num') return submit();
     if (p.kind === 'choice') {
-      if (sess.pickChoice === null) return say(`${st.buddyName}: Tap an answer first!`);
+      if (sess.pickChoice === null) return say(`${bname()}: Tap an answer first!`);
       return check(p.choices[sess.pickChoice], document.querySelectorAll('.choice')[sess.pickChoice]);
     }
     if (p.kind === 'multi') {
-      if (!sess.sel.length) return say(`${st.buddyName}: Tap the answers you think are right.`);
+      if (!sess.sel.length) return say(`${bname()}: Tap the answers you think are right.`);
       return check(sess.sel.map((i) => p.choices[i]));
     }
     if (p.kind === 'order') {
-      if (sess.sel.length < p.items.length) return say(`${st.buddyName}: Put all the cards in order first!`);
+      if (sess.sel.length < p.items.length) return say(`${bname()}: Put all the cards in order first!`);
       return check(sess.sel.map((i) => p.items[i]));
     }
     if (p.kind === 'line') {
-      if (sess.lineVal === null) return say(`${st.buddyName}: Tap a spot on the number line first!`);
+      if (sess.lineVal === null) return say(`${bname()}: Tap a spot on the number line first!`);
       return check(sess.lineVal);
     }
   }
@@ -731,7 +750,7 @@
   function submit() {
     if (!sess || sess.locked) return;
     if (sess.p.kind === 'num') {
-      if (!sess.input) { say(`${st.buddyName}: Type your answer first!`); return; }
+      if (!sess.input) { say(`${bname()}: Type your answer first!`); return; }
       check(sess.input);
     }
   }
@@ -809,7 +828,7 @@
     markPicks(true);
     const done = sessDone();
     $('#feedback').innerHTML = `<div class="fb ok"><span>✓ ${msg}</span>${sess.timer ? '' : `<button class="btn next" data-act="advance">${done ? 'Finish ★' : 'Next →'}</button>`}</div>`;
-    say(`${st.buddyName}: ${msg}`);
+    say(`${bname()}: ${msg}`);
     S.save();
     status();
     // Move on after the voice finishes (or a short pause without voice). "Next" skips the wait.
@@ -860,7 +879,7 @@
         if (['multi', 'order', 'line'].includes(p.kind)) { sess.sel = []; sess.lineVal = null; redrawAnswer(); } // start the pick again
         $('#feedback').innerHTML = `<div class="fb hint">💡 ${p.hint || 'Look again carefully and try once more.'}</div>`;
         if (voiceOn()) MQ.speak(U.pick(MQ.SAY.voiceRetry) + (st.settings.readAloud && p.hint ? ' ' + MQ.toSpeech(p.hint) : ''));
-        say(`${st.buddyName}: ${U.pick(MQ.SAY.retry)}`);
+        say(`${bname()}: ${U.pick(MQ.SAY.retry)}`);
         return;
       }
     }
@@ -876,7 +895,7 @@
     if (p.kind === 'num') slots().forEach((el) => { el.textContent = p.answer; el.classList.add('shown'); });
     markPicks(false);
     $('#feedback').innerHTML = `<div class="fb reveal"><div>The answer is <b>${fmtAnswer(p)}</b>.</div>${p.explain ? `<div class="explain">${p.explain}</div>` : ''}<button class="btn" data-act="advance">${sessDone() ? 'Finish ✓' : 'Next →'}</button></div>`;
-    say(`${st.buddyName}: ${U.pick(MQ.SAY.reveal)}`);
+    say(`${bname()}: ${U.pick(MQ.SAY.reveal)}`);
     sess.pending = sessDone() ? finish : nextProblem; // waits for the Next button
     if (voiceOn()) { const a = spokenAnswer(p); MQ.speak(U.pick(MQ.SAY.voiceReveal) + (a ? ` The answer is ${a}.` : ' Look at the green answer.')); }
     S.save();
@@ -910,6 +929,7 @@
       <p class="lead">${sess.correct} right${sess.mistakes ? ` · ${sess.mistakes} ${sess.mistakes === 1 ? 'oops' : 'oopses'}` : ' · no mistakes!'} · <b>+${gems} 💎</b></p>
       ${creature ? creatureCard(creature, true) : `<p class="muted">You already discovered the ${MQ.CREATURES[lv.creature].emoji} ${MQ.CREATURES[lv.creature].name} here.${stars < 3 ? ' Try for 3 stars!' : ''}</p>`}
       ${newWorld ? `<div class="unlock">🗺️ New world unlocked: <b>${newWorld.emoji} ${newWorld.name}</b></div>` : ''}
+      ${eggNudge()}
       <div class="row">
         <button class="btn ghost" data-act="go" data-arg="home">Home</button>
         <button class="btn ghost" data-act="go" data-arg="world:${w.id}">Map</button>
@@ -925,13 +945,14 @@
   function finishDaily() {
     const today = U.dateKey();
     const first = st.daily.last !== today;
-    let gems = 0;
+    let gems = 0, treasure = 0;
     if (first) {
       const gap = st.daily.last ? U.daysBetween(st.daily.last, today) : 99;
       st.daily.streak = gap === 1 ? st.daily.streak + 1 : 1;
       st.daily.best = Math.max(st.daily.best, st.daily.streak);
       st.daily.last = today;
-      gems = DAILY_REWARD + Math.min(st.daily.streak - 1, 10);
+      treasure = MQ.dragonTreasure(st);
+      gems = DAILY_REWARD + Math.min(st.daily.streak - 1, 10) + treasure;
       addGems(gems);
       if (st.farm && st.farm.started) { st.farm.feed += FARM_FEED_BONUS; st.farm.t = Date.now(); }
     }
@@ -942,6 +963,8 @@
       <p class="lead">${first ? `Day streak: <b>${st.daily.streak}</b> · <b>+${gems} 💎</b>` : 'Extra practice — great job! Come back tomorrow for a new quest.'}</p>
       ${first && st.farm && st.farm.started ? `<p class="muted">+${FARM_FEED_BONUS} 🌾 feed bags for your farm animals</p>` : ''}
       ${first && st.daily.streak > 1 ? `<p class="muted">Streak bonus: +${Math.min(st.daily.streak - 1, 10)} 💎 for coming back every day.</p>` : ''}
+      ${treasure ? `<div class="unlock">🐉 Dragon treasure: <b>+${treasure} 💎</b> from your grown-up dragons</div>` : ''}
+      ${eggNudge()}
       <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button><button class="btn" data-act="go" data-arg="hatch">Visit the Hatchery 🥚</button></div></main>`);
     MQ.sfx('reward');
     MQ.confetti();
@@ -968,6 +991,7 @@
         <div><b>+${sess.earned + sess.fixedNow * FIX_REWARD}</b><small>💎 earned</small></div>
       </div>
       ${sess.fixedNow ? `<div class="unlock">🛠️ ${sess.fixedNow} old ${sess.fixedNow === 1 ? 'mistake' : 'mistakes'} fixed for good!</div>` : ''}
+      ${sess.earned + sess.fixedNow ? eggNudge() : ''}
       <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button>${sess.kgTopic
         ? `<button class="btn ghost" data-act="go" data-arg="${MQ.TOPICS[sess.kgTopic].cogat ? 'cgtypes' : MQ.TOPICS[sess.kgTopic].logic ? 'lgtypes' : 'kgtypes'}">Other types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
         : '<button class="btn ghost" data-act="go" data-arg="trainer">Change settings</button><button class="btn" data-act="startTrainer">Play again</button>'}</div></main>`);
@@ -1123,7 +1147,7 @@
     if (kind === 'check') {
       const eng = Object.assign({}, x.eng, { seen: new Set(x.eng.seen) });
       startSession({ mode: 'check', eng, topics: [], d: [1, 1], goal: 0, resumeP: x.p, answered: x.answered, correct: x.correct });
-      say(`${st.buddyName}: Welcome back! Let’s keep going from question ${x.answered + 1}.`);
+      say(`${bname()}: Welcome back! Let’s keep going from question ${x.answered + 1}.`);
       return;
     }
     remember('contest');
@@ -1139,7 +1163,7 @@
     S.clearPaused('check');
     const eng = P().newCheck(st.grade, myChecks());
     startSession({ mode: 'check', eng, topics: [], d: [1, 1], goal: 0 });
-    say(`${st.buddyName}: Do your best! No hints in a check. If you are not sure, make your best guess.`);
+    say(`${bname()}: Do your best! No hints in a check. If you are not sure, make your best guess.`);
   }
   function finishCheck() {
     S.clearPaused('check');
@@ -1548,52 +1572,209 @@
     const all = MQ.trackCreatures(st.grade);
     const have = all.filter((c) => st.creatures[c.id]).length, total = all.length;
     const card = (c) => st.creatures[c.id]
-      ? `<button class="ccard r-${c.rarity}" data-act="creature" data-arg="${c.id}"><span class="ce">${c.emoji}</span><span class="cn">${c.name}</span></button>`
-      : `<div class="ccard locked"><span class="ce sil">${c.emoji}</span><span class="cn">???</span></div>`;
+      ? `<button class="ccard r-${c.rarity}"${elStyle(c)} data-act="creature" data-arg="${c.id}"><span class="ce">${MQ.look(st, c)}</span><span class="cn">${c.dragon && st.dragons[c.id] ? esc(st.dragons[c.id].name) : c.name}</span></button>`
+      : `<div class="ccard locked"><span class="ce sil">${MQ.hasArt(c.id) ? MQ.art(c.id, { stage: 2 }) : c.emoji}</span><span class="cn">???</span></div>`;
+    const eggs = MQ.EGGS.filter((E) => !E.secret || eggOpen(E) || eggHave(E));
     const sections = WORLDS().map((w) => `<section style="--wc:${w.color};--wt:${w.tint}"><h2>${w.emoji} ${w.name}</h2><div class="cgrid">${w.levels.map((l) => card(MQ.CREATURES[l.creature])).join('')}</div></section>`).join('') +
-      `<section style="--wc:#b0569e;--wt:#f6dff1"><h2>🥚 Hatchery rarities</h2><div class="cgrid">${MQ.EGG_CREATURES.map(card).join('')}</div></section>`;
+      eggs.map((E) => `<section style="--wc:${E.color};--wt:${E.tint}"><h2>${E.icon} ${E.name}s</h2><div class="cgrid">${MQ.eggCreatures(E.id).map(card).join('')}</div></section>`).join('');
     render(header('Field Journal') + `<main class="journal"><div class="jcount"><b>${have}</b> of ${total} creatures discovered<div class="xp"><span style="width:${Math.round((have / total) * 100)}%"></span></div></div>${sections}</main>`);
     cur = 'journal';
   }
-  function hatch() {
-    const left = MQ.EGG_CREATURES.filter((c) => !st.creatures[c.id]);
-    const h = ui.hatch;
-    let nest;
-    if (h && h.stage === 'egg') nest = `<button class="egg crack${h.taps}" data-act="tapEgg" aria-label="Tap the egg">🥚</button><p class="lead">Tap the egg to hatch it! (${3 - h.taps} more)</p>`;
-    else if (h && h.stage === 'open') nest = creatureCard(MQ.creatureById(h.id), true);
-    else nest = `<div class="egg idle" aria-hidden="true">🥚</div>`;
-    render(header('Hatchery') + `<main class="hatch">
-      <div class="nest">${nest}</div>
-      ${h && h.stage === 'egg' ? '' : left.length ? `<button class="btn big" data-act="buyEgg" ${st.crystals < MQ.EGG_PRICE ? 'disabled' : ''}>Buy an egg · ${MQ.EGG_PRICE} 💎</button>
-        <p class="muted center">${st.crystals < MQ.EGG_PRICE ? `You need ${MQ.EGG_PRICE - st.crystals} more 💎. Finish levels, the Daily Quest, or train to earn crystals.` : 'Eggs hold rare creatures you can’t find on the expedition.'}</p>` : '<p class="lead center">You hatched every rare creature! 🎉</p>'}
-      <h2>Rare creatures: ${MQ.EGG_CREATURES.length - left.length} / ${MQ.EGG_CREATURES.length}</h2>
-      <div class="minigrid">${MQ.EGG_CREATURES.map((c) => `<span class="${st.creatures[c.id] ? '' : 'sil'}" title="${st.creatures[c.id] ? c.name : '???'}">${c.emoji}</span>`).join('')}</div>
-    </main>`);
+
+  // ---------------------------------------------------------------- hatchery
+  // Five eggs in a row: Meadow → Crystal → Legendary → Dragon → (secret) Royal Dragon. Each opens after enough creatures
+  // from the egg before it. The pricier the egg, the longer the cracking and the bigger the show when it hatches:
+  // Legendary and Dragon eggs hatch on a dark full-screen scene, and a dragon flies around before it gets its name.
+  const eggHave = (E) => MQ.eggCreatures(E.id).filter((c) => st.creatures[c.id]).length;
+  const eggLeft = (E) => MQ.eggCreatures(E.id).filter((c) => !st.creatures[c.id]);
+  const eggOpen = (E) => { const i = MQ.EGGS.indexOf(E); return i === 0 || eggHave(MQ.EGGS[i - 1]) >= E.need; };
+  // The egg to save up for: the best open egg that still has creatures in it.
+  const goalEgg = () => MQ.EGGS.filter((E) => eggOpen(E) && eggLeft(E).length).pop() || null;
+  const BIG = new Set(['legend', 'dragon', 'royal']); // eggs that hatch on the full-screen scene
+  const glowOf = (h) => (MQ.creatureById(h.id).dragon ? MQ.DRAGON_LOOK[h.id].el : '#ffd23f');
+  const PARTS = {
+    meadow: {}, crystal: { colors: ['#9fe8ff', '#b79bff', '#ff9fdc', '#ffffff'], shape: 'diamond' },
+    legend: { colors: ['#ffe066', '#ffcf48', '#fff6c4', '#f5a623'], shape: 'star', rain: true },
+  };
+  const dragonParts = (id) => ({ colors: [MQ.DRAGON_LOOK[id].el, MQ.DRAGON_LOOK[id].light, MQ.DRAGON_LOOK[id].main, '#ffffff'], shape: id === 'dr_frost' ? 'diamond' : id === 'dr_ember' || id === 'dr_sun' ? 'dot' : 'star' });
+  function hatchTile() {
+    const g = goalEgg();
+    const ready = g && st.crystals >= g.price;
+    const sub = !g ? '🐉 Every egg hatched!' : ready ? `${g.icon} Enough for a ${g.name}!` : `${g.icon} ${g.name} · ${st.crystals} / ${g.price} 💎`;
+    return `<button class="tile t-hatch ${ready ? 'hot' : ''}" data-act="go" data-arg="hatch"><span class="ti">🥚</span><b>Hatchery</b><small>${sub}</small>${g && !ready ? `<span class="tbar"><i style="width:${Math.round((st.crystals / g.price) * 100)}%"></i></span>` : ''}</button>`;
   }
-  function buyEgg() {
-    const left = MQ.EGG_CREATURES.filter((c) => !st.creatures[c.id]);
-    if (!left.length || st.crystals < MQ.EGG_PRICE) return;
+  // One line on result screens: how close the next egg is.
+  function eggNudge() {
+    const g = goalEgg();
+    if (!g || S.preview) return '';
+    return `<button class="nudge" data-act="go" data-arg="hatch">${st.crystals >= g.price ? `${g.icon} You have enough 💎 for a <b>${g.name}</b>! Visit the Hatchery →` : `${g.icon} <b>${g.price - st.crystals} 💎</b> more for a ${g.name}`}</button>`;
+  }
+  function hatch() {
+    const h = ui.hatch;
+    if (h && BIG.has(h.tier)) return hatchScene();
+    const open = MQ.EGGS.filter((E) => eggOpen(E));
+    let E = MQ.eggById(ui.eggTab) || null;
+    if (!E || (E.secret && !eggOpen(E))) E = goalEgg() || open[open.length - 1];
+    if (h) E = MQ.eggById(h.tier);
+    const isOpen = eggOpen(E), left = eggLeft(E), list = MQ.eggCreatures(E.id);
+    const prev = MQ.EGGS[MQ.EGGS.indexOf(E) - 1];
+    const tab = (T) => {
+      const secret = T.secret && !eggOpen(T), on = eggOpen(T), done = on && !eggLeft(T).length;
+      return `<button class="etab ${T === E ? 'sel' : ''} ${on ? '' : 'locked'}" data-act="eggTab" data-arg="${T.id}" style="--ec:${T.color};--et:${T.tint}" ${h && h.stage === 'egg' ? 'disabled' : ''} aria-label="${secret ? 'Secret egg' : T.name}">
+        <span class="eicon">${secret ? '<span class="sil">' + MQ.eggArt('royal') + '</span>' : MQ.eggArt(T.id)}</span>
+        <b>${secret ? '???' : T.name.replace(' Egg', '')}</b><small>${secret ? '🔒' : !on ? '🔒 ' + T.price + ' 💎' : done ? '✓ all' : T.price + ' 💎'}</small></button>`;
+    };
+    let nest, action = '';
+    if (h && h.stage === 'egg') {
+      nest = `<button class="egg crack${Math.min(3, Math.floor((h.taps / E.taps) * 3))}" data-act="tapEgg" aria-label="Tap the egg">${MQ.eggArt(E.id, { crack: h.taps / E.taps })}</button>`;
+      action = `<p class="lead">Tap the egg to hatch it! (${E.taps - h.taps} more)</p>`;
+    } else if (h && h.stage === 'open') {
+      nest = creatureCard(MQ.creatureById(h.id), true);
+    } else {
+      nest = `<div class="egg idle ${isOpen ? '' : 'shut'}" aria-hidden="true">${E.secret && !isOpen ? '<span class="sil">' + MQ.eggArt('royal') + '</span>' : MQ.eggArt(E.id)}</div>`;
+    }
+    if (!h || h.stage === 'open') {
+      if (E.secret && !isOpen) action = `<p class="lead center">A secret egg… 🤫</p><p class="muted center">Hatch all ${E.need} dragons to find out what is inside! (${eggHave(prev)} / ${E.need})</p>`;
+      else if (!isOpen) action = `<p class="lead center">🔒 Opens after ${E.need} creatures from ${prev.name}s</p><p class="muted center">You have ${eggHave(prev)} of ${E.need}. ${prev.icon} ${prev.name}s cost ${prev.price} 💎.</p>`;
+      else if (!left.length) action = `<p class="lead center">You hatched every creature from ${E.name}s! 🎉</p>`;
+      else {
+        const short = E.price - st.crystals;
+        action = `<button class="btn big" data-act="buyEgg" data-arg="${E.id}" ${short > 0 ? 'disabled' : ''}>Buy a ${E.name} · ${E.price} 💎</button>
+          ${short > 0 ? `<div class="save"><span class="tbar"><i style="width:${Math.round((st.crystals / E.price) * 100)}%"></i></span><small>${st.crystals} / ${E.price} 💎 · ${short} more to go. Finish levels, the Daily Quest, or train to earn crystals.</small></div>` : `<p class="muted center">${E.blurb}</p>`}`;
+      }
+    }
+    const mini = (c) => `<button class="hcard r-${c.rarity} ${st.creatures[c.id] ? '' : 'locked'}"${elStyle(c)} ${st.creatures[c.id] ? `data-act="creature" data-arg="${c.id}"` : 'disabled'} title="${st.creatures[c.id] ? c.name : '???'}">${st.creatures[c.id] ? MQ.look(st, c) : `<span class="sil">${MQ.hasArt(c.id) ? MQ.art(c.id, { stage: 2 }) : c.emoji}</span>`}</button>`;
+    const dragons = MQ.EGG_CREATURES.filter((c) => c.dragon && st.creatures[c.id] && st.dragons[c.id]);
+    const treasure = MQ.dragonTreasure(st);
+    render(header('Hatchery') + `<main class="hatch">
+      <div class="eggpath">${MQ.EGGS.map(tab).join('<i class="earrow">›</i>')}</div>
+      <section class="eggstage t-${E.id}" style="--ec:${E.color};--et:${E.tint}">
+        <div class="nest">${nest}</div>
+        ${h && h.stage === 'egg' ? '' : `<h2>${E.secret && !isOpen ? '👑 ???' : E.icon + ' ' + E.name}</h2>`}
+        ${action}
+      </section>
+      ${E.secret && !isOpen ? '' : `<h2>${E.name}: ${list.length - left.length} / ${list.length}</h2><div class="hgrid">${list.map(mini).join('')}</div>`}
+      ${dragons.length ? `<section class="den"><h2>🐉 Your dragons</h2>
+        <p class="muted">Dragons grow from your right answers. Grown-up dragons guard treasure: <b>+${MQ.DRAGON_TREASURE} 💎</b> each on every Daily Quest${treasure ? ` (now +${treasure} 💎)` : ''}.</p>
+        <div class="dgrid">${dragons.map((c) => `<button class="dcard r-${c.rarity}"${elStyle(c)} data-act="creature" data-arg="${c.id}"><span class="dpic">${MQ.look(st, c)}</span><b>${esc(st.dragons[c.id].name)}${st.buddy === c.id ? ' ⭐' : ''}</b><small>${c.name}</small>${dragonGrowth(c)}</button>`).join('')}</div></section>` : ''}
+    </main>`);
+    if (!h) later(growCheck, 700);
+  }
+  // Legendary and Dragon eggs: a dark full-screen scene. Stages: egg (tapping) → burst (flash) → fly (dragons) → open.
+  function hatchScene() {
+    const h = ui.hatch, E = MQ.eggById(h.tier), c = MQ.creatureById(h.id), glow = glowOf(h);
+    let inner;
+    if (h.stage === 'egg') {
+      inner = `<p class="hs-title">${E.icon} ${E.name}</p>
+        <button class="egg big crack${Math.min(3, Math.floor((h.taps / E.taps) * 3))}" data-act="tapEgg" aria-label="Tap the egg">${MQ.eggArt(E.id, { crack: h.taps / E.taps, glow: h.taps ? glow : undefined })}</button>
+        <p class="hs-hint">Tap the egg! <b>${E.taps - h.taps}</b> more</p>`;
+    } else if (h.stage === 'burst') {
+      inner = `<div class="egg big burst">${MQ.eggArt(E.id, { crack: 1, glow })}</div><div class="flash"></div>`;
+    } else if (h.stage === 'fly') {
+      inner = `<div class="flyer">${MQ.art(c.id, { stage: 0, fly: true })}</div><div class="dbanner">${E.id === 'royal' ? 'ROYAL DRAGON!' : 'DRAGON!'}</div>`;
+    } else {
+      const d = st.dragons[c.id];
+      inner = `${creatureCard(c, true)}
+        ${d ? `<div class="nameit" data-id="${c.id}"><label for="dname">Give your dragon a name</label>
+          <div class="chips">${c.names.map((n) => `<button class="chip ${d.name === n ? 'sel' : ''}" data-act="dragonPick" data-arg="${esc(n)}">${esc(n)}</button>`).join('')}</div>
+          <input id="dname" class="field" maxlength="14" autocomplete="off" value="${esc(d.name)}"></div>` : ''}
+        <button class="btn big" data-act="hatchDone">${d ? 'That’s my dragon! 🐉' : 'Hooray! ✨'}</button>`;
+    }
+    render(header('Hatchery') + `<main class="hatch"><div class="hscene t-${E.id} s-${h.stage} ${h.stage === 'egg' && !h.taps ? 'in' : ''}" style="--glow:${glow}${c.dragon ? ';--el:' + MQ.DRAGON_LOOK[c.id].el : ''}"><div class="hs-rays"></div><div class="hs-in">${inner}</div></div></main>`);
+  }
+  function buyEgg(id) {
+    const E = MQ.eggById(id);
+    if (!E || !eggOpen(E) || (ui.hatch && ui.hatch.stage !== 'open')) return;
+    const left = eggLeft(E);
+    if (!left.length || st.crystals < E.price) return;
     const weight = { common: 4, rare: 2, mythic: 1 };
     const bag = left.flatMap((c) => Array(weight[c.rarity] || 2).fill(c));
     const c = U.pick(bag);
-    st.crystals -= MQ.EGG_PRICE;
+    st.crystals -= E.price;
     st.creatures[c.id] = { got: U.dateKey(), from: 'egg' }; // saved now, revealed after tapping
+    if (c.dragon) st.dragons[c.id] = { name: U.pick(c.names), at: st.stats.correct || 0, seen: 0 };
     st.eggsHatched++;
     S.save();
-    ui.hatch = { stage: 'egg', taps: 0, id: c.id };
-    MQ.sfx('tap');
+    ui.eggTab = E.id;
+    ui.hatch = { stage: 'egg', taps: 0, id: c.id, tier: E.id };
+    MQ.sfx(BIG.has(E.id) ? 'rumble' : 'tap');
     hatch();
   }
   function tapEgg() {
     const h = ui.hatch;
     if (!h || h.stage !== 'egg') return;
+    const E = MQ.eggById(h.tier), c = MQ.creatureById(h.id);
     h.taps++;
-    if (h.taps < 3) { MQ.sfx('crack'); return hatch(); }
-    h.stage = 'open';
-    MQ.sfx('hatch');
-    MQ.confetti(160);
+    if (h.taps < E.taps) {
+      MQ.sfx(c.dragon ? 'rumble' : 'crack');
+      if (E.id === 'crystal' || E.id === 'legend') MQ.sfx('chime');
+      return hatch();
+    }
+    const say = (t) => st.settings.voice !== false && MQ.speak(t);
+    if (!BIG.has(E.id)) { // Meadow and Crystal eggs open right in the nest
+      h.stage = 'open';
+      MQ.sfx(E.id === 'crystal' ? 'shimmer' : 'hatch');
+      MQ.confetti(E.id === 'crystal' ? 200 : 160, PARTS[E.id]);
+      hatch();
+      say(`You hatched the ${c.name}!`);
+      return later(checkBadges, 1500);
+    }
+    h.stage = 'burst';
+    MQ.sfx(c.dragon ? 'roar' : 'fanfare');
     hatch();
-    later(checkBadges, 1500);
+    later(() => {
+      MQ.confetti(c.dragon ? 260 : 220, c.dragon ? dragonParts(c.id) : PARTS.legend);
+      if (!c.dragon) { h.stage = 'open'; hatch(); say(`Legendary! You hatched the ${c.name}!`); return later(checkBadges, 1500); }
+      h.stage = 'fly';
+      MQ.sfx('whoosh');
+      hatch();
+      later(() => {
+        h.stage = 'open';
+        MQ.sfx('hatch');
+        MQ.confetti(160, dragonParts(c.id));
+        hatch();
+        say(`A dragon! You hatched the ${c.name}! Give your dragon a name.`);
+        later(checkBadges, 1500);
+      }, 2300);
+    }, 1100);
+  }
+  const cleanName = (v, c) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, 14) || (st.dragons[c.id] || {}).name || c.names[0];
+  function saveDragonName(id) {
+    const c = MQ.creatureById(id), inp = $('#dname');
+    if (!c || !st.dragons[id] || !inp) return;
+    st.dragons[id].name = cleanName(inp.value, c);
+    S.save();
+  }
+  // A dragon grew since it was last celebrated: show it, one dragon at a time.
+  function growCheck() {
+    if (S.preview || $('#modal') || !st) return;
+    for (const [id, d] of Object.entries(st.dragons || {})) {
+      const c = MQ.creatureById(id), s = c && st.creatures[id] ? MQ.dragonStage(st, id) : 0;
+      if (s <= (d.seen || 0)) continue;
+      d.seen = s;
+      S.save();
+      const stage = MQ.DRAGON_STAGES[s].name;
+      modal(`<div class="grow r-${c.rarity}"${elStyle(c)}><div class="cart">${fxBack(c)}${MQ.art(id, { stage: s })}</div>
+        <div class="mtitle">${esc(d.name)} grew up!</div>
+        <p>${esc(d.name)} the ${c.name} is now ${s === 3 ? 'an' : 'a'} <b>${stage} dragon</b>. ${s === 2 ? `Grown-up dragons guard treasure: <b>+${MQ.DRAGON_TREASURE} 💎</b> on every Daily Quest!` : s === 3 ? 'Look at that crown! 👑' : 'Keep solving problems to help it grow.'}</p>
+        <div class="row"><button class="btn" data-act="closeModal">Hooray! 🎉</button></div></div>`);
+      MQ.sfx('reward');
+      MQ.confetti(160, dragonParts(id));
+      if (st.settings.voice !== false) MQ.speak(`${d.name} grew up! Now it is ${s === 3 ? 'an' : 'a'} ${stage} dragon!`);
+      later(checkBadges, 1200);
+      return;
+    }
+  }
+  // A creature from the collection: its card, choose it as the buddy, and rename a dragon.
+  function creatureModal(id) {
+    const c = MQ.creatureById(id);
+    if (!c) return;
+    const d = c.dragon && st.dragons[id], mine = st.buddy === id;
+    modal(creatureCard(c) + (d ? `<div class="nameit" data-id="${id}"><label for="dname">Name</label><div class="row tight"><input id="dname" class="field" maxlength="14" autocomplete="off" value="${esc(d.name)}"><button class="btn ghost" data-act="dragonRename">Save</button></div></div>` : '') +
+      `<div class="row">${mine
+        ? `<button class="btn ghost" data-act="setBuddy" data-arg="">Back to ${st.companion} ${esc(st.buddyName)}</button>`
+        : `<button class="btn ghost" data-act="setBuddy" data-arg="${id}">⭐ Make ${d ? esc(d.name) : 'it'} my buddy</button>`}<button class="btn" data-act="closeModal">Close</button></div>
+      ${mine ? '<p class="muted">⭐ This is your expedition buddy.</p>' : ''}`);
   }
   function badges() {
     render(header('Badges') + `<main class="badges"><div class="bgrid">${MQ.BADGES.map((b) => `<div class="badge ${st.badges[b.id] ? 'got' : ''}"><span class="bi">${b.icon}</span><b>${b.name}</b><small>${b.desc}</small></div>`).join('')}</div></main>`);
@@ -1781,7 +1962,7 @@
     }).join('');
     const mist = st.mistakes.slice(0, 12).map((m) => `<li><span class="mt">${MQ.TOPICS[m.topic] ? MQ.TOPICS[m.topic].icon : ''} ${esc(m.text)}</span><span class="ma">answered <b>${esc(m.given)}</b>, correct <b>${esc(m.answer)}</b></span></li>`).join('');
     const kids = S.profiles().map((p) => `<li class="kid">
-        <span class="kav">${p.companion}</span><span class="kname"><b>${esc(p.name)}</b><small>Level ${MQ.levelFromXp(p.xp).level} · ${p.stats.correct} solved${p.lastPlayed ? ' · last played ' + p.lastPlayed : ''}</small></span>
+        <span class="kav">${MQ.face(p)}</span><span class="kname"><b>${esc(p.name)}</b><small>Level ${MQ.levelFromXp(p.xp).level} · ${p.stats.correct} solved${p.lastPlayed ? ' · last played ' + p.lastPlayed : ''}</small></span>
         <span class="kgrade">${Object.keys(MQ.TRACKS).map((g) => `<button class="chip ${p.grade === g ? 'sel' : ''}" data-act="setGrade" data-arg="${p.id}:${g}">${MQ.track(g).label}</button>`).join('')}</span>
         <button class="linkbtn" data-act="delProfile" data-arg="${p.id}">${ui.delArmed === p.id ? 'Tap again to delete' : 'Delete'}</button></li>`).join('');
     render(header('For grown-ups') + `<main class="parent">
@@ -2055,9 +2236,31 @@
     setDiff: (a) => { st.trainer.diff = a === 'auto' ? 'auto' : +a; S.save(); trainer(); },
     setMode: (a) => { st.trainer.mode = a; S.save(); trainer(); },
     startTrainer: () => startTrainer(),
-    creature: (a) => { const c = MQ.creatureById(a); modal(creatureCard(c) + '<div class="row"><button class="btn" data-act="closeModal">Close</button></div>'); },
-    buyEgg: () => buyEgg(),
+    creature: (a) => creatureModal(a),
+    eggTab: (a) => { ui.eggTab = a; ui.hatch = null; hatch(); },
+    buyEgg: (a) => buyEgg(a),
     tapEgg: () => tapEgg(),
+    dragonPick: (a, el) => {
+      const inp = $('#dname');
+      if (!inp) return;
+      inp.value = a;
+      el.parentNode.querySelectorAll('.chip').forEach((x) => x.classList.toggle('sel', x === el));
+      saveDragonName(el.closest('[data-id]').dataset.id);
+      MQ.sfx('tap');
+    },
+    hatchDone: () => {
+      if (ui.hatch && st.dragons[ui.hatch.id]) saveDragonName(ui.hatch.id);
+      ui.hatch = null;
+      hatch();
+    },
+    dragonRename: (a, el) => { const id = el.closest('[data-id]').dataset.id; saveDragonName(id); toast('Saved'); creatureModal(id); },
+    setBuddy: (a) => {
+      st.buddy = a && st.creatures[a] ? a : '';
+      S.save();
+      closeModal();
+      toast(st.buddy ? `⭐ ${esc(bname())} is your buddy now!` : `${st.companion} ${esc(st.buddyName)} is back!`, 'gold');
+      if (cur === 'journal') journal(); else if (!ui.hatch) hatch();
+    },
     gate: () => {
       const v = Number($('#gate-in').value);
       if (v === ui.gate.a * ui.gate.b) parent();

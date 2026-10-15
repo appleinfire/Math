@@ -26,6 +26,8 @@
     creatures: {}, // id: { got, from }
     badges: {}, // id: date
     eggsHatched: 0,
+    dragons: {}, // id: { name, at, seen } — a hatched dragon's name, right answers when it hatched, growth stage already celebrated
+    buddy: '', // a creature chosen as the expedition buddy ('' = the companion picked at the start)
     stats: { attempts: 0, correct: 0, bestStreak: 0, topics: {}, d5: 0, lightning60: 0, lightning120: 0, endlessBest: 0, fixed: 0 },
     daily: { last: '', streak: 0, best: 0 },
     days: {}, // 'YYYY-MM-DD': { a, c } — answers and first-try right answers, kept for two years
@@ -230,6 +232,12 @@
     const max = (x, y) => Math.max(x || 0, y || 0);
     out.xp = max(nw.xp, old.xp);
     out.eggsHatched = max(nw.eggsHatched, old.eggsHatched);
+    // dragons: hatched on either device; the newer copy names them, growth counts from the earliest hatch
+    out.dragons = Object.assign({}, old.dragons || {});
+    for (const [id, v] of Object.entries(nw.dragons || {})) {
+      const o = out.dragons[id];
+      out.dragons[id] = o ? Object.assign({}, v, { at: Math.min(v.at || 0, o.at || 0), seen: max(v.seen, o.seen) }) : v;
+    }
     for (const k of ['attempts', 'correct', 'bestStreak', 'd5', 'lightning60', 'lightning120', 'endlessBest', 'fixed']) out.stats[k] = max(nw.stats[k], old.stats[k]);
     for (const [t, v] of Object.entries(old.stats.topics || {})) if (!out.stats.topics[t] || out.stats.topics[t].a < v.a) out.stats.topics[t] = v;
     out.days = Object.assign({}, old.days);
