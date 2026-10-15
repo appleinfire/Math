@@ -336,9 +336,10 @@
     miss: 0,
     customers: 0,
     t: 0, // when the farm last changed (for merging copies from two devices)
-    stats: { sold: 0, earned: 0, spent: 0, tasks: 0, right: 0, vip: 0, jobs: 0, made: 0, interest: 0, bankDays: 0, saved: 0, tookOut: 0 }, // saved / tookOut: all money ever put in / taken out of the bank
+    stats: { sold: 0, earned: 0, spent: 0, tasks: 0, right: 0, vip: 0, jobs: 0, made: 0, interest: 0, bankDays: 0, saved: 0, tookOut: 0, built: 0, dreamIn: 0 }, // saved / tookOut: all money ever put in / taken out of the bank; built: paid to builders from the bank; dreamIn: what the buildings earned
     works: {}, // workshop id: { r: recipe index or null, g: nights, ready: items, out: item }
     bank: { bal: 0, acct: 0, log: [], pend: [] }, // see the bank below: bank day is every 7th farm day
+    dream: { p: 0, s: 0, b: false, seen: false }, // Big Dreams: project p, stages built s, builders at work tonight b
   });
   F.START_MONEY = [5, 30];
   F.ensure = (st) => {
@@ -355,6 +356,8 @@
     for (const k of ['made', 'interest', 'bankDays']) if (!fm.stats[k]) fm.stats[k] = 0;
     // totals saved and taken out came later: what is in the bank and is not interest was saved
     if (fm.stats.saved == null) { fm.stats.saved = Math.max(0, fm.bank.bal - fm.stats.interest); fm.stats.tookOut = 0; }
+    if (!fm.dream) fm.dream = { p: 0, s: 0, b: false, seen: false }; // Big Dreams came later
+    for (const k of ['built', 'dreamIn']) if (!fm.stats[k]) fm.stats[k] = 0;
     return fm;
   };
 
@@ -466,6 +469,7 @@
       fm.pens.forEach((p, i) => { news.helper.collected += F.collect(fm, i); });
       if (F.level(fm.xp).level >= F.HELPER.picksLv) fm.beds.forEach((b, i) => { news.helper.picked += F.harvest(fm, i); });
     }
+    news.built = F.buildOvernight(fm);
     fm.day++;
     news.bankDay = fm.bank ? F.bankMorning(fm, grade) : false; // the morning of bank day: what is saved earns interest
     return news;
@@ -627,35 +631,134 @@
     return true;
   };
   // Called each morning (from F.nextDay): on bank day, note what is in the bank, counting interest still waiting.
+  // The Big Dreams' buildings earn money that day too (inc: [[icon, name, amount], …]); it goes into the bank after
+  // the interest.
   F.bankMorning = (fm, grade) => {
     if (!F.isBankDay(fm.day) || fm.bank.pend.length >= F.BANK_MISSED) return false; // at most 4 bank days wait
     // what will be in the bank once the bank days still waiting are paid (each earns on the one before)
     let bal = fm.bank.bal;
-    for (const x of fm.bank.pend) bal += F.interest(bal, grade, fm.bank.acct);
-    if (!bal) return false;
-    fm.bank.pend.push({ day: fm.day, bal });
+    for (const x of fm.bank.pend) { if (!x.paid) bal += F.interest(bal, grade, fm.bank.acct); bal += F.incomeOf(x); }
+    const inc = F.dreamIncome(fm, grade);
+    if (!bal && !inc.length) return false;
+    fm.bank.pend.push(inc.length ? { day: fm.day, bal, inc } : { day: fm.day, bal });
     return true;
   };
   F.bankDue = (fm) => fm.bank.pend.length;
-  // Pay the oldest bank day waiting. Returns { day, bal, x }.
+  F.incomeOf = (p) => U.sum((p.inc || []).map((x) => x[2]));
+  // Pay the interest of the oldest bank day waiting. Returns { day, bal, x }. A bank day with buildings' income waits
+  // for F.payIncome after its interest (paid: true).
   F.payInterest = (fm, grade) => {
-    const p = fm.bank.pend.shift();
-    if (!p) return null;
+    const p = fm.bank.pend[0];
+    if (!p || p.paid) return null;
     const x = F.interest(p.bal, grade, fm.bank.acct);
     fm.bank.bal += x;
     fm.stats.interest += x;
     fm.stats.bankDays++;
     bankLog(fm, 'interest', x, p.day);
+    if (p.inc && p.inc.length) p.paid = true;
+    else fm.bank.pend.shift();
     return { day: p.day, bal: p.bal, x };
+  };
+  // What the buildings earned on that bank day goes into the bank. Returns { day, x, inc }.
+  F.payIncome = (fm) => {
+    const p = fm.bank.pend[0];
+    if (!p || !p.paid) return null;
+    fm.bank.pend.shift();
+    const x = F.incomeOf(p);
+    fm.bank.bal += x;
+    fm.stats.dreamIn += x;
+    bankLog(fm, 'dream', x, p.day);
+    return { day: p.day, x, inc: p.inc };
   };
   // All-time bank summary: what is in the bank now, split into the child's own money and interest
   // (interest counts as spent last, so taking money out uses up the child's own money first).
   F.bankSummary = (fm) => {
     const s = fm.stats, interest = Math.min(fm.bank.bal, s.interest);
-    return { saved: s.saved, tookOut: s.tookOut, interest: s.interest, days: s.bankDays, bal: fm.bank.bal, own: fm.bank.bal - interest, fromInterest: interest };
+    return { saved: s.saved, tookOut: s.tookOut, interest: s.interest, days: s.bankDays, bal: fm.bank.bal, own: fm.bank.bal - interest, fromInterest: interest, built: s.built || 0, dreamIn: s.dreamIn || 0 };
   };
   // How the savings would grow, bank week by bank week, without adding or taking out money.
   F.project = (bal, grade, weeks = 6, acct = 0) => { const out = [bal]; for (let i = 0; i < weeks; i++) out.push(out[i] + F.interest(out[i], grade, acct)); return out; };
+
+  // ---------------------------------------------------------------- Big Dreams
+  // Huge buildings to save up for, one after another: a fruit orchard, a guest cottage, a railway, a castle. Each is
+  // built in stages. A stage is paid from the bank (a bank transfer to the builders, never from the wallet), the
+  // builders work that night, and from then on the stage earns money every bank day (pay), straight into the bank.
+  // An earning stage pays for itself in about 8 bank weeks (it earns a bit more than the bank's big interest, with no
+  // limit, but the money is spent); after that it is all profit. The castle earns nothing:
+  // it is the dream. Prices [k, g2] fit what a farm makes at the level it is usually reached (see the farm tests).
+  F.DREAM_LV = F.BANK_LV;
+  F.DREAMS = [
+    { id: 'orchard', e: '🍎', name: 'Fruit Orchard', blurb: 'Plant fruit trees once, and sell fruit every bank week.', earns: 'fruit sales', stages: [
+      { e: '🍎', name: 'Apple trees', cost: [100, 2500], pay: [12, 300] },
+      { e: '🍐', name: 'Pear trees', cost: [150, 4000], pay: [18, 500] },
+      { e: '🍑', name: 'Peach trees', cost: [200, 6000], pay: [24, 700] },
+    ] },
+    { id: 'cottage', e: '🏡', name: 'Guest Cottage', blurb: 'Build a cozy cottage. Visitors stay there and pay rent every bank week.', earns: 'rent', stages: [
+      { e: '🧱', name: 'Stone floor', cost: [300, 8000], pay: [36, 1000] },
+      { e: '🪟', name: 'Walls and windows', cost: [400, 12000], pay: [48, 1400] },
+      { e: '🏠', name: 'Red roof', cost: [500, 16000], pay: [60, 1900] },
+      { e: '🌷', name: 'Flower garden', cost: [600, 24000], pay: [72, 2900] },
+    ] },
+    { id: 'railway', e: '🚂', name: 'Farm Railway', blurb: 'A little train around the farm. Visitors buy tickets every bank week.', earns: 'train tickets', stages: [
+      { e: '🛤️', name: 'Train tracks', cost: [800, 25000], pay: [96, 3000] },
+      { e: '🚉', name: 'Station', cost: [1000, 40000], pay: [120, 4800] },
+      { e: '🚂', name: 'Steam train', cost: [1200, 55000], pay: [144, 6600] },
+      { e: '🌉', name: 'Bridge over the river', cost: [1400, 80000], pay: [168, 9600] },
+    ] },
+    { id: 'castle', e: '🏰', name: 'Castle on the Hill', blurb: 'The biggest dream of all: your very own castle. It earns nothing. It is just amazing.', earns: '', castle: true, stages: [
+      { e: '🧱', name: 'Castle walls', cost: [1500, 80000], pay: [0, 0] },
+      { e: '🗼', name: 'Two towers', cost: [1800, 100000], pay: [0, 0] },
+      { e: '🚪', name: 'Gate and drawbridge', cost: [2100, 120000], pay: [0, 0] },
+      { e: '🚩', name: 'Royal flags', cost: [2400, 140000], pay: [0, 0] },
+      { e: '👑', name: 'Golden throne hall', cost: [2700, 160000], pay: [0, 0] },
+    ] },
+  ];
+  F.dreamOpen = (fm) => F.level(fm.xp).level >= F.DREAM_LV;
+  F.dreamDone = (fm) => fm.dream.p >= F.DREAMS.length; // every dream built
+  F.dreamNow = (fm) => (F.dreamDone(fm) ? null : F.DREAMS[fm.dream.p]); // the dream being built
+  // the next stage to pay for: { d, i, st, cost, pay } (null when every dream is built)
+  F.dreamNext = (fm, grade) => {
+    const d = F.dreamNow(fm);
+    if (!d) return null;
+    const st = d.stages[fm.dream.s];
+    return { d, i: fm.dream.s, st, cost: st.cost[gi(grade)], pay: st.pay[gi(grade)] };
+  };
+  // how many stages of dream number k are built
+  F.dreamBuilt = (fm, k) => (k < fm.dream.p ? F.DREAMS[k].stages.length : k === fm.dream.p ? fm.dream.s : 0);
+  // What the buildings earn on a bank day, one line per dream: [[icon, name, amount], …]
+  F.dreamIncome = (fm, grade) => {
+    if (!fm.dream) return [];
+    const out = [];
+    F.DREAMS.forEach((d, k) => {
+      const n = F.dreamBuilt(fm, k), x = U.sum(d.stages.slice(0, n).map((st) => st.pay[gi(grade)]));
+      if (x) out.push([d.e, d.name, x]);
+    });
+    return out;
+  };
+  F.canBuild = (fm, grade) => { const n = F.dreamNext(fm, grade); return !!n && !fm.dream.b && F.dreamOpen(fm) && fm.bank.bal >= n.cost; };
+  // Pay the builders from the bank. They build the stage tonight. Returns the stage paid for (or null).
+  F.payBuilders = (fm, grade) => {
+    if (!F.canBuild(fm, grade)) return null;
+    const n = F.dreamNext(fm, grade);
+    fm.bank.bal -= n.cost;
+    fm.stats.built += n.cost;
+    fm.dream.b = true;
+    bankLog(fm, 'build', n.cost);
+    return n;
+  };
+  // Night: the builders finish the stage. Returns { d, i, st, done } (done: the whole dream is finished) or null.
+  F.buildOvernight = (fm) => {
+    const dr = fm.dream;
+    if (!dr || !dr.b) return null;
+    const d = F.DREAMS[dr.p], i = dr.s;
+    dr.b = false;
+    dr.s++;
+    const done = dr.s >= d.stages.length;
+    if (done) { dr.p++; dr.s = 0; }
+    return { d, i, st: d.stages[i], done };
+  };
+  // How many bank days until a stage has earned back its price.
+  F.payback = (cost, pay) => (pay ? Math.ceil(cost / pay) : 0);
 
   // ---------------------------------------------------------------- grown-up preview
   // The farm of a level-60 farmer, to look around in the grown-up preview (a copy of the profile; nothing is saved):
@@ -672,6 +775,7 @@
       helper: { hired: true, on: false },
       day: 14,
       bank: { bal: k ? 1234 : 12345, acct: 1, log: [], pend: [{ day: 14, bal: k ? 1234 : 12345 }] }, // above the Silver limit: both rates
+      dream: { p: 2, s: 2, b: false, seen: true }, // the orchard and the cottage built, the railway half done
     });
     Object.assign(fm.stats, k ? { saved: 1100, tookOut: 100, interest: 234, bankDays: 9 } : { saved: 11000, tookOut: 1000, interest: 2345, bankDays: 9 }); // adds up to the bank above
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;

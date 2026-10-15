@@ -1200,6 +1200,78 @@ svg.nn.design { width: 156px; }
 .fbbar li.want { background: #fff0c2; box-shadow: inset 0 0 0 2px #e0a21b; }
 .fbbar li.out { opacity: 0.55; background: #eef7ee; box-shadow: inset 0 0 0 2px #bfe0c4; }
 .fbbar li.out b { color: var(--good); }
+
+/* ================= Sunny Farm: Big Dreams ================= */
+svg.dart { display: block; width: 100%; height: auto; }
+.fdream { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; border: 0; text-align: left; border-radius: var(--r); padding: 8px 12px 8px 8px; background: linear-gradient(120deg, #f2fbe9, #e3f4ff); box-shadow: inset 0 0 0 3px #7cbf4a, 0 4px 0 #5d9a31; color: var(--ink); }
+.fdream-pic { flex: none; width: 96px; border-radius: 14px; overflow: hidden; background: linear-gradient(#bfe6ff, #e9f7ff); }
+.fdream-t { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.fdream-t b { font-family: var(--display); font-weight: 600; font-size: 1.05rem; }
+.fdream-t small { color: var(--ink-soft); font-weight: 800; }
+.fdream.hot { animation: dreamglow 1.6s ease-in-out infinite; }
+@keyframes dreamglow { 50% { box-shadow: inset 0 0 0 3px #ffb547, 0 4px 0 #e39a22, 0 0 22px rgba(255, 181, 71, 0.75); } }
+.fdream.t-cottage { background: linear-gradient(120deg, #fff4e3, #ffe6e0); box-shadow: inset 0 0 0 3px #e8574a, 0 4px 0 #b8382e; }
+.fdream.t-railway { background: linear-gradient(120deg, #e8f1ff, #fff1e6); box-shadow: inset 0 0 0 3px #4d8cff, 0 4px 0 #1f4fb0; }
+.fdream.t-castle, .dbig.t-castle, .dtab.t-castle.sel, .dbuilt.t-castle { background: radial-gradient(circle at 30% 20%, #fff6d1, #f1e4ff 55%, #e2d4ff); box-shadow: inset 0 0 0 3px #d9a21a, 0 4px 0 #8a5a08, 0 0 24px rgba(255, 196, 40, 0.55); }
+.fdream.t-castle .fdream-t b, .dbig.t-castle h2 { background: linear-gradient(90deg, #8a3fd1, #c97a00); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.fdreamjar { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 12px; border: 0; text-align: left; border-radius: var(--r); padding: 10px 14px; background: #f2fbe9; box-shadow: inset 0 0 0 2px #7cbf4a; color: var(--ink); font-size: 0.95rem; }
+.fdreamjar > span:first-child { font-size: 1.8rem; }
+.fdreamjar small { display: block; color: var(--ink-soft); font-weight: 800; }
+.blog b.dream { color: var(--good); }
+.blog b.build { color: #b8780a; }
+.dreamland { display: flex; justify-content: space-around; gap: 6px; padding: 4px 8px 0; background: linear-gradient(#a6dc7e, #8fd16a); }
+.dreamland .dl { flex: 0 1 132px; min-width: 0; border: 0; padding: 0; background: none; }
+.dreamland .dl.done.t-castle { filter: drop-shadow(0 0 8px rgba(255, 210, 63, 0.9)); }
+/* the Big Dreams screen */
+.fdreams .dpath { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 4px; }
+.dtab { display: flex; flex-direction: column; align-items: center; gap: 2px; border: 0; border-radius: 14px; padding: 6px 4px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); min-width: 0; color: var(--ink); }
+.dtab-pic { width: 100%; border-radius: 10px; overflow: hidden; background: linear-gradient(#bfe6ff, #e9f7ff); }
+.dtab b { font-size: 0.72rem; line-height: 1.1; text-align: center; }
+.dtab small { font-size: 0.68rem; color: var(--ink-soft); font-weight: 800; }
+.dtab.later .dtab-pic { filter: grayscale(0.9) opacity(0.5); }
+.dtab.sel { box-shadow: inset 0 0 0 3px #5d9a31, 0 3px 0 #5d9a31; background: #f2fbe9; }
+.dtab.done small { color: var(--good); }
+.dbig { margin-top: 14px; border-radius: 22px; padding: 10px 12px 14px; background: linear-gradient(160deg, #f2fbe9, #e3f4ff); box-shadow: inset 0 0 0 3px #7cbf4a, 0 5px 0 #5d9a31; text-align: center; }
+.dbig.t-cottage { background: linear-gradient(160deg, #fff4e3, #ffe6e0); box-shadow: inset 0 0 0 3px #e8574a, 0 5px 0 #b8382e; }
+.dbig.t-railway { background: linear-gradient(160deg, #e8f1ff, #fff1e6); box-shadow: inset 0 0 0 3px #4d8cff, 0 5px 0 #1f4fb0; }
+.dbig .dpic { max-width: 440px; margin: 0 auto; position: relative; border-radius: 16px; overflow: hidden; background: linear-gradient(#9fd8ff, #e3f5ff); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.7); }
+.dbig .dpic.later svg { filter: grayscale(0.85) opacity(0.55); }
+.dbig.t-castle .dpic { background: radial-gradient(circle at 50% 30%, #fff6c4, #c9b8ff 70%, #9d7bff); }
+.dbig.done .dpic::after, .dbuilt.done .dpic::after { content: '✨'; position: absolute; top: 6px; right: 10px; font-size: 1.6rem; animation: floaty 2.5s ease-in-out infinite; }
+.dbig h2 { margin: 10px 0 2px; }
+.dstages { list-style: none; margin: 10px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.dstages li { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.75); box-shadow: inset 0 0 0 2px rgba(34, 48, 79, 0.08); }
+.dst-e { font-size: 1.5rem; width: 1.8rem; text-align: center; }
+.dst-t { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.dst-t small { color: var(--ink-soft); font-weight: 700; }
+.dst-p { font-weight: 900; font-variant-numeric: tabular-nums; }
+.dstages li.built { background: #e6f5ea; }
+.dstages li.built .dst-p { color: var(--good); }
+.dstages li.next { box-shadow: inset 0 0 0 3px var(--sun); background: #fff8e6; }
+.dstages li.work { box-shadow: inset 0 0 0 3px #f5b521; background: #fff3cf; }
+.dstages li.later { opacity: 0.6; }
+.dbig.t-castle .dstages li.next { box-shadow: inset 0 0 0 3px #d9a21a, 0 0 12px rgba(255, 196, 40, 0.6); }
+.dnote { margin: 6px 0 0; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.8); font-weight: 800; }
+.dnote.work { background: #fff3cf; }
+.dnote.ok { background: #e6f5ea; color: #1f4f33; }
+.dsave { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.dsave .fbar { width: 100%; }
+.dsave p { margin: 2px 0; }
+.dbuild { width: 100%; background: linear-gradient(90deg, #ff9f2e, #ff6b5b); animation: dreamglow 1.6s ease-in-out infinite; }
+.dlesson { margin-top: 14px; padding: 12px 14px; border-radius: var(--r); background: #fffaf0; box-shadow: inset 0 0 0 2px #f0c35a; }
+.dlesson p { margin: 6px 0 0; }
+.dlesson.castle { background: #f6efff; box-shadow: inset 0 0 0 2px #b48cf2; }
+.dincome ul { list-style: none; padding: 0; margin: 6px 0; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+/* the morning after the builders worked (special: rays, and gold for a finished dream) */
+.dbuilt { position: relative; overflow: hidden; margin: -4px 0 8px; padding: 10px; border-radius: 18px; background: linear-gradient(160deg, #f2fbe9, #e3f4ff); box-shadow: inset 0 0 0 3px #7cbf4a; }
+.dbuilt-rays { position: absolute; left: 50%; top: 38%; width: 520px; height: 520px; margin: -260px 0 0 -260px; opacity: 0.35; background: repeating-conic-gradient(#ffe066 0 8deg, transparent 8deg 16deg); -webkit-mask: radial-gradient(circle, #000 15%, transparent 60%); mask: radial-gradient(circle, #000 15%, transparent 60%); animation: hspin 22s linear infinite; pointer-events: none; }
+.dbuilt .dpic { max-width: 360px; margin: 0 auto; position: relative; border-radius: 14px; overflow: hidden; background: linear-gradient(#9fd8ff, #e3f5ff); animation: pop 0.6s; }
+.dbuilt-t { position: relative; margin-top: 8px; font-size: 1.1rem; }
+.dbuilt p { position: relative; margin: 6px 0 0; }
+.dbuilt.done { background: radial-gradient(circle at 50% 30%, #fffbe6, #ffe39a); box-shadow: inset 0 0 0 4px #e3a21a, 0 0 26px rgba(255, 196, 40, 0.7); }
+.dbuilt.done .dbuilt-rays { opacity: 0.6; }
+.dbuilt.t-castle .dpic { background: radial-gradient(circle at 50% 30%, #fff6c4, #c9b8ff 70%, #9d7bff); }
+@media (prefers-reduced-motion: reduce) { .fdream.hot, .dbuild { animation: none; } }
 </style>
 <div id="app"><p style="padding:40px;text-align:center">Loading Math Expedition…</p></div>
   <script>
@@ -5056,6 +5128,9 @@ svg.nn.design { width: 156px; }
     { id: 'banker', icon: '🏦', name: 'Smart Saver', desc: 'Collect interest from the farm bank 4 times', test: (s) => !!s.farm && (s.farm.stats.bankDays || 0) >= 4 },
     { id: 'farm60', icon: '🦄', name: 'Farm Legend', desc: 'Reach farm level 60', test: (s) => !!s.farm && MQ.farm.level(s.farm.xp).level >= 60 },
     { id: 'vip10', icon: '⭐', name: 'Challenge Champ', desc: 'Help 10 ⭐ challenge customers right on the first try', test: (s) => !!s.farm && s.farm.stats.vip >= 10 },
+    { id: 'dream1', icon: '🏗️', name: 'Dreamer', desc: 'Build the first part of a Big Dream on your farm', test: (s) => !!s.farm && !!s.farm.dream && (s.farm.dream.p > 0 || s.farm.dream.s > 0) },
+    { id: 'investor', icon: '🍎', name: 'Investor', desc: 'Finish the Fruit Orchard: it earns money every bank day', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 1 },
+    { id: 'castle', icon: '🏰', name: 'Castle Builder', desc: 'Build the Castle on the Hill', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 4 },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];
 
@@ -6364,9 +6439,10 @@ svg.nn.design { width: 156px; }
     miss: 0,
     customers: 0,
     t: 0, // when the farm last changed (for merging copies from two devices)
-    stats: { sold: 0, earned: 0, spent: 0, tasks: 0, right: 0, vip: 0, jobs: 0, made: 0, interest: 0, bankDays: 0, saved: 0, tookOut: 0 }, // saved / tookOut: all money ever put in / taken out of the bank
+    stats: { sold: 0, earned: 0, spent: 0, tasks: 0, right: 0, vip: 0, jobs: 0, made: 0, interest: 0, bankDays: 0, saved: 0, tookOut: 0, built: 0, dreamIn: 0 }, // saved / tookOut: all money ever put in / taken out of the bank; built: paid to builders from the bank; dreamIn: what the buildings earned
     works: {}, // workshop id: { r: recipe index or null, g: nights, ready: items, out: item }
     bank: { bal: 0, acct: 0, log: [], pend: [] }, // see the bank below: bank day is every 7th farm day
+    dream: { p: 0, s: 0, b: false, seen: false }, // Big Dreams: project p, stages built s, builders at work tonight b
   });
   F.START_MONEY = [5, 30];
   F.ensure = (st) => {
@@ -6383,6 +6459,8 @@ svg.nn.design { width: 156px; }
     for (const k of ['made', 'interest', 'bankDays']) if (!fm.stats[k]) fm.stats[k] = 0;
     // totals saved and taken out came later: what is in the bank and is not interest was saved
     if (fm.stats.saved == null) { fm.stats.saved = Math.max(0, fm.bank.bal - fm.stats.interest); fm.stats.tookOut = 0; }
+    if (!fm.dream) fm.dream = { p: 0, s: 0, b: false, seen: false }; // Big Dreams came later
+    for (const k of ['built', 'dreamIn']) if (!fm.stats[k]) fm.stats[k] = 0;
     return fm;
   };
 
@@ -6494,6 +6572,7 @@ svg.nn.design { width: 156px; }
       fm.pens.forEach((p, i) => { news.helper.collected += F.collect(fm, i); });
       if (F.level(fm.xp).level >= F.HELPER.picksLv) fm.beds.forEach((b, i) => { news.helper.picked += F.harvest(fm, i); });
     }
+    news.built = F.buildOvernight(fm);
     fm.day++;
     news.bankDay = fm.bank ? F.bankMorning(fm, grade) : false; // the morning of bank day: what is saved earns interest
     return news;
@@ -6655,35 +6734,134 @@ svg.nn.design { width: 156px; }
     return true;
   };
   // Called each morning (from F.nextDay): on bank day, note what is in the bank, counting interest still waiting.
+  // The Big Dreams' buildings earn money that day too (inc: [[icon, name, amount], …]); it goes into the bank after
+  // the interest.
   F.bankMorning = (fm, grade) => {
     if (!F.isBankDay(fm.day) || fm.bank.pend.length >= F.BANK_MISSED) return false; // at most 4 bank days wait
     // what will be in the bank once the bank days still waiting are paid (each earns on the one before)
     let bal = fm.bank.bal;
-    for (const x of fm.bank.pend) bal += F.interest(bal, grade, fm.bank.acct);
-    if (!bal) return false;
-    fm.bank.pend.push({ day: fm.day, bal });
+    for (const x of fm.bank.pend) { if (!x.paid) bal += F.interest(bal, grade, fm.bank.acct); bal += F.incomeOf(x); }
+    const inc = F.dreamIncome(fm, grade);
+    if (!bal && !inc.length) return false;
+    fm.bank.pend.push(inc.length ? { day: fm.day, bal, inc } : { day: fm.day, bal });
     return true;
   };
   F.bankDue = (fm) => fm.bank.pend.length;
-  // Pay the oldest bank day waiting. Returns { day, bal, x }.
+  F.incomeOf = (p) => U.sum((p.inc || []).map((x) => x[2]));
+  // Pay the interest of the oldest bank day waiting. Returns { day, bal, x }. A bank day with buildings' income waits
+  // for F.payIncome after its interest (paid: true).
   F.payInterest = (fm, grade) => {
-    const p = fm.bank.pend.shift();
-    if (!p) return null;
+    const p = fm.bank.pend[0];
+    if (!p || p.paid) return null;
     const x = F.interest(p.bal, grade, fm.bank.acct);
     fm.bank.bal += x;
     fm.stats.interest += x;
     fm.stats.bankDays++;
     bankLog(fm, 'interest', x, p.day);
+    if (p.inc && p.inc.length) p.paid = true;
+    else fm.bank.pend.shift();
     return { day: p.day, bal: p.bal, x };
+  };
+  // What the buildings earned on that bank day goes into the bank. Returns { day, x, inc }.
+  F.payIncome = (fm) => {
+    const p = fm.bank.pend[0];
+    if (!p || !p.paid) return null;
+    fm.bank.pend.shift();
+    const x = F.incomeOf(p);
+    fm.bank.bal += x;
+    fm.stats.dreamIn += x;
+    bankLog(fm, 'dream', x, p.day);
+    return { day: p.day, x, inc: p.inc };
   };
   // All-time bank summary: what is in the bank now, split into the child's own money and interest
   // (interest counts as spent last, so taking money out uses up the child's own money first).
   F.bankSummary = (fm) => {
     const s = fm.stats, interest = Math.min(fm.bank.bal, s.interest);
-    return { saved: s.saved, tookOut: s.tookOut, interest: s.interest, days: s.bankDays, bal: fm.bank.bal, own: fm.bank.bal - interest, fromInterest: interest };
+    return { saved: s.saved, tookOut: s.tookOut, interest: s.interest, days: s.bankDays, bal: fm.bank.bal, own: fm.bank.bal - interest, fromInterest: interest, built: s.built || 0, dreamIn: s.dreamIn || 0 };
   };
   // How the savings would grow, bank week by bank week, without adding or taking out money.
   F.project = (bal, grade, weeks = 6, acct = 0) => { const out = [bal]; for (let i = 0; i < weeks; i++) out.push(out[i] + F.interest(out[i], grade, acct)); return out; };
+
+  // ---------------------------------------------------------------- Big Dreams
+  // Huge buildings to save up for, one after another: a fruit orchard, a guest cottage, a railway, a castle. Each is
+  // built in stages. A stage is paid from the bank (a bank transfer to the builders, never from the wallet), the
+  // builders work that night, and from then on the stage earns money every bank day (pay), straight into the bank.
+  // An earning stage pays for itself in about 8 bank weeks (it earns a bit more than the bank's big interest, with no
+  // limit, but the money is spent); after that it is all profit. The castle earns nothing:
+  // it is the dream. Prices [k, g2] fit what a farm makes at the level it is usually reached (see the farm tests).
+  F.DREAM_LV = F.BANK_LV;
+  F.DREAMS = [
+    { id: 'orchard', e: '🍎', name: 'Fruit Orchard', blurb: 'Plant fruit trees once, and sell fruit every bank week.', earns: 'fruit sales', stages: [
+      { e: '🍎', name: 'Apple trees', cost: [100, 2500], pay: [12, 300] },
+      { e: '🍐', name: 'Pear trees', cost: [150, 4000], pay: [18, 500] },
+      { e: '🍑', name: 'Peach trees', cost: [200, 6000], pay: [24, 700] },
+    ] },
+    { id: 'cottage', e: '🏡', name: 'Guest Cottage', blurb: 'Build a cozy cottage. Visitors stay there and pay rent every bank week.', earns: 'rent', stages: [
+      { e: '🧱', name: 'Stone floor', cost: [300, 8000], pay: [36, 1000] },
+      { e: '🪟', name: 'Walls and windows', cost: [400, 12000], pay: [48, 1400] },
+      { e: '🏠', name: 'Red roof', cost: [500, 16000], pay: [60, 1900] },
+      { e: '🌷', name: 'Flower garden', cost: [600, 24000], pay: [72, 2900] },
+    ] },
+    { id: 'railway', e: '🚂', name: 'Farm Railway', blurb: 'A little train around the farm. Visitors buy tickets every bank week.', earns: 'train tickets', stages: [
+      { e: '🛤️', name: 'Train tracks', cost: [800, 25000], pay: [96, 3000] },
+      { e: '🚉', name: 'Station', cost: [1000, 40000], pay: [120, 4800] },
+      { e: '🚂', name: 'Steam train', cost: [1200, 55000], pay: [144, 6600] },
+      { e: '🌉', name: 'Bridge over the river', cost: [1400, 80000], pay: [168, 9600] },
+    ] },
+    { id: 'castle', e: '🏰', name: 'Castle on the Hill', blurb: 'The biggest dream of all: your very own castle. It earns nothing. It is just amazing.', earns: '', castle: true, stages: [
+      { e: '🧱', name: 'Castle walls', cost: [1500, 80000], pay: [0, 0] },
+      { e: '🗼', name: 'Two towers', cost: [1800, 100000], pay: [0, 0] },
+      { e: '🚪', name: 'Gate and drawbridge', cost: [2100, 120000], pay: [0, 0] },
+      { e: '🚩', name: 'Royal flags', cost: [2400, 140000], pay: [0, 0] },
+      { e: '👑', name: 'Golden throne hall', cost: [2700, 160000], pay: [0, 0] },
+    ] },
+  ];
+  F.dreamOpen = (fm) => F.level(fm.xp).level >= F.DREAM_LV;
+  F.dreamDone = (fm) => fm.dream.p >= F.DREAMS.length; // every dream built
+  F.dreamNow = (fm) => (F.dreamDone(fm) ? null : F.DREAMS[fm.dream.p]); // the dream being built
+  // the next stage to pay for: { d, i, st, cost, pay } (null when every dream is built)
+  F.dreamNext = (fm, grade) => {
+    const d = F.dreamNow(fm);
+    if (!d) return null;
+    const st = d.stages[fm.dream.s];
+    return { d, i: fm.dream.s, st, cost: st.cost[gi(grade)], pay: st.pay[gi(grade)] };
+  };
+  // how many stages of dream number k are built
+  F.dreamBuilt = (fm, k) => (k < fm.dream.p ? F.DREAMS[k].stages.length : k === fm.dream.p ? fm.dream.s : 0);
+  // What the buildings earn on a bank day, one line per dream: [[icon, name, amount], …]
+  F.dreamIncome = (fm, grade) => {
+    if (!fm.dream) return [];
+    const out = [];
+    F.DREAMS.forEach((d, k) => {
+      const n = F.dreamBuilt(fm, k), x = U.sum(d.stages.slice(0, n).map((st) => st.pay[gi(grade)]));
+      if (x) out.push([d.e, d.name, x]);
+    });
+    return out;
+  };
+  F.canBuild = (fm, grade) => { const n = F.dreamNext(fm, grade); return !!n && !fm.dream.b && F.dreamOpen(fm) && fm.bank.bal >= n.cost; };
+  // Pay the builders from the bank. They build the stage tonight. Returns the stage paid for (or null).
+  F.payBuilders = (fm, grade) => {
+    if (!F.canBuild(fm, grade)) return null;
+    const n = F.dreamNext(fm, grade);
+    fm.bank.bal -= n.cost;
+    fm.stats.built += n.cost;
+    fm.dream.b = true;
+    bankLog(fm, 'build', n.cost);
+    return n;
+  };
+  // Night: the builders finish the stage. Returns { d, i, st, done } (done: the whole dream is finished) or null.
+  F.buildOvernight = (fm) => {
+    const dr = fm.dream;
+    if (!dr || !dr.b) return null;
+    const d = F.DREAMS[dr.p], i = dr.s;
+    dr.b = false;
+    dr.s++;
+    const done = dr.s >= d.stages.length;
+    if (done) { dr.p++; dr.s = 0; }
+    return { d, i, st: d.stages[i], done };
+  };
+  // How many bank days until a stage has earned back its price.
+  F.payback = (cost, pay) => (pay ? Math.ceil(cost / pay) : 0);
 
   // ---------------------------------------------------------------- grown-up preview
   // The farm of a level-60 farmer, to look around in the grown-up preview (a copy of the profile; nothing is saved):
@@ -6700,6 +6878,7 @@ svg.nn.design { width: 156px; }
       helper: { hired: true, on: false },
       day: 14,
       bank: { bal: k ? 1234 : 12345, acct: 1, log: [], pend: [{ day: 14, bal: k ? 1234 : 12345 }] }, // above the Silver limit: both rates
+      dream: { p: 2, s: 2, b: false, seen: true }, // the orchard and the cottage built, the railway half done
     });
     Object.assign(fm.stats, k ? { saved: 1100, tookOut: 100, interest: 234, bankDays: 9 } : { saved: 11000, tookOut: 1000, interest: 2345, bankDays: 9 }); // adds up to the bank above
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
@@ -7561,6 +7740,156 @@ svg.nn.design { width: 156px; }
 })();
 </script>
   <script>
+// Pictures of the farm's Big Dreams: an orchard, a guest cottage, a railway and a castle, drawn as SVG in code.
+// MQ.dreamArt(id, built, { building, ghost }) draws a dream with its first `built` stages; the next stage shows as a
+// dashed outline (unless ghost: false), with scaffolding and a crane while the builders work on it (building: true). The castle is the special
+// one: gold, glowing windows, flags and sparkles.
+(function () {
+  const MQ = (globalThis.MQ = globalThis.MQ || {});
+  let uid = 0;
+  const f1 = (x) => +(+x).toFixed(1);
+  const GHOST = ' fill="none" stroke="#9aa3b8" stroke-width="1.6" stroke-dasharray="4 3" stroke-linejoin="round"';
+  // a drawing pen: on a built stage shapes are filled and outlined; on a stage still to come they are dashed outlines
+  const pen = (ghost) => {
+    const o = (stroke, w = 2) => (ghost ? GHOST : ` stroke="${stroke}" stroke-width="${w}" stroke-linejoin="round"`);
+    const fill = (c) => (ghost ? '' : ` fill="${c}"`);
+    return {
+      ghost,
+      P: (d, c, s, w) => `<path d="${d}"${ghost ? GHOST : fill(c) + (s ? o(s, w) : '')}/>`,
+      R: (x, y, w, h, c, s, rx = 0, sw) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}"${ghost ? GHOST : fill(c) + (s ? o(s, sw) : '')}/>`,
+      C: (x, y, r, c, s, sw) => `<circle cx="${x}" cy="${y}" r="${r}"${ghost ? GHOST : fill(c) + (s ? o(s, sw) : '')}/>`,
+      E: (x, y, rx, ry, c, s, sw) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}"${ghost ? GHOST : fill(c) + (s ? o(s, sw) : '')}/>`,
+      L: (d, c, w = 2) => (ghost ? '' : `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`),
+      D: (s) => (ghost ? '' : s), // details only on built stages
+    };
+  };
+  const spk = (x, y, r, c = '#ffffff') => `<path d="M${x} ${y - r}Q${x} ${y} ${x + r} ${y}Q${x} ${y} ${x} ${y + r}Q${x} ${y} ${x - r} ${y}Q${x} ${y} ${x} ${y - r}Z" fill="${c}"/>`;
+  const lin = (id, cols, x2 = 0, y2 = 1) => `<linearGradient id="${id}" x1="0" y1="0" x2="${x2}" y2="${y2}">${cols.map((c, i) => `<stop offset="${f1(i / (cols.length - 1))}" stop-color="${c}"/>`).join('')}</linearGradient>`;
+  const glowG = (id, c) => `<radialGradient id="${id}"><stop offset="0.35" stop-color="${c}" stop-opacity="0.7"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`;
+  const hill = (c1 = '#8fd36a', c2 = '#6cbf4a') => `<path d="M0 98C40 86 120 86 160 98L160 120L0 120Z" fill="${c1}"/><path d="M0 110C50 102 110 102 160 110L160 120L0 120Z" fill="${c2}"/>`;
+  // builders at work: scaffolding around a box and a little crane next to it
+  const scaffold = ([x, y, w, h]) => {
+    const poles = [x, x + w].map((px) => `<path d="M${px} ${y + h}L${px} ${y - 4}" stroke="#a8763c" stroke-width="2.4"/>`).join('');
+    const planks = [0.35, 0.7].map((k) => `<path d="M${x - 3} ${f1(y + h * k)}L${x + w + 3} ${f1(y + h * k)}" stroke="#c98a4b" stroke-width="2.6"/>`).join('');
+    const cx = Math.min(150, x + w + 12), top = Math.max(6, y - 16);
+    const crane = `<path d="M${cx} ${y + h}L${cx} ${top}M${cx - 26} ${top + 3}L${cx + 8} ${top + 3}M${cx} ${top}L${cx - 26} ${top + 3}M${cx - 20} ${top + 3}L${cx - 20} ${top + 16}" stroke="#f5b521" stroke-width="2.4" stroke-linecap="round"/>` +
+      `<rect x="${cx - 25}" y="${top + 16}" width="10" height="7" rx="1" fill="#b9b9c6" stroke="#6f7488" stroke-width="1.2"/><rect x="${cx + 3}" y="${top + 1}" width="7" height="6" fill="#6f7488"/>`;
+    return `<g class="scaffold">${poles}${planks}${crane}</g>`;
+  };
+  // draw a dream: parts[i] = (pen) => svg for stage i; order = the stage drawing order (back to front); box[i] = scaffold box
+  function draw(D, built, building, k, ghost) {
+    let out = '';
+    for (const i of D.order) {
+      if (i < built) out += D.parts[i](pen(false), k);
+      else if (i === built && (ghost || building)) out += D.parts[i](pen(true), k);
+    }
+    if (building && built < D.parts.length) out += scaffold(D.box[built]);
+    return out;
+  }
+  const svg = (body, defs = '') => `<svg class="dart" viewBox="0 0 160 120" aria-hidden="true" focusable="false">${defs ? `<defs>${defs}</defs>` : ''}${body}</svg>`;
+
+  // ---------------------------------------------------------------- Fruit Orchard: three rows of fruit trees
+  const FRUIT = {
+    apple: (x, y) => `<circle cx="${x}" cy="${y}" r="2.6" fill="#ff4d4d" stroke="#a32020" stroke-width="0.8"/>`,
+    pear: (x, y) => `<ellipse cx="${x}" cy="${y}" rx="2.2" ry="3" fill="#ffd84d" stroke="#a87a00" stroke-width="0.8"/>`,
+    peach: (x, y) => `<circle cx="${x}" cy="${y}" r="2.7" fill="#ffa07a" stroke="#c25a2a" stroke-width="0.8"/><path d="M${x} ${y - 2.6}L${x + 2} ${y - 4}" stroke="#3f8a2a" stroke-width="1.2"/>`,
+  };
+  const tree = (p, x, y, s, fruit) => {
+    const trunk = p.P(`M${f1(x - 3 * s)} ${y}L${f1(x - 2 * s)} ${f1(y - 16 * s)}L${f1(x + 2 * s)} ${f1(y - 16 * s)}L${f1(x + 3 * s)} ${y}Z`, '#8a5a32', '#5b3a1e', 1.4);
+    const crown = p.C(f1(x - 9 * s), f1(y - 22 * s), f1(10 * s), '#5cbf4a', '#2f7a3a', 1.6) + p.C(f1(x + 9 * s), f1(y - 22 * s), f1(10 * s), '#5cbf4a', '#2f7a3a', 1.6) + p.C(x, f1(y - 31 * s), f1(12 * s), '#6fd35a', '#2f7a3a', 1.6);
+    const fruits = p.D([[-9, -20], [6, -27], [10, -17], [-3, -35], [-12, -28], [2, -19]].map(([dx, dy]) => FRUIT[fruit](f1(x + dx * s), f1(y + dy * s))).join(''));
+    return p.D(`<ellipse cx="${x}" cy="${y + 1}" rx="${f1(12 * s)}" ry="${f1(2.5 * s)}" fill="#3f8a2a" opacity=".35"/>`) + trunk + crown + fruits;
+  };
+  const ORCHARD = {
+    order: [0, 1, 2],
+    box: [[16, 34, 128, 40], [8, 48, 140, 40], [24, 62, 130, 42]],
+    parts: [
+      (p) => [28, 80, 132].map((x) => tree(p, x, 74, 0.72, 'apple')).join(''),
+      (p) => [18, 70, 122].map((x) => tree(p, x, 88, 0.82, 'pear')).join(''),
+      (p) => [42, 94, 146].map((x) => tree(p, x, 104, 0.92, 'peach')).join('') + p.D('<rect x="4" y="104" width="22" height="10" rx="2" fill="#c98a4b" stroke="#7a4a22" stroke-width="1.2"/>' + [8, 13, 18, 23].map((x, i) => FRUIT[['apple', 'pear', 'peach', 'apple'][i]](x, 103)).join('')),
+    ],
+  };
+
+  // ---------------------------------------------------------------- Guest Cottage: floor, walls, roof, garden
+  const COTTAGE = {
+    order: [0, 1, 2, 3],
+    box: [[38, 84, 84, 14], [44, 50, 72, 40], [38, 24, 84, 32], [10, 78, 140, 22]],
+    parts: [
+      (p) => p.R(40, 86, 80, 11, '#b9b9c6', '#6f7488', 2) + p.D('<path d="M52 86L52 97M66 86L66 97M80 86L80 97M94 86L94 97M108 86L108 97M40 91.5L120 91.5" stroke="#8e93a6" stroke-width="1"/>') +
+        p.D([[80, 101], [77, 106], [82, 111], [79, 116]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="4" ry="2" fill="#d9d9e3" stroke="#8e93a6" stroke-width="0.8"/>`).join('')),
+      (p) => p.R(46, 52, 68, 36, '#fff1d6', '#a8763c', 0, 2) + p.P('M74 88L74 72C74 66 86 66 86 72L86 88Z', '#c06a2e', '#7a3f18', 1.6) + p.D('<circle cx="83.5" cy="79" r="1.2" fill="#ffd23f"/>') +
+        p.R(52, 60, 15, 12, '#9fe0ff', '#7a4a22', 1, 1.6) + p.R(93, 60, 15, 12, '#9fe0ff', '#7a4a22', 1, 1.6) + p.L('M59.5 60L59.5 72M52 66L67 66M100.5 60L100.5 72M93 66L108 66', '#7a4a22', 1.2) +
+        p.D('<rect x="51" y="72" width="17" height="4" rx="1" fill="#a8763c"/><rect x="92" y="72" width="17" height="4" rx="1" fill="#a8763c"/><circle cx="55" cy="71" r="1.8" fill="#ff6fa8"/><circle cx="60" cy="70.5" r="1.8" fill="#ffd23f"/><circle cx="65" cy="71" r="1.8" fill="#ff6fa8"/><circle cx="96" cy="71" r="1.8" fill="#b48cf2"/><circle cx="101" cy="70.5" r="1.8" fill="#ffd23f"/><circle cx="106" cy="71" r="1.8" fill="#b48cf2"/>'),
+      (p) => p.R(98, 28, 8, 16, '#c0504a', '#7a2a24', 0, 1.6) + p.P('M38 55L80 26L122 55Z', '#e8574a', '#9c2a1e', 2.2) + p.L('M50 47L110 47M60 40L100 40M70 33L90 33', '#b8382e', 1.4) + p.C(80, 44, 4.5, '#9fe0ff', '#7a2a24', 1.4) +
+        p.D('<circle cx="103" cy="22" r="4" fill="#e6ecf5" opacity=".9"/><circle cx="108" cy="15" r="5" fill="#e6ecf5" opacity=".75"/><circle cx="115" cy="8" r="6" fill="#e6ecf5" opacity=".55"/>'),
+      (p) => {
+        const fence = (x0, x1) => p.L(`M${x0} 86L${x1} 86M${x0} 92L${x1} 92` + [...Array(Math.floor((x1 - x0) / 7) + 1)].map((_, i) => `M${x0 + i * 7} 82L${x0 + i * 7} 97`).join(''), '#ffffff', 2.2) + (p.ghost ? p.P(`M${x0} 82L${x1} 82L${x1} 97L${x0} 97Z`) : '');
+        const flowers = [16, 23, 30, 126, 133, 140, 147].map((x, i) => p.D(`<path d="M${x} 100L${x} 94" stroke="#3f8a2a" stroke-width="1.4"/><circle cx="${x}" cy="93" r="2.6" fill="${['#ff6fa8', '#ffd23f', '#b48cf2', '#ff8a5a'][i % 4]}"/><circle cx="${x}" cy="93" r="1" fill="#fff6c2"/>`)).join('');
+        const bush = p.E(36, 92, 7, 5, '#4cb26a', '#2f7a3a', 1.4) + p.E(124, 92, 7, 5, '#4cb26a', '#2f7a3a', 1.4);
+        const mailbox = p.D('<path d="M150 98L150 84" stroke="#7a4a22" stroke-width="2"/><rect x="144" y="78" width="12" height="7" rx="3" fill="#4d8cff" stroke="#1f4fb0" stroke-width="1.2"/><path d="M155 78L155 73L159 74.5L155 76" fill="#ff4d4d"/>');
+        return fence(10, 38) + fence(122, 150) + bush + flowers + mailbox + p.D('<path d="M64 98L64 89L72 89L72 98" fill="none" stroke="#7a4a22" stroke-width="1.6"/><path d="M68 94.5C66 92 63 93 64.5 95.5L68 98L71.5 95.5C73 93 70 92 68 94.5Z" fill="#ff4d6d"/>');
+      },
+    ],
+  };
+
+  // ---------------------------------------------------------------- Farm Railway: tracks, station, train, bridge
+  const rails = (p, x0, x1) => p.D([...Array(Math.ceil((x1 - x0) / 7))].map((_, i) => `<rect x="${x0 + i * 7}" y="99" width="3.5" height="8" fill="#8a5a32"/>`).join('')) + p.L(`M${x0} 100.5L${x1} 100.5M${x0} 105.5L${x1} 105.5`, '#5b6378', 2.2) + (p.ghost ? p.P(`M${x0} 99L${x1} 99L${x1} 107L${x0} 107Z`) : '');
+  const RAILWAY = {
+    order: [0, 1, 3, 2],
+    box: [[2, 94, 100, 14], [4, 48, 56, 50], [28, 62, 76, 40], [100, 90, 58, 26]],
+    parts: [
+      (p) => rails(p, 2, 104),
+      (p) => p.R(8, 64, 44, 30, '#ffe9c4', '#a8763c', 0, 2) + p.P('M3 66L30 50L57 66Z', '#4cb26a', '#2f7a3a', 2) + p.C(30, 60, 4.5, '#ffffff', '#5b6378', 1.4) + p.L('M30 60L30 57.5M30 60L32 61', '#2b2140', 1.2) +
+        p.R(14, 72, 9, 9, '#9fe0ff', '#7a4a22', 1, 1.4) + p.R(37, 72, 9, 9, '#9fe0ff', '#7a4a22', 1, 1.4) + p.R(25, 76, 10, 18, '#c06a2e', '#7a3f18', 1, 1.4) + p.R(2, 93, 56, 5, '#c9ced9', '#6f7488', 1, 1.4),
+      (p) => {
+        const wheel = (x) => p.C(x, 101, 4.4, '#2b2140', '#2b2140', 1) + p.D(`<circle cx="${x}" cy="101" r="1.6" fill="#c9ced9"/>`);
+        const car = p.R(30, 80, 28, 17, '#4d8cff', '#1f4fb0', 2, 1.8) + p.D('<rect x="34" y="83" width="8" height="7" rx="1" fill="#e9f6ff"/><rect x="46" y="83" width="8" height="7" rx="1" fill="#e9f6ff"/><rect x="28" y="78" width="32" height="3" rx="1" fill="#ffd23f"/>') + wheel(37) + wheel(51);
+        const loco = p.R(62, 82, 26, 15, '#e8453c', '#9c2a1e', 3, 1.8) + p.R(84, 70, 16, 27, '#e8453c', '#9c2a1e', 2, 1.8) + p.R(66, 70, 7, 12, '#2b2140', '#2b2140', 1, 1) + p.R(82, 67, 20, 4, '#2b2140', '#2b2140', 1, 1) +
+          p.D('<rect x="87" y="74" width="10" height="8" rx="1" fill="#e9f6ff"/><rect x="62" y="88" width="26" height="3" fill="#ffd23f"/><circle cx="60.5" cy="86" r="2.6" fill="#fff6a0" stroke="#c99a00" stroke-width="1"/><path d="M58 97L62 92L62 97Z" fill="#5b6378"/>') + wheel(68) + wheel(80) + wheel(93);
+        const smoke = p.D('<circle cx="69" cy="62" r="4" fill="#e6ecf5" opacity=".9"/><circle cx="64" cy="54" r="5" fill="#e6ecf5" opacity=".75"/><circle cx="57" cy="45" r="6" fill="#e6ecf5" opacity=".55"/>');
+        return car + p.D('<path d="M58 92L62 92" stroke="#5b6378" stroke-width="2"/>') + loco + smoke;
+      },
+      (p) => p.P('M100 102L142 102L142 118C134 104 108 104 100 118Z', '#c9b28a', '#7a5a32', 1.8) + p.D('<path d="M108 102L108 108M121 102L121 104M134 102L134 108" stroke="#7a5a32" stroke-width="1"/>') + rails(p, 100, 160),
+    ],
+  };
+  const river = '<path d="M104 120C106 110 102 102 106 96L136 96C140 104 134 112 138 120Z" fill="#5ec8ff"/><path d="M112 104C116 102 120 106 124 104M116 112C120 110 124 114 128 112" stroke="#e9f6ff" stroke-width="1.4" fill="none" stroke-linecap="round"/>';
+
+  // ---------------------------------------------------------------- Castle on the Hill (the special one)
+  const merlons = (x0, x1, y, h, c, s, p) => [...Array(Math.floor((x1 - x0) / 10))].map((_, i) => p.R(x0 + i * 10 + 1, y - h, 6, h + 1, c, s, 0, 1.4)).join('');
+  const CASTLE = {
+    order: [4, 0, 1, 2, 3],
+    box: [[28, 56, 104, 46], [10, 12, 140, 90], [56, 70, 48, 44], [10, 0, 140, 92], [56, 10, 48, 58]],
+    parts: [
+      (p, k) => p.R(30, 64, 100, 36, `url(#${k}s)`, '#5d4f8a', 0, 2) + merlons(30, 130, 64, 7, `url(#${k}s)`, '#5d4f8a', p) + p.L('M30 76L130 76M30 88L130 88M45 64L45 76M65 64L65 76M95 64L95 76M115 64L115 76M38 76L38 88M58 76L58 88M102 76L102 88M122 76L122 88M48 88L48 100M112 88L112 100', '#a79fc8', 1),
+      (p, k) => [14, 120].map((x) => p.R(x, 42, 26, 58, `url(#${k}s)`, '#5d4f8a', 0, 2) + p.P(`M${x - 4} 44L${x + 13} 12L${x + 30} 44Z`, `url(#${k}r)`, '#3a2470', 2) + p.P(`M${x + 10} 58C${x + 10} 52 ${x + 16} 52 ${x + 16} 58L${x + 16} 68L${x + 10} 68Z`, '#3a2a5a') + p.D(`<path d="M${x + 6} 44L${x + 13} 22L${x + 15} 44Z" fill="#ffffff" opacity=".18"/>`)).join(''),
+      (p, k) => p.E(80, 108, 58, 6, '#5ec8ff', '#2a8fd4', 1.4) + p.P('M68 100L68 82C68 72 92 72 92 82L92 100Z', '#3a2a5a', '#2a1a40', 2) + p.L('M72 78L72 100M78 75L78 100M84 75L84 100M90 78L90 100M68 86L92 86M68 93L92 93', '#ffd23f', 1.2) +
+        p.P('M66 100L94 100L98 112L62 112Z', '#a8763c', '#6b4210', 1.6) + p.L('M70 104L90 104M68 108L92 108', '#6b4210', 1),
+      (p) => {
+        const flag = (x, y, c) => p.L(`M${x} ${y}L${x} ${y - 12}`, '#6b4210', 1.6) + p.P(`M${x} ${y - 12}C${x + 5} ${y - 15} ${x + 9} ${y - 9} ${x + 15} ${y - 12}L${x + 15} ${y - 5}C${x + 9} ${y - 2} ${x + 5} ${y - 8} ${x} ${y - 5}Z`, c, '#7a1a2a', 1.2);
+        const banner = (x, c) => p.P(`M${x} 68L${x + 10} 68L${x + 10} 86L${x + 5} 82L${x} 86Z`, c, '#1f2a6b', 1.2) + p.D(`<path d="M${x + 2.5} 76L${x + 3.5} 72.5L${x + 5} 74.5L${x + 6.5} 72.5L${x + 7.5} 76Z" fill="#ffd23f"/>`);
+        return flag(27, 13, '#ff4d6d') + flag(133, 13, '#ffd23f') + flag(80, 22, '#4d8cff') + banner(44, '#4d6bff') + banner(106, '#4d6bff');
+      },
+      (p, k) => p.D(`<circle cx="80" cy="40" r="38" fill="url(#${k}g)"/>`) + p.R(58, 32, 44, 34, `url(#${k}s)`, '#5d4f8a', 0, 2) + p.P('M56 34C56 14 104 14 104 34Z', `url(#${k}o)`, '#a8650a', 2) +
+        p.P('M72 16L71 6L76 10L80 2L84 10L89 6L88 16Z', '#ffd23f', '#a8650a', 1.4) + p.D('<circle cx="80" cy="10" r="1.8" fill="#ff4d6d"/>') +
+        [64, 76, 88].map((x) => p.P(`M${x} 58L${x} 48C${x} 43 ${x + 8} 43 ${x + 8} 48L${x + 8} 58Z`, '#ffe066', '#a8650a', 1.4)).join('') +
+        p.D(spk(46, 22, 4, '#fff3a6') + spk(114, 22, 4, '#fff3a6') + spk(80, 30, 2.6, '#ffffff')),
+    ],
+  };
+  const castleDefs = (k) => lin(k + 's', ['#f4f1ff', '#c9c0e6']) + lin(k + 'r', ['#9d7bff', '#4a2f9a']) + lin(k + 'o', ['#fff6c4', '#ffcf48', '#e0961a']) + glowG(k + 'g', '#ffe066');
+
+  const DRAW = { orchard: ORCHARD, cottage: COTTAGE, railway: RAILWAY, castle: CASTLE };
+  MQ.dreamArt = (id, built, { building = false, ghost = true } = {}) => {
+    const D = DRAW[id], k = 'd' + (++uid).toString(36);
+    if (!D) return '';
+    const done = built >= D.parts.length;
+    const sky = id === 'castle' && done ? `<circle cx="80" cy="60" r="70" fill="url(#${k}g)"/>${spk(14, 18, 6, '#ffe066')}${spk(148, 26, 5, '#ff8fe0')}${spk(150, 70, 4, '#ffe066')}${spk(10, 64, 4, '#9ff0ff')}` : '';
+    const ground = id === 'castle' ? hill('#a6e08a', '#86cf6a') : hill();
+    return svg(sky + ground + (id === 'railway' ? river : '') + draw(D, built, building, k, ghost), id === 'castle' ? castleDefs(k) : '');
+  };
+  MQ.dreamStages = (id) => (DRAW[id] ? DRAW[id].parts.length : 0);
+})();
+</script>
+  <script>
 // Sunny Farm pictures: the farm scene (sky, garden beds, pens with animals walking around, a yard with the stand and
 // decorations), the market stall above each customer, and small animations (things flying to the basket, coins
 // flying to the money, a night passing). Made of emoji, CSS and a few inline SVGs: no image files.
@@ -7644,6 +7973,13 @@ svg.nn.design { width: 156px; }
     } else { state = 'idle'; badge = '＋'; label = 'make something'; }
     return `<button class="fwork ${state}" data-act="fWork" data-arg="${id}" title="${esc(W.name)}" aria-label="${esc(W.name)}: ${label}"><span class="wroof"></span><span class="wbig">${W.e}</span>${state === 'busy' ? '<span class="smoke">💨</span>' : ''}<span class="wbadge">${badge}</span></button>`;
   }
+  // The Big Dreams built so far stand behind the farm (tap one to see Big Dreams).
+  function dreamland(fm) {
+    if (!fm.dream || !MQ.dreamArt) return '';
+    const shown = F.DREAMS.map((d, k) => [d, F.dreamBuilt(fm, k), k === fm.dream.p && fm.dream.b]).filter(([, n, b]) => n || b);
+    if (!shown.length) return '';
+    return `<div class="dreamland">${shown.map(([d, n, b]) => `<button class="dl t-${d.id} ${n >= d.stages.length ? 'done' : ''}" data-act="go" data-arg="farm:dreams" aria-label="${esc(d.name)}: ${n} of ${d.stages.length} built">${MQ.dreamArt(d.id, n, { building: b, ghost: false })}</button>`).join('')}</div>`;
+  }
   let fmWorks = {};
   S.farm = (fm, grade) => {
     fmWorks = fm.works || {};
@@ -7667,6 +8003,7 @@ svg.nn.design { width: 156px; }
         <span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>${sky.join('')}
         <div class="hills"></div>${hill}${has('fence') ? '<div class="hfence"></div>' : ''}
       </div>
+      ${dreamland(fm)}
       <div class="land">
         <div class="beds">${fm.beds.map(bedHtml).join('')}${has('scarecrow') ? '<span class="scarecrow" title="Scarecrow">🧑‍🌾</span>' : ''}</div>
         <div class="pens">${fm.pens.map(penHtml).join('')}</div>
@@ -7829,6 +8166,7 @@ svg.nn.design { width: 156px; }
     const hungry = f.pens.filter((p) => p.a && !p.fed);
     let t;
     if (F.bankDue(f) > 0) t = 'It’s bank day! Your savings grew. Go to the bank to collect the interest.';
+    else if (F.canBuild(f, grade())) t = 'You saved enough in the bank for your Big Dream! Pay the builders 🏗️';
     else if (Object.values(f.works).some((w) => w.ready)) t = 'Something is ready in your workshop! Tap it to take it.';
     else if (f.beds.some((b) => F.cropStage(b) === 'ready')) t = 'Your crops are ripe! Tap them to pick them.';
     else if (f.pens.some((p) => p.ready)) t = 'Your animals made something! Tap them to collect it.';
@@ -7874,6 +8212,7 @@ svg.nn.design { width: 156px; }
       </section>
       ${MQ.store.preview ? pvTiers() : ''}
       ${goalBar()}
+      ${dreamCard()}
       ${bankDay ? `<button class="fbankday" data-act="go" data-arg="farm:bank">🏦 <b>Bank day!</b> Your savings earned interest. Tap to collect it.</button>` : ''}
       ${tipLine()}
       <button class="btn big fstand" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Open the stand ${n ? `· ${n} to sell` : '· basket is empty'}</button>
@@ -7906,6 +8245,7 @@ svg.nn.design { width: 156px; }
     </div></nav>`, 'is-farm');
     K().setCur('farm');
     dockChanges({ money: f.money, basket: n, feed: f.feed });
+    if (F.dreamOpen(f) && !f.dream.seen && !MQ.store.preview) setTimeout(() => { if (!$('#modal') && $('.fdream')) dreamIntro(); }, 500);
   }
   // The dock numbers bump and show "+3" / "−2" when they change (after the things have flown there).
   let lastDock = null;
@@ -8085,15 +8425,117 @@ svg.nn.design { width: 156px; }
     for (const it of news.cooked) lines.push(`${F.ITEMS[it].e} Your ${esc(F.ITEMS[it].name)} is ready in the workshop!`);
     for (const [a, sg] of news.grew) lines.push(`${F.ANIMALS[a].e} Your ${esc(F.ANIMALS[a].name.toLowerCase())} ${sg === 2 ? 'is all grown up!' : 'got bigger'}`);
     for (const [a, n] of Object.entries(count(news.hungry))) lines.push(`${F.ANIMALS[a].e} ${n > 1 ? n + ' ' : ''}${esc(F.ANIMALS[a].name.toLowerCase())}${n > 1 ? 's were' : ' was'} hungry and didn’t grow. Feed animals before bed!`);
-    MQ.sfx('reward');
-    K().modal(`<div class="bigemoji">☀️</div><div class="mtitle">Good morning! Farm day ${f.day}</div>
-      ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : '<p>A quiet night on the farm.</p>'}
-      <div class="row"><button class="btn" data-act="closeModal">Let’s go!</button></div>`);
+    const b = news.built;
+    K().modal(`${b ? builtBlock(b) : '<div class="bigemoji">☀️</div>'}<div class="mtitle">Good morning! Farm day ${f.day}</div>
+      ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : b ? '' : '<p>A quiet night on the farm.</p>'}
+      <div class="row"><button class="btn" data-act="closeModal">Let’s go!</button>${b && !F.dreamDone(fm()) ? '<button class="btn ghost" data-act="go" data-arg="farm:dreams">🏗️ Big Dreams</button>' : ''}</div>`);
+    if (b) {
+      MQ.sfx('fanfare');
+      MQ.confetti(b.done ? 240 : 150, b.d.castle ? { colors: ['#ffd23f', '#ff8fe0', '#9d7bff', '#ffffff'], shape: 'star', rain: b.done } : b.done ? { colors: ['#ffd23f', '#ffe066', '#ff8a5a', '#7ed957'], shape: 'star' } : {});
+      if (st().settings.voice !== false) MQ.speak(b.done ? `Your ${b.d.name} is finished!` : `The builders finished the ${b.st.name.toLowerCase()}!`);
+      K().checkBadges();
+    } else MQ.sfx('reward');
+  }
+  // The morning after the builders worked: the new stage, glowing (a finished dream gets the golden treatment).
+  function builtBlock(b) {
+    const g = grade(), pay = b.st.pay[g === 'k' ? 0 : 1], k = F.DREAMS.indexOf(b.d), next = F.DREAMS[k + 1];
+    const all = U.sum(F.dreamIncome(fm(), g).map((x) => x[2]));
+    return `<div class="dbuilt t-${b.d.id} ${b.done ? 'done' : ''}"><div class="dbuilt-rays"></div><div class="dpic">${MQ.dreamArt(b.d.id, b.done ? b.d.stages.length : b.i + 1)}</div>
+      <div class="dbuilt-t">${b.done ? `🎉 Your <b>${esc(b.d.name)}</b> is finished!` : `🏗️ The builders finished: <b>${b.st.e} ${esc(b.st.name)}</b>!`}</div>
+      ${pay ? `<p>It earns <b>${fmt(pay)}</b> every bank day${all > pay ? `. All your buildings: <b>${fmt(all)}</b> every bank day` : ''}.</p>` : b.d.castle ? `<p>${b.done ? '👑 You built a castle! You are a true Farm Royal.' : 'The castle is growing. Keep saving!'}</p>` : ''}
+      ${b.done && next ? `<p class="muted">Next Big Dream: ${next.e} <b>${esc(next.name)}</b></p>` : ''}</div>`;
   }
   // Redraw the farm after a tap without moving the page (the app's render scrolls to the top).
   function redraw() { if (fs) return; keepY(main); }
   function keepY(fn) { const y = window.scrollY; fn(); window.scrollTo(0, y); }
   let backY = null; // where the farm was scrolled before the stand, odd jobs or paying, to come back to the same spot
+
+  // ---------------------------------------------------------------- Big Dreams
+  // On the farm: the dream being built, with the next stage and how much of it is saved in the bank.
+  function dreamCard() {
+    const f = fm(), g = grade();
+    if (!F.dreamOpen(f)) return '';
+    if (F.dreamDone(f)) return `<button class="fdream t-castle done" data-act="go" data-arg="farm:dreams"><span class="fdream-pic">${MQ.dreamArt('castle', 5)}</span><span class="fdream-t"><b>👑 Every Big Dream is built!</b><small>Your buildings earn ${fmt(U.sum(F.dreamIncome(f, g).map((x) => x[2])))} every bank day</small></span></button>`;
+    const n = F.dreamNext(f, g), have = Math.min(f.bank.bal, n.cost), ready = F.canBuild(f, g);
+    const line = f.dream.b ? `🏗️ Builders at work tonight: ${n.st.e} ${esc(n.st.name)}. Tap 🌙 Sleep!`
+      : ready ? `🎉 Saved! Pay the builders for ${n.st.e} ${esc(n.st.name)}`
+        : `${n.st.e} ${esc(n.st.name)}: ${fmt(f.bank.bal)} of ${fmt(n.cost)} in the bank`;
+    return `<button class="fdream t-${n.d.id} ${ready ? 'hot' : ''}" data-act="go" data-arg="farm:dreams" aria-label="Big Dream: ${esc(n.d.name)}">
+      <span class="fdream-pic">${MQ.dreamArt(n.d.id, f.dream.s, { building: f.dream.b })}</span>
+      <span class="fdream-t"><b>🏗️ Big Dream: ${esc(n.d.name)}</b>${f.dream.b || ready ? '' : `<span class="fbar"><span style="width:${Math.round((have / n.cost) * 100)}%"></span></span>`}<small>${line}</small></span></button>`;
+  }
+  function dreamIntro() {
+    const f = fm(), d = F.dreamNow(f);
+    f.dream.seen = true;
+    save();
+    if (!d) return;
+    const n = F.dreamNext(f, grade());
+    K().modal(`<div class="dbuilt t-${d.id}"><div class="dbuilt-rays"></div><div class="dpic">${MQ.dreamArt(d.id, d.stages.length)}</div><div class="dbuilt-t">✨ New: <b>Big Dreams</b></div></div>
+      <p>Save money <b>in the bank</b> and build big things, one stage at a time. The first one is a ${d.e} <b>${esc(d.name)}</b>.</p>
+      <ul class="funlocks"><li>🏦 The builders are paid <b>from the bank</b>, so save money there.</li><li>🌙 They build at night. In the morning the new part is on your farm.</li><li>💰 Every built stage <b>earns money every bank day</b>, straight into the bank.</li></ul>
+      <p class="muted">First stage: ${n.st.e} ${esc(n.st.name)} for <b>${fmt(n.cost)}</b>.</p>
+      <div class="row"><button class="btn ghost" data-act="closeModal">Later</button><button class="btn" data-act="go" data-arg="farm:dreams">🏗️ See my Big Dream</button></div>`);
+    MQ.sfx('streak');
+  }
+  let dreamView = null; // which dream the Big Dreams screen shows (null = the one being built)
+  function dreams() {
+    const f = fm(), g = grade(), gi = g === 'k' ? 0 : 1, cur = f.dream.p;
+    const k = dreamView === null ? Math.min(cur, F.DREAMS.length - 1) : dreamView, d = F.DREAMS[k];
+    const built = F.dreamBuilt(f, k), isCur = k === cur, building = isCur && f.dream.b;
+    const tab = (x, i) => {
+      const nb = F.dreamBuilt(f, i), done = nb >= x.stages.length, now = i === cur;
+      return `<button class="dtab t-${x.id} ${i === k ? 'sel' : ''} ${done ? 'done' : now ? 'now' : 'later'}" data-act="fDreamView" data-arg="${i}"><span class="dtab-pic">${MQ.dreamArt(x.id, i > cur ? x.stages.length : nb)}</span><b>${esc(x.name)}</b><small>${done ? '✓ Built' : now ? `${nb} / ${x.stages.length} built` : '🔒 Later'}</small></button>`;
+    };
+    const stages = d.stages.map((x, i) => {
+      const state = i < built ? 'built' : isCur && i === built ? (building ? 'work' : 'next') : 'later';
+      const pay = x.pay[gi];
+      return `<li class="${state}"><span class="dst-e">${state === 'built' ? '✅' : state === 'work' ? '🏗️' : x.e}</span><span class="dst-t"><b>${esc(x.name)}</b><small>${pay ? `earns ${fmt(pay)} every bank day` : d.castle ? 'part of your castle' : ''}</small></span><span class="dst-p">${state === 'built' ? 'Built' : fmt(x.cost[gi])}</span></li>`;
+    }).join('');
+    let action = '', lesson = '';
+    if (!isCur) action = k < cur ? `<p class="dnote ok">✓ Built! ${d.stages[0].pay[gi] ? `It earns ${fmt(U.sum(d.stages.map((x) => x.pay[gi])))} every bank day.` : 'Your very own castle 👑'}</p>` : `<p class="dnote">🔒 Opens when you finish ${esc(F.DREAMS[k - 1].name)}.</p>`;
+    else {
+      const n = F.dreamNext(f, g), left = n.cost - f.bank.bal;
+      if (building) action = `<p class="dnote work">🏗️ The builders are working on <b>${n.st.e} ${esc(n.st.name)}</b>. Tap 🌙 Sleep on the farm to make the night pass!</p>`;
+      else if (left <= 0) action = `<button class="btn big dbuild" data-act="fBuild">🏗️ Pay the builders · ${fmt(n.cost)} from the bank</button><p class="muted center">You have ${fmt(f.bank.bal)} in the bank.</p>`;
+      else action = `<div class="dsave"><span class="fbar"><span style="width:${Math.round((f.bank.bal / n.cost) * 100)}%"></span></span>
+          <p>In the bank: <b>${fmt(f.bank.bal)}</b> of <b>${fmt(n.cost)}</b> · <b>${fmt(left)}</b> more to save</p>
+          <p class="muted">The builders are paid from the bank, not from your wallet.${f.money ? ` You have ${fmt(f.money)} in your wallet: put it in the bank!` : ''}</p>
+          <button class="btn" data-act="go" data-arg="farm:bank">🏦 Go to the bank</button></div>`;
+      if (n.pay) {
+        // the same money kept in the bank: what it would add to this bank day's interest
+        const base = Math.max(f.bank.bal, n.cost), inBank = F.interest(base, g, f.bank.acct) - F.interest(base - n.cost, g, f.bank.acct);
+        lesson = `<section class="dlesson"><b>💡 Bank or building?</b>
+          <p>${n.st.e} ${esc(n.st.name)} earns <b>${fmt(n.pay)}</b> every bank day. It pays for itself in <b>${F.payback(n.cost, n.pay)} bank days</b>, and after that it is all profit.</p>
+          <p>Kept in the bank, ${fmt(n.cost)} would earn about <b>${fmt(inBank)}</b> a bank day${base > F.bankTop(f.bank.acct, g) ? ` (savings above ${fmt(F.bankTop(f.bank.acct, g))} earn only the small interest)` : ''}, and you could take it out any time. Spent on the building, the money is gone, but the building earns every bank day.</p></section>`;
+      } else if (d.castle) lesson = '<section class="dlesson castle"><b>👑 The biggest dream</b><p>The castle doesn’t earn money. Your orchard, cottage and railway help you save for it. Build it because it is amazing!</p></section>';
+    }
+    const inc = F.dreamIncome(f, g), all = U.sum(inc.map((x) => x[2]));
+    K().render(header('🏗️ Big Dreams', 'farm') + `<main class="farm fdreams">
+      <div class="dpath">${F.DREAMS.map(tab).join('')}</div>
+      <section class="dbig t-${d.id} ${built >= d.stages.length ? 'done' : ''}">
+        <div class="dpic ${k > cur ? 'later' : ''}">${MQ.dreamArt(d.id, k > cur ? d.stages.length : built, { building })}</div>
+        <h2>${d.e} ${esc(d.name)}</h2>
+        <p class="muted">${esc(d.blurb)}</p>
+        <ol class="dstages">${stages}</ol>
+        ${action}
+      </section>
+      ${lesson}
+      ${all ? `<section class="flevel dincome"><b>💰 Your buildings earn ${fmt(all)} every bank day</b><ul>${inc.map(([e, nm, x]) => `<li>${e} ${esc(nm)} <b>${fmt(x)}</b></li>`).join('')}</ul><small class="muted">It goes into the bank on bank day. Next bank day: in ${F.nightsToBankDay(f.day)} ${F.nightsToBankDay(f.day) === 1 ? 'night' : 'nights'}.</small></section>` : ''}
+    </main>`, 'is-farm');
+    K().setCur('farm:dreams');
+  }
+  // Paying the builders is a bank transfer: how much will be left in the bank?
+  function startBuild() {
+    const f = fm(), g = grade();
+    if (!F.canBuild(f, g)) return dreams();
+    const n = F.dreamNext(f, g), bal = f.bank.bal, left = bal - n.cost;
+    fs = { mode: 'build', n: 0, earned: 0, tips: 0, xp: 0, back: 'farm:dreams',
+      done: () => { const x = F.payBuilders(fm(), grade()); return x ? `🏗️ The builders got <b>${fmt(x.cost)}</b> from the bank. They will build ${x.st.e} ${esc(x.st.name)} tonight. Tap 🌙 Sleep on the farm!` : 'The builders are already working.'; } };
+    const p = { type: 'build', text: `The builders want <b>${fmt(n.cost)}</b> for ${n.st.e} <b>${esc(n.st.name)}</b>. You have <b>${fmt(bal)}</b> in the bank. How much will be <b>left in the bank</b> after you pay them?`,
+      hint: g === 'k' ? 'Take away the builders’ money: count back.' : 'Take away the dollars first, then the cents.', explain: `${fmt(bal)} − ${fmt(n.cost)} = ${fmt(left)}`, sale: {}, total: 0 };
+    Object.assign(p, left < 100 ? { kind: 'num', answer: left, unit: '¢' } : { kind: 'choice', answer: fmt(left), choices: F.moneyChoices(left, g, [bal + n.cost, Math.max(0, left - 100), left + 100]) });
+    show(p);
+  }
 
   // ---------------------------------------------------------------- shop
   const TABS = [['animals', '🐔 Animals & feed'], ['up', '⬆️ Upgrades'], ['farm', '🏡 Farm'], ['decor', '✨ Decorations']];
@@ -8215,13 +8657,14 @@ svg.nn.design { width: 156px; }
     Object.assign(fs, { p, tries: 0, input: '', tray: [], locked: false, step: 'main', pick: null });
     const f = fm(), tiers = F.tiers(grade()), tier = tiers[(p.tier || f.tier) - 1];
     const status = STATUS[fs.mode] ? STATUS[fs.mode]() : fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : `🏪 Customer ${fs.n + 1} · +${fmt(fs.earned + fs.tips)}`;
-    const label = LABEL[fs.mode] ? LABEL[fs.mode] : p.vip ? '⭐ Challenge customer · big tip' : p.truck ? '🚚 Buys a lot at once' : `🧮 ${esc(tier.name)}${tier.ahead ? ' ⭐' : ''}`;
+    const label = fs.label ? fs.label : LABEL[fs.mode] ? LABEL[fs.mode] : p.vip ? '⭐ Challenge customer · big tip' : p.truck ? '🚚 Buys a lot at once' : `🧮 ${esc(tier.name)}${tier.ahead ? ' ⭐' : ''}`;
     const intro = fs.mode === 'jobs' ? '<small class="muted">At the big Farmers’ Market:</small><br>' : '';
     const stall = fs.mode === 'pay'
       ? SC.stall({ mode: 'pay', seller: '🧑‍🌾', shopper: MQ.face(st()), goods: fs.icon || '🛍️' })
       : fs.mode === 'make' ? SC.stall({ mode: 'make', seller: MQ.face(st()), shopper: F.WORKS[fs.work].e, goods: Object.entries(fs.recipe.in).map(([id, n]) => `<i>${F.ITEMS[id].e}</i>`.repeat(Math.min(n, 4))).join('') })
       : fs.mode === 'sell' ? SC.stall({ mode: 'sell', seller: MQ.face(st()), shopper: F.NEIGHBOR[0], goods: `<i>${F.ANIMALS[fs.animal].e}</i>` })
       : BANKISH.has(fs.mode) ? SC.stall({ mode: 'bank', seller: '🦉', shopper: MQ.face(st()), goods: '<i>🏦</i>' })
+      : fs.mode === 'build' ? SC.stall({ mode: 'bank', seller: '👷', shopper: MQ.face(st()), goods: '<i>🏗️</i>' })
       : SC.stall({ mode: fs.mode, stand: fs.mode === 'jobs' ? 9 : f.stand, seller: MQ.face(st()), shopper: p.who[0], goods: SC.goods(p.sale), vip: p.vip });
     K().render(`<div class="play fplay" style="--wc:${p.vip ? '#b0569e' : '#e0a21b'}">
       <header class="playbar"><button class="iconbtn" data-act="fQuit" aria-label="Stop">✕</button><div class="pstatus">${status}</div>${moneyPill()}</header>
@@ -8247,9 +8690,10 @@ svg.nn.design { width: 156px; }
     sell: () => `${F.NEIGHBOR[0]} Selling to ${esc(F.NEIGHBOR[1])}`,
     deposit: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
     withdraw: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
-    interest: () => `🏦 Bank day ${fs.n + 1} of ${fs.weeks}`, // fs.n counts the bank days done
+    interest: () => `🏦 Bank day · ${fs.n + 1} of ${fs.weeks}`, // fs.n counts the questions done
+    build: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
   };
-  const LABEL = { pay: '🛒 Farm Shop', make: '🧮 Is it worth making?', sell: '💰 Selling animals', deposit: '🏦 Put money in the bank', withdraw: '🏦 Take money out', interest: '🏦 Bank day: interest' };
+  const LABEL = { pay: '🛒 Farm Shop', make: '🧮 Is it worth making?', sell: '💰 Selling animals', deposit: '🏦 Put money in the bank', withdraw: '🏦 Take money out', interest: '🏦 Bank day: interest', build: '🏗️ Pay the builders' };
   // the problem being answered now (paying too much asks for the change)
   const cur = () => (fs.step === 'change' ? fs.change : fs.p);
   function drawAnswer() {
@@ -8269,8 +8713,8 @@ svg.nn.design { width: 156px; }
     }
     step.innerHTML = top;
   }
-  const NEXT = { pay: 'Back to the farm', make: 'Back to the farm', sell: 'Done', deposit: 'Back to the bank', withdraw: 'Back to the bank' };
-  const lockedHtml = () => `<div class="row"><button class="btn big" data-act="fNext">${fs.mode === 'interest' ? (fs.n < fs.weeks ? 'Next bank day' : 'Back to the bank') : NEXT[fs.mode] || 'Next customer'} →</button></div>`;
+  const NEXT = { pay: 'Back to the farm', make: 'Back to the farm', sell: 'Done', deposit: 'Back to the bank', withdraw: 'Back to the bank', build: 'Back to Big Dreams' };
+  const lockedHtml = () => `<div class="row"><button class="btn big" data-act="fNext">${fs.mode === 'interest' ? (fs.n < fs.weeks ? 'Next' : 'Back to the bank') : NEXT[fs.mode] || 'Next customer'} →</button></div>`;
   function feedback(html, cls) {
     const el = $('#feedback');
     if (el) el.innerHTML = `<div class="fb ${cls}">${html}</div>`;
@@ -8387,7 +8831,7 @@ svg.nn.design { width: 156px; }
     K().checkBadges();
   }
   // A workshop question, a deposit or a bank day is done: fs.done applies it and says what happened.
-  const TASKS = new Set(['make', 'deposit', 'interest', 'sell']);
+  const TASKS = new Set(['make', 'deposit', 'interest', 'sell', 'build']);
   function doneTask(first, solved, shown) {
     const f = fm(), before = f.money;
     F.record(st(), first);
@@ -8508,16 +8952,18 @@ svg.nn.design { width: 156px; }
     // this bank week: 7 farm days, the last one is bank day
     const week = F.bankWeek(f.day).map((d) => `<li class="${d < f.day ? 'past' : d === f.day ? 'now' : ''} ${F.isBankDay(d) ? 'bank' : ''}"><small>Day</small><b>${d}</b>${F.isBankDay(d) ? '<i>🏦</i>' : d < f.day ? '<i>✓</i>' : '<i></i>'}</li>`).join('');
     const status = due ? `✨ Bank day! The interest is waiting for you.` : F.isBankDay(f.day) ? `Today was bank day. The next one is farm day ${nextBank}.` : `${nights} more ${nights === 1 ? 'night' : 'nights'} until bank day (farm day ${nextBank}). Tap 🌙 Sleep on the farm to make a night pass.`;
-    const LOG = { in: ['⬇️', 'Saved'], out: ['⬆️', 'Took out'], interest: ['✨', 'Interest'] };
-    const log = b.log.map((x) => `<li><span>${LOG[x.kind][0]} ${LOG[x.kind][1]}</span><small>${x.day ? 'Farm day ' + x.day : esc(x.d || '')}</small><b class="${x.kind}">${x.kind === 'out' ? '−' : '+'}${fmt(x.amt)}</b></li>`).join('');
+    const LOG = { in: ['⬇️', 'Saved'], out: ['⬆️', 'Took out'], interest: ['✨', 'Interest'], build: ['🏗️', 'Paid the builders'], dream: ['🏡', 'Your buildings earned'] };
+    const log = b.log.filter((x) => LOG[x.kind]).map((x) => `<li><span>${LOG[x.kind][0]} ${LOG[x.kind][1]}</span><small>${x.day ? 'Farm day ' + x.day : esc(x.d || '')}</small><b class="${x.kind}">${x.kind === 'out' || x.kind === 'build' ? '−' : '+'}${fmt(x.amt)}</b></li>`).join('');
+    const inc = b.pend.some((x) => x.inc && x.inc.length);
     K().render(header('🏦 Farm Bank', 'farm') + `<main class="farm fbank">
       <section class="bankcard">
         <div class="bk"><small>In the bank</small><b id="fbankbal">${fmt(b.bal)}</b></div>
         <div class="bk"><small>In your wallet</small><b>${fmt(f.money)}</b></div>
       </section>
       <section class="bweek" aria-label="This bank week"><div class="bweek-t"><b>🏦 This bank week</b><small>Bank day is every ${F.BANK_WEEK}th farm day</small></div><ol>${week}</ol><p class="${due ? 'due' : ''}">${status}</p></section>
-      ${due > 0 ? `<button class="btn big fstand" data-act="fInterest">✨ Collect your interest${due > 1 ? ` (${due} bank days)` : ''}</button>` : ''}
+      ${due > 0 ? `<button class="btn big fstand" data-act="fInterest">✨ Collect your interest${inc ? ' and what your buildings earned' : ''}${due > 1 ? ` (${due} bank days)` : ''}</button>` : ''}
       <div class="row"><button class="btn" data-act="fDeposit" ${f.money ? '' : 'disabled'}>⬇️ Save money</button><button class="btn ghost" data-act="fWithdraw" ${b.bal ? '' : 'disabled'}>⬆️ Take money out</button></div>
+      ${dreamJar()}
       ${accountCard()}
       <section class="flevel"><b>How the bank works</b>
         <p>${esc(F.ruleText(g, b.acct))} The money is safe in the bank, and you can take it out any time to spend it.</p>
@@ -8528,13 +8974,20 @@ svg.nn.design { width: 156px; }
     </main>`, 'is-farm');
     K().setCur('farm:bank');
   }
+  // The bank is the Big Dream's piggy bank: how much of the next stage is saved.
+  function dreamJar() {
+    const f = fm(), g = grade(), n = F.dreamOpen(f) && F.dreamNext(f, g);
+    if (!n) return '';
+    const left = n.cost - f.bank.bal;
+    return `<button class="fdreamjar t-${n.d.id}" data-act="go" data-arg="farm:dreams"><span>🏗️</span><span><b>Saving for: ${n.st.e} ${esc(n.st.name)}</b> (${esc(n.d.name)})<small>${f.dream.b ? 'The builders are working on it tonight.' : left > 0 ? `${fmt(n.cost)} · ${fmt(left)} to go` : `${fmt(n.cost)} · you have enough! Pay the builders 🎉`}</small></span></button>`;
+  }
   // All time: how much the child saved and took out, how much the bank added, and what the money in the bank is made of.
   function bankSummary() {
     const s = F.bankSummary(fm());
     if (!s.saved) return '';
     const tile = (cls, label, v) => `<div class="${cls}"><small>${label}</small><b>${fmt(v)}</b></div>`;
     return `<h2>📊 My savings, all time</h2><section class="bsum">
-      <div class="bsum-k">${tile('in', '⬇️ Saved', s.saved)}${tile('int', '✨ Interest', s.interest)}${s.tookOut ? tile('out', '⬆️ Took out', s.tookOut) : ''}</div>
+      <div class="bsum-k">${tile('in', '⬇️ Saved', s.saved)}${tile('int', '✨ Interest', s.interest)}${s.dreamIn ? tile('in', '🏡 Buildings earned', s.dreamIn) : ''}${s.tookOut ? tile('out', '⬆️ Took out', s.tookOut) : ''}${s.built ? tile('out', '🏗️ Paid builders', s.built) : ''}</div>
       ${s.bal ? `<div class="bsum-bar" aria-hidden="true">${s.own ? `<span class="own" style="flex-grow:${s.own}"></span>` : ''}${s.fromInterest ? `<span class="int" style="flex-grow:${s.fromInterest}"></span>` : ''}</div>
       <p class="bsum-t">In the bank now: <b>${fmt(s.bal)}</b> = <b class="own">${fmt(s.own)}</b> your money + <b class="int">${fmt(s.fromInterest)}</b> interest</p>` : ''}
       <p class="muted">${s.interest ? `The bank added ${fmt(s.interest)} in ${s.days} bank ${s.days === 1 ? 'day' : 'days'}, just because you saved.` : 'On bank day the bank adds interest to what you saved.'}</p></section>`;
@@ -8574,7 +9027,7 @@ svg.nn.design { width: 156px; }
     show({ kind: 'coins', free: true, limit: f.bank.bal, go: 'Take out', coinKinds: bankKinds(f.bank.bal), text: `Tap the coins${grade() === 'k' ? '' : ' and bills'} you want to take out. You have <b>${fmt(f.bank.bal)}</b> in the bank.`, hint: '', explain: '' });
   }
   function startInterest() {
-    const f = fm(), weeks = F.bankDue(f);
+    const f = fm(), weeks = f.bank.pend.reduce((n, p) => n + (p.paid ? 0 : 1) + (p.inc && p.inc.length ? 1 : 0), 0);
     if (!weeks) return bank();
     fs = { mode: 'interest', weeks, n: 0, earned: 0, tips: 0, xp: 0, back: 'farm:bank' };
     interestQuestion();
@@ -8583,6 +9036,8 @@ svg.nn.design { width: 156px; }
   function interestQuestion() {
     const f = fm(), g = grade(), pend = f.bank.pend[0];
     if (!pend) return next();
+    if (pend.paid) return incomeQuestion(pend);
+    fs.label = '';
     const bal = pend.bal, { top, per, add, big, small, x } = F.interestParts(bal, g, f.bank.acct);
     fs.done = () => { const got = F.payInterest(fm(), g); return `The bank added <b>${fmt(got.x)}</b>. Now you have <b>${fmt(fm().bank.bal)}</b> saved.`; };
     const unit = per === 100 ? 'whole dollar' : fmt(per), units = per === 100 ? 'whole dollars' : 'tens';
@@ -8600,6 +9055,19 @@ svg.nn.design { width: 156px; }
     if (!x) { F.payInterest(f, g); fs.n++; save(); return next(); } // nothing to work out on a tiny balance
     show(p);
   }
+  // What the Big Dreams' buildings earned that bank day goes into the bank: add it up.
+  function incomeQuestion(pend) {
+    const f = fm(), g = grade(), inc = pend.inc, x = F.incomeOf(pend), bal = f.bank.bal;
+    fs.label = '🏗️ Bank day: your buildings';
+    fs.done = () => { const got = F.payIncome(fm()); return `Your buildings earned <b>${fmt(got.x)}</b>. It went into the bank: now you have <b>${fmt(fm().bank.bal)}</b> saved.`; };
+    const list = inc.map(([e, nm, a]) => `${e} ${esc(nm)} <b>${fmt(a)}</b>`).join(', ');
+    const p = inc.length > 1
+      ? { type: 'income', text: `Bank day, farm day ${pend.day}: your buildings earned money! ${list}. <b>How much did they earn in all?</b>`, hint: 'Add them up: the dollars first, then the cents.', explain: `${inc.map((y) => fmt(y[2])).join(' + ')} = ${fmt(x)}`, sale: {}, total: 0 }
+      : { type: 'income', text: `Bank day, farm day ${pend.day}: your ${inc[0][0]} ${esc(inc[0][1])} earned <b>${fmt(x)}</b>! It goes into the bank. You have <b>${fmt(bal)}</b> in the bank. <b>How much will you have then?</b>`, hint: `Add ${fmt(x)} to ${fmt(bal)}.`, explain: `${fmt(bal)} + ${fmt(x)} = ${fmt(bal + x)}`, sale: {}, total: 0 };
+    const ans = inc.length > 1 ? x : bal + x;
+    Object.assign(p, ans < 100 ? { kind: 'num', answer: ans, unit: '¢' } : { kind: 'choice', answer: fmt(ans), choices: F.moneyChoices(ans, g, inc.length > 1 ? [] : [bal, x]) });
+    show(p);
+  }
 
   // ---------------------------------------------------------------- routing
   function show_(arg, quiet = false) {
@@ -8607,6 +9075,7 @@ svg.nn.design { width: 156px; }
     fs = null;
     if (arg === 'shop') return shop();
     if (arg === 'bank') return F.level(fm().xp).level >= F.BANK_LV ? bank() : main();
+    if (arg === 'dreams') return F.dreamOpen(fm()) ? (quiet ? keepY(dreams) : (dreamView = null, dreams())) : main();
     if (quiet) return keepY(main); // another device changed something: redraw in place
     lastDock = null;
     main();
@@ -8633,6 +9102,8 @@ svg.nn.design { width: 156px; }
     fDeposit: () => startDeposit(),
     fWithdraw: () => startWithdraw(),
     fInterest: () => startInterest(),
+    fBuild: () => startBuild(),
+    fDreamView: (a) => { dreamView = +a === fm().dream.p ? null : +a; MQ.sfx('tap'); keepY(dreams); },
     fJobs: () => startJobs(),
     fTab: (a) => { tab = a; shop(); },
     fGoal: (a) => { fm().goal = a; save(); MQ.sfx('tap'); K().toast('⭐ Saving goal set'); if (document.querySelector('.fbank')) bank(); else shop(); },
@@ -9122,8 +9593,9 @@ svg.nn.design { width: 156px; }
     const n = F.basketCount(fm);
     const bankDay = !!(fm.bank && fm.bank.pend && fm.bank.pend.length);
     const made = fm.works && Object.values(fm.works).some((w) => w.ready);
-    const note = bankDay ? '🏦 Bank day: interest is waiting!' : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
-    return `<button class="tile t-farm wide ${waiting || made || bankDay || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
+    const build = F.canBuild(F.ensure(st), st.grade);
+    const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
+    return `<button class="tile t-farm wide ${waiting || made || bankDay || build || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
   }
 
   // For grown-ups: how Sunny Farm is going (its money problems also count in the daily totals above).
@@ -9135,6 +9607,7 @@ svg.nn.design { width: 156px; }
       <p>Farm level <b>${F.level(fm.xp).level}</b> · day ${fm.day} · money <b>${F.fmt(fm.money, st.grade)}</b> (earned ${F.fmt(s.earned, st.grade)}, spent ${F.fmt(s.spent, st.grade)})</p>
       ${fm.bank && (fm.bank.bal || s.interest) ? `<p>🏦 Bank: <b>${F.fmt(fm.bank.bal, st.grade)}</b> saved · ${F.fmt(s.interest || 0, st.grade)} interest earned on ${s.bankDays || 0} bank days. ${esc(F.ruleText(st.grade))}</p>` : ''}
       ${s.made ? `<p>🏭 ${s.made} things made in the workshops (each one starts with a question: how much more is it worth?).</p>` : ''}
+      ${fm.dream && (fm.dream.p || fm.dream.s) ? `<p>🏗️ Big Dreams: ${F.DREAMS.map((d, k) => [d, F.dreamBuilt(fm, k)]).filter(([, n]) => n).map(([d, n]) => `${d.e} ${esc(d.name)} ${n >= d.stages.length ? '✓' : n + ' of ' + d.stages.length}`).join(', ')}. Paid to builders from the bank: ${F.fmt(s.built || 0, st.grade)}; the buildings earned ${F.fmt(s.dreamIn || 0, st.grade)} on bank days.</p>` : ''}
       <p>${s.tasks} money problems from customers and odd jobs, <b>${pct(s.right, s.tasks)}%</b> right on the first try · ${s.vip} ⭐ challenge customers. Now practicing: <b>${esc(tier.name)}</b>${tier.ahead ? ' (ahead of grade)' : ''}.</p>
       <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p></section>`;
   }

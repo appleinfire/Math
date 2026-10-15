@@ -307,6 +307,9 @@
     { id: 'banker', icon: '🏦', name: 'Smart Saver', desc: 'Collect interest from the farm bank 4 times', test: (s) => !!s.farm && (s.farm.stats.bankDays || 0) >= 4 },
     { id: 'farm60', icon: '🦄', name: 'Farm Legend', desc: 'Reach farm level 60', test: (s) => !!s.farm && MQ.farm.level(s.farm.xp).level >= 60 },
     { id: 'vip10', icon: '⭐', name: 'Challenge Champ', desc: 'Help 10 ⭐ challenge customers right on the first try', test: (s) => !!s.farm && s.farm.stats.vip >= 10 },
+    { id: 'dream1', icon: '🏗️', name: 'Dreamer', desc: 'Build the first part of a Big Dream on your farm', test: (s) => !!s.farm && !!s.farm.dream && (s.farm.dream.p > 0 || s.farm.dream.s > 0) },
+    { id: 'investor', icon: '🍎', name: 'Investor', desc: 'Finish the Fruit Orchard: it earns money every bank day', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 1 },
+    { id: 'castle', icon: '🏰', name: 'Castle Builder', desc: 'Build the Castle on the Hill', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 4 },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];
 

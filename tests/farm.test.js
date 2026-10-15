@@ -343,7 +343,7 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   assert.deepStrictEqual([f.bank.bal, f.bank.log[0].kind], [700, 'out']);
   assert.strictEqual(F.withdraw(f, 701), false);
   // all-time summary: saved 435 + 100, took out 115, interest 40 + 50 + 60 + 60 + 70; the rest of the bank is own money
-  assert.deepStrictEqual(F.bankSummary(f), { saved: 535, tookOut: 115, interest: 280, days: 5, bal: 700, own: 420, fromInterest: 280 });
+  assert.deepStrictEqual(F.bankSummary(f), { saved: 535, tookOut: 115, interest: 280, days: 5, bal: 700, own: 420, fromInterest: 280, built: 0, dreamIn: 0 });
   assert.strictEqual(f.stats.saved - f.stats.tookOut + f.stats.interest, f.bank.bal, 'the totals add up to what is in the bank');
   F.withdraw(f, 600);
   assert.deepStrictEqual([F.bankSummary(f).own, F.bankSummary(f).fromInterest], [0, 100], 'taking money out uses your own money first');
@@ -506,6 +506,90 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   big.money = 1e6;
   assert.strictEqual(F.buy(big, 'g2', 'bed'), null);
   assert.strictEqual(big.beds.length, 8);
+}
+
+// ---------- Big Dreams: buildings paid from the bank, built overnight, earning money every bank day
+{
+  const lvXp = (L) => { let x = 0; for (let k = 1; k < L; k++) x += F.need(k); return x; };
+  // a good farm at level L: the best crop in every open bed (half the bed upgrades), the best animals in the open pens
+  const perDay = (L, g) => {
+    const gi = g === 'k' ? 0 : 1, beds = F.BEDS.filter((b) => b[0] <= L).length, pens = F.PENS.filter((p) => p[0] <= L).length;
+    const bed = { u: Math.floor(F.BED_UP.filter((u) => u.lv <= L).length / 2) };
+    let best = 0;
+    for (const [id, c] of Object.entries(F.CROPS)) if (c.lv <= L) { bed.c = id; best = Math.max(best, (F.cropYield(bed) * F.price(id, g) - c.seed[gi]) / F.cropDays(bed)); }
+    const room = 1 + F.PEN_UP.filter((x, i) => i < 2 && x.lv <= L).length;
+    const animals = Object.values(F.ANIMALS).filter((a) => a.lv <= L).map((a) => (a.per * F.price(a.item, g) - a.eat * F.FEED.price[gi]) * room).sort((a, b) => b - a);
+    return beds * best + U.sum(animals.slice(0, pens));
+  };
+  for (const g of ['k', 'g2']) {
+    const gi = g === 'k' ? 0 : 1;
+    let lastTotal = 0;
+    F.DREAMS.forEach((d, k) => {
+      const costs = d.stages.map((x) => x.cost[gi]), total = U.sum(costs);
+      assert.ok(costs.every((c, i) => !i || c > costs[i - 1]), `${d.id} (${g}): each stage costs more than the one before`);
+      assert.ok(total > lastTotal * 2, `${d.id} (${g}): each dream is much bigger than the one before`);
+      lastTotal = total;
+      for (const x of d.stages) {
+        const pay = x.pay[gi], c = x.cost[gi];
+        if (d.castle) { assert.strictEqual(pay, 0, 'the castle earns nothing'); continue; }
+        // it earns more than the bank's big interest on the same money, and pays for itself in 7–10 bank weeks
+        assert.ok(pay > F.interest(c, g, F.ACCOUNTS.length - 1), `${d.id} ${x.name} (${g}) beats the bank`);
+        assert.ok(F.payback(c, pay) >= 7 && F.payback(c, pay) <= 10, `${d.id} ${x.name} (${g}) pays back in ${F.payback(c, pay)} bank weeks`);
+      }
+    });
+    // the first stage is a few farm days of a level-13 farm; the whole orchard a few bank weeks
+    const o = F.DREAMS[0].stages.map((x) => x.cost[gi]), day13 = perDay(13, g);
+    assert.ok(o[0] / day13 >= 1.5 && o[0] / day13 <= 5, `${g}: the first stage takes ${(o[0] / day13).toFixed(1)} farm days at level 13`);
+    assert.ok(U.sum(o) / (7 * day13) >= 1 && U.sum(o) / (7 * day13) <= 4, `${g}: the orchard takes ${(U.sum(o) / (7 * day13)).toFixed(1)} bank weeks`);
+  }
+  // a farm from before Big Dreams gets them
+  const old = { grade: 'g2', farm: Object.assign(F.fresh(), { started: true }) };
+  delete old.farm.dream; delete old.farm.stats.built; delete old.farm.stats.dreamIn;
+  const up = F.ensure(old);
+  assert.deepStrictEqual([up.dream, up.stats.built, up.stats.dreamIn], [{ p: 0, s: 0, b: false, seen: false }, 0, 0]);
+  // they open with the bank; the builders are paid only from the bank, one stage at a time
+  const f = F.ensure({ grade: 'g2' });
+  f.xp = lvXp(9);
+  assert.ok(!F.dreamOpen(f));
+  f.xp = lvXp(13);
+  f.money = 9000;
+  assert.ok(F.dreamOpen(f) && !F.canBuild(f, 'g2') && F.payBuilders(f, 'g2') === null, 'money in the wallet does not pay the builders');
+  F.deposit(f, 3000);
+  const paid = F.payBuilders(f, 'g2');
+  assert.ok(paid && paid.st.name === 'Apple trees' && f.bank.bal === 500 && f.dream.b && f.stats.built === 2500);
+  assert.strictEqual(F.payBuilders(f, 'g2'), null, 'one stage a night');
+  assert.deepStrictEqual(F.dreamIncome(f, 'g2'), [], 'nothing earns before it is built');
+  f.day = 5;
+  let news = F.nextDay(f, 'g2');
+  assert.deepStrictEqual([news.built.st.name, news.built.done, f.dream.s, f.dream.b], ['Apple trees', false, 1, false], 'built overnight');
+  assert.deepStrictEqual(F.dreamIncome(f, 'g2'), [['🍎', 'Fruit Orchard', 300]]);
+  // bank day: interest first, then what the buildings earned, both into the bank
+  news = F.nextDay(f, 'g2');
+  assert.ok(news.bankDay && f.day === 7);
+  assert.deepStrictEqual(f.bank.pend, [{ day: 7, bal: 500, inc: [['🍎', 'Fruit Orchard', 300]] }]);
+  assert.strictEqual(F.payIncome(f), null, 'interest comes first');
+  assert.strictEqual(F.payInterest(f, 'g2').x, 50);
+  assert.ok(f.bank.pend[0].paid && F.bankDue(f) === 1);
+  assert.deepStrictEqual(F.payIncome(f), { day: 7, x: 300, inc: [['🍎', 'Fruit Orchard', 300]] });
+  assert.deepStrictEqual([f.bank.bal, F.bankDue(f), f.stats.dreamIn, f.bank.log[0].kind], [850, 0, 300, 'dream']);
+  const totals = (x) => x.stats.saved - x.stats.tookOut + x.stats.interest + x.stats.dreamIn - x.stats.built;
+  assert.strictEqual(totals(f), f.bank.bal, 'the bank totals add up with the builders and the buildings');
+  // an empty bank still gets the buildings' money on bank day; missed bank days each bring it (with interest on it)
+  F.withdraw(f, 850);
+  for (let d = 0; d < 14; d++) F.nextDay(f, 'g2');
+  assert.deepStrictEqual(f.bank.pend.map((x) => [x.day, x.bal, F.incomeOf(x)]), [[14, 0, 300], [21, 300, 300]]);
+  while (F.bankDue(f)) { F.payInterest(f, 'g2'); F.payIncome(f); }
+  assert.deepStrictEqual([f.bank.bal, totals(f)], [630, 630], '300 + 300 + 30¢ interest on the first 300');
+  // finishing the last stage moves to the next dream; the castle comes last; every dream built
+  f.bank.bal = 1e7;
+  const names = [];
+  while (!F.dreamDone(f)) { const x = F.payBuilders(f, 'g2'); assert.ok(x); const n = F.buildOvernight(f); if (n.done) names.push(n.d.id); }
+  assert.deepStrictEqual(names, ['orchard', 'cottage', 'railway', 'castle']);
+  assert.strictEqual(F.dreamNext(f, 'g2'), null);
+  assert.strictEqual(U.sum(F.dreamIncome(f, 'g2').map((x) => x[2])), U.sum(F.DREAMS.flatMap((d) => d.stages.map((x) => x.pay[1]))));
+  // the grown-up preview has two dreams built and the railway half done
+  const sc = F.showcase({ grade: 'g2', farm: F.fresh() });
+  assert.deepStrictEqual([sc.dream.p, sc.dream.s, F.dreamIncome(sc, 'g2').length], [2, 2, 3]);
 }
 
 // ---------- the grown-up preview shows a level-60 farm with everything open
