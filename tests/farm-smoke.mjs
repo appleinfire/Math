@@ -415,6 +415,33 @@ async function play(grade, tag, viewport) {
     const after = await page.evaluate((x) => ({ got: !!MQ.state.farm.treasure[x], card: !!document.querySelector('.fmerchant'), sprite: !!document.querySelector('.trs.tr-' + x) }), id);
     if (!id || !after.got || after.card || !after.sprite) errors.push(`${tag}: buying ${id} from the merchant ${JSON.stringify(after)}`);
   }
+  // the locked deposit (2nd grade): offered once the savings pass the account limit; lock, wait 4 bank weeks, collect
+  if (grade !== 'k') {
+    await page.evaluate(() => { const f = MQ.state.farm; f.bank.pend = []; f.bank.bal = 25000; f.bank.acct = 0; f.dep = { ok: false, amt: 0, until: 0 }; MQ.store.save(); MQ.app.go('farm:bank'); });
+    await page.waitForSelector('.fdep [data-act=fDepLock]');
+    await snap('32-deposit');
+    const amt = await page.evaluate(() => +document.querySelector('.fdep-pick b').textContent.replace(/[$,.]/g, ''));
+    await page.click('[data-act=fDepAmt][data-arg="1"]');
+    await page.click('[data-act=fDepLock]');
+    await page.waitForSelector('.fplay #fanswer');
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    await page.click('[data-act=fNext]');
+    await page.waitForSelector('.fdep.locked');
+    const dep = await page.evaluate(() => ({ bal: MQ.state.farm.bank.bal, d: MQ.state.farm.dep }));
+    if (amt !== 20000 || dep.d.amt !== 20500 || dep.bal !== 4500) errors.push(`${tag}: locking ${amt} → ${JSON.stringify(dep)}`);
+    await snap('33-deposit-locked');
+    await page.evaluate(() => { const F = MQ.farm, f = MQ.state.farm; while (!F.depositReady(f)) { F.nextDay(f, 'g2'); while (F.bankDue(f)) { F.payInterest(f, 'g2'); F.payIncome(f); } } MQ.store.save(); MQ.app.go('farm:bank'); });
+    const bal = await page.evaluate(() => MQ.state.farm.bank.bal);
+    await page.click('[data-act=fDepCollect]');
+    await page.waitForSelector('.fplay #fanswer');
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    await page.click('[data-act=fNext]');
+    await page.waitForSelector('.fbank');
+    const back = await page.evaluate(() => ({ bal: MQ.state.farm.bank.bal, amt: MQ.state.farm.dep.amt }));
+    if (back.amt || back.bal !== bal + 24600) errors.push(`${tag}: collecting the deposit ${JSON.stringify(back)} (bank was ${bal})`);
+  }
 
   // reloading keeps the farm; the home tile shows it
   await page.reload();

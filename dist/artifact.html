@@ -1302,6 +1302,25 @@ svg.tart { display: block; width: 100%; height: auto; }
 @keyframes fairyfly { 25% { transform: translate(-18px, -10px); } 50% { transform: translate(8px, -16px); } 75% { transform: translate(16px, -4px); } }
 .trs.wagon { right: 4px; left: auto; width: 84px; pointer-events: auto; border: 0; padding: 0; background: none; animation: none; filter: drop-shadow(0 0 8px rgba(157, 123, 255, 0.8)); }
 @media (prefers-reduced-motion: reduce) { .fmerchant, .fm-gem, .tpic { animation: none; } }
+
+/* ================= Sunny Farm: the bank's locked deposit (gold) ================= */
+.bk-lock { display: block; margin-top: 2px; font-weight: 800; color: #8a5a08; }
+.fdep { display: flex; gap: 12px; align-items: flex-start; margin-top: 14px; padding: 12px; border-radius: var(--r); background: radial-gradient(circle at 15% 20%, #fffbe6, #fff1c7 60%, #ffe39a); box-shadow: inset 0 0 0 3px #e3a21a, 0 4px 0 #b8780a; }
+.fdep.ready { animation: dreamglow 1.6s ease-in-out infinite; }
+.fdep-pic { flex: none; width: 82px; }
+.fdep-t { flex: 1; min-width: 0; }
+.fdep-t > b { font-family: var(--display); font-weight: 600; font-size: 1.1rem; }
+.fdep-t p { margin: 6px 0 0; }
+.fdep-pick { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 10px 0 4px; }
+.fdep-pick b { font-family: var(--display); font-weight: 600; font-size: 1.6rem; min-width: 90px; text-align: center; font-variant-numeric: tabular-nums; }
+.fdep-tip { padding: 6px 10px; border-radius: 10px; background: #ffffff; box-shadow: inset 0 0 0 2px #f0c35a; font-size: 0.9rem; }
+.fdep-go { width: 100%; margin-top: 10px; background: linear-gradient(90deg, #e0961a, #ffb547); box-shadow: 0 4px 0 #8a5a08; }
+.fdep-weeks { display: flex; gap: 6px; margin-top: 8px; font-size: 1.3rem; }
+.fdep-weeks i { font-style: normal; filter: grayscale(1) opacity(0.4); }
+.fdep-weeks i.on { filter: none; }
+.blog b.lock { color: #8a5a08; }
+.blog b.unlock { color: var(--good); }
+@media (prefers-reduced-motion: reduce) { .fdep.ready { animation: none; } }
 </style>
 <div id="app"><p style="padding:40px;text-align:center">Loading Math Expedition…</p></div>
   <script>
@@ -5161,6 +5180,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     { id: 'dream1', icon: '🏗️', name: 'Dreamer', desc: 'Build the first part of a Big Dream on your farm', test: (s) => !!s.farm && !!s.farm.dream && (s.farm.dream.p > 0 || s.farm.dream.s > 0) },
     { id: 'investor', icon: '🍎', name: 'Investor', desc: 'Finish the Fruit Orchard: it earns money every bank day', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 1 },
     { id: 'treasure', icon: '🧳', name: 'Treasure Hunter', desc: 'Buy a rare treasure from the traveling merchant', test: (s) => !!s.farm && Object.keys(s.farm.treasure || {}).length >= 1 },
+    { id: 'deposit', icon: '🔐', name: 'Patient Saver', desc: 'Collect a locked deposit from the farm bank', test: (s) => !!s.farm && (s.farm.stats.depBonus || 0) > 0 },
     { id: 'castle', icon: '🏰', name: 'Castle Builder', desc: 'Build the Castle on the Hill', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 4 },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];
@@ -6477,6 +6497,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     dream: { p: 0, s: 0, b: false, seen: false }, // Big Dreams: project p, stages built s, builders at work tonight b
     treasure: {}, // the traveling merchant's treasures bought: id: true
     merchant: null, // his visit: { week, item } (bank week number and the treasure he brought)
+    dep: { ok: false, amt: 0, until: 0 }, // the bank's locked deposit (2nd grade): opened once savings pass the limit (ok); amt locked until farm day `until`
   });
   F.START_MONEY = [5, 30];
   F.ensure = (st) => {
@@ -6496,6 +6517,8 @@ svg.tart { display: block; width: 100%; height: auto; }
     if (!fm.dream) fm.dream = { p: 0, s: 0, b: false, seen: false }; // Big Dreams came later
     if (!fm.treasure) fm.treasure = {}; // so did the traveling merchant
     if (fm.merchant === undefined) fm.merchant = null;
+    if (!fm.dep) fm.dep = { ok: false, amt: 0, until: 0 }; // and the locked deposit
+    if (!fm.stats.depBonus) fm.stats.depBonus = 0;
     for (const k of ['built', 'dreamIn']) if (!fm.stats[k]) fm.stats[k] = 0;
     return fm;
   };
@@ -6618,6 +6641,8 @@ svg.tart { display: block; width: 100%; height: auto; }
     if (tr.goose) { const x = F.TREASURES.goose.gold[gi(grade)]; fm.money += x; fm.stats.earned += x; news.gold = x; }
     if (tr.sheep) { fm.basket.rainbow = (fm.basket.rainbow || 0) + 1; news.rainbow = 1; }
     news.merchant = F.merchantMorning(fm, grade);
+    if (fm.dep && fm.dep.amt && fm.day === fm.dep.until) news.depReady = F.depositBack(fm.dep.amt);
+    news.depNew = F.depositCheck(fm, grade);
     news.bankDay = fm.bank ? F.bankMorning(fm, grade) : false; // the morning of bank day: what is saved earns interest
     return news;
   };
@@ -6821,7 +6846,41 @@ svg.tart { display: block; width: 100%; height: auto; }
   // (interest counts as spent last, so taking money out uses up the child's own money first).
   F.bankSummary = (fm) => {
     const s = fm.stats, interest = Math.min(fm.bank.bal, s.interest);
-    return { saved: s.saved, tookOut: s.tookOut, interest: s.interest, days: s.bankDays, bal: fm.bank.bal, own: fm.bank.bal - interest, fromInterest: interest, built: s.built || 0, dreamIn: s.dreamIn || 0 };
+    return { saved: s.saved, tookOut: s.tookOut, interest: s.interest, days: s.bankDays, bal: fm.bank.bal, own: fm.bank.bal - interest, fromInterest: interest, built: s.built || 0, dreamIn: s.dreamIn || 0, depBonus: s.depBonus || 0, locked: (fm.dep && fm.dep.amt) || 0 };
+  };
+  // ---------------------------------------------------------------- the locked deposit (2nd grade)
+  // Savings above the account's limit earn only the small interest (1¢ a dollar). So once the savings first pass
+  // the limit, the bank offers a locked deposit: move savings in $5 steps into it for 4 bank weeks, and for every $5
+  // the bank gives back $6 (that is 5¢ a dollar a week: less than the big interest, much more than the small one).
+  // It can't be taken out early, and there is one at a time. When it unlocks, the money goes back to the savings.
+  F.DEPOSIT = { weeks: 4, step: 500, back: 600 };
+  F.depositOn = (fm, grade) => grade !== 'k' && !!fm.dep && fm.dep.ok;
+  // the offer opens the first time the savings are above the account's limit (returns true when it just opened)
+  F.depositCheck = (fm, grade) => {
+    if (grade === 'k' || !fm.dep || fm.dep.ok || !fm.bank || fm.bank.bal <= F.bankTop(fm.bank.acct, grade)) return false;
+    fm.dep.ok = true;
+    return true;
+  };
+  F.depositBack = (amt) => (amt / F.DEPOSIT.step) * F.DEPOSIT.back;
+  // it unlocks on the 4th bank day after the day it is locked
+  F.depositUntil = (day) => (Math.floor(day / F.BANK_WEEK) + F.DEPOSIT.weeks) * F.BANK_WEEK;
+  F.depositReady = (fm) => !!fm.dep && fm.dep.amt > 0 && fm.day >= fm.dep.until;
+  F.lockDeposit = (fm, grade, amt) => {
+    if (!F.depositOn(fm, grade) || fm.dep.amt || !(amt > 0) || amt % F.DEPOSIT.step || amt > fm.bank.bal) return false;
+    fm.bank.bal -= amt;
+    Object.assign(fm.dep, { amt, until: F.depositUntil(fm.day) });
+    bankLog(fm, 'lock', amt);
+    return true;
+  };
+  // Returns { amt, back } and puts the money back into the savings, or null when it is still locked.
+  F.collectDeposit = (fm) => {
+    if (!F.depositReady(fm)) return null;
+    const amt = fm.dep.amt, back = F.depositBack(amt);
+    fm.bank.bal += back;
+    fm.stats.depBonus += back - amt;
+    Object.assign(fm.dep, { amt: 0, until: 0 });
+    bankLog(fm, 'unlock', back);
+    return { amt, back };
   };
   // How the savings would grow, bank week by bank week, without adding or taking out money.
   F.project = (bal, grade, weeks = 6, acct = 0) => { const out = [bal]; for (let i = 0; i < weeks; i++) out.push(out[i] + F.interest(out[i], grade, acct)); return out; };
@@ -6974,6 +7033,7 @@ svg.tart { display: block; width: 100%; height: auto; }
       dream: { p: 2, s: 2, b: false, seen: true }, // the orchard and the cottage built, the railway half done
       treasure: { goose: true, can: true, musician: true }, // three of the merchant's treasures
       merchant: { week: 2, item: 'sheep' }, // and he is visiting (farm day 14 is the last day of bank week 2)
+      dep: k ? { ok: false, amt: 0, until: 0 } : { ok: true, amt: 2000, until: 28 }, // and a locked deposit (2nd grade)
     });
     Object.assign(fm.stats, k ? { saved: 1100, tookOut: 100, interest: 234, bankDays: 9 } : { saved: 11000, tookOut: 1000, interest: 2345, bankDays: 9 }); // adds up to the bank above
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
@@ -8043,6 +8103,19 @@ svg.tart { display: block; width: 100%; height: auto; }
       wheel(34) + wheel(86) + spk(10, 16, 6, '#fff3a6') + spk(110, 18, 5, '#ffffff') + `</svg>`;
   };
   MQ.TREASURE_IDS = Object.keys(TREASURE);
+  // The bank's locked deposit: a little golden safe with a padlock (open when the deposit is ready).
+  MQ.vaultArt = (open = false) => {
+    const k = 'v' + (++uid).toString(36);
+    const door = open
+      ? `<path d="M34 34L18 26L18 94L34 86Z" fill="url(#${k}d)" stroke="#8a5a08" stroke-width="2.2" stroke-linejoin="round"/><rect x="34" y="34" width="52" height="52" rx="4" fill="#3a2a5a"/>` +
+        [[44, 70], [56, 66], [68, 72], [50, 78], [62, 80], [74, 78]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="6" ry="3" fill="#ffd23f" stroke="#a8650a" stroke-width="1"/>`).join('') + spk(60, 50, 8, '#fff3a6') + spk(76, 44, 4, '#ffffff')
+      : `<rect x="34" y="34" width="52" height="52" rx="4" fill="url(#${k}d)" stroke="#8a5a08" stroke-width="2.2"/><circle cx="60" cy="60" r="13" fill="#ffe680" stroke="#8a5a08" stroke-width="2"/>` +
+        [0, 60, 120, 180, 240, 300].map((a) => `<path d="M60 60L${f1(60 + 11 * Math.cos((a * Math.PI) / 180))} ${f1(60 + 11 * Math.sin((a * Math.PI) / 180))}" stroke="#8a5a08" stroke-width="2" stroke-linecap="round"/>`).join('') + '<circle cx="60" cy="60" r="3" fill="#8a5a08"/>' +
+        `<path d="M78 74C78 66 92 66 92 74" fill="none" stroke="#6f7488" stroke-width="4"/><rect x="74" y="74" width="22" height="18" rx="3" fill="#c9ced9" stroke="#5b6378" stroke-width="2"/><circle cx="85" cy="82" r="2.4" fill="#2b2140"/><path d="M85 82L85 87" stroke="#2b2140" stroke-width="2"/>`;
+    return `<svg class="tart vault" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><defs>${lin(k + 'b', ['#fff1a6', '#ffcf48', '#d98a10'], 1, 1)}${lin(k + 'd', ['#ffe680', '#e8a823'], 1, 1)}${glowG(k + 'w', open ? '#ffe066' : '#c9b8ff')}</defs>` +
+      `<circle cx="60" cy="60" r="56" fill="url(#${k}w)"/><rect x="24" y="24" width="72" height="72" rx="10" fill="url(#${k}b)" stroke="#8a5a08" stroke-width="2.6"/>` +
+      `<rect x="30" y="96" width="12" height="8" rx="2" fill="#8a5a08"/><rect x="78" y="96" width="12" height="8" rx="2" fill="#8a5a08"/>${door}` + spk(16, 18, 6, '#fff3a6') + spk(106, 22, 5, '#ffffff') + `</svg>`;
+  };
 
   const DRAW = { orchard: ORCHARD, cottage: COTTAGE, railway: RAILWAY, castle: CASTLE };
   MQ.dreamArt = (id, built, { building = false, ghost = true } = {}) => {
@@ -8337,6 +8410,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     const hungry = f.pens.filter((p) => p.a && !p.fed);
     let t;
     if (F.bankDue(f) > 0) t = 'It’s bank day! Your savings grew. Go to the bank to collect the interest.';
+    else if (F.depositReady(f)) t = 'Your locked deposit unlocked! Go to the bank to collect it. 🔓';
     else if (F.canBuild(f, grade())) t = 'You saved enough in the bank for your Big Dream! Pay the builders 🏗️';
     else if (F.merchantNow(f) && F.merchantNights(f.day) <= 1) t = `${F.MERCHANT.name} the traveling merchant leaves ${F.merchantNights(f.day) ? 'tomorrow night' : 'tonight'}! Tap his wagon.`;
     else if (Object.values(f.works).some((w) => w.ready)) t = 'Something is ready in your workshop! Tap it to take it.';
@@ -8391,7 +8465,7 @@ svg.tart { display: block; width: 100%; height: auto; }
       <button class="btn big fstand" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Open the stand ${n ? `· ${n} to sell` : '· basket is empty'}</button>
       <div class="fbtns">
         <button class="tile" data-act="go" data-arg="farm:shop"><span class="ti">🛒</span><b>Shop</b><small>Animals, feed, more</small></button>
-        ${lv.level >= F.BANK_LV ? `<button class="tile ${bankDay ? 'hot' : ''}" data-act="go" data-arg="farm:bank"><span class="ti">🏦</span><b>Bank</b><small>${bankDay ? '🏦 Bank day today!' : f.bank.bal ? `${fmt(f.bank.bal)} · 🏦 in ${nights} ${nights === 1 ? 'night' : 'nights'}` : 'Save and earn'}</small></button>` : `<button class="tile locked" disabled><span class="ti">🏦</span><b>Bank</b><small>🔒 Level ${F.BANK_LV}</small></button>`}
+        ${lv.level >= F.BANK_LV ? `<button class="tile ${bankDay ? 'hot' : ''}" data-act="go" data-arg="farm:bank"><span class="ti">🏦</span><b>Bank</b><small>${bankDay ? '🏦 Bank day today!' : F.depositReady(f) ? '🔓 Deposit unlocked!' : f.bank.bal ? `${fmt(f.bank.bal)} · 🏦 in ${nights} ${nights === 1 ? 'night' : 'nights'}` : 'Save and earn'}</small></button>` : `<button class="tile locked" disabled><span class="ti">🏦</span><b>Bank</b><small>🔒 Level ${F.BANK_LV}</small></button>`}
         <button class="tile" data-act="fJobs"><span class="ti">🧹</span><b>Odd jobs</b><small>Earn at the big market</small></button>
         <button class="tile" data-act="fSleep"><span class="ti">🌙</span><b>Sleep</b><small>Start farm day ${f.day + 1}</small></button>
       </div>
@@ -8592,6 +8666,8 @@ svg.tart { display: block; width: 100%; height: auto; }
     news.made.forEach(([it, n]) => (made[it] = (made[it] || 0) + n));
     for (const [it, n] of Object.entries(made)) lines.push(`${F.ITEMS[it].e} +${n} ${esc(n === 1 ? F.ITEMS[it].name : F.ITEMS[it].many)} to collect`);
     if (news.bankDay) lines.push('🏦 It’s bank day! Your savings earned interest: go to the bank to collect it.');
+    if (news.depReady) lines.push(`🔓 Your locked deposit unlocked: <b>${fmt(news.depReady)}</b> is waiting at the bank!`);
+    if (news.depNew) lines.push(`<span class="mline">🏦 New at the bank: a <b>locked deposit</b>. Your savings are above ${fmt(F.bankTop(f.bank.acct, grade()))}: lock some, and every $5 comes back as $6!</span>`);
     if (news.gold) lines.push(`🪿 The Golden Goose laid a golden egg: <b>+${fmt(news.gold)}</b> in your wallet!`);
     if (news.rainbow) lines.push('🐑 The Rainbow Sheep gave a ball of 🌈 rainbow wool. It is in your basket.');
     if (news.fairy) lines.push(`🧚 The Feed Fairy fed your hungry ${esc(F.ANIMALS[news.fairy].name.toLowerCase())}.`);
@@ -8724,7 +8800,7 @@ svg.tart { display: block; width: 100%; height: auto; }
       else if (left <= 0) action = `<button class="btn big dbuild" data-act="fBuild">🏗️ Pay the builders · ${fmt(n.cost)} from the bank</button><p class="muted center">You have ${fmt(f.bank.bal)} in the bank.</p>`;
       else action = `<div class="dsave"><span class="fbar"><span style="width:${Math.round((f.bank.bal / n.cost) * 100)}%"></span></span>
           <p>In the bank: <b>${fmt(f.bank.bal)}</b> of <b>${fmt(n.cost)}</b> · <b>${fmt(left)}</b> more to save</p>
-          <p class="muted">The builders are paid from the bank, not from your wallet.${f.money ? ` You have ${fmt(f.money)} in your wallet: put it in the bank!` : ''}</p>
+          <p class="muted">The builders are paid from the bank, not from your wallet.${f.money ? ` You have ${fmt(f.money)} in your wallet: put it in the bank!` : ''}${f.dep && f.dep.amt ? ` Your locked deposit (${fmt(F.depositBack(f.dep.amt))}) comes back on farm day ${f.dep.until}.` : ''}</p>
           <button class="btn" data-act="go" data-arg="farm:bank">🏦 Go to the bank</button></div>`;
       if (n.pay) {
         // the same money kept in the bank: what it would add to this bank day's interest
@@ -8908,7 +8984,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     if (st().settings.readAloud) speakIt();
   }
   const speakIt = () => { const p = fs && fs.p; if (p) MQ.speak(((p.who ? p.who[1] + ' ' : '') + MQ.toSpeech(p.text)).replace(/\$(\d+)\.(\d\d)/g, (_, d, c) => F.spoken(+d * 100 + +c, 'g2')).replace(/(\d+)¢/g, '$1 cents')); };
-  const BANKISH = new Set(['deposit', 'withdraw', 'interest']);
+  const BANKISH = new Set(['deposit', 'withdraw', 'interest', 'lock', 'unlock']);
   const STATUS = {
     pay: () => '🛒 Paying',
     make: () => `${F.WORKS[fs.work].e} ${esc(F.WORKS[fs.work].name)}`,
@@ -8917,8 +8993,10 @@ svg.tart { display: block; width: 100%; height: auto; }
     withdraw: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
     interest: () => `🏦 Bank day · ${fs.n + 1} of ${fs.weeks}`, // fs.n counts the questions done
     build: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
+    lock: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
+    unlock: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
   };
-  const LABEL = { pay: '🛒 Farm Shop', make: '🧮 Is it worth making?', sell: '💰 Selling animals', deposit: '🏦 Put money in the bank', withdraw: '🏦 Take money out', interest: '🏦 Bank day: interest', build: '🏗️ Pay the builders' };
+  const LABEL = { pay: '🛒 Farm Shop', make: '🧮 Is it worth making?', sell: '💰 Selling animals', deposit: '🏦 Put money in the bank', withdraw: '🏦 Take money out', interest: '🏦 Bank day: interest', build: '🏗️ Pay the builders', lock: '🔒 Locked deposit', unlock: '🔓 Your deposit is back' };
   // the problem being answered now (paying too much asks for the change)
   const cur = () => (fs.step === 'change' ? fs.change : fs.p);
   function drawAnswer() {
@@ -8938,7 +9016,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     }
     step.innerHTML = top;
   }
-  const NEXT = { pay: 'Back to the farm', make: 'Back to the farm', sell: 'Done', deposit: 'Back to the bank', withdraw: 'Back to the bank', build: 'Back to Big Dreams' };
+  const NEXT = { pay: 'Back to the farm', make: 'Back to the farm', sell: 'Done', deposit: 'Back to the bank', withdraw: 'Back to the bank', build: 'Back to Big Dreams', lock: 'Back to the bank', unlock: 'Back to the bank' };
   const lockedHtml = () => `<div class="row"><button class="btn big" data-act="fNext">${fs.mode === 'interest' ? (fs.n < fs.weeks ? 'Next' : 'Back to the bank') : NEXT[fs.mode] || 'Next customer'} →</button></div>`;
   function feedback(html, cls) {
     const el = $('#feedback');
@@ -9056,7 +9134,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     K().checkBadges();
   }
   // A workshop question, a deposit or a bank day is done: fs.done applies it and says what happened.
-  const TASKS = new Set(['make', 'deposit', 'interest', 'sell', 'build']);
+  const TASKS = new Set(['make', 'deposit', 'interest', 'sell', 'build', 'lock', 'unlock']);
   function doneTask(first, solved, shown) {
     const f = fm(), before = f.money;
     F.record(st(), first);
@@ -9171,24 +9249,27 @@ svg.tart { display: block; width: 100%; height: auto; }
   // ---------------------------------------------------------------- the bank
   function bank() {
     const f = fm(), g = grade(), b = f.bank, due = F.bankDue(f), nights = F.nightsToBankDay(f.day);
+    if (F.depositCheck(f, g)) save();
     const nextBank = f.day + nights;
     const proj = F.project(b.bal, g, 6, b.acct), top = Math.max(1, ...proj);
     const bars = proj.map((v, k) => `<div class="bbar"><span class="bv">${fmt(v)}</span><span class="bfill" style="height:${Math.max(4, Math.round((v / top) * 100))}%"></span><small>${k === 0 ? 'Now' : 'Day ' + (nextBank + (k - 1) * F.BANK_WEEK)}</small></div>`).join('');
     // this bank week: 7 farm days, the last one is bank day
     const week = F.bankWeek(f.day).map((d) => `<li class="${d < f.day ? 'past' : d === f.day ? 'now' : ''} ${F.isBankDay(d) ? 'bank' : ''}"><small>Day</small><b>${d}</b>${F.isBankDay(d) ? '<i>🏦</i>' : d < f.day ? '<i>✓</i>' : '<i></i>'}</li>`).join('');
     const status = due ? `✨ Bank day! The interest is waiting for you.` : F.isBankDay(f.day) ? `Today was bank day. The next one is farm day ${nextBank}.` : `${nights} more ${nights === 1 ? 'night' : 'nights'} until bank day (farm day ${nextBank}). Tap 🌙 Sleep on the farm to make a night pass.`;
-    const LOG = { in: ['⬇️', 'Saved'], out: ['⬆️', 'Took out'], interest: ['✨', 'Interest'], build: ['🏗️', 'Paid the builders'], dream: ['🏡', 'Your buildings earned'] };
-    const log = b.log.filter((x) => LOG[x.kind]).map((x) => `<li><span>${LOG[x.kind][0]} ${LOG[x.kind][1]}</span><small>${x.day ? 'Farm day ' + x.day : esc(x.d || '')}</small><b class="${x.kind}">${x.kind === 'out' || x.kind === 'build' ? '−' : '+'}${fmt(x.amt)}</b></li>`).join('');
+    const LOG = { in: ['⬇️', 'Saved'], out: ['⬆️', 'Took out'], interest: ['✨', 'Interest'], build: ['🏗️', 'Paid the builders'], dream: ['🏡', 'Your buildings earned'], lock: ['🔒', 'Locked in a deposit'], unlock: ['🔓', 'Deposit came back'] };
+    const minus = new Set(['out', 'build', 'lock']);
+    const log = b.log.filter((x) => LOG[x.kind]).map((x) => `<li><span>${LOG[x.kind][0]} ${LOG[x.kind][1]}</span><small>${x.day ? 'Farm day ' + x.day : esc(x.d || '')}</small><b class="${x.kind}">${minus.has(x.kind) ? '−' : '+'}${fmt(x.amt)}</b></li>`).join('');
     const inc = b.pend.some((x) => x.inc && x.inc.length);
     K().render(header('🏦 Farm Bank', 'farm') + `<main class="farm fbank">
       <section class="bankcard">
-        <div class="bk"><small>In the bank</small><b id="fbankbal">${fmt(b.bal)}</b></div>
+        <div class="bk"><small>In the bank</small><b id="fbankbal">${fmt(b.bal)}</b>${f.dep && f.dep.amt ? `<small class="bk-lock">🔒 + ${fmt(f.dep.amt)} locked</small>` : ''}</div>
         <div class="bk"><small>In your wallet</small><b>${fmt(f.money)}</b></div>
       </section>
       <section class="bweek" aria-label="This bank week"><div class="bweek-t"><b>🏦 This bank week</b><small>Bank day is every ${F.BANK_WEEK}th farm day</small></div><ol>${week}</ol><p class="${due ? 'due' : ''}">${status}</p></section>
       ${due > 0 ? `<button class="btn big fstand" data-act="fInterest">✨ Collect your interest${inc ? ' and what your buildings earned' : ''}${due > 1 ? ` (${due} bank days)` : ''}</button>` : ''}
       <div class="row"><button class="btn" data-act="fDeposit" ${f.money ? '' : 'disabled'}>⬇️ Save money</button><button class="btn ghost" data-act="fWithdraw" ${b.bal ? '' : 'disabled'}>⬆️ Take money out</button></div>
       ${dreamJar()}
+      ${depositCard()}
       ${accountCard()}
       <section class="flevel"><b>How the bank works</b>
         <p>${esc(F.ruleText(g, b.acct))} The money is safe in the bank, and you can take it out any time to spend it.</p>
@@ -9198,6 +9279,52 @@ svg.tart { display: block; width: 100%; height: auto; }
       ${log ? `<h2>🧾 My bank book</h2><ul class="blog">${log}</ul>` : ''}
     </main>`, 'is-farm');
     K().setCur('farm:bank');
+  }
+  // The locked deposit (2nd grade): lock savings in $5 steps for 4 bank weeks; every $5 comes back as $6.
+  let depAmt = 0;
+  function depositCard() {
+    const f = fm(), g = grade(), d = f.dep;
+    if (!F.depositOn(f, g)) return '';
+    const D = F.DEPOSIT, top = F.bankTop(f.bank.acct, g), ready = F.depositReady(f);
+    let body;
+    if (ready) body = `<p>Unlocked! You locked <b>${fmt(d.amt)}</b> and <b>${fmt(F.depositBack(d.amt))}</b> comes back to your savings.</p><button class="btn big fdep-go" data-act="fDepCollect">🔓 Collect ${fmt(F.depositBack(d.amt))}</button>`;
+    else if (d.amt) {
+      const left = d.until - f.day, passed = D.weeks - Math.ceil(left / F.BANK_WEEK);
+      body = `<p><b>${fmt(d.amt)}</b> is locked. On bank day, farm day ${d.until} (in ${left} ${left === 1 ? 'night' : 'nights'}), you get <b>${fmt(F.depositBack(d.amt))}</b> back.</p>
+        <div class="fdep-weeks" aria-label="${passed} of ${D.weeks} bank weeks">${Array.from({ length: D.weeks }, (_, i) => `<i class="${i < passed ? 'on' : ''}">🏦</i>`).join('')}</div>
+        <p class="muted">It can’t be taken out early. Then it goes back to your savings.</p>`;
+    } else {
+      const max = Math.floor(f.bank.bal / D.step) * D.step;
+      if (max < D.step) body = `<p>Lock savings for ${D.weeks} bank weeks: for every <b>${fmt(D.step)}</b>, the bank gives back <b>${fmt(D.back)}</b>.</p><p class="muted">Save at least ${fmt(D.step)} in the bank to start one.</p>`;
+      else {
+        if (!depAmt || depAmt > max) depAmt = Math.min(max, Math.max(D.step, Math.floor((f.bank.bal - top) / D.step) * D.step));
+        const keep = f.bank.bal - depAmt;
+        body = `<p>Lock savings for <b>${D.weeks} bank weeks</b>. For every <b>${fmt(D.step)}</b> you lock, the bank gives back <b>${fmt(D.back)}</b>. You can’t take it out early.</p>
+          <div class="fdep-pick"><button class="iconbtn" data-act="fDepAmt" data-arg="-1" ${depAmt <= D.step ? 'disabled' : ''} aria-label="Less">−</button><b>${fmt(depAmt)}</b><button class="iconbtn" data-act="fDepAmt" data-arg="1" ${depAmt + D.step > max ? 'disabled' : ''} aria-label="More">+</button></div>
+          ${keep < top ? `<p class="fdep-tip">💡 Savings up to ${fmt(top)} already earn 10¢ for every dollar each week, more than a deposit. Lock only what is above ${fmt(top)}: that part earns just 1¢.</p>` : ''}
+          <button class="btn big fdep-go" data-act="fDepLock">🔒 Lock ${fmt(depAmt)} for ${D.weeks} bank weeks</button>`;
+      }
+    }
+    return `<section class="fdep ${ready ? 'ready' : d.amt ? 'locked' : ''}"><div class="fdep-pic">${MQ.vaultArt(ready)}</div><div class="fdep-t"><b>${ready ? '🔓' : '🔒'} Locked deposit</b>${body}</div></section>`;
+  }
+  function startLock() {
+    const f = fm(), g = grade(), amt = depAmt, back = F.depositBack(amt), n = amt / F.DEPOSIT.step;
+    if (!F.depositOn(f, g) || f.dep.amt || amt > f.bank.bal) return bank();
+    fs = { mode: 'lock', n: 0, earned: 0, tips: 0, xp: 0, back: 'farm:bank',
+      done: () => (F.lockDeposit(fm(), grade(), amt) ? `🔒 <b>${fmt(amt)}</b> is locked until bank day, farm day ${fm().dep.until}. Then you get <b>${fmt(back)}</b> back!` : 'It is already locked.') };
+    show({ type: 'deposit', kind: 'choice', answer: fmt(back), choices: F.moneyChoices(back, g, [amt + 100, amt, back + F.DEPOSIT.step]),
+      text: `You lock <b>${fmt(amt)}</b> for ${F.DEPOSIT.weeks} bank weeks. For every <b>${fmt(F.DEPOSIT.step)}</b>, the bank gives back <b>${fmt(F.DEPOSIT.back)}</b>. <b>How much do you get back?</b>`,
+      hint: `How many ${fmt(F.DEPOSIT.step)} are in ${fmt(amt)}? Each one comes back as ${fmt(F.DEPOSIT.back)}.`,
+      explain: `${fmt(amt)} is ${n} × ${fmt(F.DEPOSIT.step)}, so you get ${n} × ${fmt(F.DEPOSIT.back)} = ${fmt(back)}`, sale: {}, total: 0 });
+  }
+  function startUnlock() {
+    const f = fm(), g = grade();
+    if (!F.depositReady(f)) return bank();
+    const back = F.depositBack(f.dep.amt), bal = f.bank.bal, ans = bal + back;
+    fs = { mode: 'unlock', n: 0, earned: 0, tips: 0, xp: 0, back: 'farm:bank',
+      done: () => { const x = F.collectDeposit(fm()); MQ.confetti(140, { colors: ['#ffd23f', '#ffe066', '#9d7bff'], shape: 'star' }); return x ? `🔓 <b>${fmt(x.back)}</b> is back in your savings: <b>${fmt(x.back - x.amt)}</b> more than you locked! Now you have <b>${fmt(fm().bank.bal)}</b>.` : ''; } };
+    show(Object.assign({ type: 'deposit', text: `Your locked deposit unlocked! <b>${fmt(back)}</b> goes back to your savings. You have <b>${fmt(bal)}</b> in the bank now. <b>How much will you have?</b>`,
+      hint: `Add ${fmt(back)} to ${fmt(bal)}.`, explain: `${fmt(bal)} + ${fmt(back)} = ${fmt(ans)}`, sale: {}, total: 0 }, ans < 100 ? { kind: 'num', answer: ans, unit: '¢' } : { kind: 'choice', answer: fmt(ans), choices: F.moneyChoices(ans, g, [bal, back]) }));
   }
   // The bank is the Big Dream's piggy bank: how much of the next stage is saved.
   function dreamJar() {
@@ -9299,7 +9426,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     clearTimeout(autoNext);
     fs = null;
     if (arg === 'shop') return shop();
-    if (arg === 'bank') return F.level(fm().xp).level >= F.BANK_LV ? bank() : main();
+    if (arg === 'bank') { if (!quiet) depAmt = 0; return F.level(fm().xp).level >= F.BANK_LV ? (quiet ? keepY(bank) : bank()) : main(); }
     if (arg === 'dreams') return F.dreamOpen(fm()) ? (quiet ? keepY(dreams) : (dreamView = null, dreams())) : main();
     if (quiet) return keepY(main); // another device changed something: redraw in place
     lastDock = null;
@@ -9328,6 +9455,9 @@ svg.tart { display: block; width: 100%; height: auto; }
     fWithdraw: () => startWithdraw(),
     fInterest: () => startInterest(),
     fBuild: () => startBuild(),
+    fDepAmt: (a) => { depAmt += +a * F.DEPOSIT.step; MQ.sfx('tap'); keepY(bank); },
+    fDepLock: () => startLock(),
+    fDepCollect: () => startUnlock(),
     fMerchant: () => merchant(),
     fBuyTreasure: () => buyTreasure(),
     fDreamView: (a) => { dreamView = +a === fm().dream.p ? null : +a; MQ.sfx('tap'); keepY(dreams); },
@@ -9821,9 +9951,9 @@ svg.tart { display: block; width: 100%; height: auto; }
     const bankDay = !!(fm.bank && fm.bank.pend && fm.bank.pend.length);
     const made = fm.works && Object.values(fm.works).some((w) => w.ready);
     const build = F.canBuild(F.ensure(st), st.grade);
-    const trader = !!F.merchantNow(fm);
-    const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : trader ? `🧳 A traveling merchant is here!` : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
-    return `<button class="tile t-farm wide ${waiting || made || bankDay || build || trader || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
+    const trader = !!F.merchantNow(fm), unlocked = F.depositReady(fm);
+    const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
+    return `<button class="tile t-farm wide ${waiting || made || bankDay || build || trader || unlocked || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
   }
 
   // For grown-ups: how Sunny Farm is going (its money problems also count in the daily totals above).
@@ -9836,6 +9966,7 @@ svg.tart { display: block; width: 100%; height: auto; }
       ${fm.bank && (fm.bank.bal || s.interest) ? `<p>🏦 Bank: <b>${F.fmt(fm.bank.bal, st.grade)}</b> saved · ${F.fmt(s.interest || 0, st.grade)} interest earned on ${s.bankDays || 0} bank days. ${esc(F.ruleText(st.grade))}</p>` : ''}
       ${s.made ? `<p>🏭 ${s.made} things made in the workshops (each one starts with a question: how much more is it worth?).</p>` : ''}
       ${fm.dream && (fm.dream.p || fm.dream.s) ? `<p>🏗️ Big Dreams: ${F.DREAMS.map((d, k) => [d, F.dreamBuilt(fm, k)]).filter(([, n]) => n).map(([d, n]) => `${d.e} ${esc(d.name)} ${n >= d.stages.length ? '✓' : n + ' of ' + d.stages.length}`).join(', ')}. Paid to builders from the bank: ${F.fmt(s.built || 0, st.grade)}; the buildings earned ${F.fmt(s.dreamIn || 0, st.grade)} on bank days.</p>` : ''}
+      ${fm.dep && (fm.dep.amt || s.depBonus) ? `<p>🔒 Locked deposit: ${fm.dep.amt ? `<b>${F.fmt(fm.dep.amt, st.grade)}</b> locked until farm day ${fm.dep.until}` : 'none now'}; locked deposits have earned ${F.fmt(s.depBonus || 0, st.grade)} so far.</p>` : ''}
       ${Object.keys(fm.treasure || {}).length ? `<p>🧳 Treasures from the traveling merchant: ${Object.keys(fm.treasure).map((id) => F.TREASURES[id].e + ' ' + esc(F.TREASURES[id].name)).join(', ')}.</p>` : ''}
       <p>${s.tasks} money problems from customers and odd jobs, <b>${pct(s.right, s.tasks)}%</b> right on the first try · ${s.vip} ⭐ challenge customers. Now practicing: <b>${esc(tier.name)}</b>${tier.ahead ? ' (ahead of grade)' : ''}.</p>
       <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p></section>`;

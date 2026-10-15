@@ -204,6 +204,19 @@
       wheel(34) + wheel(86) + spk(10, 16, 6, '#fff3a6') + spk(110, 18, 5, '#ffffff') + `</svg>`;
   };
   MQ.TREASURE_IDS = Object.keys(TREASURE);
+  // The bank's locked deposit: a little golden safe with a padlock (open when the deposit is ready).
+  MQ.vaultArt = (open = false) => {
+    const k = 'v' + (++uid).toString(36);
+    const door = open
+      ? `<path d="M34 34L18 26L18 94L34 86Z" fill="url(#${k}d)" stroke="#8a5a08" stroke-width="2.2" stroke-linejoin="round"/><rect x="34" y="34" width="52" height="52" rx="4" fill="#3a2a5a"/>` +
+        [[44, 70], [56, 66], [68, 72], [50, 78], [62, 80], [74, 78]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="6" ry="3" fill="#ffd23f" stroke="#a8650a" stroke-width="1"/>`).join('') + spk(60, 50, 8, '#fff3a6') + spk(76, 44, 4, '#ffffff')
+      : `<rect x="34" y="34" width="52" height="52" rx="4" fill="url(#${k}d)" stroke="#8a5a08" stroke-width="2.2"/><circle cx="60" cy="60" r="13" fill="#ffe680" stroke="#8a5a08" stroke-width="2"/>` +
+        [0, 60, 120, 180, 240, 300].map((a) => `<path d="M60 60L${f1(60 + 11 * Math.cos((a * Math.PI) / 180))} ${f1(60 + 11 * Math.sin((a * Math.PI) / 180))}" stroke="#8a5a08" stroke-width="2" stroke-linecap="round"/>`).join('') + '<circle cx="60" cy="60" r="3" fill="#8a5a08"/>' +
+        `<path d="M78 74C78 66 92 66 92 74" fill="none" stroke="#6f7488" stroke-width="4"/><rect x="74" y="74" width="22" height="18" rx="3" fill="#c9ced9" stroke="#5b6378" stroke-width="2"/><circle cx="85" cy="82" r="2.4" fill="#2b2140"/><path d="M85 82L85 87" stroke="#2b2140" stroke-width="2"/>`;
+    return `<svg class="tart vault" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><defs>${lin(k + 'b', ['#fff1a6', '#ffcf48', '#d98a10'], 1, 1)}${lin(k + 'd', ['#ffe680', '#e8a823'], 1, 1)}${glowG(k + 'w', open ? '#ffe066' : '#c9b8ff')}</defs>` +
+      `<circle cx="60" cy="60" r="56" fill="url(#${k}w)"/><rect x="24" y="24" width="72" height="72" rx="10" fill="url(#${k}b)" stroke="#8a5a08" stroke-width="2.6"/>` +
+      `<rect x="30" y="96" width="12" height="8" rx="2" fill="#8a5a08"/><rect x="78" y="96" width="12" height="8" rx="2" fill="#8a5a08"/>${door}` + spk(16, 18, 6, '#fff3a6') + spk(106, 22, 5, '#ffffff') + `</svg>`;
+  };
 
   const DRAW = { orchard: ORCHARD, cottage: COTTAGE, railway: RAILWAY, castle: CASTLE };
   MQ.dreamArt = (id, built, { building = false, ghost = true } = {}) => {
