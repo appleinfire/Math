@@ -393,9 +393,10 @@ async function play(grade, tag, viewport) {
     if (!sawIncome || got.inc !== pay || got.due || got.bal !== before + int + pay) errors.push(`${tag}: bank day with the orchard ${JSON.stringify({ got, before, int, sawIncome })}`);
     await snap('29-dream-bank');
   }
-  // the traveling merchant: he arrives in the morning of his bank week, the wagon card opens his treasure, buy it
+  // the traveling merchant: he arrives in the morning of his bank week with two week charms and (on his first visit) a
+  // rare treasure; the wagon card opens them. Buy the treasure, then Mythic Feed: the pen's animals turn mythic.
   {
-    await page.evaluate(() => { const f = MQ.state.farm; f.day = 14; f.merchant = null; f.treasure = {}; f.money += 20000; MQ.store.save(); MQ.app.go('farm'); });
+    await page.evaluate(() => { const f = MQ.state.farm; f.day = 14; f.merchant = null; f.treasure = {}; f.charms = {}; f.money += 30000; MQ.store.save(); MQ.app.go('farm'); });
     await page.waitForSelector('.fdream');
     await page.click('[data-act=fSleep]');
     await page.waitForSelector('#modal .mline');
@@ -403,17 +404,44 @@ async function play(grade, tag, viewport) {
     await page.waitForSelector('.fmerchant');
     await snap('30-merchant');
     await page.click('.fmerchant');
-    await page.waitForSelector('#modal .tcard [data-act], #modal [data-act=fBuyTreasure]');
+    await page.waitForSelector('#modal .mcharm [data-act=fBuyCharm]');
+    await page.waitForSelector('#modal [data-act=fBuyTreasure]');
     await snap('31-treasure');
-    const id = await page.evaluate(() => MQ.farm.merchantNow(MQ.state.farm));
+    const visit = await page.evaluate(() => ({ id: MQ.farm.merchantNow(MQ.state.farm), m: MQ.state.farm.merchant }));
     await page.click('#modal [data-act=fBuyTreasure]');
     await page.waitForSelector('.fpalette');
     await answer(page, true);
     await page.waitForSelector('.fb.ok');
     await page.click('[data-act=fNext]');
     await page.waitForSelector('.scene');
-    const after = await page.evaluate((x) => ({ got: !!MQ.state.farm.treasure[x], card: !!document.querySelector('.fmerchant'), sprite: !!document.querySelector('.trs.tr-' + x) }), id);
-    if (!id || !after.got || after.card || !after.sprite) errors.push(`${tag}: buying ${id} from the merchant ${JSON.stringify(after)}`);
+    const after = await page.evaluate((x) => ({ got: !!MQ.state.farm.treasure[x], card: !!document.querySelector('.fmerchant'), sprite: !!document.querySelector('.trs.tr-' + x) }), visit.id);
+    if (!visit.id || !after.got || !after.card || !after.sprite) errors.push(`${tag}: buying ${visit.id} from the merchant ${JSON.stringify(after)}`);
+    if (!visit.m.charms.includes('myth') || !visit.m.a) errors.push(`${tag}: his first visit brings Mythic Feed ${JSON.stringify(visit.m)}`);
+    await page.click('.fmerchant');
+    await page.waitForSelector('#modal [data-act=fBuyCharm][data-arg=myth]');
+    await page.click('#modal [data-act=fBuyCharm][data-arg=myth]');
+    await page.waitForSelector('.fpalette');
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    await page.click('[data-act=fNext]');
+    await page.waitForSelector('.scene');
+    const myth = await page.evaluate((a) => ({ on: MQ.farm.mythOn(MQ.state.farm, a), pen: !!document.querySelector(`.fpen.myth.a-${a} svg.myth`), strip: !!document.querySelector('.fcharm.c-myth') }), visit.m.a);
+    if (!myth.on || !myth.pen || !myth.strip) errors.push(`${tag}: Mythic Feed for ${visit.m.a} ${JSON.stringify(myth)}`);
+    await page.evaluate(() => document.querySelector('.fpen.myth').scrollIntoView({ block: 'center' }));
+    await snap('32-mythic');
+    // the week is over: the morning card says what it cost and brought, and asks whether it paid off
+    await page.evaluate(() => { const c = MQ.state.farm.charms.myth; c.until = MQ.state.farm.day + 1; c.gain = c.cost * 3; MQ.store.save(); MQ.app.go('farm'); });
+    await page.waitForSelector('.scene');
+    await page.click('[data-act=fSleep]');
+    await page.waitForSelector('#modal .mcend [data-act=fProfit]');
+    await page.click('#modal [data-act=fProfit]');
+    await page.waitForSelector('.fplay #fanswer');
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    const end = await page.evaluate(() => ({ wins: MQ.state.farm.stats.charmWins, on: MQ.farm.charmOn(MQ.state.farm, 'myth') }));
+    if (end.wins !== 1 || end.on) errors.push(`${tag}: the Mythic Feed week ended ${JSON.stringify(end)}`);
+    await page.click('[data-act=fNext]');
+    await page.waitForSelector('.scene');
   }
   // the locked deposit (2nd grade): offered once the savings pass the account limit; lock, wait 4 bank weeks, collect
   if (grade !== 'k') {

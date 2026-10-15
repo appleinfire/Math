@@ -1307,6 +1307,68 @@ svg.tart { display: block; width: 100%; height: auto; }
 @keyframes fairyfly { 25% { transform: translate(-18px, -10px); } 50% { transform: translate(8px, -16px); } 75% { transform: translate(16px, -4px); } }
 .trs.wagon { right: 4px; left: auto; width: 84px; pointer-events: auto; border: 0; padding: 0; background: none; animation: none; filter: drop-shadow(0 0 8px rgba(157, 123, 255, 0.8)); }
 @media (prefers-reduced-motion: reduce) { .fmerchant, .fm-gem, .tpic { animation: none; } }
+/* week charms: the merchant's modal, the charms working now, the end-of-week report */
+.mhead { display: flex; align-items: center; gap: 10px; text-align: left; margin-bottom: 4px; }
+.mhead .mtitle { display: block; margin: 0; }
+.mh-wagon { flex: none; width: 64px; filter: drop-shadow(0 0 8px rgba(157, 123, 255, 0.7)); }
+.mh3 { margin: 10px 0 0; font-family: var(--display); font-weight: 600; font-size: 1.15rem; }
+p.small { font-size: 0.85rem; margin: 2px 0 8px; }
+.mcharms { display: grid; gap: 10px; margin-bottom: 12px; }
+.mcharm, .mcend { position: relative; display: grid; grid-template-columns: 76px 1fr; gap: 4px 10px; align-items: center; padding: 10px; border-radius: 16px; text-align: left;
+  background: linear-gradient(130deg, #f6efff, #fff4d6); box-shadow: inset 0 0 0 3px #9d7bff, 0 0 14px rgba(157, 123, 255, 0.35); }
+.mcharm.c-clover, .mcend.c-clover { background: linear-gradient(130deg, #e8ffd6, #fffbe0); box-shadow: inset 0 0 0 3px #5fbf3a, 0 0 14px rgba(126, 217, 87, 0.45); }
+.mcharm.c-sun, .mcend.c-sun { background: linear-gradient(130deg, #fff6c4, #ffe3b0); box-shadow: inset 0 0 0 3px #f5b521, 0 0 14px rgba(255, 210, 63, 0.55); }
+.mcharm.c-piggy, .mcend.c-piggy { background: linear-gradient(130deg, #fff1c7, #ffe0ec); box-shadow: inset 0 0 0 3px #e0a21b, 0 0 14px rgba(255, 143, 179, 0.45); }
+.mcharm.c-myth, .mcend.c-myth { background: linear-gradient(130deg, #f1e4ff, #ffe0f4, #fff4d6); box-shadow: inset 0 0 0 3px #b48cf2, 0 0 18px rgba(255, 143, 224, 0.55); animation: mythglow 2.6s ease-in-out infinite; }
+@keyframes mythglow { 50% { box-shadow: inset 0 0 0 3px #ffd23f, 0 0 22px rgba(157, 123, 255, 0.6); } }
+.mcharm.got { opacity: 0.75; }
+.mc-pic { grid-row: span 2; width: 76px; animation: floaty 3s ease-in-out infinite; }
+.mc-t > b { display: block; font-size: 1rem; }
+.mc-t small { display: block; color: var(--ink); font-size: 0.86rem; line-height: 1.3; }
+.mc-help { margin: 6px 0 0; font-size: 0.82rem; color: var(--ink-soft); line-height: 1.3; }
+.mc-buy { grid-column: 2; justify-self: start; }
+.mcend { margin: 10px 0 0; }
+.mcend .btn { grid-column: 2; justify-self: start; }
+.mrare-next { padding: 8px 10px; border-radius: 12px; background: linear-gradient(90deg, #fffbe6, #f6efff); box-shadow: inset 0 0 0 2px #e3a21a; font-size: 0.9rem; }
+.mrare-next .btn { margin-top: 6px; }
+.fcharms { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.fcharm { display: flex; align-items: center; gap: 6px; flex: 1 1 150px; min-width: 0; border: 0; padding: 4px 10px 4px 4px; border-radius: 999px; text-align: left; color: var(--ink);
+  background: linear-gradient(120deg, #f6efff, #fff4d6); box-shadow: inset 0 0 0 2px #9d7bff, 0 3px 0 #5a2fb0; }
+.fcharm.c-clover { background: linear-gradient(120deg, #e8ffd6, #fffbe0); box-shadow: inset 0 0 0 2px #5fbf3a, 0 3px 0 #2f7a1f; }
+.fcharm.c-sun { background: linear-gradient(120deg, #fff6c4, #ffe3b0); box-shadow: inset 0 0 0 2px #f5b521, 0 3px 0 #a8650a; }
+.fcharm.c-piggy { background: linear-gradient(120deg, #fff1c7, #ffe0ec); box-shadow: inset 0 0 0 2px #e0a21b, 0 3px 0 #a8650a; }
+.fcharm.c-myth { background: linear-gradient(120deg, #f1e4ff, #ffe0f4); box-shadow: inset 0 0 0 2px #b48cf2, 0 3px 0 #7a3fd1, 0 0 12px rgba(255, 143, 224, 0.6); }
+.fc-pic { flex: none; width: 40px; }
+.fc-t { min-width: 0; line-height: 1.15; }
+.fc-t b { display: block; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fc-t small { color: var(--ink-soft); font-size: 0.76rem; font-weight: 800; }
+.bpiggy { margin: 8px 0 0; padding: 6px 10px; border-radius: 10px; background: linear-gradient(90deg, #fff1c7, #ffe0ec); box-shadow: inset 0 0 0 2px #e0a21b; }
+.fgoal.rare { background: linear-gradient(120deg, #f6efff, #fff4d6); box-shadow: inset 0 0 0 3px #9d7bff, 0 4px 0 #5a2fb0; }
+/* a Mythic Feed week in a pen: glowing mythic animals, a shimmering fence, a nights-left tag */
+.fpen.pasture.myth { background: radial-gradient(circle at 50% 20%, #fdf3ff, #c9ecb0 70%, #a6dc80); box-shadow: inset 0 0 0 4px #b48cf2, inset 0 0 0 6px #ffd23f, 0 4px 0 #7a3fd1, 0 0 14px 2px rgba(255, 143, 224, 0.7); animation: penmyth 2.4s ease-in-out infinite; }
+@keyframes penmyth { 50% { box-shadow: inset 0 0 0 4px #ffd23f, inset 0 0 0 6px #9ff0ff, 0 4px 0 #7a3fd1, 0 0 20px 4px rgba(157, 123, 255, 0.7); } }
+.myw svg { display: block; width: 3.6rem; height: 3.6rem; filter: drop-shadow(0 0 4px rgba(255, 236, 150, 0.95)); }
+.s0 .myw svg { width: 2.2rem; height: 2.2rem; }
+.s1 .myw svg { width: 2.7rem; height: 2.7rem; }
+.walker.myw.w1 svg { width: 2.8rem; height: 2.8rem; }
+.mytag { position: absolute; top: 6px; left: 8px; padding: 1px 7px; border-radius: 999px; font-size: 0.74rem; font-weight: 900; color: #3a0d40; background: linear-gradient(90deg, #ffd23f, #ff8fe0); }
+.bee svg.sbee { display: block; width: 1.4rem; height: 1.4rem; filter: drop-shadow(0 0 3px #9ff0ff); }
+/* mythic things: the emoji glows in its color */
+.mye { display: inline-block; font-style: normal; }
+.my-gold { filter: sepia(1) saturate(4.5) hue-rotate(-12deg) brightness(1.08) drop-shadow(0 0 3px #ffd23f); }
+.my-silver { filter: grayscale(1) brightness(1.2) drop-shadow(0 0 3px #7fc8ff); }
+.my-star { filter: saturate(1.4) drop-shadow(0 0 4px #ffe14d); }
+.my-moon { filter: sepia(1) saturate(3) hue-rotate(205deg) drop-shadow(0 0 4px #b9a4ff); }
+.my-crystal { filter: sepia(1) saturate(3) hue-rotate(150deg) brightness(1.1) drop-shadow(0 0 4px #9ff0ff); }
+.my-thunder { filter: sepia(1) saturate(5) hue-rotate(185deg) drop-shadow(0 0 4px #5ec8ff); }
+.my-sky { filter: saturate(1.5) drop-shadow(0 0 4px #ffcf48); }
+.fchip.myth { background: linear-gradient(120deg, #fff6d6, #f6efff); box-shadow: inset 0 0 0 2px #e0a21b; }
+/* a Sunshine Potion week: the beds glow and the sun shines brighter */
+.fbed.sunny { filter: drop-shadow(0 0 7px rgba(255, 196, 40, 0.95)); }
+.fbed.sunny::before { content: '☀️'; position: absolute; top: -4px; left: -2px; font-size: 0.95rem; animation: twinkle 0.9s ease-in-out infinite alternate; }
+.scene.sun-on .sky .sun { filter: drop-shadow(0 0 18px #ffd23f) drop-shadow(0 0 8px #ffffff); }
+.trs.tr-clover { left: 150px; bottom: 6px; width: 36px; filter: drop-shadow(0 0 6px rgba(126, 217, 87, 0.9)); animation-delay: -2s; }
+@media (prefers-reduced-motion: reduce) { .mcharm.c-myth, .mcend.c-myth, .mc-pic, .fpen.pasture.myth, .fbed.sunny::before { animation: none; } }
 
 /* ================= Sunny Farm: the bank's locked deposit (gold) ================= */
 .bk-lock { display: block; margin-top: 2px; font-weight: 800; color: #8a5a08; }
@@ -5187,6 +5249,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     { id: 'dream1', icon: '🏗️', name: 'Dreamer', desc: 'Build the first part of a Big Dream on your farm', test: (s) => !!s.farm && !!s.farm.dream && (s.farm.dream.p > 0 || s.farm.dream.s > 0) },
     { id: 'investor', icon: '🍎', name: 'Investor', desc: 'Finish the Fruit Orchard: it earns money every bank day', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 1 },
     { id: 'treasure', icon: '🧳', name: 'Treasure Hunter', desc: 'Buy a rare treasure from the traveling merchant', test: (s) => !!s.farm && Object.keys(s.farm.treasure || {}).length >= 1 },
+    { id: 'charm', icon: '🍀', name: 'Smart Shopper', desc: 'Buy a week charm from the traveling merchant that pays for itself', test: (s) => !!s.farm && (s.farm.stats.charmWins || 0) >= 1 },
     { id: 'deposit', icon: '🔐', name: 'Patient Saver', desc: 'Collect a locked deposit from the farm bank', test: (s) => !!s.farm && (s.farm.stats.depBonus || 0) > 0 },
     { id: 'castle', icon: '🏰', name: 'Castle Builder', desc: 'Build the Castle on the Hill', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 4 },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
@@ -6203,6 +6266,17 @@ svg.tart { display: block; width: 100%; height: auto; }
     sleigh: { e: '🛷', name: 'sleigh ride', many: 'sleigh rides', price: [12, 500] },
     sparkle: { e: '✨', name: 'jar of rainbow sparkles', many: 'jars of rainbow sparkles', price: [15, 900] },
     rainbow: { e: '🌈', name: 'ball of rainbow wool', many: 'balls of rainbow wool', price: [14, 400] }, // from the merchant's Rainbow Sheep
+    // made in a Mythic Feed week (F.MYTHS): worth 3 to 4 times the usual thing; myth: how its icon glows (css .my-*)
+    goldegg: { e: '🥚', name: 'golden egg', many: 'golden eggs', price: [7, 50], myth: 'gold' },
+    starhoney: { e: '🍯', name: 'jar of star honey', many: 'jars of star honey', price: [16, 300], myth: 'star' },
+    crystalmilk: { e: '🍼', name: 'bottle of crystal milk', many: 'bottles of crystal milk', price: [14, 200], myth: 'crystal' },
+    fleece: { e: '🧶', name: 'ball of golden fleece', many: 'balls of golden fleece', price: [20, 350], myth: 'gold' },
+    moonmilk: { e: '🥛', name: 'glass of moon milk', many: 'glasses of moon milk', price: [16, 250], myth: 'moon' },
+    silveregg: { e: '🥚', name: 'silver egg', many: 'silver eggs', price: [10, 120], myth: 'silver' },
+    goldtruffle: { e: '🍄', name: 'golden truffle', many: 'golden truffles', price: [30, 1000], myth: 'gold' },
+    thunder: { e: '🪶', name: 'thunder feather', many: 'thunder feathers', price: [20, 400], myth: 'thunder' },
+    starfluff: { e: '☁️', name: 'bag of star fluff', many: 'bags of star fluff', price: [30, 1200], myth: 'star' },
+    skyride: { e: '🎟️', name: 'sky ride on a pegasus', many: 'sky rides on a pegasus', price: [35, 900], myth: 'sky' },
     // made in the workshops (F.WORKS)
     jam: { e: '🫙', name: 'jar of strawberry jam', many: 'jars of strawberry jam', price: [10, 120], made: true },
     sauce: { e: '🥫', name: 'can of tomato sauce', many: 'cans of tomato sauce', price: [14, 140], made: true },
@@ -6256,6 +6330,22 @@ svg.tart { display: block; width: 100%; height: auto; }
     reindeer: { e: '🦌', baby: '🦌', name: 'Reindeer', lv: 51, cost: [80, 6000], eat: 5, grow: [2, 5], item: 'sleigh', per: 1 },
     unicorn: { e: '🦄', baby: '🦄', name: 'Unicorn', lv: 60, cost: [99, 12000], eat: 6, grow: [3, 6], item: 'sparkle', per: 1 },
   };
+  // The merchant's Mythic Feed turns the animals of one kind into mythic ones for a week (drawn in js/farm-art.js):
+  // they make a rare thing instead of the usual one. of: the usual animals, in a sentence.
+  F.MYTHS = {
+    chicken: { of: 'chickens', name: 'Firebird Hen', many: 'Firebird Hens', item: 'goldegg' },
+    bees: { of: 'bees', name: 'Starlight Bees', many: 'Starlight Bees', item: 'starhoney' },
+    goat: { of: 'goats', name: 'Crystal Goat', many: 'Crystal Goats', item: 'crystalmilk' },
+    sheep: { of: 'sheep', name: 'Cloud Sheep', many: 'Cloud Sheep', item: 'fleece' },
+    cow: { of: 'cows', name: 'Moon Cow', many: 'Moon Cows', item: 'moonmilk' },
+    duck: { of: 'ducks', name: 'Silver Swan', many: 'Silver Swans', item: 'silveregg' },
+    pig: { of: 'pigs', name: 'Flying Pig', many: 'Flying Pigs', item: 'goldtruffle' },
+    turkey: { of: 'turkeys', name: 'Thunderbird', many: 'Thunderbirds', item: 'thunder' },
+    alpaca: { of: 'alpacas', name: 'Star Alpaca', many: 'Star Alpacas', item: 'starfluff' },
+    pony: { of: 'ponies', name: 'Pegasus', many: 'Pegasus ponies', item: 'skyride' },
+  };
+  // An item's icon for the screens: mythic things glow (the plain emoji is for text).
+  F.ie = (id) => { const it = F.ITEMS[id]; return it.myth ? `<i class="mye my-${it.myth}">${it.e}</i>` : it.e; };
   // Workshops turn what the farm makes into things worth more (the first lesson in "adding value").
   // Each workshop makes one batch at a time; a batch is ready after `days` nights. A recipe may open later than its workshop.
   F.WORKS = {
@@ -6321,8 +6411,11 @@ svg.tart { display: block; width: 100%; height: auto; }
   F.bedWater = (b) => (b.u || 0) >= 3;
   F.bedGlass = (b) => (b.u || 0) >= 5;
   F.cropDays = (b) => Math.max(1, F.CROPS[b.c].days - (F.bedWater(b) ? 1 : 0));
-  F.cropYield = (b, fm) => F.CROPS[b.c].yield + F.bedStars(b) + (fm && fm.treasure && fm.treasure.can ? 1 : 0); // + the Magic Watering Can
+  // + the Magic Watering Can; a week of the merchant's Sunshine Potion doubles it
+  F.cropYield = (b, fm) => (F.CROPS[b.c].yield + F.bedStars(b) + (fm && fm.treasure && fm.treasure.can ? 1 : 0)) * (fm && F.charmOn(fm, 'sun') ? 2 : 1);
   F.penCount = (p) => 1 + Math.min(p.u || 0, 2);
+  // what a pen has to collect: the usual things (ready) and mythic ones from a Mythic Feed week (rare)
+  F.penReady = (p) => (p.ready || 0) + (p.rare || 0);
   F.penEat = (p) => F.ANIMALS[p.a].eat * F.penCount(p);
   F.penMakes = (p) => F.ANIMALS[p.a].per * F.penCount(p) + ((p.u || 0) >= 3 ? 1 : 0);
   F.upCost = (kind, i, grade, animal) => {
@@ -6503,7 +6596,8 @@ svg.tart { display: block; width: 100%; height: auto; }
     bank: { bal: 0, acct: 0, log: [], pend: [] }, // see the bank below: bank day is every 7th farm day
     dream: { p: 0, s: 0, b: false, seen: false }, // Big Dreams: project p, stages built s, builders at work tonight b
     treasure: {}, // the traveling merchant's treasures bought: id: true
-    merchant: null, // his visit: { week, item } (bank week number and the treasure he brought)
+    merchant: null, // his visit: { week, n, item, charms, a, cost, got } (see the traveling merchant below)
+    charms: {}, // the merchant's week charms working now: id: { cost, until, gain, a, extra } (Golden Piggy: { cost }, until bank day)
     dep: { ok: false, amt: 0, until: 0 }, // the bank's locked deposit (2nd grade): opened once savings pass the limit (ok); amt locked until farm day `until`
   });
   F.START_MONEY = [5, 30];
@@ -6524,6 +6618,8 @@ svg.tart { display: block; width: 100%; height: auto; }
     if (!fm.dream) fm.dream = { p: 0, s: 0, b: false, seen: false }; // Big Dreams came later
     if (!fm.treasure) fm.treasure = {}; // so did the traveling merchant
     if (fm.merchant === undefined) fm.merchant = null;
+    if (!fm.charms) fm.charms = {}; // and his week charms
+    for (const k of ['charms', 'charmCost', 'charmGain', 'charmWins']) if (!fm.stats[k]) fm.stats[k] = 0;
     if (!fm.dep) fm.dep = { ok: false, amt: 0, until: 0 }; // and the locked deposit
     if (!fm.stats.depBonus) fm.stats.depBonus = 0;
     for (const k of ['built', 'dreamIn']) if (!fm.stats[k]) fm.stats[k] = 0;
@@ -6550,6 +6646,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     if (F.cropStage(bed) !== 'ready') return 0;
     const n = F.cropYield(bed, fm);
     fm.basket[bed.c] = (fm.basket[bed.c] || 0) + n;
+    if (F.charmOn(fm, 'sun')) { const x = fm.charms.sun; x.extra = x.extra || {}; x.extra[bed.c] = (x.extra[bed.c] || 0) + n / 2; } // what the Sunshine Potion added
     if (F.bedGlass(bed) && !bed.again) Object.assign(bed, { g: 0, again: true }); // the greenhouse grows a second harvest
     else Object.assign(bed, { c: null, g: 0, again: false });
     return n;
@@ -6564,13 +6661,15 @@ svg.tart { display: block; width: 100%; height: auto; }
     beds.forEach((i) => F.plant(fm, i, crop));
     return true;
   };
+  // What a pen has to collect, thing by thing: [[item, count], …] (the mythic things first).
+  F.penLoot = (p) => [[F.MYTHS[p.a] && F.MYTHS[p.a].item, p.rare || 0], [F.ANIMALS[p.a].item, p.ready || 0]].filter(([id, n]) => id && n > 0);
   F.collect = (fm, i) => {
-    const pen = fm.pens[i], n = pen.ready || 0;
-    if (!n) return 0;
-    const item = F.ANIMALS[pen.a].item;
-    fm.basket[item] = (fm.basket[item] || 0) + n;
+    const pen = fm.pens[i], loot = pen.a ? F.penLoot(pen) : [];
+    if (!loot.length) return 0;
+    for (const [item, n] of loot) fm.basket[item] = (fm.basket[item] || 0) + n;
     pen.ready = 0;
-    return n;
+    pen.rare = 0;
+    return U.sum(loot.map((x) => x[1]));
   };
   F.feed = (fm, i) => {
     const pen = fm.pens[i], eat = F.penEat(pen);
@@ -6621,9 +6720,10 @@ svg.tart { display: block; width: 100%; height: auto; }
       if (w.g >= r.days) { w.ready = (w.ready || 0) + 1; w.out = r.out; w.r = null; w.g = 0; news.cooked.push(r.out); }
     }
     const tr = fm.treasure || {};
-    if (tr.fairy) { // the Feed Fairy feeds one hungry pen, for free
-      const p = fm.pens.find((x) => x.a && !x.fed);
-      if (p) { p.fed = true; news.fairy = p.a; }
+    if (tr.fairy) { // the Feed Fairy feeds hungry pens, for free
+      const fed = fm.pens.filter((x) => x.a && !x.fed).slice(0, F.TREASURES.fairy.feeds);
+      fed.forEach((p) => (p.fed = true));
+      if (fed.length) news.fairy = fed.map((p) => p.a);
     }
     fm.beds.forEach((b) => {
       if (!b.c || F.cropStage(b) === 'ready') return;
@@ -6634,7 +6734,15 @@ svg.tart { display: block; width: 100%; height: auto; }
       if (!p.a) return;
       if (!p.fed) { news.hungry.push(p.a); return; }
       const before = F.animalStage(p);
-      if (before === 2) { const a = F.ANIMALS[p.a], k = F.penMakes(p); p.ready = Math.min(30, (p.ready || 0) + k); news.made.push([a.item, k]); }
+      if (before === 2) {
+        const a = F.ANIMALS[p.a], k = F.penMakes(p);
+        if (F.mythOn(fm, p.a)) { // a Mythic Feed week: the rare thing instead of the usual one
+          const it = F.MYTHS[p.a].item;
+          p.rare = Math.min(30, (p.rare || 0) + k);
+          news.made.push([it, k]);
+          fm.charms.myth.gain += k * (F.price(it, grade) - F.price(a.item, grade));
+        } else { p.ready = Math.min(30, (p.ready || 0) + k); news.made.push([a.item, k]); }
+      }
       p.g++;
       if (F.animalStage(p) > before) news.grew.push([p.a, F.animalStage(p)]);
       p.fed = false;
@@ -6645,6 +6753,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     }
     news.built = F.buildOvernight(fm);
     fm.day++;
+    news.charmEnd = F.charmsMorning(fm, grade);
     if (tr.goose) { const x = F.TREASURES.goose.gold[gi(grade)]; fm.money += x; fm.stats.earned += x; news.gold = x; }
     if (tr.sheep) { fm.basket.rainbow = (fm.basket.rainbow || 0) + 1; news.rainbow = 1; }
     news.merchant = F.merchantMorning(fm, grade);
@@ -6816,27 +6925,31 @@ svg.tart { display: block; width: 100%; height: auto; }
     if (!F.isBankDay(fm.day) || fm.bank.pend.length >= F.BANK_MISSED) return false; // at most 4 bank days wait
     // what will be in the bank once the bank days still waiting are paid (each earns on the one before)
     let bal = fm.bank.bal;
-    for (const x of fm.bank.pend) { if (!x.paid) bal += F.interest(bal, grade, fm.bank.acct); bal += F.incomeOf(x); }
+    for (const x of fm.bank.pend) { if (!x.paid) bal += F.interest(bal, grade, fm.bank.acct) * (x.piggy ? 2 : 1); bal += F.incomeOf(x); }
     const inc = F.dreamIncome(fm, grade);
     if (!bal && !inc.length) return false;
-    fm.bank.pend.push(inc.length ? { day: fm.day, bal, inc } : { day: fm.day, bal });
+    const p = inc.length ? { day: fm.day, bal, inc } : { day: fm.day, bal };
+    if (fm.charms && fm.charms.piggy) { p.piggy = { cost: fm.charms.piggy.cost }; delete fm.charms.piggy; } // the Golden Piggy doubles this one
+    fm.bank.pend.push(p);
     return true;
   };
   F.bankDue = (fm) => fm.bank.pend.length;
   F.incomeOf = (p) => U.sum((p.inc || []).map((x) => x[2]));
-  // Pay the interest of the oldest bank day waiting. Returns { day, bal, x }. A bank day with buildings' income waits
-  // for F.payIncome after its interest (paid: true).
+  // Pay the interest of the oldest bank day waiting. Returns { day, bal, x, bonus, cost }: with the merchant's Golden
+  // Piggy the bank pays it twice (bonus: the second time; cost: what the piggy cost). A bank day with buildings' income
+  // waits for F.payIncome after its interest (paid: true).
   F.payInterest = (fm, grade) => {
     const p = fm.bank.pend[0];
     if (!p || p.paid) return null;
-    const x = F.interest(p.bal, grade, fm.bank.acct);
-    fm.bank.bal += x;
-    fm.stats.interest += x;
+    const x = F.interest(p.bal, grade, fm.bank.acct), bonus = p.piggy ? x : 0;
+    fm.bank.bal += x + bonus;
+    fm.stats.interest += x + bonus;
     fm.stats.bankDays++;
     bankLog(fm, 'interest', x, p.day);
+    if (p.piggy) { bankLog(fm, 'piggy', bonus, p.day); F.charmDone(fm, { cost: p.piggy.cost, gain: bonus }, grade); }
     if (p.inc && p.inc.length) p.paid = true;
     else fm.bank.pend.shift();
-    return { day: p.day, bal: p.bal, x };
+    return p.piggy ? { day: p.day, bal: p.bal, x, bonus, cost: p.piggy.cost } : { day: p.day, bal: p.bal, x };
   };
   // What the buildings earned on that bank day goes into the bank. Returns { day, x, inc }.
   F.payIncome = (fm) => {
@@ -6975,41 +7088,142 @@ svg.tart { display: block; width: 100%; height: auto; }
 
   // ---------------------------------------------------------------- the traveling merchant
   // Uncle Marco comes every 3rd bank week and stays its 7 farm days (so a bank day falls in his visit, and the child
-  // can take savings out of the bank in time). He brings one rare treasure the shop never has, priced at about one
-  // bank week of what a good farm makes at its level, so it takes some saving and planning. If it isn't bought, he
-  // leaves and comes back later; he brings every treasure in turn, until all of them are on the farm. He starts
-  // coming once the first Big Dream stage is built (so the new things come one at a time).
-  F.MERCHANT = { e: '🧔', name: 'Uncle Marco', every: 3 };
+  // can take savings out of the bank in time). He starts coming once the first Big Dream stage is built (so the new
+  // things come one at a time), and then keeps coming. Every visit he brings two week charms: magic that works for 7
+  // farm days, each visit a different pair, priced at about a third of what it brings a good farm (so it pays for
+  // itself about three times over when it is used well). Every 2nd visit he also brings a rare treasure that stays on
+  // the farm for good: expensive (3 to 5 bank weeks of what a good farm makes at its level), so it takes real saving.
+  // If it isn't bought, he brings the same treasure again on his next treasure visit.
+  F.MERCHANT = { e: '🧔', name: 'Uncle Marco', every: 3, rare: 2 };
   F.TREASURES = {
-    goose: { e: '🪿', name: 'Golden Goose', lv: 10, cost: [60, 6000], gold: [2, 150], note: (fmt) => `Lays a golden egg every morning: +${fmt(F.TREASURES.goose.gold[1])} into your wallet. No feed needed.`, noteK: (fmt) => `Lays a golden egg every morning: +${fmt(F.TREASURES.goose.gold[0])} into your wallet. No feed needed.` },
-    can: { e: '🪣', name: 'Magic Watering Can', lv: 10, cost: [80, 7000], note: () => 'Every garden bed gives 1 more crop at every harvest.' },
-    musician: { e: '🎻', name: 'Street Musician', lv: 12, cost: [50, 6000], note: () => 'Plays music at your stand: customers tip 5% more for right answers, on any stand.' },
-    fairy: { e: '🧚', name: 'Feed Fairy', lv: 14, cost: [45, 8000], note: () => 'Every night she feeds one hungry pen for free.' },
-    sheep: { e: '🐑', name: 'Rainbow Sheep', lv: 16, cost: [99, 12000], note: () => 'Gives a ball of rainbow wool every morning, to sell at your stand. No feed needed.' },
+    goose: { e: '🪿', name: 'Golden Goose', lv: 10, cost: [95, 20000], gold: [3, 250], note: (fmt) => `Lays a golden egg every morning: +${fmt(F.TREASURES.goose.gold[1])} into your wallet. No feed needed.`, noteK: (fmt) => `Lays a golden egg every morning: +${fmt(F.TREASURES.goose.gold[0])} into your wallet. No feed needed.` },
+    can: { e: '🪣', name: 'Magic Watering Can', lv: 12, cost: [95, 25000], note: () => 'Every garden bed gives 1 more crop at every harvest.' },
+    musician: { e: '🎻', name: 'Street Musician', lv: 12, cost: [90, 20000], tip: 0.1, note: () => 'Plays music at your stand: customers tip 10% more for right answers, on any stand.' },
+    fairy: { e: '🧚', name: 'Feed Fairy', lv: 14, cost: [90, 25000], feeds: 2, note: () => 'Every night she feeds two hungry pens for free.' },
+    sheep: { e: '🐑', name: 'Rainbow Sheep', lv: 16, cost: [99, 35000], note: () => 'Gives a ball of rainbow wool every morning, to sell at your stand. No feed needed.' },
   };
   F.treasureNote = (id, grade, fmt) => { const t = F.TREASURES[id]; return (grade === 'k' && t.noteK ? t.noteK : t.note)(fmt); };
+  // Week charms. myth: the animals of one kind become mythic (F.MYTHS); clover: bigger tips; sun: double harvests;
+  // piggy: the next bank day pays double interest.
+  F.CHARM_NIGHTS = 7;
+  F.CHARMS = {
+    myth: { e: '🌟', name: 'Mythic Feed' },
+    clover: { e: '🍀', name: 'Lucky Clover', tip: 0.2 },
+    sun: { e: '☀️', name: 'Sunshine Potion' },
+    piggy: { e: '🐷', name: 'Golden Piggy' },
+  };
+  F.CHARM_PAIRS = [['myth', 'clover'], ['sun', 'piggy'], ['myth', 'sun'], ['clover', 'piggy'], ['myth', 'piggy'], ['sun', 'clover']];
+  F.charmName = (id, a) => (id === 'myth' && a ? `Mythic Feed for ${F.MYTHS[a].of}` : F.CHARMS[id].name);
+  F.charmNote = (id, grade, fmt, a) => {
+    const N = F.CHARM_NIGHTS;
+    if (id === 'myth') {
+      const M = F.MYTHS[a], it = F.ITEMS[M.item], was = F.ITEMS[F.ANIMALS[a].item];
+      return `For ${N} nights your ${M.of} become ${M.many}! They make ${it.many} instead of ${was.many}: ${fmt(F.price(M.item, grade))} each, not ${fmt(F.price(F.ANIMALS[a].item, grade))}. Feed them every day!`;
+    }
+    if (id === 'clover') return `For ${N} days customers tip ${Math.round(F.CHARMS.clover.tip * 100)}% more for first-try right answers, on any stand.`;
+    if (id === 'sun') return `For ${N} days every harvest gives twice as many crops.`;
+    return 'On the next bank day the bank pays your interest twice!';
+  };
+  // What a good farm at level L makes in a farm day, in cents: crops (the best crop in every open bed, with half the
+  // bed upgrades), animals (the best animals in the open pens, with room for more), total.
+  F.goodDay = (L, grade) => {
+    const g = gi(grade), beds = F.BEDS.filter((b) => b[0] <= L).length, pens = F.PENS.filter((p) => p[0] <= L).length;
+    const bed = { u: Math.floor(F.BED_UP.filter((u) => u.lv <= L).length / 2) };
+    let best = 0;
+    for (const [id, c] of Object.entries(F.CROPS)) if (c.lv <= L) { bed.c = id; best = Math.max(best, (F.cropYield(bed) * F.price(id, grade) - c.seed[g]) / F.cropDays(bed)); }
+    const room = 1 + F.PEN_UP.filter((x, i) => i < 2 && x.lv <= L).length;
+    const animals = U.sum(Object.values(F.ANIMALS).filter((a) => a.lv <= L).map((a) => (a.per * F.price(a.item, grade) - a.eat * F.FEED.price[g]) * room).sort((a, b) => b - a).slice(0, pens));
+    return { crops: beds * best, animals, total: beds * best + animals };
+  };
+  // What a charm brings in its week (cents): Mythic Feed from this farm's pens of kind a; Lucky Clover and the
+  // Sunshine Potion on a good farm at this level; the Golden Piggy at most (the big interest on a full account).
+  F.charmGain = (id, fm, grade, a) => {
+    const N = F.CHARM_NIGHTS, d = F.goodDay(F.level(fm.xp).level, grade);
+    if (id === 'myth') return N * (F.price(F.MYTHS[a].item, grade) - F.price(F.ANIMALS[a].item, grade)) * U.sum(fm.pens.filter((p) => p.a === a).map(F.penMakes));
+    if (id === 'clover') return Math.round(N * d.total * F.CHARMS.clover.tip);
+    if (id === 'sun') return Math.round(N * d.crops);
+    const top = F.bankTop(fm.bank.acct, grade);
+    return F.interest(top, grade, fm.bank.acct);
+  };
+  // about a third of what it brings: whole dollars (kindergarten: 5¢ steps, paid with coins, at most 95¢)
+  F.charmCost = (id, fm, grade, a) => {
+    const x = F.charmGain(id, fm, grade, a) / 3;
+    return grade === 'k' ? Math.max(5, Math.min(95, Math.round(x / 5) * 5)) : Math.max(100, Math.round(x / 100) * 100);
+  };
+  F.charmOn = (fm, id) => { const c = fm.charms && fm.charms[id]; return !!c && (id === 'piggy' || fm.day < c.until); };
+  F.mythOn = (fm, a) => F.charmOn(fm, 'myth') && fm.charms.myth.a === a;
+  // what a charm has brought so far (the Sunshine Potion counts the extra crops at their price)
+  F.charmGot = (c, grade) => (c.gain || 0) + U.sum(Object.entries(c.extra || {}).map(([id, n]) => n * F.price(id, grade)));
+  F.charmDone = (fm, c, grade) => {
+    const got = F.charmGot(c, grade);
+    fm.stats.charmGain += got;
+    if (got > c.cost) fm.stats.charmWins++;
+    return got;
+  };
+  // The morning a charm's week is over it stops. Returns what it brought, for the morning card: [{ id, a, cost, got }].
+  F.charmsMorning = (fm, grade) => {
+    const out = [];
+    for (const id of Object.keys(fm.charms || {})) {
+      const c = fm.charms[id];
+      if (id === 'piggy' || fm.day < c.until) continue;
+      delete fm.charms[id];
+      out.push({ id, a: c.a, cost: c.cost, got: F.charmDone(fm, c, grade) });
+    }
+    return out;
+  };
   F.bankWeekNo = (day) => Math.ceil(day / F.BANK_WEEK);
   F.merchantOn = (fm) => !!fm.dream && (fm.dream.p > 0 || fm.dream.s > 0) && F.dreamOpen(fm);
-  // the treasure he has today (null when he isn't here, or it was bought)
-  F.merchantNow = (fm) => {
-    const m = fm.merchant;
-    return m && m.week === F.bankWeekNo(fm.day) && !(fm.treasure || {})[m.item] ? m.item : null;
-  };
+  // his visit, while he is here (null when he isn't)
+  F.merchantHere = (fm) => { const m = fm.merchant; return m && m.week === F.bankWeekNo(fm.day) ? m : null; };
+  // what he still has for sale on a visit: { item: the rare treasure or null, charms: [ids] }
+  const wares = (fm, m) => ({ item: m.item && !(fm.treasure || {})[m.item] ? m.item : null, charms: (m.charms || []).filter((c) => !(m.got || {})[c]) });
+  F.merchantWares = (fm) => { const m = F.merchantHere(fm); return m ? wares(fm, m) : { item: null, charms: [] }; };
+  // the rare treasure he has for sale today (null when he isn't here, it isn't a treasure visit, or it was bought)
+  F.merchantNow = (fm) => F.merchantWares(fm).item;
+  F.merchantHas = (fm) => { const w = F.merchantWares(fm); return !!w.item || w.charms.length > 0; };
   F.merchantNights = (day) => F.bankWeekNo(day) * F.BANK_WEEK - day; // nights left (0: he leaves tonight)
-  // Each morning: he arrives on the first morning of his bank week, says goodbye on his last day, and is gone after.
-  // Returns ['came' | 'last' | 'left', treasure] for the morning card, or null.
+  // The rare treasure he brings: the one the child is saving for, or else the first one not bought yet that fits the
+  // farm level (null: none left).
+  F.nextTreasure = (fm) => {
+    const L = F.level(fm.xp).level, ok = (t) => !!F.TREASURES[t] && !(fm.treasure || {})[t] && F.TREASURES[t].lv <= L;
+    const goal = (fm.goal || '').startsWith('treasure:') ? fm.goal.slice(9) : '';
+    return ok(goal) ? goal : Object.keys(F.TREASURES).find(ok) || null;
+  };
+  // A new visit (number n, in bank week w): the treasure on every 2nd visit, two charms, their prices for this farm.
+  // Mythic Feed is for a kind of animal on the farm (grown-ups first), a different kind each time.
+  F.merchantVisit = (fm, grade, w, n) => {
+    const item = n % F.MERCHANT.rare === 1 ? F.nextTreasure(fm) : null;
+    const has = Object.keys(F.MYTHS).filter((a) => fm.pens.some((p) => p.a === a));
+    const grown = has.filter((a) => fm.pens.some((p) => p.a === a && F.animalStage(p) === 2));
+    const kinds = (grown.length ? grown : has).sort((x, y) => F.charmGain('myth', fm, grade, y) - F.charmGain('myth', fm, grade, x));
+    const a = kinds.length ? kinds[Math.floor(n / 2) % kinds.length] : null;
+    let charms = F.CHARM_PAIRS[(n - 1) % F.CHARM_PAIRS.length];
+    if (!a) charms = charms.map((c) => (c === 'myth' ? ['sun', 'clover', 'piggy'].find((x) => !charms.includes(x)) : c));
+    const cost = {};
+    for (const c of charms) cost[c] = F.charmCost(c, fm, grade, a);
+    return { week: w, n, item, charms, a: charms.includes('myth') ? a : null, cost, got: {} };
+  };
+  // Each morning: he arrives on the first morning of his bank week, says goodbye on his last day (if something is
+  // still for sale), and the morning after he left. Returns ['came' | 'last' | 'left', visit] for the morning card, or null.
   F.merchantMorning = (fm, grade) => {
     const w = F.bankWeekNo(fm.day), m = fm.merchant;
     if (w % F.MERCHANT.every === 0 && F.merchantOn(fm) && (!m || m.week !== w)) {
-      const L = F.level(fm.xp).level, left = Object.keys(F.TREASURES).filter((t) => !fm.treasure[t] && F.TREASURES[t].lv <= L);
-      if (!left.length) return null;
-      fm.merchant = { week: w, item: left[(w / F.MERCHANT.every) % left.length] };
-      return ['came', fm.merchant.item];
+      fm.merchant = F.merchantVisit(fm, grade, w, (m ? m.n || 1 : 0) + 1);
+      return ['came', fm.merchant];
     }
-    if (!m || fm.treasure[m.item]) return null;
-    if (m.week === w && F.merchantNights(fm.day) === 0) return ['last', m.item];
-    if (m.week === w - 1 && F.isBankDay(fm.day - 1)) return ['left', m.item];
+    if (!m) return null;
+    const left = wares(fm, m);
+    if (!left.item && !left.charms.length) return null;
+    if (m.week === w && F.merchantNights(fm.day) === 0) return ['last', m];
+    if (m.week === w - 1 && F.isBankDay(fm.day - 1)) return ['left', m];
     return null;
+  };
+  // The farm day he comes next (with a treasure: on his next treasure visit), counting from today.
+  F.merchantNext = (fm, rare = false) => {
+    const E = F.MERCHANT.every, m = fm.merchant;
+    let w = (Math.floor(F.bankWeekNo(fm.day) / E) + 1) * E, n = (m ? m.n || 1 : 0) + 1;
+    if (rare) while (n % F.MERCHANT.rare !== 1) { w += E; n++; }
+    return (w - 1) * F.BANK_WEEK + 1;
   };
   F.buyTreasure = (fm, grade) => {
     const id = F.merchantNow(fm), t = id && F.TREASURES[id], cost = t && t.cost[gi(grade)];
@@ -7017,8 +7231,28 @@ svg.tart { display: block; width: 100%; height: auto; }
     fm.money -= cost;
     fm.stats.spent += cost;
     fm.treasure[id] = true;
+    if (fm.goal === 'treasure:' + id) fm.goal = '';
     return Object.assign({ id, cost }, t);
   };
+  // Buy a week charm: it starts working now, for 7 farm days (the Golden Piggy: on the next bank day, or on today's
+  // if today is bank day and its interest isn't collected yet). Returns { id, cost, … } or null.
+  F.buyCharm = (fm, grade, id) => {
+    const m = F.merchantHere(fm), cost = m && m.cost && m.cost[id];
+    if (!m || !F.merchantWares(fm).charms.includes(id) || !(cost > 0) || fm.money < cost) return null;
+    fm.money -= cost;
+    fm.stats.spent += cost;
+    fm.stats.charms++;
+    fm.stats.charmCost += cost;
+    m.got = Object.assign({}, m.got, { [id]: true });
+    if (id === 'piggy') {
+      const today = fm.bank.pend.find((p) => p.day === fm.day && !p.paid);
+      if (today && !today.piggy) today.piggy = { cost };
+      else fm.charms.piggy = { cost };
+    } else fm.charms[id] = Object.assign({ cost, until: fm.day + F.CHARM_NIGHTS, gain: 0 }, id === 'myth' ? { a: m.a } : {});
+    return Object.assign({ id, cost, a: id === 'myth' ? m.a : null }, F.CHARMS[id]);
+  };
+  // Is the Golden Piggy waiting for a bank day (bought, interest not paid yet)?
+  F.piggyWaiting = (fm) => !!(fm.charms && fm.charms.piggy) || fm.bank.pend.some((p) => p.piggy);
   // How much to put aside each day to buy it before he leaves: today and every day left, in whole dollars (k: cents).
   F.perDayToSave = (need, nights, grade) => { const days = nights + 1, x = Math.ceil(need / days); return grade === 'k' ? x : Math.ceil(x / 100) * 100; };
 
@@ -7039,17 +7273,26 @@ svg.tart { display: block; width: 100%; height: auto; }
       bank: { bal: k ? 1234 : 12345, acct: 1, log: [], pend: [{ day: 14, bal: k ? 1234 : 12345 }] }, // above the Silver limit: both rates
       dream: { p: 2, s: 2, b: false, seen: true }, // the orchard and the cottage built, the railway half done
       treasure: { goose: true, can: true, musician: true }, // three of the merchant's treasures
-      merchant: { week: 2, item: 'sheep' }, // and he is visiting (farm day 14 is the last day of bank week 2)
       dep: k ? { ok: false, amt: 0, until: 0 } : { ok: true, amt: 2000, until: 28 }, // and a locked deposit (2nd grade)
     });
     Object.assign(fm.stats, k ? { saved: 1100, tookOut: 100, interest: 234, bankDays: 9 } : { saved: 11000, tookOut: 1000, interest: 2345, bankDays: 9 }); // adds up to the bank above
+    // the merchant is visiting (farm day 14 is the last day of bank week 2) with a treasure and two charms; two charms work
+    fm.merchant = F.merchantVisit(fm, g, 2, 3);
+    fm.charms = { clover: { cost: k ? 30 : 900, until: 18, gain: k ? 12 : 640 }, myth: { a: 'cow', cost: k ? 60 : 2400, until: 17, gain: k ? 33 : 1750 } };
+    fm.pens[1].rare = 2;
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
     for (const id of Object.keys(F.DECOR)) fm.owned[id] = true;
     Object.keys(F.WORKS).forEach((id, i) => { fm.works[id] = i % 2 ? { r: null, g: 0, ready: 1, out: F.WORKS[id].recipes[0].out } : { r: null, g: 0, ready: 0, out: '' }; });
     return fm;
   };
 
-  F.goalItem = (fm, grade) => (fm.goal ? F.shopItem(fm, grade, fm.goal) : null);
+  // The saving goal: something in the shop, or a rare treasure from the merchant ('treasure:goose').
+  F.goalItem = (fm, grade) => {
+    if (!fm.goal) return null;
+    if (!fm.goal.startsWith('treasure:')) return F.shopItem(fm, grade, fm.goal);
+    const id = fm.goal.slice(9), t = F.TREASURES[id];
+    return t && !(fm.treasure || {})[id] ? { id: fm.goal, e: t.e, name: t.name, price: t.cost[gi(grade)], lv: t.lv, treasure: id } : null;
+  };
 
   // ---------------------------------------------------------------- XP
   // Returns the levels reached (empty when none), after paying each level's gift.
@@ -7082,7 +7325,7 @@ svg.tart { display: block; width: 100%; height: auto; }
   F.PEOPLE = [['🐻', 'Bruno'], ['🐰', 'Hazel'], ['🦊', 'Felix'], ['🐼', 'Mei'], ['🦉', 'Olive'], ['🐸', 'Ribbit'], ['🐨', 'Kip'], ['🐯', 'Tess'], ['🐹', 'Peanut'], ['🦔', 'Spike'], ['🐧', 'Pablo'], ['🦝', 'Rocky'], ['🐿️', 'Nutmeg'], ['🦌', 'Fern'], ['🐭', 'Pip'], ['🦫', 'Bucky']];
   F.VIPS = [['🦁', 'Mayor Leo'], ['🦄', 'Princess Luna'], ['🐘', 'Chef Ellie'], ['🦒', 'Professor Gigi'], ['🐳', 'Captain Blue']];
   const plural = (id, n) => (n === 1 ? F.ITEMS[id].name : F.ITEMS[id].many);
-  const things = (id, n) => `${n} ${F.ITEMS[id].e} ${plural(id, n)}`;
+  const things = (id, n) => `${n} ${F.ie(id)} ${plural(id, n)}`;
   // Choices for an amount of money: the answer and near misses (a coin off, a dime off, a dollar off).
   // traps: wrong answers a child is likely to give (tried first), then amounts near the answer
   F.moneyChoices = (ans, grade, traps = []) => {
@@ -7098,8 +7341,8 @@ svg.tart { display: block; width: 100%; height: auto; }
     const choices = F.moneyChoices(ans, grade);
     return Object.assign(p, { kind: 'choice', answer: F.fmt(ans, grade), choices });
   }
-  const tag = (id, grade) => `<span class="ftag">${F.ITEMS[id].e} ${F.fmt(F.price(id, grade), grade)}</span>`;
-  const row = (id, n) => `<div class="frow" aria-hidden="true">${Array(Math.min(n, 12)).fill(F.ITEMS[id].e).join('')}</div>`;
+  const tag = (id, grade) => `<span class="ftag">${F.ie(id)} ${F.fmt(F.price(id, grade), grade)}</span>`;
+  const row = (id, n) => `<div class="frow" aria-hidden="true">${Array(Math.min(n, 12)).fill(F.ie(id)).join('')}</div>`;
 
   // One problem. ctx: { grade, tier (object), stock: { item: count } }. Returns null when the stock can't make it.
   // Every problem has: kind (num | choice | coins), text, answer, hint, explain, sale { item: count } and total (cents
@@ -7320,9 +7563,9 @@ svg.tart { display: block; width: 100%; height: auto; }
     return stock;
   };
   F.wage = (tier, grade) => (grade === 'k' ? (tier >= 3 ? 2 : 1) : 5 * tier);
-  // a nicer stand tips more; the merchant's Street Musician adds 5% on any stand
-  F.tipRate = (fm) => F.STANDS[fm.stand].tip + (fm.treasure && fm.treasure.musician ? 0.05 : 0);
-  F.tip = (fm, total) => (F.tipRate(fm) ? Math.max(1, Math.round(total * F.tipRate(fm))) : 0);
+  // a nicer stand tips more; the merchant's Street Musician adds 10% on any stand, his Lucky Clover 20% for a week
+  F.tipRate = (fm, clover = true) => F.STANDS[fm.stand].tip + (fm.treasure && fm.treasure.musician ? F.TREASURES.musician.tip : 0) + (clover && F.charmOn(fm, 'clover') ? F.CHARMS.clover.tip : 0);
+  F.tip = (fm, total, clover = true) => { const r = F.tipRate(fm, clover); return r ? Math.max(1, Math.round(total * r)) : 0; };
   F.VIP_TIP = (grade, total) => Math.max(grade === 'k' ? 2 : 10, Math.round(total * 0.5));
 
   // Is this answer right? (coins: the picked coins make the target exactly)
@@ -7337,6 +7580,7 @@ svg.tart { display: block; width: 100%; height: auto; }
       for (const [id, n] of Object.entries(p.sale)) { fm.basket[id] = Math.max(0, (fm.basket[id] || 0) - n); if (!fm.basket[id]) delete fm.basket[id]; fm.stats.sold += n; }
       res.paid = p.total;
       if (firstTry) res.tip = p.vip ? F.VIP_TIP(grade, p.total) : p.truck ? 0 : F.tip(fm, p.total); // wholesale: no tip
+      if (firstTry && !p.vip && !p.truck && F.charmOn(fm, 'clover')) { res.clover = res.tip - F.tip(fm, p.total, false); fm.charms.clover.gain += res.clover; } // what the Lucky Clover added
     }
     fm.money += res.paid + res.tip;
     fm.stats.earned += res.paid + res.tip;
@@ -7904,7 +8148,8 @@ svg.tart { display: block; width: 100%; height: auto; }
 })();
 </script>
   <script>
-// Pictures of the farm's Big Dreams: an orchard, a guest cottage, a railway and a castle, drawn as SVG in code.
+// Pictures of the farm's Big Dreams (an orchard, a guest cottage, a railway and a castle) and of the traveling
+// merchant's things (his wagon, rare treasures, week charms and the mythic animals of a Mythic Feed week), drawn as SVG in code.
 // MQ.dreamArt(id, built, { building, ghost }) draws a dream with its first `built` stages; the next stage shows as a
 // dashed outline (unless ghost: false), with scaffolding and a crane while the builders work on it (building: true). The castle is the special
 // one: gold, glowing windows, flags and sparkles.
@@ -8124,6 +8369,196 @@ svg.tart { display: block; width: 100%; height: auto; }
       `<rect x="30" y="96" width="12" height="8" rx="2" fill="#8a5a08"/><rect x="78" y="96" width="12" height="8" rx="2" fill="#8a5a08"/>${door}` + spk(16, 18, 6, '#fff3a6') + spk(106, 22, 5, '#ffffff') + `</svg>`;
   };
 
+  // ---------------------------------------------------------------- mythic animals (the merchant's Mythic Feed)
+  // A farm animal's mythic week: drawn bright, facing left like the animal emoji (the pens turn them around).
+  // MQ.mythArt(kind, { aura }) → '<svg …>' ('' for a kind without a mythic form); aura: a glow behind (for big pictures).
+  const mo = (c, w = 2.4) => ` stroke="${c}" stroke-width="${w}" stroke-linejoin="round"`;
+  const mP = (d, fill, o = '') => `<path d="${d}" fill="${fill}"${o}/>`;
+  const mE = (x, y, rx, ry, fill, o = '') => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${fill}"${o}/>`;
+  const mC = (x, y, r, fill, o = '') => `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}"${o}/>`;
+  const mL = (d, c, w = 2.4) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const star = (x, y, r, c, o = '') => {
+    const pts = [];
+    for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? r * 0.45 : r; pts.push(f1(x + rr * Math.cos(a)) + ',' + f1(y + rr * Math.sin(a))); }
+    return `<polygon points="${pts.join(' ')}" fill="${c}"${o}/>`;
+  };
+  const rad = (id, cols, cx = 0.4, cy = 0.35, r = 0.75) => `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}">${cols.map((c, i) => `<stop offset="${f1(i / (cols.length - 1))}" stop-color="${c}"/>`).join('')}</radialGradient>`;
+  const legs = (xs, y0, y1, c, hoof, o) => xs.map((x) => mP(`M${x - 3.5} ${y0}L${x + 3.5} ${y0}L${x + 3.5} ${y1}L${x - 3.5} ${y1}Z`, c, o) + mP(`M${x - 4} ${y1 - 1}L${x + 4} ${y1 - 1}L${x + 4} ${y1 + 4}L${x - 4} ${y1 + 4}Z`, hoof, o)).join('');
+  const MYTH = {
+    // Firebird Hen: a red-gold hen with a tail of flames and a flame crown
+    chicken: (k) => [lin(k + 'b', ['#ffb347', '#ff5a2e', '#d6261a'], 1, 1) + lin(k + 't', ['#ffe14d', '#ff9a2e', '#ff3d2e'], 0, 1) + lin(k + 'h', ['#ffd86b', '#ff8a3d'], 1, 1) + glowG(k + 'w', '#ffb347'),
+      mP('M80 70C90 54 96 36 92 14C104 28 110 48 100 70Z', `url(#${k}t)`, mo('#b5280e')) +
+      mP('M84 74C100 66 110 50 112 30C118 50 114 70 98 80Z', `url(#${k}t)`, mo('#b5280e')) +
+      mP('M84 80C100 82 110 74 118 62C118 78 108 90 90 90Z', `url(#${k}t)`, mo('#b5280e')) +
+      mL('M58 98L56 110M50 110L62 110M72 98L74 110M68 110L80 110', '#ffb02e', 3.4) +
+      mE(64, 78, 30, 23, `url(#${k}b)`, mo('#9a2a12')) +
+      mP('M46 76C60 64 80 66 88 78C76 88 58 90 46 76Z', '#ffcf48', mo('#c9600a', 2)) + mL('M56 77C64 74 72 75 80 79', '#ff8a1f', 1.8) +
+      mP('M30 62C26 50 30 36 42 34C54 34 58 46 54 58C52 66 46 70 40 70C34 70 31 66 30 62Z', `url(#${k}h)`, mo('#9a2a12')) +
+      mP('M30 36C27 26 32 20 35 26C36 16 44 14 43 25C47 18 53 21 49 33Z', `url(#${k}t)`, mo('#b5280e', 2)) +
+      mP('M30 46L16 50L30 54Z', '#ffd23f', mo('#a8650a', 1.8)) + mE(31, 60, 3.6, 6, '#ff3d2e', mo('#9a1a12', 1.4)) + eye(38, 45, 3.2) +
+      spk(18, 20, 6, '#fff3a6') + mC(110, 96, 2.4, '#ffb02e') + mC(14, 86, 2, '#ffd166') + spk(106, 10, 4, '#ffe14d')],
+    // Starlight Bees: a deep blue bee with gold stripes, glassy wings and star antennae
+    bees: (k) => [lin(k + 'b', ['#6a5cff', '#3a2f9a'], 1, 1) + lin(k + 'w', ['#ffffff', '#c9f0ff'], 0, 1) + glowG(k + 'w2', '#9ff0ff') + `<clipPath id="${k}c"><ellipse cx="66" cy="72" rx="34" ry="24"/></clipPath>`,
+      `<g transform="rotate(-28 64 40)">${mE(64, 40, 20, 12, `url(#${k}w)`, mo('#7cc7f0', 1.8) + ' opacity=".92"')}</g><g transform="rotate(18 86 44)">${mE(86, 44, 16, 9, `url(#${k}w)`, mo('#7cc7f0', 1.8) + ' opacity=".92"')}</g>` +
+      mP('M99 70L114 72L99 78Z', '#ffd23f', mo('#a8650a', 1.6)) +
+      mE(66, 72, 34, 24, `url(#${k}b)`) + `<g clip-path="url(#${k}c)">${[58, 74, 90].map((x) => `<path d="M${x} 44C${x - 6} 60 ${x - 6} 84 ${x} 100" fill="none" stroke="#ffd23f" stroke-width="8"/>`).join('')}</g>` + mE(66, 72, 34, 24, 'none', mo('#2a1f6e', 2.6)) +
+      star(70, 58, 7, '#fff3a6', mo('#e0a21b', 1.2)) +
+      mL('M26 54C22 42 18 36 12 34', '#2a1f6e', 2.4) + mL('M36 52C36 40 38 32 36 24', '#2a1f6e', 2.4) + star(12, 33, 6, '#ffe14d', mo('#a8650a', 1.2)) + star(36, 22, 6, '#ffe14d', mo('#a8650a', 1.2)) +
+      mC(32, 68, 17, '#4a3fd1', mo('#2a1f6e', 2.6)) + mE(26, 66, 5, 6, '#ffffff') + mE(25, 67, 3.2, 4, '#2b2140') + mC(26.2, 65, 1.3, '#ffffff') +
+      mL('M22 76Q26 79 30 76', '#ffd6f0', 1.8) + mE(36, 74, 3.5, 2.2, '#ff8fe0', ' opacity=".6"') +
+      spk(104, 22, 6, '#9ff0ff') + spk(14, 92, 5, '#fff3a6') + spk(100, 100, 4, '#ffffff') + mC(48, 106, 2, '#9ff0ff')],
+    // Crystal Goat: snow-white with a blue shimmer, crystal horns and crystal hooves
+    goat: (k) => [lin(k + 'b', ['#ffffff', '#dfe8ff', '#b9c9ff'], 1, 1) + lin(k + 'c', ['#e6fbff', '#7fdcff', '#8a6cff'], 1, 1) + glowG(k + 'w', '#9ff0ff'),
+      mP('M96 62L106 52L104 66Z', `url(#${k}b)`, mo('#5a6fb0', 2)) +
+      legs([50, 60, 82, 92], 82, 102, `url(#${k}b)`, `url(#${k}c)`, mo('#5a6fb0', 1.8)) +
+      mP('M42 64C42 54 54 50 66 51C82 52 96 54 98 66C100 80 92 86 80 86L54 86C44 86 40 76 42 64Z', `url(#${k}b)`, mo('#5a6fb0')) +
+      [[58, 51], [70, 50], [82, 52]].map(([x, y]) => mP(`M${x} ${y}L${x + 4} ${y - 9}L${x + 8} ${y}Z`, `url(#${k}c)`, mo('#5a4fc0', 1.4))).join('') +
+      mP('M42 72C36 64 34 58 34 50L50 44C52 52 54 60 60 66Z', `url(#${k}b)`, mo('#5a6fb0')) +
+      mP('M36 30C36 20 42 10 54 4L52 18C46 20 44 26 44 31Z', `url(#${k}c)`, mo('#5a4fc0', 1.8)) + mL('M40 26C41 18 45 12 51 8', '#ffffff', 1.4) +
+      mP('M44 31C46 22 54 14 66 12L61 25C56 26 52 29 52 34Z', `url(#${k}c)`, mo('#5a4fc0', 1.8)) + mL('M49 28C51 22 56 17 62 15', '#ffffff', 1.4) +
+      mP('M46 38L62 38L50 48Z', `url(#${k}b)`, mo('#5a6fb0', 1.8)) +
+      mP('M16 46C14 36 22 28 32 28C42 28 50 34 50 44C50 54 44 60 34 60C24 60 18 56 16 46Z', `url(#${k}b)`, mo('#5a6fb0')) +
+      mE(24, 52, 9, 6.5, '#f3ecff', mo('#8a8ac8', 1.4)) + mE(20, 51, 1.4, 1.8, '#5a4fc0') + mE(26, 51, 1.4, 1.8, '#5a4fc0') +
+      mP('M26 58L20 72L32 60Z', '#eef3ff', mo('#5a6fb0', 1.6)) + eye(35, 41, 3.2) + mE(42, 50, 3.5, 2.2, '#ff9ad5', ' opacity=".5"') +
+      spk(16, 16, 6, '#c9f7ff') + spk(108, 30, 5, '#ffffff') + spk(110, 92, 4, '#c9f7ff') + spk(20, 96, 4, '#ffffff')],
+    // Cloud Sheep: a fluffy cloud of golden fleece with golden curled horns, floating on little clouds
+    sheep: (k) => {
+      const fluff = [[44, 62], [56, 52], [72, 50], [86, 56], [94, 70], [88, 84], [72, 90], [56, 90], [44, 80], [68, 70]];
+      return [rad(k + 'f', ['#ffffff', '#fff3c4', '#ffcf48']) + glowG(k + 'w', '#ffe066'),
+        mE(46, 108, 12, 4, '#ffffff', ' opacity=".9"') + mE(82, 108, 13, 4.5, '#ffffff', ' opacity=".9"') +
+        mL('M50 92L49 104M60 94L60 106M76 94L76 106M86 90L87 102', '#6a5aa8', 4.6) +
+        fluff.map(([x, y]) => mC(x, y, 14, `url(#${k}f)`, mo('#e8b84a', 1.8))).join('') + fluff.slice(0, 6).map(([x, y]) => mC(x - 4, y - 5, 3, '#ffffff', ' opacity=".8"')).join('') +
+        mE(28, 60, 12.5, 14.5, '#7a6ac8', mo('#3a2f78', 2.2)) +
+        mL('M33 49C41 40 49 50 42 55C37 58 34 53 38 51', '#e0a21b', 4.4) + mL('M23 49C15 41 8 50 14 55C19 58 22 53 18 51', '#e0a21b', 4.4) +
+        eye(24, 58, 2.6) + eye(33, 58, 2.6) + mL('M25 67Q28.5 70 32 67', '#ffd6e6', 1.8) +
+        spk(102, 26, 7, '#fff3a6') + spk(16, 30, 5, '#ffffff') + spk(110, 90, 4, '#ffe066') + mC(100, 44, 2.2, '#ffe066')];
+    },
+    // Moon Cow: night-blue with a golden moon and stars for spots, silver horns, a star at the tip of the tail
+    cow: (k) => [lin(k + 'b', ['#6f5fe0', '#3a2f9a', '#241c66'], 1, 1) + lin(k + 's', ['#ffffff', '#c9d2ea'], 1, 1) + glowG(k + 'w', '#b9a4ff'),
+      mL('M102 58C112 62 112 74 108 80', '#241c66', 3) + star(108, 84, 6, '#ffe14d', mo('#a8650a', 1.2)) +
+      legs([48, 58, 84, 94], 82, 100, '#3a2f9a', `url(#${k}s)`, mo('#1a1450', 1.8)) +
+      mE(78, 86, 8, 5, '#ffb8e0', mo('#a8407e', 1.6)) +
+      mP('M38 56C38 46 48 44 60 44L90 44C102 44 108 54 106 68C104 80 98 86 88 86L52 86C42 86 38 76 38 66Z', `url(#${k}b)`, mo('#1a1450')) +
+      mP('M76 52C68 54 64 62 66 70C68 76 76 80 82 78C76 76 72 70 72 64C72 58 74 54 76 52Z', '#ffe14d', mo('#c99a00', 1.4)) +
+      star(92, 56, 5.5, '#fff3a6') + star(54, 70, 5, '#fff3a6') + star(96, 76, 4.5, '#fff3a6') + star(58, 54, 3.5, '#ffffff') +
+      mP('M18 36C10 30 10 22 14 18C15 24 20 28 26 30Z', `url(#${k}s)`, mo('#6a7499', 1.6)) + mP('M42 36C50 30 50 22 46 18C45 24 40 28 34 30Z', `url(#${k}s)`, mo('#6a7499', 1.6)) +
+      mP('M12 40L4 36L10 46Z', '#3a2f9a', mo('#1a1450', 1.6)) +
+      mP('M14 46C14 36 22 32 30 32C38 32 46 36 46 46C46 58 40 68 30 68C20 68 14 58 14 46Z', `url(#${k}b)`, mo('#1a1450')) +
+      mE(30, 62, 12, 8, '#c9b8ff', mo('#5a4fc0', 1.6)) + mE(26, 62, 1.6, 2.2, '#3a2f78') + mE(34, 62, 1.6, 2.2, '#3a2f78') +
+      eye(24, 46, 3) + eye(36, 46, 3) + mP('M30 72C28 76 30 80 33 78C31 77 31 74 33 72Z', '#ffe14d', mo('#c99a00', 1)) +
+      spk(14, 14, 6, '#fff3a6') + spk(108, 26, 5, '#ffffff') + spk(16, 94, 4, '#fff3a6') + mC(66, 30, 2, '#fff3a6')],
+    // Silver Swan: shining silver with a golden crown
+    duck: (k) => [lin(k + 'b', ['#ffffff', '#dfe4f5', '#a9b4d6'], 1, 1) + glowG(k + 'w', '#c9e0ff'),
+      mL('M64 96L62 106M58 106L68 106M78 96L80 106M74 106L84 106', '#ff9a2e', 3) +
+      mP('M44 80C44 66 58 60 74 62C90 64 102 64 108 52C114 68 106 92 82 96L58 96C48 96 44 88 44 80Z', `url(#${k}b)`, mo('#6a7499')) +
+      mP('M60 68C76 60 96 64 102 74C90 84 70 86 60 74Z', '#eef1fb', mo('#6a7499', 1.8)) + mL('M68 72C76 70 84 71 92 74M70 77C78 77 86 78 94 78', '#a9b4d6', 1.6) +
+      mP('M48 78C38 68 30 58 30 44C30 32 38 24 48 26C56 28 58 36 54 40C48 44 44 48 46 56C48 64 54 70 60 74Z', `url(#${k}b)`, mo('#6a7499')) +
+      mP('M36 32L20 37L36 40Z', '#ffb02e', mo('#a8650a', 1.6)) + eye(43, 33, 2.8) +
+      mP('M40 22L41 12L45 18L48 9L51 18L55 12L56 23Z', '#ffd23f', mo('#a8650a', 1.6)) + mC(48, 17, 1.6, '#ff5a8a') +
+      spk(18, 16, 6, '#ffffff') + spk(104, 30, 5, '#c9e0ff') + spk(108, 100, 4, '#ffffff') + spk(16, 76, 4, '#c9e0ff')],
+    // Flying Pig: pink, with white-and-gold wings, floating above its shadow
+    pig: (k) => [lin(k + 'b', ['#ffe0ec', '#ff9fc2', '#f07aa6'], 1, 1) + lin(k + 'w', ['#ffffff', '#fff6d6', '#ffd86b'], 0, 1) + glowG(k + 'w2', '#ffd1e8'),
+      mE(62, 110, 26, 4, '#c2407e', ' opacity=".18"') +
+      mP('M60 54C54 36 62 18 82 12C80 22 92 22 90 32C100 32 98 44 88 50C84 54 70 58 60 54Z', `url(#${k}w)`, mo('#c99a3a', 2)) + mL('M70 46C74 38 80 30 86 26M74 50C80 46 86 42 92 40', '#e8c46a', 1.4) +
+      mL('M98 66C106 60 110 68 104 70C100 72 102 64 106 64', '#c2407e', 2.4) +
+      legs([50, 62, 78, 88], 84, 94, '#ff9fc2', '#ffd23f', mo('#c2407e', 1.6)) +
+      mE(68, 72, 32, 20, `url(#${k}b)`, mo('#c2407e')) +
+      mP('M22 46L20 32L34 42Z', '#ff9fc2', mo('#c2407e', 1.8)) + mP('M38 42L44 30L48 46Z', '#ff9fc2', mo('#c2407e', 1.8)) +
+      mC(34, 60, 18, `url(#${k}b)`, mo('#c2407e')) +
+      mE(20, 64, 8, 7, '#ff7aa8', mo('#c2407e', 1.8)) + mE(18, 63, 1.4, 2.2, '#8a1f52') + mE(22.5, 63, 1.4, 2.2, '#8a1f52') +
+      eye(34, 54, 3) + mE(40, 66, 4, 2.4, '#ff5a8a', ' opacity=".4"') + mL('M27 72Q31 75 35 72', '#c2407e', 1.6) +
+      spk(104, 18, 6, '#fff3a6') + spk(16, 22, 5, '#ffffff') + spk(110, 88, 4, '#ffd86b') + mC(14, 90, 2, '#ffd86b')],
+    // Thunderbird: a turkey with a storm-blue tail fan full of lightning
+    turkey: (k) => {
+      const fan = [-160, -136, -112, -88, -64, -40].map((a, i) => `<g transform="rotate(${a + 90} 74 74)">${mE(74, 44, 9, 27, ['#5ec8ff', '#7a5cff', '#3a8be0', '#a77bff', '#5ec8ff', '#7a5cff'][i], mo('#1e1f6b', 1.8))}${mP('M75 24L70 35L75 35L71 45L80 31L75 31Z', '#ffe14d')}</g>`).join('');
+      return [lin(k + 'b', ['#4a52e0', '#252a8a', '#151760'], 1, 1) + glowG(k + 'w', '#9ff0ff'),
+        fan + mL('M62 96L60 108M56 108L66 108M76 96L78 108M72 108L82 108', '#ffd23f', 3) +
+        mE(70, 78, 25, 21, `url(#${k}b)`, mo('#0e0f40')) + mP('M66 64L57 79L65 79L59 94L76 74L67 74L73 64Z', '#ffe14d', mo('#a8650a', 1.4)) +
+        mP('M48 72C42 64 40 56 42 48L52 50C52 58 54 64 58 70Z', '#252a8a', mo('#0e0f40', 2)) +
+        mC(42, 44, 12, '#9ff0ff', mo('#2a6ea0', 2.2)) + mP('M38 52C33 58 34 66 39 65C41 62 39 58 41 54Z', '#ff3d5a', mo('#9a1a2a', 1.4)) +
+        mP('M32 41L22 45L32 48Z', '#ffd23f', mo('#a8650a', 1.6)) + eye(42, 41, 2.8) +
+        mP('M100 20L94 30L99 30L95 38L104 27L99 27Z', '#ffe14d') + mP('M18 76L13 84L17 84L14 91L21 82L17 82Z', '#ffe14d') + spk(18, 22, 5, '#9ff0ff') + spk(108, 96, 4, '#ffffff')];
+    },
+    // Star Alpaca: lavender and pink fluff with stars in it
+    alpaca: (k) => {
+      const puff = [[56, 62], [68, 58], [82, 60], [92, 68], [86, 80], [72, 82], [58, 78]];
+      return [rad(k + 'f', ['#ffffff', '#ffd6f0', '#b9a4ff']) + glowG(k + 'w', '#ffb8f0'),
+        legs([54, 64, 80, 90], 82, 102, '#e9d8ff', '#6a5aa8', mo('#6a5aa8', 1.6)) +
+        puff.map(([x, y]) => mC(x, y, 13, `url(#${k}f)`, mo('#9a7ad8', 1.6))).join('') +
+        mP('M34 66C32 52 32 38 34 28L48 28C48 40 50 52 54 64Z', `url(#${k}f)`, mo('#9a7ad8', 1.8)) +
+        mP('M38 14L40 2L45 12Z', '#e9d8ff', mo('#9a7ad8', 1.6)) + mP('M46 14L50 4L52 15Z', '#e9d8ff', mo('#9a7ad8', 1.6)) +
+        mP('M26 30C24 20 32 12 40 14C48 16 52 24 50 30C48 38 40 40 34 38C30 37 26 34 26 30Z', `url(#${k}f)`, mo('#9a7ad8', 1.8)) +
+        [[34, 14], [41, 11], [47, 15]].map(([x, y]) => mC(x, y, 5, '#ffe0f4', mo('#c9a0e8', 1.2))).join('') +
+        mE(30, 34, 7, 5, '#fff2fa', mo('#c9a0e8', 1.2)) + eye(37, 26, 2.8) + mL('M26 37Q29 39 32 37', '#9a5aa8', 1.4) +
+        star(70, 66, 6, '#ffe14d', mo('#c99a00', 1)) + star(86, 74, 4.5, '#fff3a6') + star(58, 74, 4, '#ffffff') + star(40, 48, 3.5, '#ffe14d') +
+        spk(104, 30, 6, '#fff3a6') + spk(14, 60, 5, '#ffffff') + spk(108, 96, 4, '#ffb8f0')];
+    },
+    // Pegasus: a white pony with golden wings and a rainbow mane and tail
+    pony: (k) => [lin(k + 'b', ['#ffffff', '#eae4ff'], 1, 1) + lin(k + 'w', ['#ffffff', '#fff3c4', '#ffcf48'], 0, 1) + lin(k + 'g', ['#fff3a6', '#f5b521']) + glowG(k + 'w2', '#ffe7a3'),
+      ['#ff6b6b', '#ffb84d', '#ffe66d', '#7ed957', '#5ec8ff', '#a77bff'].map((c, i) => mL(`M${92 + i} ${58 + i * 1.5}C${104 + i} ${64 + i * 2} ${106 + i} ${80 + i} ${98 + i * 2} ${92 + i}`, c, 3)).join('') +
+      legs([52, 62, 82, 92], 74, 100, `url(#${k}b)`, `url(#${k}g)`, mo('#8a7ab8', 1.8)) +
+      mE(72, 66, 26, 15, `url(#${k}b)`, mo('#8a7ab8')) +
+      mP('M70 58C64 38 72 18 92 10C88 22 100 22 98 32C108 32 106 46 96 52C90 56 78 60 70 58Z', `url(#${k}w)`, mo('#c99a3a', 2)) + mL('M78 52C82 42 88 34 94 28M82 56C88 52 94 48 100 46', '#e8c46a', 1.4) +
+      mP('M50 70C44 58 40 46 42 36L56 34C56 46 58 56 62 64Z', `url(#${k}b)`, mo('#8a7ab8')) +
+      ['#ff6b6b', '#ffb84d', '#ffe66d', '#7ed957', '#5ec8ff', '#a77bff'].map((c, i) => mL(`M${52 + i * 1.4} ${30 + i * 5}C${58 + i * 1.6} ${32 + i * 5} ${60 + i * 1.6} ${36 + i * 5} ${60 + i * 1.6} ${40 + i * 5}`, c, 3.2)).join('') +
+      mP('M44 26L46 14L52 24Z', `url(#${k}b)`, mo('#8a7ab8', 1.6)) +
+      mP('M22 40C20 32 28 24 38 24C48 24 54 30 54 38C54 46 46 50 38 50L30 50C24 50 22 46 22 40Z', `url(#${k}b)`, mo('#8a7ab8')) +
+      mE(26, 44, 5, 4, '#ffd6f0') + mE(24, 43, 1, 1.4, '#8a7ab8') + eye(38, 35, 3) + mE(44, 43, 3.5, 2.2, '#ff9ad5', ' opacity=".5"') +
+      spk(16, 16, 6, '#fff3a6') + spk(110, 24, 5, '#ffffff') + spk(14, 86, 4, '#ffe7a3') + mC(30, 104, 2, '#ffcf48')],
+  };
+  MQ.mythArt = (a, { aura = true } = {}) => {
+    const f = MYTH[a];
+    if (!f) return '';
+    const k = 'm' + (++uid).toString(36), [defs, body] = f(k);
+    const glow = aura ? `<circle cx="60" cy="62" r="56" fill="url(#${k}w${a === 'bees' || a === 'pig' || a === 'pony' ? '2' : ''})"/>` : '';
+    return `<svg class="tart myth m-${a}" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><defs>${defs}</defs>${glow}${body}</svg>`;
+  };
+  // a little Starlight Bee for the beehive pen
+  MQ.starBee = () => '<svg class="sbee" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="10" cy="7" rx="5" ry="3.2" fill="#e6fbff" opacity=".9" transform="rotate(-25 10 7)"/><ellipse cx="13" cy="14" rx="8" ry="6" fill="#4a3fd1" stroke="#2a1f6e" stroke-width="1.2"/><path d="M11 8.5C9.5 12 9.5 16 11 19.5M15 8.4C13.5 12 13.5 16 15 19.6" stroke="#ffd23f" stroke-width="2.2" fill="none"/><circle cx="6" cy="13" r="3.4" fill="#4a3fd1" stroke="#2a1f6e" stroke-width="1"/><circle cx="5" cy="12.4" r="1" fill="#fff"/><path d="M4 7L5 4.4L6 7L8.6 7.2L6.6 8.6L7.4 11L5 9.6L2.8 11L3.6 8.6L1.6 7.2Z" fill="#ffe14d"/></svg>';
+  MQ.MYTH_IDS = Object.keys(MYTH);
+  // The merchant's week charms: MQ.charmArt(id) → '<svg …>' (bright, glowing).
+  const CHARM = {
+    // a four-leaf clover with golden edges
+    clover: (k) => [lin(k + 'l', ['#b8f27a', '#43b02a'], 1, 1) + glowG(k + 'w', '#b8f27a'),
+      mL('M64 62C70 80 70 94 82 108', '#2f7a1f', 4.4) +
+      [0, 90, 180, 270].map((r) => `<g transform="rotate(${r + 45} 60 58)">${mP('M60 58C52 48 40 44 38 32C36 22 48 18 54 26C56 18 68 18 68 30C68 42 62 48 60 58Z', `url(#${k}l)`, mo('#c99a00', 2.2))}${mL('M60 56L60 32', '#2f7a1f', 1.4)}</g>`).join('') +
+      mC(60, 58, 4, '#ffe14d', mo('#a8650a', 1.2)) +
+      mE(88, 92, 7, 6, '#ff3d3d', mo('#7a1a1a', 1.4)) + mC(94, 88, 3.4, '#2b2140') + mL('M88 86L88 98', '#7a1a1a', 1.2) + mC(85, 92, 1.4, '#2b2140') + mC(91, 95, 1.4, '#2b2140') +
+      spk(18, 18, 7, '#fff3a6') + spk(104, 20, 5, '#ffffff') + spk(16, 96, 5, '#d8ffb0') + spk(106, 62, 4, '#fff3a6')],
+    // a round bottle of liquid sunshine
+    sun: (k) => [lin(k + 'g', ['#ffffff', '#e6f6ff'], 1, 1) + lin(k + 'l', ['#fff3a6', '#ffcf48', '#ff9a2e'], 0, 1) + glowG(k + 'w', '#ffe066') + `<clipPath id="${k}c"><circle cx="60" cy="74" r="32"/></clipPath>`,
+      mP('M50 22L70 22L70 44L50 44Z', `url(#${k}g)`, mo('#7a8ab8', 2.2)) + mP('M48 12L72 12L70 24L50 24Z', '#c98a4b', mo('#7a4a1e', 2)) +
+      mC(60, 74, 32, `url(#${k}g)`) + `<g clip-path="url(#${k}c)">${mP('M24 66C36 60 48 72 60 66C72 60 84 72 96 66L96 110L24 110Z', `url(#${k}l)`)}</g>` +
+      [0, 45, 90, 135, 180, 225, 270, 315].map((a) => { const t = (a * Math.PI) / 180; return mL(`M${f1(60 + 12 * Math.cos(t))} ${f1(84 + 12 * Math.sin(t))}L${f1(60 + 18 * Math.cos(t))} ${f1(84 + 18 * Math.sin(t))}`, '#ff8a1f', 2.6); }).join('') +
+      mC(60, 84, 9, '#ffe14d', mo('#ff8a1f', 2)) + mC(57, 82, 1.3, '#a8650a') + mC(63, 82, 1.3, '#a8650a') + mL('M56 87Q60 90 64 87', '#a8650a', 1.4) +
+      mC(60, 74, 32, 'none', mo('#7a8ab8', 2.6)) + mE(44, 62, 5, 10, '#ffffff', ' opacity=".7" transform="rotate(30 44 62)"') +
+      spk(18, 24, 7, '#fff3a6') + spk(102, 30, 6, '#ffffff') + spk(104, 100, 5, '#ffe066') + spk(14, 92, 4, '#ffffff')],
+    // a golden piggy bank with a crown, a coin dropping in
+    piggy: (k) => [lin(k + 'b', ['#fff6c4', '#ffcf48', '#d98a10'], 1, 1) + glowG(k + 'w', '#ffe066'),
+      mL('M98 70C106 64 110 72 104 74C100 76 102 68 106 68', '#a8650a', 2.4) +
+      legs([44, 56, 74, 86], 88, 98, `url(#${k}b)`, '#a8650a', mo('#8a5a08', 1.6)) +
+      mE(66, 74, 34, 22, `url(#${k}b)`, mo('#8a5a08', 2.6)) +
+      mP('M44 56L42 42L56 52Z', `url(#${k}b)`, mo('#8a5a08', 2)) +
+      mE(32, 76, 9, 8, '#ffe680', mo('#8a5a08', 2)) + mE(30, 75, 1.5, 2.4, '#8a5a08') + mE(35, 75, 1.5, 2.4, '#8a5a08') +
+      eye(46, 66, 3.2) + mE(52, 78, 4, 2.6, '#ff8a5a', ' opacity=".45"') + mL('M60 54L80 54', '#8a5a08', 3) +
+      mP('M54 42L56 30L62 37L66 28L70 37L76 30L78 42Z', '#ffd23f', mo('#a8650a', 1.6)) + mC(66, 34, 1.8, '#ff4d6d') +
+      mE(92, 26, 9, 9, '#ffe14d', mo('#a8650a', 2)) + mL('M92 21L92 31M89 23.5C89 21 95 21 95 24C95 26.5 89 26 89 28.5C89 31 95 31 95 29', '#a8650a', 1.4) +
+      spk(18, 22, 7, '#fff3a6') + spk(110, 56, 5, '#ffffff') + spk(14, 100, 5, '#ffe066') + mC(108, 100, 2.2, '#ffe066')],
+    // a sack of Mythic Feed: purple, tied with gold, glowing seeds spilling out
+    myth: (k) => [lin(k + 's', ['#b48cf2', '#7a3fd1', '#4a1f9a'], 1, 1) + glowG(k + 'w', '#ffb8f0'),
+      mP('M34 50C28 72 30 96 40 104L80 104C90 96 92 72 86 50Z', `url(#${k}s)`, mo('#2e1260', 2.6)) +
+      mP('M38 50C40 38 50 34 60 40C70 34 80 38 82 50Z', '#c9a0ff', mo('#2e1260', 2.2)) + mL('M38 52Q60 58 82 52', '#ffd23f', 4) +
+      star(60, 78, 13, '#ffe14d', mo('#a8650a', 1.6)) + star(44, 92, 5, '#ffffff') + star(78, 64, 4.5, '#ffffff') +
+      ['#ff6b6b', '#ffb84d', '#ffe66d', '#7ed957', '#5ec8ff', '#a77bff'].map((c, i) => mC(90 + i * 3.5, 104 - (i % 2) * 4, 3, c, mo('#ffffff', 1))).join('') +
+      spk(18, 22, 7, '#fff3a6') + spk(104, 24, 6, '#ffb8f0') + spk(14, 86, 4, '#ffffff') + spk(104, 82, 4, '#fff3a6')],
+  };
+  MQ.charmArt = (id) => {
+    const f = CHARM[id];
+    if (!f) return '';
+    const k = 'c' + (++uid).toString(36), [defs, body] = f(k);
+    return `<svg class="tart charm c-${id}" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><defs>${defs}</defs><circle cx="60" cy="62" r="56" fill="url(#${k}w)"/>${body}</svg>`;
+  };
+
   const DRAW = { orchard: ORCHARD, cottage: COTTAGE, railway: RAILWAY, castle: CASTLE };
   MQ.dreamArt = (id, built, { building = false, ghost = true } = {}) => {
     const D = DRAW[id], k = 'd' + (++uid).toString(36);
@@ -8175,7 +8610,7 @@ svg.tart { display: block; width: 100%; height: auto; }
   function bedHtml(b, i) {
     const s = F.cropStage(b);
     const stars = F.bedStars(b), ups = `${stars ? `<span class="bstars">${'★'.repeat(stars)}</span>` : ''}${F.bedWater(b) ? '<span class="bwater">💧</span>' : ''}`;
-    const glass = F.bedGlass(b) ? ' glass' : '';
+    const glass = (F.bedGlass(b) ? ' glass' : '') + (fmNow && F.charmOn(fmNow, 'sun') ? ' sunny' : ''); // sunny: the Sunshine Potion doubles harvests
     if (s === 'empty') return `<button class="fbed soil empty${glass}" data-act="fBed" data-arg="${i}" aria-label="Empty garden bed: plant seeds"><span class="plus">＋</span>${ups}<span class="flabel">Plant</span></button>`;
     const it = F.ITEMS[b.c], left = F.cropDays(b) - b.g, y = F.cropYield(b, fmNow);
     const n = Math.min(y, 4); // the label says how many; four fit on a small bed
@@ -8186,15 +8621,23 @@ svg.tart { display: block; width: 100%; height: auto; }
   }
   function penHtml(p, i) {
     if (!p.a) return `<button class="fpen pasture empty" data-act="go" data-arg="farm:shop" aria-label="Empty pen: buy an animal in the shop"><span class="plus">＋</span><span class="flabel">Buy an animal</span></button>`;
-    const a = F.ANIMALS[p.a], sg = F.animalStage(p), it = F.ITEMS[a.item];
-    const state = p.ready ? 'ready' : p.fed ? 'fed' : 'hungry';
+    const a = F.ANIMALS[p.a], sg = F.animalStage(p), got = F.penLoot(p), ready = F.penReady(p);
+    // a Mythic Feed week: the animals are drawn as their mythic selves
+    const myth = fmNow && F.mythOn(fmNow, p.a) && MQ.mythArt ? F.MYTHS[p.a] : null;
+    const state = ready ? 'ready' : p.fed ? 'fed' : 'hungry';
     const age = ['Baby', 'Young', 'Grown-up'][sg];
     const many = F.penCount(p);
-    const chip = p.ready ? `${it.e}×${p.ready}` : p.fed ? '❤️' : `🌾 ${F.penEat(p)}`;
-    const loot = p.ready ? `<span class="loot">${Array.from({ length: Math.min(p.ready, 5) }, (_, k) => `<i style="--k:${k}">${it.e}</i>`).join('')}</span>` : '';
+    const chip = ready ? got.map(([id, n]) => `${F.ie(id)}×${n}`).join(' ') : p.fed ? '❤️' : `🌾 ${F.penEat(p)}`;
+    const loot = ready ? `<span class="loot">${got.flatMap(([id, n]) => Array(Math.min(n, 5)).fill(F.ie(id))).slice(0, 5).map((e, k) => `<i style="--k:${k}">${e}</i>`).join('')}</span>` : '';
     let who;
     if (p.a === 'bees') {
-      who = `<span class="hivebox">${SVG.hive}</span>${Array.from({ length: Math.min(6, (sg + 1) * many) }, (_, k) => `<span class="bee" style="--k:${k}">🐝</span>`).join('')}`;
+      who = `<span class="hivebox">${SVG.hive}</span>${Array.from({ length: Math.min(6, (sg + 1) * many) }, (_, k) => `<span class="bee" style="--k:${k}">${myth ? MQ.starBee() : '🐝'}</span>`).join('')}`;
+    } else if (myth) {
+      const pic = MQ.mythArt(p.a, { aura: false });
+      who = Array.from({ length: many }, (_, k) => {
+        const t = 7 + ((i * 3 + k * 2) % 5);
+        return `<span class="walker side myw w${k}" style="--t:${t}s;--dl:-${(i * 2.3 + k * 3.1) % t}s"><span class="bob">${pic}</span></span>`;
+      }).join('');
     } else if (p.a === 'fishpond') {
       who = Array.from({ length: Math.min(5, sg + many) }, (_, k) => `<span class="walker side fishy" style="--t:${6 + k * 2}s;--dl:-${k * 1.7}s;bottom:${14 + (k % 3) * 22}px"><span class="bob">🐟</span></span>`).join('');
     } else {
@@ -8205,9 +8648,10 @@ svg.tart { display: block; width: 100%; height: auto; }
         return `<span class="walker ${SIDE.has(e) ? 'side' : ''} w${k}" style="--t:${t}s;--dl:-${(i * 2.3 + k * 3.1) % t}s"><span class="bob">${e}</span></span>`;
       }).join('');
     }
-    const label = `${many > 1 ? many + ' × ' : ''}${a.name}, ${age.toLowerCase()}: ${p.ready ? `${p.ready} ${it.many} to collect` : p.fed ? 'fed' : `hungry, eats ${F.penEat(p)} feed`}`;
-    const sparkle = p.a === 'unicorn' ? '<span class="twinkles"><i>✨</i><i>✨</i><i>✨</i></span>' : '';
-    return `<button class="fpen pasture ${state} s${sg} a-${p.a}" data-act="fPen" data-arg="${i}" aria-label="${esc(label)}">${who}${sparkle}${loot}<span class="trough ${p.fed ? 'full' : ''}"></span>${(p.u || 0) >= 3 ? '<span class="cozy" title="Cozy barn">🛖</span>' : ''}<span class="pchip">${chip}</span><span class="flabel">${age}${many > 1 ? ' × ' + many : ''}</span></button>`;
+    const label = `${many > 1 ? many + ' × ' : ''}${myth ? myth.name : a.name}, ${age.toLowerCase()}: ${ready ? `${got.map(([id, n]) => `${n} ${n === 1 ? F.ITEMS[id].name : F.ITEMS[id].many}`).join(' and ')} to collect` : p.fed ? 'fed' : `hungry, eats ${F.penEat(p)} feed`}`;
+    const sparkle = p.a === 'unicorn' || myth ? '<span class="twinkles"><i>✨</i><i>✨</i><i>✨</i></span>' : '';
+    const left = myth ? fmNow.charms.myth.until - fmNow.day : 0;
+    return `<button class="fpen pasture ${state} s${sg} a-${p.a}${myth ? ' myth' : ''}" data-act="fPen" data-arg="${i}" aria-label="${esc(label)}">${who}${sparkle}${loot}${myth ? `<span class="mytag" title="${esc(myth.many)}: ${left} ${left === 1 ? 'night' : 'nights'} left">🌟 ${left}</span>` : ''}<span class="trough ${p.fed ? 'full' : ''}"></span>${(p.u || 0) >= 3 ? '<span class="cozy" title="Cozy barn">🛖</span>' : ''}<span class="pchip">${chip}</span><span class="flabel">${age}${many > 1 ? ' × ' + many : ''}</span></button>`;
   }
   function workHtml(id) {
     const W = F.WORKS[id], w = fmWorks[id];
@@ -8249,7 +8693,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     const park = at('park').map((id) => `<span class="pk d-${id}" title="${esc(F.DECOR[id].name)}">${F.DECOR[id].e}</span>`).join('');
     const works = Object.keys(fmWorks).filter((id) => F.WORKS[id]);
     const stand = F.STANDS[fm.stand], n = F.basketCount(fm);
-    return `<section class="scene" aria-label="Your farm">
+    return `<section class="scene${F.charmOn(fm, 'sun') ? ' sun-on' : ''}" aria-label="Your farm">
       <div class="sky">
         <span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>${sky.join('')}
         <div class="hills"></div>${hill}${has('fence') ? '<div class="hfence"></div>' : ''}
@@ -8261,7 +8705,7 @@ svg.tart { display: block; width: 100%; height: auto; }
         ${works.length ? `<div class="works">${works.map(workHtml).join('')}</div>` : ''}
         <div class="yard">
           <button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
-          ${yard}${fm.helper && fm.helper.hired && fm.helper.on ? `<span class="farmhand" title="Farmhand ${F.HELPER.name}">🧑‍🌾</span>` : ''}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}${treasures(fm)}${F.merchantNow(fm) ? `<button class="trs wagon" data-act="fMerchant" aria-label="${esc(F.MERCHANT.name)}'s wagon">${MQ.wagonArt()}</button>` : ''}
+          ${yard}${fm.helper && fm.helper.hired && fm.helper.on ? `<span class="farmhand" title="Farmhand ${F.HELPER.name}">🧑‍🌾</span>` : ''}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}${treasures(fm)}${F.charmOn(fm, 'clover') && MQ.charmArt ? `<span class="trs tr-clover" title="Lucky Clover">${MQ.charmArt('clover')}</span>` : ''}${F.merchantHas(fm) ? `<button class="trs wagon" data-act="fMerchant" aria-label="${esc(F.MERCHANT.name)}'s wagon">${MQ.wagonArt()}</button>` : ''}
         </div>
         ${park ? `<div class="park">${park}</div>` : ''}
       </div>
@@ -8278,7 +8722,7 @@ svg.tart { display: block; width: 100%; height: auto; }
         <span class="shopper ${vip ? 'vip' : ''}" id="shopper"><span>${shopper}</span></span>
       </div>
     </div>`;
-  S.goods = (sale) => Object.entries(sale || {}).map(([id, n]) => Array.from({ length: Math.min(n, 6) }, () => `<i>${F.ITEMS[id].e}</i>`).join('')).join('');
+  S.goods = (sale) => Object.entries(sale || {}).map(([id, n]) => Array.from({ length: Math.min(n, 6) }, () => `<i>${F.ie(id)}</i>`).join('')).join('');
 
   // ---------------------------------------------------------------- animations
   const box = (x) => (!x ? null : x.getBoundingClientRect ? x.getBoundingClientRect() : x);
@@ -8419,10 +8863,10 @@ svg.tart { display: block; width: 100%; height: auto; }
     if (F.bankDue(f) > 0) t = 'It’s bank day! Your savings grew. Go to the bank to collect the interest.';
     else if (F.depositReady(f)) t = 'Your locked deposit unlocked! Go to the bank to collect it. 🔓';
     else if (F.canBuild(f, grade())) t = 'You saved enough in the bank for your Big Dream! Pay the builders 🏗️';
-    else if (F.merchantNow(f) && F.merchantNights(f.day) <= 1) t = `${F.MERCHANT.name} the traveling merchant leaves ${F.merchantNights(f.day) ? 'tomorrow night' : 'tonight'}! Tap his wagon.`;
+    else if (F.merchantHas(f) && F.merchantNights(f.day) <= 1) t = `${F.MERCHANT.name} the traveling merchant leaves ${F.merchantNights(f.day) ? 'tomorrow night' : 'tonight'}! Tap his wagon.`;
     else if (Object.values(f.works).some((w) => w.ready)) t = 'Something is ready in your workshop! Tap it to take it.';
     else if (f.beds.some((b) => F.cropStage(b) === 'ready')) t = 'Your crops are ripe! Tap them to pick them.';
-    else if (f.pens.some((p) => p.ready)) t = 'Your animals made something! Tap them to collect it.';
+    else if (f.pens.some((p) => F.penReady(p))) t = f.pens.some((p) => p.rare) ? 'Your mythic animals made something rare! Tap them to collect it. 🌟' : 'Your animals made something! Tap them to collect it.';
     else if (hungry.length && f.feed >= F.penEat(hungry[0])) t = 'Feed your animals before bed, so they grow and make things to sell.';
     else if (hungry.length) t = 'Out of feed! Buy feed 🌾 in the shop.';
     else if (Object.entries(f.works).some(([id, w]) => w.r === null && F.WORKS[id].recipes.some((r, i) => F.canMake(f, id, i)))) t = 'You have what a workshop needs. Make something worth more!';
@@ -8443,6 +8887,14 @@ svg.tart { display: block; width: 100%; height: auto; }
     const total = fm().money + fm().bank.bal; // savings in the bank count toward the goal
     const have = Math.min(total, g.price), pctv = g.price ? Math.round((have / g.price) * 100) : 100;
     const left = g.price - total;
+    if (g.treasure) { // a rare treasure from the merchant: he brings it on his next treasure visit
+      const here = F.merchantNow(fm()) === g.treasure, day = F.merchantNext(fm(), true);
+      const when = here ? `${esc(F.MERCHANT.name)} is here with it now!` : `${esc(F.MERCHANT.name)} brings it on farm day ${day}`;
+      return `<button class="fgoal rare" data-act="${here ? 'fMerchant' : 'go'}" data-arg="farm" aria-label="Saving goal">
+        <span class="fgoal-e">${g.e}</span><span class="fgoal-t"><b>Saving for: ✨ ${esc(g.name)}</b>
+        <span class="fbar"><span style="width:${pctv}%"></span></span>
+        <small>${left > 0 ? `${fmt(total)} of ${fmt(g.price)}${fm().bank.bal ? ' (with the bank)' : ''} · ${fmt(left)} to go · ${when}` : fm().money >= g.price ? `You have enough! ${when}` : `You have enough with your bank savings! ${when}`}</small></span></button>`;
+    }
     return `<button class="fgoal" data-act="go" data-arg="farm:shop" aria-label="Saving goal">
       <span class="fgoal-e">${g.e}</span><span class="fgoal-t"><b>Saving for: ${esc(g.name)}</b>
       <span class="fbar"><span style="width:${pctv}%"></span></span>
@@ -8453,8 +8905,8 @@ svg.tart { display: block; width: 100%; height: auto; }
     const lv = F.level(f.xp), pctv = Math.round(((f.xp - lv.from) / (lv.to - lv.from)) * 100);
     const tiers = F.tiers(g), tier = tiers[Math.min(f.tier, tiers.length) - 1];
     const n = F.basketCount(f);
-    const basket = Object.entries(f.basket).filter(([, c]) => c > 0).map(([id, c]) => `<span class="fchip">${F.ITEMS[id].e} ${c} <small>× ${fmt(F.price(id, g))}</small></span>`).join('') || '<span class="muted">Empty. Pick crops and collect from animals.</span>';
-    const hungry = f.pens.some((p) => p.a && !p.fed), ready = f.pens.some((p) => p.ready);
+    const basket = Object.entries(f.basket).filter(([, c]) => c > 0).map(([id, c]) => `<span class="fchip ${F.ITEMS[id].myth ? 'myth' : ''}">${F.ie(id)} ${c} <small>× ${fmt(F.price(id, g))}</small></span>`).join('') || '<span class="muted">Empty. Pick crops and collect from animals.</span>';
+    const hungry = f.pens.some((p) => p.a && !p.fed), ready = f.pens.some((p) => F.penReady(p));
     const ripe = f.beds.filter((b) => F.cropStage(b) === 'ready').length, empty = F.emptyBeds(f).length;
     const bankDay = F.bankDue(f) > 0, nights = F.nightsToBankDay(f.day);
     K().render(header('🌻 Sunny Farm') + `<main class="farm">
@@ -8467,6 +8919,7 @@ svg.tart { display: block; width: 100%; height: auto; }
       ${goalBar()}
       ${dreamCard()}
       ${merchantCard()}
+      ${charmStrip()}
       ${bankDay ? `<button class="fbankday" data-act="go" data-arg="farm:bank">🏦 <b>Bank day!</b> Your savings earned interest. Tap to collect it.</button>` : ''}
       ${tipLine()}
       <button class="btn big fstand" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Open the stand ${n ? `· ${n} to sell` : '· basket is empty'}</button>
@@ -8603,14 +9056,14 @@ svg.tart { display: block; width: 100%; height: auto; }
   function pen(i, el) {
     const f = fm(), p = f.pens[i];
     if (!p || !p.a) return;
-    if (p.ready) {
-      const it = F.ITEMS[F.ANIMALS[p.a].item], n = F.collect(f, i), from = el && el.getBoundingClientRect();
-      MQ.sfx('correct');
+    if (F.penReady(p)) {
+      const loot = F.penLoot(p), ic = F.ie(loot[0][0]), n = F.collect(f, i), from = el && el.getBoundingClientRect();
+      MQ.sfx(p.a && loot[0][0] !== F.ANIMALS[p.a].item ? 'shimmer' : 'correct');
       xp(1);
       save();
       redraw();
-      SC.flyMany(it.e, Math.min(n, 5), from, '#fdbasket');
-      SC.floatText(from, `+${n} ${it.e}`);
+      SC.flyMany(ic, Math.min(n, 5), from, '#fdbasket');
+      SC.floatText(from, `+${n} ${ic}`);
       return;
     }
     const eat = F.penEat(p);
@@ -8627,6 +9080,12 @@ svg.tart { display: block; width: 100%; height: auto; }
     if (r === 'nofeed') return K().modal(`<div class="bigemoji">🌾</div><div class="mtitle">Not enough feed</div><p>${F.penCount(p) > 1 ? F.penCount(p) + ' × ' : ''}${esc(F.ANIMALS[p.a].name)} ${F.penCount(p) > 1 ? 'eat' : 'eats'} ${F.penEat(p)} 🌾 a day. You have ${f.feed}.</p><div class="row"><button class="btn ghost" data-act="closeModal">Later</button><button class="btn ghost" data-act="fSellAsk" data-arg="${i}">💰 Sell</button><button class="btn" data-act="go" data-arg="farm:shop">Buy feed</button></div>`);
     const a = F.ANIMALS[p.a], sg = F.animalStage(p);
     const k = F.penMakes(p), cnt = F.penCount(p);
+    if (F.mythOn(f, p.a)) { // a Mythic Feed week
+      const M = F.MYTHS[p.a], left = f.charms.myth.until - f.day;
+      return K().modal(`<div class="tcard c-myth"><div class="dbuilt-rays"></div><div class="tpic">${MQ.mythArt(p.a)}</div><div class="mtitle">🌟 ${cnt > 1 ? cnt + ' × ' : ''}${esc(cnt > 1 ? M.many : M.name)}</div>
+        <p>${sg < 2 ? `Grows up after ${a.grow[1] - p.g} more fed ${a.grow[1] - p.g === 1 ? 'day' : 'days'}. Then this pen gives ${k} ${F.ITEMS[M.item].e} ${esc(F.ITEMS[M.item].many)} every day it is fed.` : `This pen gives ${k} ${F.ITEMS[M.item].e} ${esc(k === 1 ? F.ITEMS[M.item].name : F.ITEMS[M.item].many)} every morning after a day it was fed: ${fmt(F.price(M.item, grade()))} each!`}</p>
+        <p class="muted">The Mythic Feed works ${left === 1 ? 'one more night' : `${left} more nights`}. Already fed today: tap 🌙 Sleep.</p></div><div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
+    }
     K().modal(`<div class="bigemoji">${sg ? a.e : a.baby}</div><div class="mtitle">${cnt > 1 ? cnt + ' × ' : ''}${esc(a.name)}</div><p>${sg < 2 ? `Grows up after ${a.grow[1] - p.g} more fed ${a.grow[1] - p.g === 1 ? 'day' : 'days'}. Then this pen gives ${k} ${F.ITEMS[a.item].e} every day it is fed.` : `This pen gives ${k} ${F.ITEMS[a.item].e} every morning after a day it was fed.`}</p><p class="muted">Already fed today. Tap 🌙 Sleep for a new day.</p><div class="row"><button class="btn ghost" data-act="fUpgrades">⬆️ Upgrades</button><button class="btn ghost" data-act="fSellAsk" data-arg="${i}">💰 Sell</button><button class="btn" data-act="closeModal">OK</button></div>`);
   }
   // a quick happy jump of the animal in pen i
@@ -8649,7 +9108,7 @@ svg.tart { display: block; width: 100%; height: auto; }
   }
   function collectAll() {
     const f = fm(), got = [];
-    f.pens.forEach((p, i) => { if (p.ready) { const r = penEl(i).getBoundingClientRect(), e = F.ITEMS[F.ANIMALS[p.a].item].e; got.push([r, e, F.collect(f, i)]); } });
+    f.pens.forEach((p, i) => { if (F.penReady(p)) { const r = penEl(i).getBoundingClientRect(), e = F.ie(F.penLoot(p)[0][0]); got.push([r, e, F.collect(f, i)]); } });
     const n = U.sum(got.map((x) => x[2]));
     MQ.sfx('correct');
     xp(n);
@@ -8677,13 +9136,13 @@ svg.tart { display: block; width: 100%; height: auto; }
     if (news.depNew) lines.push(`<span class="mline">🏦 New at the bank: a <b>locked deposit</b>. Your savings are above ${fmt(F.bankTop(f.bank.acct, grade()))}: lock some, and every $5 comes back as $6!</span>`);
     if (news.gold) lines.push(`🪿 The Golden Goose laid a golden egg: <b>+${fmt(news.gold)}</b> in your wallet!`);
     if (news.rainbow) lines.push('🐑 The Rainbow Sheep gave a ball of 🌈 rainbow wool. It is in your basket.');
-    if (news.fairy) lines.push(`🧚 The Feed Fairy fed your hungry ${esc(F.ANIMALS[news.fairy].name.toLowerCase())}.`);
+    if (news.fairy) lines.push(`🧚 The Feed Fairy fed your hungry ${esc(news.fairy.map((a) => F.ANIMALS[a].name.toLowerCase()).join(' and '))}.`);
     const mc = news.merchant;
     if (mc) {
-      const t = F.TREASURES[mc[1]];
-      lines.unshift(mc[0] === 'came' ? `<span class="mline">🧳 <b>${esc(F.MERCHANT.name)}</b>, the traveling merchant, is here with a ${t.e} <b>${esc(t.name)}</b>! He stays ${F.merchantNights(f.day) + 1} days.</span>`
-        : mc[0] === 'last' ? `<span class="mline">🧳 ${esc(F.MERCHANT.name)} leaves <b>tonight</b> with his ${t.e} ${esc(t.name)}!</span>`
-          : `🧳 ${esc(F.MERCHANT.name)} left with the ${t.e} ${esc(t.name)}. He will be back in ${F.MERCHANT.every - 1} bank weeks.`);
+      const m = mc[1], t = m.item && F.TREASURES[m.item], wares = (m.charms || []).map((c) => `${F.CHARMS[c].e} <b>${esc(F.charmName(c, m.a))}</b>`).join(' and ');
+      lines.unshift(mc[0] === 'came' ? `<span class="mline">🧳 <b>${esc(F.MERCHANT.name)}</b>, the traveling merchant, is here with ${wares}${t ? `, and a ✨ rare treasure: ${t.e} <b>${esc(t.name)}</b>` : ''}! He stays ${F.merchantNights(f.day) + 1} days.</span>`
+        : mc[0] === 'last' ? `<span class="mline">🧳 ${esc(F.MERCHANT.name)} leaves <b>tonight</b>! Tap his wagon to see what he still has.</span>`
+          : `🧳 ${esc(F.MERCHANT.name)} left. He comes back on farm day ${F.merchantNext(f)} with new week charms.`);
     }
     const h = news.helper;
     if (h && h.unpaid) lines.push(`🧑‍🌾 ${F.HELPER.name} didn’t work last night: there wasn’t ${fmt(h.wage)} in your wallet for the wage.`);
@@ -8691,9 +9150,10 @@ svg.tart { display: block; width: 100%; height: auto; }
     for (const it of news.cooked) lines.push(`${F.ITEMS[it].e} Your ${esc(F.ITEMS[it].name)} is ready in the workshop!`);
     for (const [a, sg] of news.grew) lines.push(`${F.ANIMALS[a].e} Your ${esc(F.ANIMALS[a].name.toLowerCase())} ${sg === 2 ? 'is all grown up!' : 'got bigger'}`);
     for (const [a, n] of Object.entries(count(news.hungry))) lines.push(`${F.ANIMALS[a].e} ${n > 1 ? n + ' ' : ''}${esc(F.ANIMALS[a].name.toLowerCase())}${n > 1 ? 's were' : ' was'} hungry and didn’t grow. Feed animals before bed!`);
-    const b = news.built;
+    const b = news.built, ends = (charmEnds = news.charmEnd || []);
     K().modal(`${b ? builtBlock(b) : '<div class="bigemoji">☀️</div>'}<div class="mtitle">Good morning! Farm day ${f.day}</div>
-      ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : b ? '' : '<p>A quiet night on the farm.</p>'}
+      ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : b || ends.length ? '' : '<p>A quiet night on the farm.</p>'}
+      ${ends.map(charmEndBlock).join('')}
       <div class="row"><button class="btn" data-act="closeModal">Let’s go!</button>${b && !F.dreamDone(fm()) ? '<button class="btn ghost" data-act="go" data-arg="farm:dreams">🏗️ Big Dreams</button>' : ''}</div>`);
     if (b) {
       MQ.sfx('fanfare');
@@ -8731,32 +9191,64 @@ svg.tart { display: block; width: 100%; height: auto; }
       <span class="fdream-t"><b>🏗️ Big Dream: ${esc(n.d.name)}</b>${f.dream.b || ready ? '' : `<span class="fbar"><span style="width:${Math.round((have / n.cost) * 100)}%"></span></span>`}<small>${line}</small></span></button>`;
   }
   // ---------------------------------------------------------------- the traveling merchant
+  // On the farm while he is here: what he brought and when he leaves (tap: his wagon opens).
   function merchantCard() {
-    const f = fm(), id = F.merchantNow(f);
-    if (!id) return '';
-    const t = F.TREASURES[id], n = F.merchantNights(f.day);
+    const f = fm(), g = grade(), m = F.merchantHere(f), w = F.merchantWares(f);
+    if (!m || (!w.item && !w.charms.length)) return '';
+    const n = F.merchantNights(f.day);
+    const things = w.charms.map((c) => `${F.CHARMS[c].e} ${esc(F.CHARMS[c].name)} · ${fmt(m.cost[c])}`).concat(w.item ? [`✨ ${F.TREASURES[w.item].e} ${esc(F.TREASURES[w.item].name)} · ${fmt(F.TREASURES[w.item].cost[g === 'k' ? 0 : 1])}`] : []);
+    const pic = w.item ? MQ.treasureArt(w.item) : w.charms.includes('myth') ? MQ.mythArt(m.a) : MQ.charmArt(w.charms[0]);
     return `<button class="fmerchant" data-act="fMerchant" aria-label="${esc(F.MERCHANT.name)}, the traveling merchant">
       <span class="fm-wagon">${MQ.wagonArt()}</span>
-      <span class="fdream-t"><b>🧳 ${esc(F.MERCHANT.name)} is here!</b><small>${t.e} ${esc(t.name)} · ${fmt(t.cost[grade() === 'k' ? 0 : 1])} · ${n ? `leaves in ${n} ${n === 1 ? 'night' : 'nights'}` : '<b>leaves tonight!</b>'}</small></span>
-      <span class="fm-gem">${MQ.treasureArt(id)}</span></button>`;
+      <span class="fdream-t"><b>🧳 ${esc(F.MERCHANT.name)} is here!</b><small>${things.join('<br>')}</small><small>${n ? `Leaves in ${n} ${n === 1 ? 'night' : 'nights'}` : '<b>Leaves tonight!</b>'}</small></span>
+      <span class="fm-gem">${pic}</span></button>`;
+  }
+  const charmPic = (id, a) => (id === 'myth' && a ? MQ.mythArt(a) : MQ.charmArt(id));
+  // What a week charm could bring this farm, in a line (the Golden Piggy: worked out from the savings right now).
+  function charmHelp(id, m) {
+    const f = fm(), g = grade(), cost = m.cost[id];
+    if (id === 'piggy') {
+      const x = F.interest(f.bank.bal, g, f.bank.acct);
+      if (!x) return '<p class="mc-help">💡 You have nothing saved in the bank yet, so double interest would be nothing too.</p>';
+      return `<p class="mc-help">💡 With <b>${fmt(f.bank.bal)}</b> in the bank, the interest is about <b>${fmt(x)}</b>. Doubled, that is <b>+${fmt(x)}</b> more${x > cost ? `, and the piggy costs ${fmt(cost)}.` : `. The piggy costs ${fmt(cost)}: save more first, or it doesn’t pay off!`}</p>`;
+    }
+    const gain = F.charmGain(id, f, g, m.a);
+    return `<p class="mc-help">💡 It can bring about <b>+${fmt(gain)}</b> in its week${id === 'myth' ? ' if you feed them every day' : id === 'clover' ? ' if you sell a lot at the stand' : ' if you keep your beds planted'}.</p>`;
   }
   function merchant() {
-    const f = fm(), g = grade(), id = F.merchantNow(f);
-    if (!id) return K().toast(`${F.MERCHANT.name} has left`);
-    const t = F.TREASURES[id], cost = t.cost[g === 'k' ? 0 : 1], n = F.merchantNights(f.day), bank = f.bank.bal;
-    let plan;
-    if (f.money >= cost) plan = `<button class="btn big tbuy" data-act="fBuyTreasure">Buy it · ${fmt(cost)}</button>`;
-    else if (f.money + bank >= cost) plan = `<p>You have <b>${fmt(f.money)}</b> in your wallet and <b>${fmt(bank)}</b> in the bank. Take <b>${fmt(cost - f.money)}</b> out of the bank, and it’s yours!</p><button class="btn" data-act="go" data-arg="farm:bank">🏦 Go to the bank</button>`;
-    else {
-      const need = cost - f.money - bank, per = F.perDayToSave(need, n, g);
-      plan = `<p>You have <b>${fmt(f.money)}</b>${bank ? ` + <b>${fmt(bank)}</b> in the bank` : ''}. You need <b>${fmt(need)}</b> more.</p>
-        <p class="tplan">📅 He is here today${n ? ` and ${n} more ${n === 1 ? 'day' : 'days'}` : ' only'}: save about <b>${fmt(per)}</b> ${n ? 'a day' : 'today'} to buy it in time.</p>`;
+    const f = fm(), g = grade(), m = F.merchantHere(f);
+    if (!m) return K().toast(`${F.MERCHANT.name} has left`);
+    const w = F.merchantWares(f), n = F.merchantNights(f.day), bank = f.bank.bal;
+    const charms = (m.charms || []).map((id) => {
+      const c = F.CHARMS[id], cost = m.cost[id], got = (m.got || {})[id];
+      const btn = got ? '<span class="fown">✓ Working!</span>' : f.money >= cost ? `<button class="btn" data-act="fBuyCharm" data-arg="${id}">Buy · ${fmt(cost)}</button>` : `<span class="flock">${fmt(cost)} · ${fmt(cost - f.money)} more</span>`;
+      return `<div class="mcharm c-${id} ${got ? 'got' : ''}"><span class="mc-pic">${charmPic(id, m.a)}</span><span class="mc-t"><b>${c.e} ${esc(F.charmName(id, m.a))}</b><small>${esc(F.charmNote(id, g, fmt, m.a))}</small>${got ? '' : charmHelp(id, m)}</span><span class="mc-buy">${btn}</span></div>`;
+    }).join('');
+    let rare = '';
+    if (w.item) {
+      const t = F.TREASURES[w.item], cost = t.cost[g === 'k' ? 0 : 1];
+      let plan;
+      if (f.money >= cost) plan = `<button class="btn big tbuy" data-act="fBuyTreasure">Buy it · ${fmt(cost)}</button>`;
+      else if (f.money + bank >= cost) plan = `<p>You have <b>${fmt(f.money)}</b> in your wallet and <b>${fmt(bank)}</b> in the bank. Take <b>${fmt(cost - f.money)}</b> out of the bank, and it’s yours!</p><button class="btn" data-act="go" data-arg="farm:bank">🏦 Go to the bank</button>`;
+      else {
+        const need = cost - f.money - bank, per = F.perDayToSave(need, n, g), goal = f.goal === 'treasure:' + w.item;
+        plan = `<p>You have <b>${fmt(f.money)}</b>${bank ? ` + <b>${fmt(bank)}</b> in the bank` : ''}. You need <b>${fmt(need)}</b> more.</p>
+          <p class="tplan">📅 ${per <= F.goodDay(F.level(f.xp).level, g).total ? `Save about <b>${fmt(per)}</b> ${n ? 'a day' : 'today'} to buy it before he leaves. Or save` : 'Save'} up for it: he brings it again on farm day <b>${F.merchantNext(f, true)}</b>.</p>
+          ${goal ? '<span class="fown">⭐ Your saving goal</span>' : `<button class="btn ghost" data-act="fTreasureGoal" data-arg="${w.item}">⭐ Save up for it</button>`}`;
+      }
+      rare = `<div class="tcard t-${w.item}"><div class="dbuilt-rays"></div><div class="tpic">${MQ.treasureArt(w.item)}</div>
+        <div class="ttag">✨ Rare treasure · stays on your farm for good</div><div class="mtitle">${t.e} ${esc(t.name)}</div>
+        <p>${esc(F.treasureNote(w.item, g, fmt))}</p><div class="tprice">${fmt(cost)}</div></div>${plan}`;
+    } else if (!m.item || (f.treasure || {})[m.item]) {
+      const next = F.nextTreasure(f);
+      if (next) { const t = F.TREASURES[next]; rare = `<p class="mrare-next">✨ Rare treasures come every 2nd visit. Next: ${t.e} <b>${esc(t.name)}</b> (${fmt(t.cost[g === 'k' ? 0 : 1])}) on farm day ${F.merchantNext(f, true)}.${f.goal === 'treasure:' + next ? ' ⭐ Your saving goal.' : ` <button class="btn ghost" data-act="fTreasureGoal" data-arg="${next}">⭐ Save up</button>`}</p>`; }
     }
-    K().modal(`<div class="tcard t-${id}"><div class="dbuilt-rays"></div><div class="tpic">${MQ.treasureArt(id)}</div>
-      <div class="ttag">✨ Rare treasure · only from ${esc(F.MERCHANT.name)}</div><div class="mtitle">${t.e} ${esc(t.name)}</div>
-      <p>${esc(F.treasureNote(id, g, fmt))}</p><div class="tprice">${fmt(cost)}</div>
-      <p class="muted">🧳 ${n ? `${esc(F.MERCHANT.name)} leaves in ${n} ${n === 1 ? 'night' : 'nights'}.` : `<b>${esc(F.MERCHANT.name)} leaves tonight!</b>`} If you don’t buy it, he comes back later.</p></div>
-      ${plan}<div class="row"><button class="btn ghost" data-act="closeModal">Maybe later</button></div>`);
+    K().modal(`<div class="mhead"><span class="mh-wagon">${MQ.wagonArt()}</span><span><span class="mtitle">${esc(F.MERCHANT.name)}</span><small class="muted">The traveling merchant · ${n ? `leaves in ${n} ${n === 1 ? 'night' : 'nights'}` : '<b>leaves tonight!</b>'}</small></span></div>
+      <h3 class="mh3">✨ Week charms</h3><p class="muted small">Magic for ${F.CHARM_NIGHTS} days. Used well, it brings back more than it costs.</p>
+      <div class="mcharms">${charms}</div>
+      ${rare}
+      <p class="muted">You have <b>${fmt(f.money)}</b> in your wallet. He comes back on farm day ${F.merchantNext(f)}.</p>
+      <div class="row"><button class="btn ghost" data-act="closeModal">Maybe later</button></div>`);
     MQ.sfx('shimmer');
   }
   function buyTreasure() {
@@ -8768,8 +9260,62 @@ svg.tart { display: block; width: 100%; height: auto; }
       if (!x) return 'He already left.';
       MQ.confetti(200, { colors: ['#ffd23f', '#ff8fe0', '#9ff0ff', '#7ed957'], shape: 'star' });
       MQ.sfx('fanfare');
-      return `✨ The ${x.e} <b>${esc(x.name)}</b> is yours! ${esc(F.treasureNote(id, grade(), fmt))}`;
+      return `✨ The ${x.e} <b>${esc(x.name)}</b> is yours, for good! ${esc(F.treasureNote(id, grade(), fmt))}`;
     }, MQ.treasureArt(id));
+  }
+  function buyCharm(id) {
+    const f = fm(), m = F.merchantHere(f), cost = m && m.cost[id];
+    K().closeModal();
+    if (!m || !F.merchantWares(f).charms.includes(id) || f.money < cost) return;
+    startPay(cost, `the ${F.CHARMS[id].e} ${esc(F.charmName(id, m.a))}`, () => {
+      const x = F.buyCharm(fm(), grade(), id);
+      if (!x) return 'He already left.';
+      MQ.confetti(140, { colors: id === 'clover' ? ['#7ed957', '#ffd23f', '#ffffff'] : id === 'sun' ? ['#ffd23f', '#ff9a2e', '#fff3a6'] : id === 'piggy' ? ['#ffd23f', '#ffe066', '#ff8fb3'] : ['#ff8fe0', '#9d7bff', '#ffd23f', '#9ff0ff'], shape: 'star' });
+      MQ.sfx('fanfare');
+      return id === 'myth' ? `🌟 Your ${esc(F.MYTHS[x.a].of)} are <b>${esc(F.MYTHS[x.a].many)}</b> now, for ${F.CHARM_NIGHTS} nights! Feed them every day.`
+        : id === 'piggy' ? '🐷 The Golden Piggy is waiting for bank day: the bank will pay your interest twice!'
+          : `${x.e} The <b>${esc(x.name)}</b> works for ${F.CHARM_NIGHTS} days, starting now!`;
+    }, charmPic(id, m.a));
+  }
+  // The charms working now, on the farm: how long they work and what they brought so far.
+  function charmStrip() {
+    const f = fm(), g = grade(), on = Object.keys(f.charms || {}).filter((id) => id !== 'piggy' && F.charmOn(f, id));
+    const chip = (id) => {
+      const c = f.charms[id], left = c.until - f.day;
+      return `<button class="fcharm c-${id}" data-act="fCharm" data-arg="${id}"><span class="fc-pic">${id === 'myth' ? MQ.mythArt(c.a, { aura: false }) : MQ.charmArt(id)}</span><span class="fc-t"><b>${esc(id === 'myth' ? F.MYTHS[c.a].many : F.CHARMS[id].name)}</b><small>${left === 1 ? 'Last day!' : `${left} days left`} · +${fmt(F.charmGot(c, g))}</small></span></button>`;
+    };
+    const piggy = F.piggyWaiting(f) ? `<button class="fcharm c-piggy" data-act="fCharm" data-arg="piggy"><span class="fc-pic">${MQ.charmArt('piggy')}</span><span class="fc-t"><b>Golden Piggy</b><small>Bank day: interest × 2</small></span></button>` : '';
+    return on.length || piggy ? `<div class="fcharms">${on.map(chip).join('')}${piggy}</div>` : '';
+  }
+  function charmInfo(id) {
+    const f = fm(), g = grade(), c = (f.charms || {})[id];
+    if (id === 'piggy') return K().modal(`<div class="tcard c-piggy"><div class="dbuilt-rays"></div><div class="tpic">${MQ.charmArt('piggy')}</div><div class="mtitle">🐷 Golden Piggy</div><p>On the next bank day the bank pays your interest twice. Save more before bank day, and the piggy brings more!</p></div><div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
+    if (!c || !F.charmOn(f, id)) return;
+    const left = c.until - f.day, got = F.charmGot(c, g);
+    K().modal(`<div class="tcard c-${id}"><div class="dbuilt-rays"></div><div class="tpic">${charmPic(id, c.a)}</div><div class="mtitle">${F.CHARMS[id].e} ${esc(id === 'myth' ? F.MYTHS[c.a].many : F.CHARMS[id].name)}</div>
+      <p>${esc(F.charmNote(id, g, fmt, c.a))}</p></div>
+      <p>It works ${left === 1 ? '<b>today only</b> (its last day)' : `<b>${left} more days</b>`}. It cost <b>${fmt(c.cost)}</b>, and so far it brought <b>+${fmt(got)}</b>${got > c.cost ? ': it already paid for itself! 🎉' : '.'}</p>
+      <div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
+  }
+  // The morning a charm's week is over: what it cost and what it brought, and a question: did it pay off?
+  let charmEnds = [];
+  function charmEndBlock(x, k) {
+    const name = x.id === 'myth' ? F.charmName('myth', x.a) : F.CHARMS[x.id].name;
+    const what = x.id === 'myth' ? `in ${esc(F.ITEMS[F.MYTHS[x.a].item].many)}` : x.id === 'clover' ? 'in tips' : 'in crops';
+    return `<div class="mcend c-${x.id}"><span class="mc-pic">${charmPic(x.id, x.a)}</span><span class="mc-t"><b>${F.CHARMS[x.id].e} ${esc(name)} is over.</b><small>It cost ${fmt(x.cost)} and brought ${fmt(x.got)} more ${what}.</small></span><button class="btn" data-act="fProfit" data-arg="${k}">🧮 Did it pay off?</button></div>`;
+  }
+  function startProfit(k) {
+    const x = charmEnds[k], g = grade();
+    K().closeModal();
+    if (!x) return;
+    const name = x.id === 'myth' ? F.charmName('myth', x.a) : F.CHARMS[x.id].name, win = x.got - x.cost;
+    fs = { mode: 'profit', n: 0, earned: 0, tips: 0, xp: 0, back: 'farm',
+      done: () => (win > 0 ? `💰 That is your <b>profit</b>: the ${esc(name)} brought ${fmt(win)} more than it cost.` : `It brought ${fmt(-win)} ${win ? 'less than it cost' : 'just what it cost'}. Next time, use it more: ${x.id === 'myth' ? 'feed the animals every day' : x.id === 'clover' ? 'sell a lot at the stand' : 'plant every bed'}!`) };
+    const p = win > 0
+      ? { type: 'profit', text: `The ${F.CHARMS[x.id].e} <b>${esc(name)}</b> cost <b>${fmt(x.cost)}</b>. It brought <b>${fmt(x.got)}</b> more. How much more did it bring than it cost? That is the <b>profit</b>.`, hint: `Take away what it cost: ${fmt(x.got)} − ${fmt(x.cost)}.`, explain: `${fmt(x.got)} − ${fmt(x.cost)} = ${fmt(win)}`, sale: {}, total: 0 }
+      : { type: 'profit', text: `The ${F.CHARMS[x.id].e} <b>${esc(name)}</b> cost <b>${fmt(x.cost)}</b>. It brought <b>${fmt(x.got)}</b> more. <b>Did it pay off?</b>`, hint: `Is ${fmt(x.got)} more than ${fmt(x.cost)}?`, explain: `${fmt(x.got)} is ${win ? 'less than' : 'the same as'} ${fmt(x.cost)}, so it didn’t pay off`, sale: {}, total: 0, kind: 'choice', answer: 'No, it didn’t', choices: ['Yes, it did', 'No, it didn’t'] };
+    if (win > 0) Object.assign(p, win < 100 || g === 'k' ? { kind: 'num', answer: win, unit: '¢' } : { kind: 'choice', answer: fmt(win), choices: F.moneyChoices(win, g, [x.got + x.cost, x.got, x.cost]) });
+    show(p);
   }
 
   function dreamIntro() {
@@ -8895,7 +9441,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     K().modal(`<div class="bigemoji">${F.NEIGHBOR[0]}${a.e}</div><div class="mtitle">Sell ${n > 1 ? n + ' × ' : 'your '}${esc(a.name.toLowerCase())}?</div>
       <p>${esc(F.NEIGHBOR[1])} next door would love ${n > 1 ? 'them' : 'it'}! She pays half of the shop price. The pen will be empty, ready for any animal.</p>
       ${ups.length ? `<p class="muted">The pen’s upgrades (${esc(ups.join(', '))}) go with the animals.</p>` : ''}
-      ${p.ready ? `<p class="muted">The ${esc(F.ITEMS[a.item].many)} they made go to your basket first.</p>` : ''}
+      ${F.penReady(p) ? `<p class="muted">The things they made go to your basket first.</p>` : ''}
       <div class="row"><button class="btn ghost" data-act="closeModal">Keep ${n > 1 ? 'them' : 'it'}</button><button class="btn" data-act="fSell" data-arg="${i}">💰 Sell</button></div>`);
   }
   function startSell(i) {
@@ -8952,7 +9498,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     const left = U.sum(ids.map((id) => f.basket[id] || 0)), sold = U.sum(ids.map((id) => fs.sold[id] || 0)), all = left + sold;
     const chips = ids.map((id) => {
       const l = f.basket[id] || 0, n = fs.sold[id] || 0;
-      return `<li class="${l ? '' : 'out'} ${want.has(id) ? 'want' : ''}" title="${esc(F.ITEMS[id].many)}: ${n} sold, ${l} left"><i>${F.ITEMS[id].e}</i><b>${l ? l : '✓'}</b>${n ? `<small>${n} sold</small>` : ''}</li>`;
+      return `<li class="${l ? '' : 'out'} ${want.has(id) ? 'want' : ''}" title="${esc(F.ITEMS[id].many)}: ${n} sold, ${l} left"><i>${F.ie(id)}</i><b>${l ? l : '✓'}</b>${n ? `<small>${n} sold</small>` : ''}</li>`;
     }).join('');
     return `<section class="fbbar" id="fbbar" aria-label="Basket: ${sold} sold, ${left} left">
       <div class="fbbar-t"><span>🧺 Sold <b>${sold}</b> of ${all}</span><span><b>${left}</b> left to sell</span></div>
@@ -8973,6 +9519,7 @@ svg.tart { display: block; width: 100%; height: auto; }
       : fs.mode === 'sell' ? SC.stall({ mode: 'sell', seller: MQ.face(st()), shopper: F.NEIGHBOR[0], goods: `<i>${F.ANIMALS[fs.animal].e}</i>` })
       : BANKISH.has(fs.mode) ? SC.stall({ mode: 'bank', seller: '🦉', shopper: MQ.face(st()), goods: '<i>🏦</i>' })
       : fs.mode === 'build' ? SC.stall({ mode: 'bank', seller: '👷', shopper: MQ.face(st()), goods: '<i>🏗️</i>' })
+      : fs.mode === 'profit' ? SC.stall({ mode: 'pay', seller: F.MERCHANT.e, shopper: MQ.face(st()), goods: '<i>🧮</i>' })
       : SC.stall({ mode: fs.mode, stand: fs.mode === 'jobs' ? 9 : f.stand, seller: MQ.face(st()), shopper: p.who[0], goods: SC.goods(p.sale), vip: p.vip });
     K().render(`<div class="play fplay" style="--wc:${p.vip ? '#b0569e' : '#e0a21b'}">
       <header class="playbar"><button class="iconbtn" data-act="fQuit" aria-label="Stop">✕</button><div class="pstatus">${status}</div>${moneyPill()}</header>
@@ -9002,8 +9549,9 @@ svg.tart { display: block; width: 100%; height: auto; }
     build: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
     lock: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
     unlock: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
+    profit: () => '🧳 A week charm',
   };
-  const LABEL = { pay: '🛒 Farm Shop', make: '🧮 Is it worth making?', sell: '💰 Selling animals', deposit: '🏦 Put money in the bank', withdraw: '🏦 Take money out', interest: '🏦 Bank day: interest', build: '🏗️ Pay the builders', lock: '🔒 Locked deposit', unlock: '🔓 Your deposit is back' };
+  const LABEL = { pay: '🛒 Farm Shop', make: '🧮 Is it worth making?', sell: '💰 Selling animals', deposit: '🏦 Put money in the bank', withdraw: '🏦 Take money out', interest: '🏦 Bank day: interest', build: '🏗️ Pay the builders', lock: '🔒 Locked deposit', unlock: '🔓 Your deposit is back', profit: '🧮 Did it pay off?' };
   // the problem being answered now (paying too much asks for the change)
   const cur = () => (fs.step === 'change' ? fs.change : fs.p);
   function drawAnswer() {
@@ -9023,7 +9571,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     }
     step.innerHTML = top;
   }
-  const NEXT = { pay: 'Back to the farm', make: 'Back to the farm', sell: 'Done', deposit: 'Back to the bank', withdraw: 'Back to the bank', build: 'Back to Big Dreams', lock: 'Back to the bank', unlock: 'Back to the bank' };
+  const NEXT = { pay: 'Back to the farm', make: 'Back to the farm', sell: 'Done', deposit: 'Back to the bank', withdraw: 'Back to the bank', build: 'Back to Big Dreams', lock: 'Back to the bank', unlock: 'Back to the bank', profit: 'Back to the farm' };
   const lockedHtml = () => `<div class="row"><button class="btn big" data-act="fNext">${fs.mode === 'interest' ? (fs.n < fs.weeks ? 'Next' : 'Back to the bank') : NEXT[fs.mode] || 'Next customer'} →</button></div>`;
   function feedback(html, cls) {
     const el = $('#feedback');
@@ -9100,14 +9648,14 @@ svg.tart { display: block; width: 100%; height: auto; }
     save();
     fs.locked = true;
     redrawBasket();
-    const thanks = p.noPay ? `${esc(p.who[1])} will come back with more money.` : p.jobs ? `You earned <b>${fmt(r.paid)}</b>.` : `${esc(p.who[1])} paid <b>${fmt(r.paid)}</b>${r.tip ? ` and tipped <b>${fmt(r.tip)}</b>` : ''}.`;
+    const thanks = p.noPay ? `${esc(p.who[1])} will come back with more money.` : p.jobs ? `You earned <b>${fmt(r.paid)}</b>.` : `${esc(p.who[1])} paid <b>${fmt(r.paid)}</b>${r.tip ? ` and tipped <b>${fmt(r.tip)}</b>${r.clover ? ' 🍀' : ''}` : ''}.`;
     if (solved) feedback(`${first ? U.pick(['Great job!', 'Thank you, farmer!', 'Perfect!', 'You got it!']) : 'Got it!'} ${thanks}${move === 'up' ? '<br>⬆️ Harder money problems unlocked!' : ''}`, 'ok');
     else feedback(`${shown}<br>${thanks}`, 'reveal');
     drawAnswer();
     // the customer takes the things and pays: goods fly to them, coins fly to the money
     const shopper = $('#shopper');
     if (shopper) shopper.classList.add(p.noPay ? 'sad' : 'happy');
-    if (!p.jobs && !p.noPay && $('#goods')) { $('#goods').querySelectorAll('i').forEach((g, k) => SC.fly(g.textContent, g, shopper, { delay: k * 90, dur: 500 })); $('#goods').classList.add('gone'); }
+    if (!p.jobs && !p.noPay && $('#goods')) { $('#goods').querySelectorAll(':scope > i').forEach((g, k) => SC.fly(g.innerHTML, g, shopper, { delay: k * 90, dur: 500 })); $('#goods').classList.add('gone'); }
     if (r.paid + r.tip) {
       const coins = Math.min(5, 2 + Math.floor((r.paid + r.tip) / (grade() === 'k' ? 3 : 30)));
       SC.flyMany('🪙', coins, p.jobs ? $('#cashbox') : shopper, '#fmoney', { delay: 350, size: '1.5rem' });
@@ -9141,7 +9689,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     K().checkBadges();
   }
   // A workshop question, a deposit or a bank day is done: fs.done applies it and says what happened.
-  const TASKS = new Set(['make', 'deposit', 'interest', 'sell', 'build', 'lock', 'unlock']);
+  const TASKS = new Set(['make', 'deposit', 'interest', 'sell', 'build', 'lock', 'unlock', 'profit']);
   function doneTask(first, solved, shown) {
     const f = fm(), before = f.money;
     F.record(st(), first);
@@ -9263,7 +9811,7 @@ svg.tart { display: block; width: 100%; height: auto; }
     // this bank week: 7 farm days, the last one is bank day
     const week = F.bankWeek(f.day).map((d) => `<li class="${d < f.day ? 'past' : d === f.day ? 'now' : ''} ${F.isBankDay(d) ? 'bank' : ''}"><small>Day</small><b>${d}</b>${F.isBankDay(d) ? '<i>🏦</i>' : d < f.day ? '<i>✓</i>' : '<i></i>'}</li>`).join('');
     const status = due ? `✨ Bank day! The interest is waiting for you.` : F.isBankDay(f.day) ? `Today was bank day. The next one is farm day ${nextBank}.` : `${nights} more ${nights === 1 ? 'night' : 'nights'} until bank day (farm day ${nextBank}). Tap 🌙 Sleep on the farm to make a night pass.`;
-    const LOG = { in: ['⬇️', 'Saved'], out: ['⬆️', 'Took out'], interest: ['✨', 'Interest'], build: ['🏗️', 'Paid the builders'], dream: ['🏡', 'Your buildings earned'], lock: ['🔒', 'Locked in a deposit'], unlock: ['🔓', 'Deposit came back'] };
+    const LOG = { in: ['⬇️', 'Saved'], out: ['⬆️', 'Took out'], interest: ['✨', 'Interest'], piggy: ['🐷', 'Golden Piggy: interest again'], build: ['🏗️', 'Paid the builders'], dream: ['🏡', 'Your buildings earned'], lock: ['🔒', 'Locked in a deposit'], unlock: ['🔓', 'Deposit came back'] };
     const minus = new Set(['out', 'build', 'lock']);
     const log = b.log.filter((x) => LOG[x.kind]).map((x) => `<li><span>${LOG[x.kind][0]} ${LOG[x.kind][1]}</span><small>${x.day ? 'Farm day ' + x.day : esc(x.d || '')}</small><b class="${x.kind}">${minus.has(x.kind) ? '−' : '+'}${fmt(x.amt)}</b></li>`).join('');
     const inc = b.pend.some((x) => x.inc && x.inc.length);
@@ -9272,7 +9820,7 @@ svg.tart { display: block; width: 100%; height: auto; }
         <div class="bk"><small>In the bank</small><b id="fbankbal">${fmt(b.bal)}</b>${f.dep && f.dep.amt ? `<small class="bk-lock">🔒 + ${fmt(f.dep.amt)} locked</small>` : ''}</div>
         <div class="bk"><small>In your wallet</small><b>${fmt(f.money)}</b></div>
       </section>
-      <section class="bweek" aria-label="This bank week"><div class="bweek-t"><b>🏦 This bank week</b><small>Bank day is every ${F.BANK_WEEK}th farm day</small></div><ol>${week}</ol><p class="${due ? 'due' : ''}">${status}</p></section>
+      <section class="bweek" aria-label="This bank week"><div class="bweek-t"><b>🏦 This bank week</b><small>Bank day is every ${F.BANK_WEEK}th farm day</small></div><ol>${week}</ol><p class="${due ? 'due' : ''}">${status}</p>${F.piggyWaiting(f) ? '<p class="bpiggy">🐷 The <b>Golden Piggy</b> is waiting: the next interest is paid twice! Save more before bank day, and it brings more.</p>' : ''}</section>
       ${due > 0 ? `<button class="btn big fstand" data-act="fInterest">✨ Collect your interest${inc ? ' and what your buildings earned' : ''}${due > 1 ? ` (${due} bank days)` : ''}</button>` : ''}
       <div class="row"><button class="btn" data-act="fDeposit" ${f.money ? '' : 'disabled'}>⬇️ Save money</button><button class="btn ghost" data-act="fWithdraw" ${b.bal ? '' : 'disabled'}>⬆️ Take money out</button></div>
       ${dreamJar()}
@@ -9398,7 +9946,12 @@ svg.tart { display: block; width: 100%; height: auto; }
     if (pend.paid) return incomeQuestion(pend);
     fs.label = '';
     const bal = pend.bal, { top, per, add, big, small, x } = F.interestParts(bal, g, f.bank.acct);
-    fs.done = () => { const got = F.payInterest(fm(), g); return `The bank added <b>${fmt(got.x)}</b>. Now you have <b>${fmt(fm().bank.bal)}</b> saved.`; };
+    fs.done = () => {
+      const got = F.payInterest(fm(), g);
+      if (!got.bonus) return `The bank added <b>${fmt(got.x)}</b>. Now you have <b>${fmt(fm().bank.bal)}</b> saved.`;
+      MQ.confetti(120, { colors: ['#ffd23f', '#ffe066', '#ff8fb3'], shape: 'star' });
+      return `The bank added <b>${fmt(got.x)}</b>, and 🐷 the <b>Golden Piggy</b> doubled it: <b>+${fmt(got.bonus)}</b> more (it cost ${fmt(got.cost)})! Now you have <b>${fmt(fm().bank.bal)}</b> saved.`;
+    };
     const unit = per === 100 ? 'whole dollar' : fmt(per), units = per === 100 ? 'whole dollars' : 'tens';
     const lowUnit = g === 'k' ? '100¢' : 'whole dollar', over = bal > top, rest = bal - top;
     const p = over
@@ -9467,6 +10020,10 @@ svg.tart { display: block; width: 100%; height: auto; }
     fDepCollect: () => startUnlock(),
     fMerchant: () => merchant(),
     fBuyTreasure: () => buyTreasure(),
+    fBuyCharm: (a) => buyCharm(a),
+    fCharm: (a) => charmInfo(a),
+    fProfit: (a) => startProfit(+a),
+    fTreasureGoal: (a) => { fm().goal = 'treasure:' + a; save(); MQ.sfx('tap'); K().toast('⭐ Saving goal set'); if ($('#modal')) merchant(); },
     fDreamView: (a) => { dreamView = +a === fm().dream.p ? null : +a; MQ.sfx('tap'); keepY(dreams); },
     fJobs: () => startJobs(),
     fTab: (a) => { tab = a; shop(); },
@@ -9953,12 +10510,12 @@ svg.tart { display: block; width: 100%; height: auto; }
   function farmTile() {
     const F = MQ.farm, fm = st.farm;
     if (!fm || !fm.started) return `<button class="tile t-farm wide" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>New! Grow, sell at your stand, count real money</small></span></button>`;
-    const waiting = fm.beds.some((b) => F.cropStage(b) === 'ready') || fm.pens.some((p) => p.ready);
+    const waiting = fm.beds.some((b) => F.cropStage(b) === 'ready') || fm.pens.some((p) => F.penReady(p));
     const n = F.basketCount(fm);
     const bankDay = !!(fm.bank && fm.bank.pend && fm.bank.pend.length);
     const made = fm.works && Object.values(fm.works).some((w) => w.ready);
     const build = F.canBuild(F.ensure(st), st.grade);
-    const trader = !!F.merchantNow(fm), unlocked = F.depositReady(fm);
+    const trader = F.merchantHas(fm), unlocked = F.depositReady(fm);
     const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
     return `<button class="tile t-farm wide ${waiting || made || bankDay || build || trader || unlocked || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
   }
@@ -9975,6 +10532,7 @@ svg.tart { display: block; width: 100%; height: auto; }
       ${fm.dream && (fm.dream.p || fm.dream.s) ? `<p>🏗️ Big Dreams: ${F.DREAMS.map((d, k) => [d, F.dreamBuilt(fm, k)]).filter(([, n]) => n).map(([d, n]) => `${d.e} ${esc(d.name)} ${n >= d.stages.length ? '✓' : n + ' of ' + d.stages.length}`).join(', ')}. Paid to builders from the bank: ${F.fmt(s.built || 0, st.grade)}; the buildings earned ${F.fmt(s.dreamIn || 0, st.grade)} on bank days.</p>` : ''}
       ${fm.dep && (fm.dep.amt || s.depBonus) ? `<p>🔒 Locked deposit: ${fm.dep.amt ? `<b>${F.fmt(fm.dep.amt, st.grade)}</b> locked until farm day ${fm.dep.until}` : 'none now'}; locked deposits have earned ${F.fmt(s.depBonus || 0, st.grade)} so far.</p>` : ''}
       ${Object.keys(fm.treasure || {}).length ? `<p>🧳 Treasures from the traveling merchant: ${Object.keys(fm.treasure).map((id) => F.TREASURES[id].e + ' ' + esc(F.TREASURES[id].name)).join(', ')}.</p>` : ''}
+      ${s.charms ? `<p>✨ Week charms from the merchant: ${s.charms} bought for ${F.fmt(s.charmCost || 0, st.grade)}; they brought ${F.fmt(s.charmGain || 0, st.grade)} (${s.charmWins || 0} paid for themselves). After each one the child works out whether it paid off.</p>` : ''}
       <p>${s.tasks} money problems from customers and odd jobs, <b>${pct(s.right, s.tasks)}%</b> right on the first try · ${s.vip} ⭐ challenge customers. Now practicing: <b>${esc(tier.name)}</b>${tier.ahead ? ' (ahead of grade)' : ''}.</p>
       <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p></section>`;
   }

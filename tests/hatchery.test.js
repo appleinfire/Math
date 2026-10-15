@@ -94,4 +94,13 @@ all.dragons.dr_sun = { at: 0 };
 all.stats.correct = 400;
 assert.ok(badge('elder').test(all));
 
+// Sunny Farm's merchant pictures (js/farm-art.js): every mythic animal and week charm is a valid SVG, with its own ids.
+for (const f of ['farm', 'farm-art']) require(path.join(__dirname, '..', 'js', f + '.js'));
+assert.deepStrictEqual(MQ.MYTH_IDS.slice().sort(), Object.keys(MQ.farm.MYTHS).sort(), 'every mythic animal is drawn');
+for (const a of MQ.MYTH_IDS) {
+  const x = checkSvg(MQ.mythArt(a), a + ' mythic'), y = checkSvg(MQ.mythArt(a, { aura: false }), a + ' mythic in a pen');
+  for (const id of x) assert.ok(!y.has(id), a + ': gradient id repeats between two copies');
+}
+for (const c of Object.keys(MQ.farm.CHARMS)) checkSvg(MQ.charmArt(c), c + ' charm');
+checkSvg(MQ.starBee(), 'star bee');
 console.log(`OK — ${MQ.EGGS.length} eggs, ${MQ.EGG_CREATURES.length} egg creatures, ${MQ.EGG_CREATURES.filter((c) => MQ.hasArt(c.id)).length} pictures (${Math.round(total / 1024)} KB), dragons grow and guard treasure.`);

@@ -36,7 +36,7 @@
   function bedHtml(b, i) {
     const s = F.cropStage(b);
     const stars = F.bedStars(b), ups = `${stars ? `<span class="bstars">${'★'.repeat(stars)}</span>` : ''}${F.bedWater(b) ? '<span class="bwater">💧</span>' : ''}`;
-    const glass = F.bedGlass(b) ? ' glass' : '';
+    const glass = (F.bedGlass(b) ? ' glass' : '') + (fmNow && F.charmOn(fmNow, 'sun') ? ' sunny' : ''); // sunny: the Sunshine Potion doubles harvests
     if (s === 'empty') return `<button class="fbed soil empty${glass}" data-act="fBed" data-arg="${i}" aria-label="Empty garden bed: plant seeds"><span class="plus">＋</span>${ups}<span class="flabel">Plant</span></button>`;
     const it = F.ITEMS[b.c], left = F.cropDays(b) - b.g, y = F.cropYield(b, fmNow);
     const n = Math.min(y, 4); // the label says how many; four fit on a small bed
@@ -47,15 +47,23 @@
   }
   function penHtml(p, i) {
     if (!p.a) return `<button class="fpen pasture empty" data-act="go" data-arg="farm:shop" aria-label="Empty pen: buy an animal in the shop"><span class="plus">＋</span><span class="flabel">Buy an animal</span></button>`;
-    const a = F.ANIMALS[p.a], sg = F.animalStage(p), it = F.ITEMS[a.item];
-    const state = p.ready ? 'ready' : p.fed ? 'fed' : 'hungry';
+    const a = F.ANIMALS[p.a], sg = F.animalStage(p), got = F.penLoot(p), ready = F.penReady(p);
+    // a Mythic Feed week: the animals are drawn as their mythic selves
+    const myth = fmNow && F.mythOn(fmNow, p.a) && MQ.mythArt ? F.MYTHS[p.a] : null;
+    const state = ready ? 'ready' : p.fed ? 'fed' : 'hungry';
     const age = ['Baby', 'Young', 'Grown-up'][sg];
     const many = F.penCount(p);
-    const chip = p.ready ? `${it.e}×${p.ready}` : p.fed ? '❤️' : `🌾 ${F.penEat(p)}`;
-    const loot = p.ready ? `<span class="loot">${Array.from({ length: Math.min(p.ready, 5) }, (_, k) => `<i style="--k:${k}">${it.e}</i>`).join('')}</span>` : '';
+    const chip = ready ? got.map(([id, n]) => `${F.ie(id)}×${n}`).join(' ') : p.fed ? '❤️' : `🌾 ${F.penEat(p)}`;
+    const loot = ready ? `<span class="loot">${got.flatMap(([id, n]) => Array(Math.min(n, 5)).fill(F.ie(id))).slice(0, 5).map((e, k) => `<i style="--k:${k}">${e}</i>`).join('')}</span>` : '';
     let who;
     if (p.a === 'bees') {
-      who = `<span class="hivebox">${SVG.hive}</span>${Array.from({ length: Math.min(6, (sg + 1) * many) }, (_, k) => `<span class="bee" style="--k:${k}">🐝</span>`).join('')}`;
+      who = `<span class="hivebox">${SVG.hive}</span>${Array.from({ length: Math.min(6, (sg + 1) * many) }, (_, k) => `<span class="bee" style="--k:${k}">${myth ? MQ.starBee() : '🐝'}</span>`).join('')}`;
+    } else if (myth) {
+      const pic = MQ.mythArt(p.a, { aura: false });
+      who = Array.from({ length: many }, (_, k) => {
+        const t = 7 + ((i * 3 + k * 2) % 5);
+        return `<span class="walker side myw w${k}" style="--t:${t}s;--dl:-${(i * 2.3 + k * 3.1) % t}s"><span class="bob">${pic}</span></span>`;
+      }).join('');
     } else if (p.a === 'fishpond') {
       who = Array.from({ length: Math.min(5, sg + many) }, (_, k) => `<span class="walker side fishy" style="--t:${6 + k * 2}s;--dl:-${k * 1.7}s;bottom:${14 + (k % 3) * 22}px"><span class="bob">🐟</span></span>`).join('');
     } else {
@@ -66,9 +74,10 @@
         return `<span class="walker ${SIDE.has(e) ? 'side' : ''} w${k}" style="--t:${t}s;--dl:-${(i * 2.3 + k * 3.1) % t}s"><span class="bob">${e}</span></span>`;
       }).join('');
     }
-    const label = `${many > 1 ? many + ' × ' : ''}${a.name}, ${age.toLowerCase()}: ${p.ready ? `${p.ready} ${it.many} to collect` : p.fed ? 'fed' : `hungry, eats ${F.penEat(p)} feed`}`;
-    const sparkle = p.a === 'unicorn' ? '<span class="twinkles"><i>✨</i><i>✨</i><i>✨</i></span>' : '';
-    return `<button class="fpen pasture ${state} s${sg} a-${p.a}" data-act="fPen" data-arg="${i}" aria-label="${esc(label)}">${who}${sparkle}${loot}<span class="trough ${p.fed ? 'full' : ''}"></span>${(p.u || 0) >= 3 ? '<span class="cozy" title="Cozy barn">🛖</span>' : ''}<span class="pchip">${chip}</span><span class="flabel">${age}${many > 1 ? ' × ' + many : ''}</span></button>`;
+    const label = `${many > 1 ? many + ' × ' : ''}${myth ? myth.name : a.name}, ${age.toLowerCase()}: ${ready ? `${got.map(([id, n]) => `${n} ${n === 1 ? F.ITEMS[id].name : F.ITEMS[id].many}`).join(' and ')} to collect` : p.fed ? 'fed' : `hungry, eats ${F.penEat(p)} feed`}`;
+    const sparkle = p.a === 'unicorn' || myth ? '<span class="twinkles"><i>✨</i><i>✨</i><i>✨</i></span>' : '';
+    const left = myth ? fmNow.charms.myth.until - fmNow.day : 0;
+    return `<button class="fpen pasture ${state} s${sg} a-${p.a}${myth ? ' myth' : ''}" data-act="fPen" data-arg="${i}" aria-label="${esc(label)}">${who}${sparkle}${loot}${myth ? `<span class="mytag" title="${esc(myth.many)}: ${left} ${left === 1 ? 'night' : 'nights'} left">🌟 ${left}</span>` : ''}<span class="trough ${p.fed ? 'full' : ''}"></span>${(p.u || 0) >= 3 ? '<span class="cozy" title="Cozy barn">🛖</span>' : ''}<span class="pchip">${chip}</span><span class="flabel">${age}${many > 1 ? ' × ' + many : ''}</span></button>`;
   }
   function workHtml(id) {
     const W = F.WORKS[id], w = fmWorks[id];
@@ -110,7 +119,7 @@
     const park = at('park').map((id) => `<span class="pk d-${id}" title="${esc(F.DECOR[id].name)}">${F.DECOR[id].e}</span>`).join('');
     const works = Object.keys(fmWorks).filter((id) => F.WORKS[id]);
     const stand = F.STANDS[fm.stand], n = F.basketCount(fm);
-    return `<section class="scene" aria-label="Your farm">
+    return `<section class="scene${F.charmOn(fm, 'sun') ? ' sun-on' : ''}" aria-label="Your farm">
       <div class="sky">
         <span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>${sky.join('')}
         <div class="hills"></div>${hill}${has('fence') ? '<div class="hfence"></div>' : ''}
@@ -122,7 +131,7 @@
         ${works.length ? `<div class="works">${works.map(workHtml).join('')}</div>` : ''}
         <div class="yard">
           <button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
-          ${yard}${fm.helper && fm.helper.hired && fm.helper.on ? `<span class="farmhand" title="Farmhand ${F.HELPER.name}">🧑‍🌾</span>` : ''}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}${treasures(fm)}${F.merchantNow(fm) ? `<button class="trs wagon" data-act="fMerchant" aria-label="${esc(F.MERCHANT.name)}'s wagon">${MQ.wagonArt()}</button>` : ''}
+          ${yard}${fm.helper && fm.helper.hired && fm.helper.on ? `<span class="farmhand" title="Farmhand ${F.HELPER.name}">🧑‍🌾</span>` : ''}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}${treasures(fm)}${F.charmOn(fm, 'clover') && MQ.charmArt ? `<span class="trs tr-clover" title="Lucky Clover">${MQ.charmArt('clover')}</span>` : ''}${F.merchantHas(fm) ? `<button class="trs wagon" data-act="fMerchant" aria-label="${esc(F.MERCHANT.name)}'s wagon">${MQ.wagonArt()}</button>` : ''}
         </div>
         ${park ? `<div class="park">${park}</div>` : ''}
       </div>
@@ -139,7 +148,7 @@
         <span class="shopper ${vip ? 'vip' : ''}" id="shopper"><span>${shopper}</span></span>
       </div>
     </div>`;
-  S.goods = (sale) => Object.entries(sale || {}).map(([id, n]) => Array.from({ length: Math.min(n, 6) }, () => `<i>${F.ITEMS[id].e}</i>`).join('')).join('');
+  S.goods = (sale) => Object.entries(sale || {}).map(([id, n]) => Array.from({ length: Math.min(n, 6) }, () => `<i>${F.ie(id)}</i>`).join('')).join('');
 
   // ---------------------------------------------------------------- animations
   const box = (x) => (!x ? null : x.getBoundingClientRect ? x.getBoundingClientRect() : x);

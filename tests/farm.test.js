@@ -592,75 +592,158 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   assert.deepStrictEqual([sc.dream.p, sc.dream.s, F.dreamIncome(sc, 'g2').length], [2, 2, 3]);
 }
 
-// ---------- the traveling merchant: every 3rd bank week, one rare treasure, gone if it isn't bought in time
+// ---------- the traveling merchant: every 3rd bank week; two week charms every visit, a rare treasure every 2nd visit
 {
   const lvXp = (L) => { let x = 0; for (let k = 1; k < L; k++) x += F.need(k); return x; };
-  const goodDay = (L, g) => { // what a good farm makes in a farm day at level L (as in the Big Dreams test)
-    const gi = g === 'k' ? 0 : 1, beds = F.BEDS.filter((b) => b[0] <= L).length, pens = F.PENS.filter((p) => p[0] <= L).length;
-    const bed = { u: Math.floor(F.BED_UP.filter((u) => u.lv <= L).length / 2) };
-    let best = 0;
-    for (const [id, c] of Object.entries(F.CROPS)) if (c.lv <= L) { bed.c = id; best = Math.max(best, (F.cropYield(bed) * F.price(id, g) - c.seed[gi]) / F.cropDays(bed)); }
-    const room = 1 + F.PEN_UP.filter((x, i) => i < 2 && x.lv <= L).length;
-    return beds * best + U.sum(Object.values(F.ANIMALS).filter((a) => a.lv <= L).map((a) => (a.per * F.price(a.item, g) - a.eat * F.FEED.price[gi]) * room).sort((a, b) => b - a).slice(0, pens));
-  };
+  // rare treasures stay for good, so they are expensive: 3 to 5 bank weeks of what a good farm makes at their level
   for (const [id, t] of Object.entries(F.TREASURES)) {
     assert.ok(t.cost[0] <= 99, `${id}: kindergarten pays it with coins`);
-    const weeks = t.cost[1] / (7 * goodDay(t.lv, 'g2'));
-    assert.ok(weeks >= 0.7 && weeks <= 2, `${id}: about a bank week of saving at level ${t.lv} (${weeks.toFixed(2)})`);
+    const weeks = t.cost[1] / (7 * F.goodDay(t.lv, 'g2').total);
+    assert.ok(weeks >= 3 && weeks <= 5, `${id}: ${weeks.toFixed(2)} bank weeks of saving at level ${t.lv}`);
     assert.ok(F.treasureNote(id, 'g2', (c) => F.fmt(c, 'g2')).length > 20 && F.treasureNote(id, 'k', (c) => F.fmt(c, 'k')).length > 20);
+  }
+  // mythic things are worth 3 to 4 times the usual thing (both grades)
+  for (const [a, M] of Object.entries(F.MYTHS)) {
+    const it = F.ITEMS[M.item], was = F.ITEMS[F.ANIMALS[a].item];
+    assert.ok(it && it.myth && M.name && M.many, a + ': a mythic form and thing');
+    for (const g of [0, 1]) assert.ok(it.price[g] >= 3 * was.price[g] && it.price[g] <= 4 * was.price[g], `${a}: ${M.item} is worth 3–4 × ${F.ANIMALS[a].item}`);
+  }
+  assert.ok(F.ie('fleece').includes('my-gold') && F.ie('wool') === '🧶', 'mythic things glow on the screens');
+  // a charm costs about a third of what it brings in its week (kindergarten: coins, 5¢ steps, at most 99¢)
+  for (const g of ['k', 'g2']) for (const L of [10, 13, 20, 30, 45, 60]) {
+    const x = F.ensure({ grade: g });
+    x.xp = lvXp(L);
+    x.pens = [{ a: 'sheep', g: 9, u: 1 }, { a: 'pig', g: 9, u: 2 }];
+    for (const [id, a] of [['clover'], ['sun'], ['piggy'], ['myth', 'sheep'], ['myth', 'pig']]) {
+      const cost = F.charmCost(id, x, g, a), gain = F.charmGain(id, x, g, a);
+      assert.ok(cost > 0 && gain / cost >= 2.5, `${g} L${L} ${id} ${a || ''}: brings ${gain} for ${cost}`);
+      if (g === 'k') assert.ok(cost <= 99 && cost % 5 === 0, `${g} ${id}: coins`);
+      else assert.ok(cost % 100 === 0 && (cost === 100 || gain / cost <= 3.5), `${g} L${L} ${id}: whole dollars, about a third (${gain} for ${cost})`);
+    }
   }
   const f = F.ensure({ grade: 'g2' });
   f.xp = lvXp(13);
   f.money = 100000;
-  const visits = (n) => { const out = []; for (let d = 0; d < n; d++) { const x = F.nextDay(f, 'g2').merchant; if (x) out.push([f.day, ...x]); } return out; };
+  f.feed = 1000;
+  f.pens = [{ a: 'sheep', g: 9, fed: false, ready: 0, u: 1 }, { a: 'chicken', g: 9, fed: false, ready: 0 }];
+  const feedAll = () => f.pens.forEach((p, i) => F.feed(f, i));
+  const visits = (n) => { const out = []; for (let d = 0; d < n; d++) { feedAll(); const x = F.nextDay(f, 'g2').merchant; if (x) out.push([f.day, x[0], x[1].n, x[1].item, x[1].charms.join('+'), x[1].a]); } return out; };
   assert.deepStrictEqual(visits(30), [], 'no merchant before the first Big Dream stage is built');
   f.day = 1;
   f.dream.s = 1;
-  // weeks 3, 6, 9 (farm days 15–21, 36–42, 57–63); each visit brings the next treasure that fits the level (10–13 here)
-  assert.deepStrictEqual(visits(62), [[15, 'came', 'can'], [21, 'last', 'can'], [22, 'left', 'can'], [36, 'came', 'musician'], [42, 'last', 'musician'], [43, 'left', 'musician'], [57, 'came', 'goose'], [63, 'last', 'goose']]);
-  assert.strictEqual(F.merchantNow(f), 'goose');
-  assert.strictEqual(F.merchantNights(f.day), 0, 'he leaves tonight');
-  f.money = 5999;
-  assert.strictEqual(F.buyTreasure(f, 'g2'), null, 'not enough in the wallet');
-  f.money = 6000;
-  const got = F.buyTreasure(f, 'g2');
-  assert.deepStrictEqual([got.id, f.money, f.treasure.goose, F.merchantNow(f)], ['goose', 0, true, null]);
-  // the Golden Goose: money every morning; no goodbye after it was bought
-  let news = F.nextDay(f, 'g2');
-  assert.deepStrictEqual([news.gold, f.money, news.merchant], [150, 150, null]);
-  // the next visits bring the treasures not bought yet; the ones above the farm level wait
-  f.day = 77;
+  // weeks 3, 6, 9 (farm days 15–21, 36–42, 57–63): visit 1 with the Golden Goose, visit 2 without a treasure, visit 3
+  // with the goose again (not bought); Mythic Feed for the sheep (they bring the most), then for the chickens
+  assert.deepStrictEqual(visits(56), [[15, 'came', 1, 'goose', 'myth+clover', 'sheep'], [21, 'last', 1, 'goose', 'myth+clover', 'sheep'], [22, 'left', 1, 'goose', 'myth+clover', 'sheep'],
+    [36, 'came', 2, null, 'sun+piggy', null], [42, 'last', 2, null, 'sun+piggy', null], [43, 'left', 2, null, 'sun+piggy', null], [57, 'came', 3, 'goose', 'myth+sun', 'chicken']]);
+  const m = F.merchantHere(f);
+  assert.deepStrictEqual([F.merchantNow(f), F.merchantWares(f).charms, F.merchantNights(f.day), F.merchantNext(f), F.merchantNext(f, true)], ['goose', ['myth', 'sun'], 6, 78, 99], 'next visit week 12 (day 78), the next treasure visit week 15 (day 99)');
+  assert.ok(m.cost.myth >= 100 && m.cost.sun >= 100 && m.cost.myth === F.charmCost('myth', f, 'g2', 'chicken'));
+  // buying: not enough money, then a charm, then the treasure
+  const money = f.money;
+  f.money = m.cost.myth - 1;
+  assert.strictEqual(F.buyCharm(f, 'g2', 'myth'), null, 'not enough in the wallet');
+  assert.strictEqual(F.buyCharm(f, 'g2', 'clover'), null, 'he doesn’t have it this time');
+  f.money = money;
+  const myth = F.buyCharm(f, 'g2', 'myth');
+  assert.deepStrictEqual([myth.id, myth.a, f.money, f.charms.myth.until, F.merchantWares(f).charms, f.stats.charms], ['myth', 'chicken', money - m.cost.myth, 64, ['sun'], 1]);
+  assert.strictEqual(F.buyCharm(f, 'g2', 'myth'), null, 'one of each on a visit');
+  assert.ok(F.buyTreasure(f, 'g2') && f.treasure.goose && F.merchantNow(f) === null && F.merchantHas(f), 'the treasure is bought, the Sunshine Potion is still for sale');
+  // a Mythic Feed week: the chickens are Firebird Hens and lay golden eggs; the sheep still give wool
+  f.pens.forEach((p, i) => F.collect(f, i));
+  f.basket = {};
+  f.pens[1].ready = 2; // eggs from before the week, not collected yet
+  let news = F.nextDay(f, 'g2'); // a hungry night: nothing made
+  assert.ok(F.mythOn(f, 'chicken') && !F.mythOn(f, 'sheep'));
+  feedAll();
   news = F.nextDay(f, 'g2');
-  assert.deepStrictEqual(news.merchant, ['came', 'can'], 'week 12 (visit 4): can or musician at level 13 → can');
-  f.xp = lvXp(20);
-  f.day = 119;
-  assert.deepStrictEqual(F.nextDay(f, 'g2').merchant, ['came', 'fairy'], 'week 18 (visit 6) at level 20: can, musician, fairy, sheep → fairy');
-  // every treasure works: watering can +1 crop, musician +5% tips, fairy feeds a hungry pen, sheep gives rainbow wool
+  assert.deepStrictEqual(news.made, [['wool', 2], ['goldegg', 2]]);
+  assert.deepStrictEqual([f.pens[1].rare, f.pens[1].ready, F.penReady(f.pens[1]), F.penLoot(f.pens[1])], [2, 2, 4, [['goldegg', 2], ['egg', 2]]], 'eggs from before the week and golden eggs');
+  assert.strictEqual(F.collect(f, 1), 4);
+  assert.deepStrictEqual([f.basket.goldegg, f.basket.egg, f.charms.myth.gain], [2, 2, 2 * (50 - 15)]);
+  for (let d = 0; d < 4; d++) { feedAll(); F.nextDay(f, 'g2'); }
+  assert.strictEqual(f.day, 63);
+  feedAll();
+  news = F.nextDay(f, 'g2'); // night 7: the last mythic night, then it is over in the morning
+  assert.deepStrictEqual(news.charmEnd, [{ id: 'myth', a: 'chicken', cost: m.cost.myth, got: 6 * 2 * 35 }]);
+  assert.ok(!f.charms.myth && !F.mythOn(f, 'chicken') && f.stats.charmGain === 420 && f.stats.charmWins === (420 > m.cost.myth ? 1 : 0));
+  assert.deepStrictEqual(news.merchant, ['left', m], 'he left with the Sunshine Potion');
+  // every charm works: Lucky Clover tips, Sunshine Potion harvests, Golden Piggy interest
   const t = F.ensure({ grade: 'g2' });
-  t.beds[0] = { c: 'carrot', g: 1 };
-  assert.strictEqual(F.harvest(t, 0), 3);
-  t.treasure.can = true;
-  t.beds[0] = { c: 'carrot', g: 1 };
-  assert.deepStrictEqual([F.cropYield(t.beds[0], t), F.harvest(t, 0)], [4, 4]);
+  t.day = 3;
   assert.strictEqual(F.tip(t, 1000), 0, 'no tips on the wooden table');
+  t.charms.clover = { cost: 100, until: 10, gain: 0 };
+  assert.strictEqual(F.tip(t, 1000), 200, 'the Lucky Clover: 20% even on the wooden table');
   t.treasure.musician = true;
-  assert.strictEqual(F.tip(t, 1000), 50, 'the musician: 5% even on the wooden table');
   t.stand = 2;
-  assert.strictEqual(F.tip(t, 1000), 150, 'market tent 10% + musician 5%');
-  t.pens = [{ a: 'chicken', g: 5, fed: false, ready: 0 }, { a: 'goat', g: 5, fed: false, ready: 0 }];
-  t.treasure.fairy = true;
-  t.treasure.sheep = true;
-  const feed = t.feed;
+  assert.deepStrictEqual([F.tip(t, 1000), F.tip(t, 1000, false)], [400, 200], 'market tent 10% + musician 10% + clover 20%');
+  t.basket = { carrot: 5 };
+  const r = F.serve(t, 'g2', { sale: { carrot: 2 }, total: 1000, tier: 1 }, true, true);
+  assert.deepStrictEqual([r.tip, r.clover, t.charms.clover.gain], [400, 200, 200]);
+  t.charms.sun = { cost: 300, until: 10, gain: 0 };
+  t.beds[0] = { c: 'carrot', g: 1 };
+  assert.deepStrictEqual([F.cropYield(t.beds[0], t), F.harvest(t, 0), t.charms.sun.extra, F.charmGot(t.charms.sun, 'g2')], [6, 6, { carrot: 3 }, 30], 'twice the crops');
+  t.day = 9;
   news = F.nextDay(t, 'g2');
-  assert.deepStrictEqual([news.fairy, t.feed, t.pens[0].ready > 0, t.pens[1].ready, news.rainbow, t.basket.rainbow], ['chicken', feed, true, 0, 1, 1], 'the fairy fed the chicken for free');
-  assert.ok(F.ITEMS.rainbow.price[1] > F.ITEMS.wool.price[1]);
+  assert.deepStrictEqual(news.charmEnd, [{ id: 'clover', a: undefined, cost: 100, got: 200 }, { id: 'sun', a: undefined, cost: 300, got: 30 }]);
+  assert.deepStrictEqual([F.tip(t, 1000), F.cropYield({ c: 'carrot', g: 1 }, t), t.stats.charmWins], [200, 3, 1], 'over: back to normal; the clover paid for itself, the potion didn’t');
+  // the Golden Piggy: bought before bank day, the bank pays that bank day's interest twice
+  const pg = F.ensure({ grade: 'g2' });
+  pg.money = 3000;
+  F.deposit(pg, 2000);
+  pg.day = 4;
+  pg.merchant = { week: 1, n: 2, item: null, charms: ['sun', 'piggy'], a: null, cost: { sun: 300, piggy: 200 }, got: {} };
+  assert.ok(F.buyCharm(pg, 'g2', 'piggy') && F.piggyWaiting(pg) && pg.charms.piggy.cost === 200);
+  while (pg.day < 7) F.nextDay(pg, 'g2');
+  assert.ok(pg.bank.pend[0].piggy && !pg.charms.piggy, 'bank day: the piggy waits with the interest');
+  const paid = F.payInterest(pg, 'g2');
+  assert.deepStrictEqual([paid.x, paid.bonus, paid.cost, pg.bank.bal, pg.bank.log[0].kind, pg.stats.charmGain], [200, 200, 200, 2400, 'piggy', 200]);
+  const ps = pg.stats;
+  assert.strictEqual(ps.saved - ps.tookOut + ps.interest + ps.dreamIn - ps.built + ps.depBonus, pg.bank.bal, 'the bank totals add up with the piggy');
+  // bought on bank day itself, before collecting: that day's interest doubles
+  pg.day = 14;
+  pg.bank.pend = [{ day: 14, bal: 2400 }];
+  pg.merchant = { week: 2, n: 2, item: null, charms: ['piggy'], a: null, cost: { piggy: 200 }, got: {} };
+  F.buyCharm(pg, 'g2', 'piggy');
+  assert.ok(pg.bank.pend[0].piggy && !pg.charms.piggy && F.payInterest(pg, 'g2').bonus === 240);
+  // the treasures: Golden Goose $2.50 every morning, the Feed Fairy feeds two pens, rainbow wool
+  const tr = F.ensure({ grade: 'g2' });
+  tr.pens = [{ a: 'chicken', g: 5, fed: false, ready: 0 }, { a: 'goat', g: 5, fed: false, ready: 0 }, { a: 'cow', g: 5, fed: false, ready: 0 }];
+  Object.assign(tr.treasure, { goose: true, fairy: true, sheep: true });
+  const feed = tr.feed, cash = tr.money;
+  news = F.nextDay(tr, 'g2');
+  assert.deepStrictEqual([news.fairy, tr.feed, news.hungry, tr.money - cash, news.rainbow, tr.basket.rainbow], [['chicken', 'goat'], feed, ['cow'], 250, 1, 1]);
+  // the saving goal can be a rare treasure: he brings that one next, and buying it clears the goal
+  const gl = F.ensure({ grade: 'g2' });
+  gl.xp = lvXp(13);
+  gl.goal = 'treasure:musician';
+  assert.deepStrictEqual([F.goalItem(gl, 'g2').price, F.goalItem(gl, 'g2').treasure, F.nextTreasure(gl)], [20000, 'musician', 'musician']);
+  gl.goal = 'treasure:sheep';
+  assert.strictEqual(F.nextTreasure(gl), 'goose', 'a treasure above the farm level waits');
+  // he keeps coming once every treasure is bought, with charms; Mythic Feed only for animals on the farm
+  const all = F.ensure({ grade: 'g2' });
+  all.xp = lvXp(20);
+  all.dream.s = 1;
+  Object.keys(F.TREASURES).forEach((id) => (all.treasure[id] = true));
+  all.pens = [{ a: 'fishpond', g: 9 }];
+  all.day = 14;
+  assert.deepStrictEqual(F.nextDay(all, 'g2').merchant[1].charms, ['sun', 'clover'], 'no mythic form for fish: the Sunshine Potion instead');
+  // a visit from before the week charms: it still works, and the next visit is number 2
+  const old = F.ensure({ grade: 'g2' });
+  old.xp = lvXp(13);
+  old.dream.s = 1;
+  old.merchant = { week: 3, item: 'can' };
+  old.day = 20;
+  assert.deepStrictEqual([F.merchantNow(old), F.merchantWares(old).charms], ['can', []]);
+  old.day = 41;
+  assert.strictEqual(F.nextDay(old, 'g2').merchant[1].n, 2);
   // how much to put aside each day to make it in time
   assert.deepStrictEqual([F.perDayToSave(4726, 6, 'g2'), F.perDayToSave(4726, 0, 'g2'), F.perDayToSave(45, 4, 'k')], [700, 4800, 9]);
-  // a farm from before the merchant gets him
-  const old = { grade: 'g2', farm: Object.assign(F.fresh(), { started: true }) };
-  delete old.farm.treasure; delete old.farm.merchant;
-  const up = F.ensure(old);
-  assert.deepStrictEqual([up.treasure, up.merchant], [{}, null]);
+  // a farm from before the merchant gets him (and his charms)
+  const up = F.ensure({ grade: 'g2', farm: (() => { const x = Object.assign(F.fresh(), { started: true }); delete x.treasure; delete x.merchant; delete x.charms; return x; })() });
+  assert.deepStrictEqual([up.treasure, up.merchant, up.charms, up.stats.charms], [{}, null, {}, 0]);
+  // the grown-up preview: he is visiting, the clover and Moon Cows are working
+  const sc = F.showcase({ grade: 'g2', farm: F.fresh() });
+  assert.ok(F.merchantHere(sc) && F.merchantHas(sc) && F.charmOn(sc, 'clover') && F.mythOn(sc, 'cow') && sc.pens[1].rare);
 }
 
 // ---------- the locked deposit (2nd grade): every $5 comes back as $6 after 4 bank weeks

@@ -310,6 +310,7 @@
     { id: 'dream1', icon: '🏗️', name: 'Dreamer', desc: 'Build the first part of a Big Dream on your farm', test: (s) => !!s.farm && !!s.farm.dream && (s.farm.dream.p > 0 || s.farm.dream.s > 0) },
     { id: 'investor', icon: '🍎', name: 'Investor', desc: 'Finish the Fruit Orchard: it earns money every bank day', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 1 },
     { id: 'treasure', icon: '🧳', name: 'Treasure Hunter', desc: 'Buy a rare treasure from the traveling merchant', test: (s) => !!s.farm && Object.keys(s.farm.treasure || {}).length >= 1 },
+    { id: 'charm', icon: '🍀', name: 'Smart Shopper', desc: 'Buy a week charm from the traveling merchant that pays for itself', test: (s) => !!s.farm && (s.farm.stats.charmWins || 0) >= 1 },
     { id: 'deposit', icon: '🔐', name: 'Patient Saver', desc: 'Collect a locked deposit from the farm bank', test: (s) => !!s.farm && (s.farm.stats.depBonus || 0) > 0 },
     { id: 'castle', icon: '🏰', name: 'Castle Builder', desc: 'Build the Castle on the Hill', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 4 },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
