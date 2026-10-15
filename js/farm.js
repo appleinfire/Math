@@ -42,6 +42,17 @@
     sleigh: { e: '🛷', name: 'sleigh ride', many: 'sleigh rides', price: [12, 500] },
     sparkle: { e: '✨', name: 'jar of rainbow sparkles', many: 'jars of rainbow sparkles', price: [15, 900] },
     rainbow: { e: '🌈', name: 'ball of rainbow wool', many: 'balls of rainbow wool', price: [14, 400] }, // from the merchant's Rainbow Sheep
+    // made in a Mythic Feed week (F.MYTHS): worth 3 to 4 times the usual thing; myth: how its icon glows (css .my-*)
+    goldegg: { e: '🥚', name: 'golden egg', many: 'golden eggs', price: [7, 50], myth: 'gold' },
+    starhoney: { e: '🍯', name: 'jar of star honey', many: 'jars of star honey', price: [16, 300], myth: 'star' },
+    crystalmilk: { e: '🍼', name: 'bottle of crystal milk', many: 'bottles of crystal milk', price: [14, 200], myth: 'crystal' },
+    fleece: { e: '🧶', name: 'ball of golden fleece', many: 'balls of golden fleece', price: [20, 350], myth: 'gold' },
+    moonmilk: { e: '🥛', name: 'glass of moon milk', many: 'glasses of moon milk', price: [16, 250], myth: 'moon' },
+    silveregg: { e: '🥚', name: 'silver egg', many: 'silver eggs', price: [10, 120], myth: 'silver' },
+    goldtruffle: { e: '🍄', name: 'golden truffle', many: 'golden truffles', price: [30, 1000], myth: 'gold' },
+    thunder: { e: '🪶', name: 'thunder feather', many: 'thunder feathers', price: [20, 400], myth: 'thunder' },
+    starfluff: { e: '☁️', name: 'bag of star fluff', many: 'bags of star fluff', price: [30, 1200], myth: 'star' },
+    skyride: { e: '🎟️', name: 'sky ride on a pegasus', many: 'sky rides on a pegasus', price: [35, 900], myth: 'sky' },
     // made in the workshops (F.WORKS)
     jam: { e: '🫙', name: 'jar of strawberry jam', many: 'jars of strawberry jam', price: [10, 120], made: true },
     sauce: { e: '🥫', name: 'can of tomato sauce', many: 'cans of tomato sauce', price: [14, 140], made: true },
@@ -95,6 +106,22 @@
     reindeer: { e: '🦌', baby: '🦌', name: 'Reindeer', lv: 51, cost: [80, 6000], eat: 5, grow: [2, 5], item: 'sleigh', per: 1 },
     unicorn: { e: '🦄', baby: '🦄', name: 'Unicorn', lv: 60, cost: [99, 12000], eat: 6, grow: [3, 6], item: 'sparkle', per: 1 },
   };
+  // The merchant's Mythic Feed turns the animals of one kind into mythic ones for a week (drawn in js/farm-art.js):
+  // they make a rare thing instead of the usual one. of: the usual animals, in a sentence.
+  F.MYTHS = {
+    chicken: { of: 'chickens', name: 'Firebird Hen', many: 'Firebird Hens', item: 'goldegg' },
+    bees: { of: 'bees', name: 'Starlight Bees', many: 'Starlight Bees', item: 'starhoney' },
+    goat: { of: 'goats', name: 'Crystal Goat', many: 'Crystal Goats', item: 'crystalmilk' },
+    sheep: { of: 'sheep', name: 'Cloud Sheep', many: 'Cloud Sheep', item: 'fleece' },
+    cow: { of: 'cows', name: 'Moon Cow', many: 'Moon Cows', item: 'moonmilk' },
+    duck: { of: 'ducks', name: 'Silver Swan', many: 'Silver Swans', item: 'silveregg' },
+    pig: { of: 'pigs', name: 'Flying Pig', many: 'Flying Pigs', item: 'goldtruffle' },
+    turkey: { of: 'turkeys', name: 'Thunderbird', many: 'Thunderbirds', item: 'thunder' },
+    alpaca: { of: 'alpacas', name: 'Star Alpaca', many: 'Star Alpacas', item: 'starfluff' },
+    pony: { of: 'ponies', name: 'Pegasus', many: 'Pegasus ponies', item: 'skyride' },
+  };
+  // An item's icon for the screens: mythic things glow (the plain emoji is for text).
+  F.ie = (id) => { const it = F.ITEMS[id]; return it.myth ? `<i class="mye my-${it.myth}">${it.e}</i>` : it.e; };
   // Workshops turn what the farm makes into things worth more (the first lesson in "adding value").
   // Each workshop makes one batch at a time; a batch is ready after `days` nights. A recipe may open later than its workshop.
   F.WORKS = {
@@ -160,8 +187,11 @@
   F.bedWater = (b) => (b.u || 0) >= 3;
   F.bedGlass = (b) => (b.u || 0) >= 5;
   F.cropDays = (b) => Math.max(1, F.CROPS[b.c].days - (F.bedWater(b) ? 1 : 0));
-  F.cropYield = (b, fm) => F.CROPS[b.c].yield + F.bedStars(b) + (fm && fm.treasure && fm.treasure.can ? 1 : 0); // + the Magic Watering Can
+  // + the Magic Watering Can; a week of the merchant's Sunshine Potion doubles it
+  F.cropYield = (b, fm) => (F.CROPS[b.c].yield + F.bedStars(b) + (fm && fm.treasure && fm.treasure.can ? 1 : 0)) * (fm && F.charmOn(fm, 'sun') ? 2 : 1);
   F.penCount = (p) => 1 + Math.min(p.u || 0, 2);
+  // what a pen has to collect: the usual things (ready) and mythic ones from a Mythic Feed week (rare)
+  F.penReady = (p) => (p.ready || 0) + (p.rare || 0);
   F.penEat = (p) => F.ANIMALS[p.a].eat * F.penCount(p);
   F.penMakes = (p) => F.ANIMALS[p.a].per * F.penCount(p) + ((p.u || 0) >= 3 ? 1 : 0);
   F.upCost = (kind, i, grade, animal) => {
@@ -342,7 +372,8 @@
     bank: { bal: 0, acct: 0, log: [], pend: [] }, // see the bank below: bank day is every 7th farm day
     dream: { p: 0, s: 0, b: false, seen: false }, // Big Dreams: project p, stages built s, builders at work tonight b
     treasure: {}, // the traveling merchant's treasures bought: id: true
-    merchant: null, // his visit: { week, item } (bank week number and the treasure he brought)
+    merchant: null, // his visit: { week, n, item, charms, a, cost, got } (see the traveling merchant below)
+    charms: {}, // the merchant's week charms working now: id: { cost, until, gain, a, extra } (Golden Piggy: { cost }, until bank day)
     dep: { ok: false, amt: 0, until: 0 }, // the bank's locked deposit (2nd grade): opened once savings pass the limit (ok); amt locked until farm day `until`
   });
   F.START_MONEY = [5, 30];
@@ -363,6 +394,8 @@
     if (!fm.dream) fm.dream = { p: 0, s: 0, b: false, seen: false }; // Big Dreams came later
     if (!fm.treasure) fm.treasure = {}; // so did the traveling merchant
     if (fm.merchant === undefined) fm.merchant = null;
+    if (!fm.charms) fm.charms = {}; // and his week charms
+    for (const k of ['charms', 'charmCost', 'charmGain', 'charmWins']) if (!fm.stats[k]) fm.stats[k] = 0;
     if (!fm.dep) fm.dep = { ok: false, amt: 0, until: 0 }; // and the locked deposit
     if (!fm.stats.depBonus) fm.stats.depBonus = 0;
     for (const k of ['built', 'dreamIn']) if (!fm.stats[k]) fm.stats[k] = 0;
@@ -389,6 +422,7 @@
     if (F.cropStage(bed) !== 'ready') return 0;
     const n = F.cropYield(bed, fm);
     fm.basket[bed.c] = (fm.basket[bed.c] || 0) + n;
+    if (F.charmOn(fm, 'sun')) { const x = fm.charms.sun; x.extra = x.extra || {}; x.extra[bed.c] = (x.extra[bed.c] || 0) + n / 2; } // what the Sunshine Potion added
     if (F.bedGlass(bed) && !bed.again) Object.assign(bed, { g: 0, again: true }); // the greenhouse grows a second harvest
     else Object.assign(bed, { c: null, g: 0, again: false });
     return n;
@@ -403,13 +437,15 @@
     beds.forEach((i) => F.plant(fm, i, crop));
     return true;
   };
+  // What a pen has to collect, thing by thing: [[item, count], …] (the mythic things first).
+  F.penLoot = (p) => [[F.MYTHS[p.a] && F.MYTHS[p.a].item, p.rare || 0], [F.ANIMALS[p.a].item, p.ready || 0]].filter(([id, n]) => id && n > 0);
   F.collect = (fm, i) => {
-    const pen = fm.pens[i], n = pen.ready || 0;
-    if (!n) return 0;
-    const item = F.ANIMALS[pen.a].item;
-    fm.basket[item] = (fm.basket[item] || 0) + n;
+    const pen = fm.pens[i], loot = pen.a ? F.penLoot(pen) : [];
+    if (!loot.length) return 0;
+    for (const [item, n] of loot) fm.basket[item] = (fm.basket[item] || 0) + n;
     pen.ready = 0;
-    return n;
+    pen.rare = 0;
+    return U.sum(loot.map((x) => x[1]));
   };
   F.feed = (fm, i) => {
     const pen = fm.pens[i], eat = F.penEat(pen);
@@ -460,9 +496,10 @@
       if (w.g >= r.days) { w.ready = (w.ready || 0) + 1; w.out = r.out; w.r = null; w.g = 0; news.cooked.push(r.out); }
     }
     const tr = fm.treasure || {};
-    if (tr.fairy) { // the Feed Fairy feeds one hungry pen, for free
-      const p = fm.pens.find((x) => x.a && !x.fed);
-      if (p) { p.fed = true; news.fairy = p.a; }
+    if (tr.fairy) { // the Feed Fairy feeds hungry pens, for free
+      const fed = fm.pens.filter((x) => x.a && !x.fed).slice(0, F.TREASURES.fairy.feeds);
+      fed.forEach((p) => (p.fed = true));
+      if (fed.length) news.fairy = fed.map((p) => p.a);
     }
     fm.beds.forEach((b) => {
       if (!b.c || F.cropStage(b) === 'ready') return;
@@ -473,7 +510,15 @@
       if (!p.a) return;
       if (!p.fed) { news.hungry.push(p.a); return; }
       const before = F.animalStage(p);
-      if (before === 2) { const a = F.ANIMALS[p.a], k = F.penMakes(p); p.ready = Math.min(30, (p.ready || 0) + k); news.made.push([a.item, k]); }
+      if (before === 2) {
+        const a = F.ANIMALS[p.a], k = F.penMakes(p);
+        if (F.mythOn(fm, p.a)) { // a Mythic Feed week: the rare thing instead of the usual one
+          const it = F.MYTHS[p.a].item;
+          p.rare = Math.min(30, (p.rare || 0) + k);
+          news.made.push([it, k]);
+          fm.charms.myth.gain += k * (F.price(it, grade) - F.price(a.item, grade));
+        } else { p.ready = Math.min(30, (p.ready || 0) + k); news.made.push([a.item, k]); }
+      }
       p.g++;
       if (F.animalStage(p) > before) news.grew.push([p.a, F.animalStage(p)]);
       p.fed = false;
@@ -484,6 +529,7 @@
     }
     news.built = F.buildOvernight(fm);
     fm.day++;
+    news.charmEnd = F.charmsMorning(fm, grade);
     if (tr.goose) { const x = F.TREASURES.goose.gold[gi(grade)]; fm.money += x; fm.stats.earned += x; news.gold = x; }
     if (tr.sheep) { fm.basket.rainbow = (fm.basket.rainbow || 0) + 1; news.rainbow = 1; }
     news.merchant = F.merchantMorning(fm, grade);
@@ -655,27 +701,31 @@
     if (!F.isBankDay(fm.day) || fm.bank.pend.length >= F.BANK_MISSED) return false; // at most 4 bank days wait
     // what will be in the bank once the bank days still waiting are paid (each earns on the one before)
     let bal = fm.bank.bal;
-    for (const x of fm.bank.pend) { if (!x.paid) bal += F.interest(bal, grade, fm.bank.acct); bal += F.incomeOf(x); }
+    for (const x of fm.bank.pend) { if (!x.paid) bal += F.interest(bal, grade, fm.bank.acct) * (x.piggy ? 2 : 1); bal += F.incomeOf(x); }
     const inc = F.dreamIncome(fm, grade);
     if (!bal && !inc.length) return false;
-    fm.bank.pend.push(inc.length ? { day: fm.day, bal, inc } : { day: fm.day, bal });
+    const p = inc.length ? { day: fm.day, bal, inc } : { day: fm.day, bal };
+    if (fm.charms && fm.charms.piggy) { p.piggy = { cost: fm.charms.piggy.cost }; delete fm.charms.piggy; } // the Golden Piggy doubles this one
+    fm.bank.pend.push(p);
     return true;
   };
   F.bankDue = (fm) => fm.bank.pend.length;
   F.incomeOf = (p) => U.sum((p.inc || []).map((x) => x[2]));
-  // Pay the interest of the oldest bank day waiting. Returns { day, bal, x }. A bank day with buildings' income waits
-  // for F.payIncome after its interest (paid: true).
+  // Pay the interest of the oldest bank day waiting. Returns { day, bal, x, bonus, cost }: with the merchant's Golden
+  // Piggy the bank pays it twice (bonus: the second time; cost: what the piggy cost). A bank day with buildings' income
+  // waits for F.payIncome after its interest (paid: true).
   F.payInterest = (fm, grade) => {
     const p = fm.bank.pend[0];
     if (!p || p.paid) return null;
-    const x = F.interest(p.bal, grade, fm.bank.acct);
-    fm.bank.bal += x;
-    fm.stats.interest += x;
+    const x = F.interest(p.bal, grade, fm.bank.acct), bonus = p.piggy ? x : 0;
+    fm.bank.bal += x + bonus;
+    fm.stats.interest += x + bonus;
     fm.stats.bankDays++;
     bankLog(fm, 'interest', x, p.day);
+    if (p.piggy) { bankLog(fm, 'piggy', bonus, p.day); F.charmDone(fm, { cost: p.piggy.cost, gain: bonus }, grade); }
     if (p.inc && p.inc.length) p.paid = true;
     else fm.bank.pend.shift();
-    return { day: p.day, bal: p.bal, x };
+    return p.piggy ? { day: p.day, bal: p.bal, x, bonus, cost: p.piggy.cost } : { day: p.day, bal: p.bal, x };
   };
   // What the buildings earned on that bank day goes into the bank. Returns { day, x, inc }.
   F.payIncome = (fm) => {
@@ -814,41 +864,142 @@
 
   // ---------------------------------------------------------------- the traveling merchant
   // Uncle Marco comes every 3rd bank week and stays its 7 farm days (so a bank day falls in his visit, and the child
-  // can take savings out of the bank in time). He brings one rare treasure the shop never has, priced at about one
-  // bank week of what a good farm makes at its level, so it takes some saving and planning. If it isn't bought, he
-  // leaves and comes back later; he brings every treasure in turn, until all of them are on the farm. He starts
-  // coming once the first Big Dream stage is built (so the new things come one at a time).
-  F.MERCHANT = { e: '🧔', name: 'Uncle Marco', every: 3 };
+  // can take savings out of the bank in time). He starts coming once the first Big Dream stage is built (so the new
+  // things come one at a time), and then keeps coming. Every visit he brings two week charms: magic that works for 7
+  // farm days, each visit a different pair, priced at about a third of what it brings a good farm (so it pays for
+  // itself about three times over when it is used well). Every 2nd visit he also brings a rare treasure that stays on
+  // the farm for good: expensive (3 to 5 bank weeks of what a good farm makes at its level), so it takes real saving.
+  // If it isn't bought, he brings the same treasure again on his next treasure visit.
+  F.MERCHANT = { e: '🧔', name: 'Uncle Marco', every: 3, rare: 2 };
   F.TREASURES = {
-    goose: { e: '🪿', name: 'Golden Goose', lv: 10, cost: [60, 6000], gold: [2, 150], note: (fmt) => `Lays a golden egg every morning: +${fmt(F.TREASURES.goose.gold[1])} into your wallet. No feed needed.`, noteK: (fmt) => `Lays a golden egg every morning: +${fmt(F.TREASURES.goose.gold[0])} into your wallet. No feed needed.` },
-    can: { e: '🪣', name: 'Magic Watering Can', lv: 10, cost: [80, 7000], note: () => 'Every garden bed gives 1 more crop at every harvest.' },
-    musician: { e: '🎻', name: 'Street Musician', lv: 12, cost: [50, 6000], note: () => 'Plays music at your stand: customers tip 5% more for right answers, on any stand.' },
-    fairy: { e: '🧚', name: 'Feed Fairy', lv: 14, cost: [45, 8000], note: () => 'Every night she feeds one hungry pen for free.' },
-    sheep: { e: '🐑', name: 'Rainbow Sheep', lv: 16, cost: [99, 12000], note: () => 'Gives a ball of rainbow wool every morning, to sell at your stand. No feed needed.' },
+    goose: { e: '🪿', name: 'Golden Goose', lv: 10, cost: [95, 20000], gold: [3, 250], note: (fmt) => `Lays a golden egg every morning: +${fmt(F.TREASURES.goose.gold[1])} into your wallet. No feed needed.`, noteK: (fmt) => `Lays a golden egg every morning: +${fmt(F.TREASURES.goose.gold[0])} into your wallet. No feed needed.` },
+    can: { e: '🪣', name: 'Magic Watering Can', lv: 12, cost: [95, 25000], note: () => 'Every garden bed gives 1 more crop at every harvest.' },
+    musician: { e: '🎻', name: 'Street Musician', lv: 12, cost: [90, 20000], tip: 0.1, note: () => 'Plays music at your stand: customers tip 10% more for right answers, on any stand.' },
+    fairy: { e: '🧚', name: 'Feed Fairy', lv: 14, cost: [90, 25000], feeds: 2, note: () => 'Every night she feeds two hungry pens for free.' },
+    sheep: { e: '🐑', name: 'Rainbow Sheep', lv: 16, cost: [99, 35000], note: () => 'Gives a ball of rainbow wool every morning, to sell at your stand. No feed needed.' },
   };
   F.treasureNote = (id, grade, fmt) => { const t = F.TREASURES[id]; return (grade === 'k' && t.noteK ? t.noteK : t.note)(fmt); };
+  // Week charms. myth: the animals of one kind become mythic (F.MYTHS); clover: bigger tips; sun: double harvests;
+  // piggy: the next bank day pays double interest.
+  F.CHARM_NIGHTS = 7;
+  F.CHARMS = {
+    myth: { e: '🌟', name: 'Mythic Feed' },
+    clover: { e: '🍀', name: 'Lucky Clover', tip: 0.2 },
+    sun: { e: '☀️', name: 'Sunshine Potion' },
+    piggy: { e: '🐷', name: 'Golden Piggy' },
+  };
+  F.CHARM_PAIRS = [['myth', 'clover'], ['sun', 'piggy'], ['myth', 'sun'], ['clover', 'piggy'], ['myth', 'piggy'], ['sun', 'clover']];
+  F.charmName = (id, a) => (id === 'myth' && a ? `Mythic Feed for ${F.MYTHS[a].of}` : F.CHARMS[id].name);
+  F.charmNote = (id, grade, fmt, a) => {
+    const N = F.CHARM_NIGHTS;
+    if (id === 'myth') {
+      const M = F.MYTHS[a], it = F.ITEMS[M.item], was = F.ITEMS[F.ANIMALS[a].item];
+      return `For ${N} nights your ${M.of} become ${M.many}! They make ${it.many} instead of ${was.many}: ${fmt(F.price(M.item, grade))} each, not ${fmt(F.price(F.ANIMALS[a].item, grade))}. Feed them every day!`;
+    }
+    if (id === 'clover') return `For ${N} days customers tip ${Math.round(F.CHARMS.clover.tip * 100)}% more for first-try right answers, on any stand.`;
+    if (id === 'sun') return `For ${N} days every harvest gives twice as many crops.`;
+    return 'On the next bank day the bank pays your interest twice!';
+  };
+  // What a good farm at level L makes in a farm day, in cents: crops (the best crop in every open bed, with half the
+  // bed upgrades), animals (the best animals in the open pens, with room for more), total.
+  F.goodDay = (L, grade) => {
+    const g = gi(grade), beds = F.BEDS.filter((b) => b[0] <= L).length, pens = F.PENS.filter((p) => p[0] <= L).length;
+    const bed = { u: Math.floor(F.BED_UP.filter((u) => u.lv <= L).length / 2) };
+    let best = 0;
+    for (const [id, c] of Object.entries(F.CROPS)) if (c.lv <= L) { bed.c = id; best = Math.max(best, (F.cropYield(bed) * F.price(id, grade) - c.seed[g]) / F.cropDays(bed)); }
+    const room = 1 + F.PEN_UP.filter((x, i) => i < 2 && x.lv <= L).length;
+    const animals = U.sum(Object.values(F.ANIMALS).filter((a) => a.lv <= L).map((a) => (a.per * F.price(a.item, grade) - a.eat * F.FEED.price[g]) * room).sort((a, b) => b - a).slice(0, pens));
+    return { crops: beds * best, animals, total: beds * best + animals };
+  };
+  // What a charm brings in its week (cents): Mythic Feed from this farm's pens of kind a; Lucky Clover and the
+  // Sunshine Potion on a good farm at this level; the Golden Piggy at most (the big interest on a full account).
+  F.charmGain = (id, fm, grade, a) => {
+    const N = F.CHARM_NIGHTS, d = F.goodDay(F.level(fm.xp).level, grade);
+    if (id === 'myth') return N * (F.price(F.MYTHS[a].item, grade) - F.price(F.ANIMALS[a].item, grade)) * U.sum(fm.pens.filter((p) => p.a === a).map(F.penMakes));
+    if (id === 'clover') return Math.round(N * d.total * F.CHARMS.clover.tip);
+    if (id === 'sun') return Math.round(N * d.crops);
+    const top = F.bankTop(fm.bank.acct, grade);
+    return F.interest(top, grade, fm.bank.acct);
+  };
+  // about a third of what it brings: whole dollars (kindergarten: 5¢ steps, paid with coins, at most 95¢)
+  F.charmCost = (id, fm, grade, a) => {
+    const x = F.charmGain(id, fm, grade, a) / 3;
+    return grade === 'k' ? Math.max(5, Math.min(95, Math.round(x / 5) * 5)) : Math.max(100, Math.round(x / 100) * 100);
+  };
+  F.charmOn = (fm, id) => { const c = fm.charms && fm.charms[id]; return !!c && (id === 'piggy' || fm.day < c.until); };
+  F.mythOn = (fm, a) => F.charmOn(fm, 'myth') && fm.charms.myth.a === a;
+  // what a charm has brought so far (the Sunshine Potion counts the extra crops at their price)
+  F.charmGot = (c, grade) => (c.gain || 0) + U.sum(Object.entries(c.extra || {}).map(([id, n]) => n * F.price(id, grade)));
+  F.charmDone = (fm, c, grade) => {
+    const got = F.charmGot(c, grade);
+    fm.stats.charmGain += got;
+    if (got > c.cost) fm.stats.charmWins++;
+    return got;
+  };
+  // The morning a charm's week is over it stops. Returns what it brought, for the morning card: [{ id, a, cost, got }].
+  F.charmsMorning = (fm, grade) => {
+    const out = [];
+    for (const id of Object.keys(fm.charms || {})) {
+      const c = fm.charms[id];
+      if (id === 'piggy' || fm.day < c.until) continue;
+      delete fm.charms[id];
+      out.push({ id, a: c.a, cost: c.cost, got: F.charmDone(fm, c, grade) });
+    }
+    return out;
+  };
   F.bankWeekNo = (day) => Math.ceil(day / F.BANK_WEEK);
   F.merchantOn = (fm) => !!fm.dream && (fm.dream.p > 0 || fm.dream.s > 0) && F.dreamOpen(fm);
-  // the treasure he has today (null when he isn't here, or it was bought)
-  F.merchantNow = (fm) => {
-    const m = fm.merchant;
-    return m && m.week === F.bankWeekNo(fm.day) && !(fm.treasure || {})[m.item] ? m.item : null;
-  };
+  // his visit, while he is here (null when he isn't)
+  F.merchantHere = (fm) => { const m = fm.merchant; return m && m.week === F.bankWeekNo(fm.day) ? m : null; };
+  // what he still has for sale on a visit: { item: the rare treasure or null, charms: [ids] }
+  const wares = (fm, m) => ({ item: m.item && !(fm.treasure || {})[m.item] ? m.item : null, charms: (m.charms || []).filter((c) => !(m.got || {})[c]) });
+  F.merchantWares = (fm) => { const m = F.merchantHere(fm); return m ? wares(fm, m) : { item: null, charms: [] }; };
+  // the rare treasure he has for sale today (null when he isn't here, it isn't a treasure visit, or it was bought)
+  F.merchantNow = (fm) => F.merchantWares(fm).item;
+  F.merchantHas = (fm) => { const w = F.merchantWares(fm); return !!w.item || w.charms.length > 0; };
   F.merchantNights = (day) => F.bankWeekNo(day) * F.BANK_WEEK - day; // nights left (0: he leaves tonight)
-  // Each morning: he arrives on the first morning of his bank week, says goodbye on his last day, and is gone after.
-  // Returns ['came' | 'last' | 'left', treasure] for the morning card, or null.
+  // The rare treasure he brings: the one the child is saving for, or else the first one not bought yet that fits the
+  // farm level (null: none left).
+  F.nextTreasure = (fm) => {
+    const L = F.level(fm.xp).level, ok = (t) => !!F.TREASURES[t] && !(fm.treasure || {})[t] && F.TREASURES[t].lv <= L;
+    const goal = (fm.goal || '').startsWith('treasure:') ? fm.goal.slice(9) : '';
+    return ok(goal) ? goal : Object.keys(F.TREASURES).find(ok) || null;
+  };
+  // A new visit (number n, in bank week w): the treasure on every 2nd visit, two charms, their prices for this farm.
+  // Mythic Feed is for a kind of animal on the farm (grown-ups first), a different kind each time.
+  F.merchantVisit = (fm, grade, w, n) => {
+    const item = n % F.MERCHANT.rare === 1 ? F.nextTreasure(fm) : null;
+    const has = Object.keys(F.MYTHS).filter((a) => fm.pens.some((p) => p.a === a));
+    const grown = has.filter((a) => fm.pens.some((p) => p.a === a && F.animalStage(p) === 2));
+    const kinds = (grown.length ? grown : has).sort((x, y) => F.charmGain('myth', fm, grade, y) - F.charmGain('myth', fm, grade, x));
+    const a = kinds.length ? kinds[Math.floor(n / 2) % kinds.length] : null;
+    let charms = F.CHARM_PAIRS[(n - 1) % F.CHARM_PAIRS.length];
+    if (!a) charms = charms.map((c) => (c === 'myth' ? ['sun', 'clover', 'piggy'].find((x) => !charms.includes(x)) : c));
+    const cost = {};
+    for (const c of charms) cost[c] = F.charmCost(c, fm, grade, a);
+    return { week: w, n, item, charms, a: charms.includes('myth') ? a : null, cost, got: {} };
+  };
+  // Each morning: he arrives on the first morning of his bank week, says goodbye on his last day (if something is
+  // still for sale), and the morning after he left. Returns ['came' | 'last' | 'left', visit] for the morning card, or null.
   F.merchantMorning = (fm, grade) => {
     const w = F.bankWeekNo(fm.day), m = fm.merchant;
     if (w % F.MERCHANT.every === 0 && F.merchantOn(fm) && (!m || m.week !== w)) {
-      const L = F.level(fm.xp).level, left = Object.keys(F.TREASURES).filter((t) => !fm.treasure[t] && F.TREASURES[t].lv <= L);
-      if (!left.length) return null;
-      fm.merchant = { week: w, item: left[(w / F.MERCHANT.every) % left.length] };
-      return ['came', fm.merchant.item];
+      fm.merchant = F.merchantVisit(fm, grade, w, (m ? m.n || 1 : 0) + 1);
+      return ['came', fm.merchant];
     }
-    if (!m || fm.treasure[m.item]) return null;
-    if (m.week === w && F.merchantNights(fm.day) === 0) return ['last', m.item];
-    if (m.week === w - 1 && F.isBankDay(fm.day - 1)) return ['left', m.item];
+    if (!m) return null;
+    const left = wares(fm, m);
+    if (!left.item && !left.charms.length) return null;
+    if (m.week === w && F.merchantNights(fm.day) === 0) return ['last', m];
+    if (m.week === w - 1 && F.isBankDay(fm.day - 1)) return ['left', m];
     return null;
+  };
+  // The farm day he comes next (with a treasure: on his next treasure visit), counting from today.
+  F.merchantNext = (fm, rare = false) => {
+    const E = F.MERCHANT.every, m = fm.merchant;
+    let w = (Math.floor(F.bankWeekNo(fm.day) / E) + 1) * E, n = (m ? m.n || 1 : 0) + 1;
+    if (rare) while (n % F.MERCHANT.rare !== 1) { w += E; n++; }
+    return (w - 1) * F.BANK_WEEK + 1;
   };
   F.buyTreasure = (fm, grade) => {
     const id = F.merchantNow(fm), t = id && F.TREASURES[id], cost = t && t.cost[gi(grade)];
@@ -856,8 +1007,28 @@
     fm.money -= cost;
     fm.stats.spent += cost;
     fm.treasure[id] = true;
+    if (fm.goal === 'treasure:' + id) fm.goal = '';
     return Object.assign({ id, cost }, t);
   };
+  // Buy a week charm: it starts working now, for 7 farm days (the Golden Piggy: on the next bank day, or on today's
+  // if today is bank day and its interest isn't collected yet). Returns { id, cost, … } or null.
+  F.buyCharm = (fm, grade, id) => {
+    const m = F.merchantHere(fm), cost = m && m.cost && m.cost[id];
+    if (!m || !F.merchantWares(fm).charms.includes(id) || !(cost > 0) || fm.money < cost) return null;
+    fm.money -= cost;
+    fm.stats.spent += cost;
+    fm.stats.charms++;
+    fm.stats.charmCost += cost;
+    m.got = Object.assign({}, m.got, { [id]: true });
+    if (id === 'piggy') {
+      const today = fm.bank.pend.find((p) => p.day === fm.day && !p.paid);
+      if (today && !today.piggy) today.piggy = { cost };
+      else fm.charms.piggy = { cost };
+    } else fm.charms[id] = Object.assign({ cost, until: fm.day + F.CHARM_NIGHTS, gain: 0 }, id === 'myth' ? { a: m.a } : {});
+    return Object.assign({ id, cost, a: id === 'myth' ? m.a : null }, F.CHARMS[id]);
+  };
+  // Is the Golden Piggy waiting for a bank day (bought, interest not paid yet)?
+  F.piggyWaiting = (fm) => !!(fm.charms && fm.charms.piggy) || fm.bank.pend.some((p) => p.piggy);
   // How much to put aside each day to buy it before he leaves: today and every day left, in whole dollars (k: cents).
   F.perDayToSave = (need, nights, grade) => { const days = nights + 1, x = Math.ceil(need / days); return grade === 'k' ? x : Math.ceil(x / 100) * 100; };
 
@@ -878,17 +1049,26 @@
       bank: { bal: k ? 1234 : 12345, acct: 1, log: [], pend: [{ day: 14, bal: k ? 1234 : 12345 }] }, // above the Silver limit: both rates
       dream: { p: 2, s: 2, b: false, seen: true }, // the orchard and the cottage built, the railway half done
       treasure: { goose: true, can: true, musician: true }, // three of the merchant's treasures
-      merchant: { week: 2, item: 'sheep' }, // and he is visiting (farm day 14 is the last day of bank week 2)
       dep: k ? { ok: false, amt: 0, until: 0 } : { ok: true, amt: 2000, until: 28 }, // and a locked deposit (2nd grade)
     });
     Object.assign(fm.stats, k ? { saved: 1100, tookOut: 100, interest: 234, bankDays: 9 } : { saved: 11000, tookOut: 1000, interest: 2345, bankDays: 9 }); // adds up to the bank above
+    // the merchant is visiting (farm day 14 is the last day of bank week 2) with a treasure and two charms; two charms work
+    fm.merchant = F.merchantVisit(fm, g, 2, 3);
+    fm.charms = { clover: { cost: k ? 30 : 900, until: 18, gain: k ? 12 : 640 }, myth: { a: 'cow', cost: k ? 60 : 2400, until: 17, gain: k ? 33 : 1750 } };
+    fm.pens[1].rare = 2;
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
     for (const id of Object.keys(F.DECOR)) fm.owned[id] = true;
     Object.keys(F.WORKS).forEach((id, i) => { fm.works[id] = i % 2 ? { r: null, g: 0, ready: 1, out: F.WORKS[id].recipes[0].out } : { r: null, g: 0, ready: 0, out: '' }; });
     return fm;
   };
 
-  F.goalItem = (fm, grade) => (fm.goal ? F.shopItem(fm, grade, fm.goal) : null);
+  // The saving goal: something in the shop, or a rare treasure from the merchant ('treasure:goose').
+  F.goalItem = (fm, grade) => {
+    if (!fm.goal) return null;
+    if (!fm.goal.startsWith('treasure:')) return F.shopItem(fm, grade, fm.goal);
+    const id = fm.goal.slice(9), t = F.TREASURES[id];
+    return t && !(fm.treasure || {})[id] ? { id: fm.goal, e: t.e, name: t.name, price: t.cost[gi(grade)], lv: t.lv, treasure: id } : null;
+  };
 
   // ---------------------------------------------------------------- XP
   // Returns the levels reached (empty when none), after paying each level's gift.
@@ -921,7 +1101,7 @@
   F.PEOPLE = [['🐻', 'Bruno'], ['🐰', 'Hazel'], ['🦊', 'Felix'], ['🐼', 'Mei'], ['🦉', 'Olive'], ['🐸', 'Ribbit'], ['🐨', 'Kip'], ['🐯', 'Tess'], ['🐹', 'Peanut'], ['🦔', 'Spike'], ['🐧', 'Pablo'], ['🦝', 'Rocky'], ['🐿️', 'Nutmeg'], ['🦌', 'Fern'], ['🐭', 'Pip'], ['🦫', 'Bucky']];
   F.VIPS = [['🦁', 'Mayor Leo'], ['🦄', 'Princess Luna'], ['🐘', 'Chef Ellie'], ['🦒', 'Professor Gigi'], ['🐳', 'Captain Blue']];
   const plural = (id, n) => (n === 1 ? F.ITEMS[id].name : F.ITEMS[id].many);
-  const things = (id, n) => `${n} ${F.ITEMS[id].e} ${plural(id, n)}`;
+  const things = (id, n) => `${n} ${F.ie(id)} ${plural(id, n)}`;
   // Choices for an amount of money: the answer and near misses (a coin off, a dime off, a dollar off).
   // traps: wrong answers a child is likely to give (tried first), then amounts near the answer
   F.moneyChoices = (ans, grade, traps = []) => {
@@ -937,8 +1117,8 @@
     const choices = F.moneyChoices(ans, grade);
     return Object.assign(p, { kind: 'choice', answer: F.fmt(ans, grade), choices });
   }
-  const tag = (id, grade) => `<span class="ftag">${F.ITEMS[id].e} ${F.fmt(F.price(id, grade), grade)}</span>`;
-  const row = (id, n) => `<div class="frow" aria-hidden="true">${Array(Math.min(n, 12)).fill(F.ITEMS[id].e).join('')}</div>`;
+  const tag = (id, grade) => `<span class="ftag">${F.ie(id)} ${F.fmt(F.price(id, grade), grade)}</span>`;
+  const row = (id, n) => `<div class="frow" aria-hidden="true">${Array(Math.min(n, 12)).fill(F.ie(id)).join('')}</div>`;
 
   // One problem. ctx: { grade, tier (object), stock: { item: count } }. Returns null when the stock can't make it.
   // Every problem has: kind (num | choice | coins), text, answer, hint, explain, sale { item: count } and total (cents
@@ -1005,7 +1185,11 @@
       return { type, kind: 'choice', choices: ['Yes, enough', 'No, not enough'], answer: yes ? 'Yes, enough' : 'No, not enough', text: `wants <b>${things(id, q)}</b> for <b>${fmt(T)}</b>. These coins are in their pocket. Do they have enough?`, visual: MQ.V.coins(coins, true), hint: `Count the coins, then compare with ${fmt(T)}.`, explain: `The coins make ${fmt(H)}. ${fmt(H)} is ${H > T ? 'more than' : H === T ? 'the same as' : 'less than'} ${fmt(T)}, so ${yes ? 'yes, it is enough' : 'it is not enough'}.`, sale: { [id]: q }, total: T, noPay: !yes };
     }
     if (type === 'two' || type === 'budget') {
-      const two = U.shuffle(items).filter((id) => P(id) < tier.max).slice(0, type === 'budget' && tier.pay.length > 1 && items.length > 2 ? 3 : 2);
+      let two = U.shuffle(items).filter((id) => P(id) < tier.max).slice(0, type === 'budget' && tier.pay.length > 1 && items.length > 2 ? 3 : 2);
+      if (type === 'two' && two.length === 2 && P(two[0]) + P(two[1]) > tier.max) { // a second thing that fits the money with the first
+        const fit = U.shuffle(items).find((id) => id !== two[0] && P(two[0]) + P(id) <= tier.max);
+        if (fit) two = [two[0], fit];
+      }
       if (two.length < 2) return null;
       const T = U.sum(two.map(P));
       const list = two.map((id) => `${F.ITEMS[id].e} ${F.ITEMS[id].name} (${fmt(P(id))})`).join(' and ');
@@ -1159,9 +1343,9 @@
     return stock;
   };
   F.wage = (tier, grade) => (grade === 'k' ? (tier >= 3 ? 2 : 1) : 5 * tier);
-  // a nicer stand tips more; the merchant's Street Musician adds 5% on any stand
-  F.tipRate = (fm) => F.STANDS[fm.stand].tip + (fm.treasure && fm.treasure.musician ? 0.05 : 0);
-  F.tip = (fm, total) => (F.tipRate(fm) ? Math.max(1, Math.round(total * F.tipRate(fm))) : 0);
+  // a nicer stand tips more; the merchant's Street Musician adds 10% on any stand, his Lucky Clover 20% for a week
+  F.tipRate = (fm, clover = true) => F.STANDS[fm.stand].tip + (fm.treasure && fm.treasure.musician ? F.TREASURES.musician.tip : 0) + (clover && F.charmOn(fm, 'clover') ? F.CHARMS.clover.tip : 0);
+  F.tip = (fm, total, clover = true) => { const r = F.tipRate(fm, clover); return r ? Math.max(1, Math.round(total * r)) : 0; };
   F.VIP_TIP = (grade, total) => Math.max(grade === 'k' ? 2 : 10, Math.round(total * 0.5));
 
   // Is this answer right? (coins: the picked coins make the target exactly)
@@ -1176,6 +1360,7 @@
       for (const [id, n] of Object.entries(p.sale)) { fm.basket[id] = Math.max(0, (fm.basket[id] || 0) - n); if (!fm.basket[id]) delete fm.basket[id]; fm.stats.sold += n; }
       res.paid = p.total;
       if (firstTry) res.tip = p.vip ? F.VIP_TIP(grade, p.total) : p.truck ? 0 : F.tip(fm, p.total); // wholesale: no tip
+      if (firstTry && !p.vip && !p.truck && F.charmOn(fm, 'clover')) { res.clover = res.tip - F.tip(fm, p.total, false); fm.charms.clover.gain += res.clover; } // what the Lucky Clover added
     }
     fm.money += res.paid + res.tip;
     fm.stats.earned += res.paid + res.tip;

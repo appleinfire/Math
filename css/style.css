@@ -1293,6 +1293,68 @@ svg.tart { display: block; width: 100%; height: auto; }
 @keyframes fairyfly { 25% { transform: translate(-18px, -10px); } 50% { transform: translate(8px, -16px); } 75% { transform: translate(16px, -4px); } }
 .trs.wagon { right: 4px; left: auto; width: 84px; pointer-events: auto; border: 0; padding: 0; background: none; animation: none; filter: drop-shadow(0 0 8px rgba(157, 123, 255, 0.8)); }
 @media (prefers-reduced-motion: reduce) { .fmerchant, .fm-gem, .tpic { animation: none; } }
+/* week charms: the merchant's modal, the charms working now, the end-of-week report */
+.mhead { display: flex; align-items: center; gap: 10px; text-align: left; margin-bottom: 4px; }
+.mhead .mtitle { display: block; margin: 0; }
+.mh-wagon { flex: none; width: 64px; filter: drop-shadow(0 0 8px rgba(157, 123, 255, 0.7)); }
+.mh3 { margin: 10px 0 0; font-family: var(--display); font-weight: 600; font-size: 1.15rem; }
+p.small { font-size: 0.85rem; margin: 2px 0 8px; }
+.mcharms { display: grid; gap: 10px; margin-bottom: 12px; }
+.mcharm, .mcend { position: relative; display: grid; grid-template-columns: 76px 1fr; gap: 4px 10px; align-items: center; padding: 10px; border-radius: 16px; text-align: left;
+  background: linear-gradient(130deg, #f6efff, #fff4d6); box-shadow: inset 0 0 0 3px #9d7bff, 0 0 14px rgba(157, 123, 255, 0.35); }
+.mcharm.c-clover, .mcend.c-clover { background: linear-gradient(130deg, #e8ffd6, #fffbe0); box-shadow: inset 0 0 0 3px #5fbf3a, 0 0 14px rgba(126, 217, 87, 0.45); }
+.mcharm.c-sun, .mcend.c-sun { background: linear-gradient(130deg, #fff6c4, #ffe3b0); box-shadow: inset 0 0 0 3px #f5b521, 0 0 14px rgba(255, 210, 63, 0.55); }
+.mcharm.c-piggy, .mcend.c-piggy { background: linear-gradient(130deg, #fff1c7, #ffe0ec); box-shadow: inset 0 0 0 3px #e0a21b, 0 0 14px rgba(255, 143, 179, 0.45); }
+.mcharm.c-myth, .mcend.c-myth { background: linear-gradient(130deg, #f1e4ff, #ffe0f4, #fff4d6); box-shadow: inset 0 0 0 3px #b48cf2, 0 0 18px rgba(255, 143, 224, 0.55); animation: mythglow 2.6s ease-in-out infinite; }
+@keyframes mythglow { 50% { box-shadow: inset 0 0 0 3px #ffd23f, 0 0 22px rgba(157, 123, 255, 0.6); } }
+.mcharm.got { opacity: 0.75; }
+.mc-pic { grid-row: span 2; width: 76px; animation: floaty 3s ease-in-out infinite; }
+.mc-t > b { display: block; font-size: 1rem; }
+.mc-t small { display: block; color: var(--ink); font-size: 0.86rem; line-height: 1.3; }
+.mc-help { margin: 6px 0 0; font-size: 0.82rem; color: var(--ink-soft); line-height: 1.3; }
+.mc-buy { grid-column: 2; justify-self: start; }
+.mcend { margin: 10px 0 0; }
+.mcend .btn { grid-column: 2; justify-self: start; }
+.mrare-next { padding: 8px 10px; border-radius: 12px; background: linear-gradient(90deg, #fffbe6, #f6efff); box-shadow: inset 0 0 0 2px #e3a21a; font-size: 0.9rem; }
+.mrare-next .btn { margin-top: 6px; }
+.fcharms { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.fcharm { display: flex; align-items: center; gap: 6px; flex: 1 1 150px; min-width: 0; border: 0; padding: 4px 10px 4px 4px; border-radius: 999px; text-align: left; color: var(--ink);
+  background: linear-gradient(120deg, #f6efff, #fff4d6); box-shadow: inset 0 0 0 2px #9d7bff, 0 3px 0 #5a2fb0; }
+.fcharm.c-clover { background: linear-gradient(120deg, #e8ffd6, #fffbe0); box-shadow: inset 0 0 0 2px #5fbf3a, 0 3px 0 #2f7a1f; }
+.fcharm.c-sun { background: linear-gradient(120deg, #fff6c4, #ffe3b0); box-shadow: inset 0 0 0 2px #f5b521, 0 3px 0 #a8650a; }
+.fcharm.c-piggy { background: linear-gradient(120deg, #fff1c7, #ffe0ec); box-shadow: inset 0 0 0 2px #e0a21b, 0 3px 0 #a8650a; }
+.fcharm.c-myth { background: linear-gradient(120deg, #f1e4ff, #ffe0f4); box-shadow: inset 0 0 0 2px #b48cf2, 0 3px 0 #7a3fd1, 0 0 12px rgba(255, 143, 224, 0.6); }
+.fc-pic { flex: none; width: 40px; }
+.fc-t { min-width: 0; line-height: 1.15; }
+.fc-t b { display: block; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fc-t small { color: var(--ink-soft); font-size: 0.76rem; font-weight: 800; }
+.bpiggy { margin: 8px 0 0; padding: 6px 10px; border-radius: 10px; background: linear-gradient(90deg, #fff1c7, #ffe0ec); box-shadow: inset 0 0 0 2px #e0a21b; }
+.fgoal.rare { background: linear-gradient(120deg, #f6efff, #fff4d6); box-shadow: inset 0 0 0 3px #9d7bff, 0 4px 0 #5a2fb0; }
+/* a Mythic Feed week in a pen: glowing mythic animals, a shimmering fence, a nights-left tag */
+.fpen.pasture.myth { background: radial-gradient(circle at 50% 20%, #fdf3ff, #c9ecb0 70%, #a6dc80); box-shadow: inset 0 0 0 4px #b48cf2, inset 0 0 0 6px #ffd23f, 0 4px 0 #7a3fd1, 0 0 14px 2px rgba(255, 143, 224, 0.7); animation: penmyth 2.4s ease-in-out infinite; }
+@keyframes penmyth { 50% { box-shadow: inset 0 0 0 4px #ffd23f, inset 0 0 0 6px #9ff0ff, 0 4px 0 #7a3fd1, 0 0 20px 4px rgba(157, 123, 255, 0.7); } }
+.myw svg { display: block; width: 3.6rem; height: 3.6rem; filter: drop-shadow(0 0 4px rgba(255, 236, 150, 0.95)); }
+.s0 .myw svg { width: 2.2rem; height: 2.2rem; }
+.s1 .myw svg { width: 2.7rem; height: 2.7rem; }
+.walker.myw.w1 svg { width: 2.8rem; height: 2.8rem; }
+.mytag { position: absolute; top: 6px; left: 8px; padding: 1px 7px; border-radius: 999px; font-size: 0.74rem; font-weight: 900; color: #3a0d40; background: linear-gradient(90deg, #ffd23f, #ff8fe0); }
+.bee svg.sbee { display: block; width: 1.4rem; height: 1.4rem; filter: drop-shadow(0 0 3px #9ff0ff); }
+/* mythic things: the emoji glows in its color */
+.mye { display: inline-block; font-style: normal; }
+.my-gold { filter: sepia(1) saturate(4.5) hue-rotate(-12deg) brightness(1.08) drop-shadow(0 0 3px #ffd23f); }
+.my-silver { filter: grayscale(1) brightness(1.2) drop-shadow(0 0 3px #7fc8ff); }
+.my-star { filter: saturate(1.4) drop-shadow(0 0 4px #ffe14d); }
+.my-moon { filter: sepia(1) saturate(3) hue-rotate(205deg) drop-shadow(0 0 4px #b9a4ff); }
+.my-crystal { filter: sepia(1) saturate(3) hue-rotate(150deg) brightness(1.1) drop-shadow(0 0 4px #9ff0ff); }
+.my-thunder { filter: sepia(1) saturate(5) hue-rotate(185deg) drop-shadow(0 0 4px #5ec8ff); }
+.my-sky { filter: saturate(1.5) drop-shadow(0 0 4px #ffcf48); }
+.fchip.myth { background: linear-gradient(120deg, #fff6d6, #f6efff); box-shadow: inset 0 0 0 2px #e0a21b; }
+/* a Sunshine Potion week: the beds glow and the sun shines brighter */
+.fbed.sunny { filter: drop-shadow(0 0 7px rgba(255, 196, 40, 0.95)); }
+.fbed.sunny::before { content: '☀️'; position: absolute; top: -4px; left: -2px; font-size: 0.95rem; animation: twinkle 0.9s ease-in-out infinite alternate; }
+.scene.sun-on .sky .sun { filter: drop-shadow(0 0 18px #ffd23f) drop-shadow(0 0 8px #ffffff); }
+.trs.tr-clover { left: 150px; bottom: 6px; width: 36px; filter: drop-shadow(0 0 6px rgba(126, 217, 87, 0.9)); animation-delay: -2s; }
+@media (prefers-reduced-motion: reduce) { .mcharm.c-myth, .mcend.c-myth, .mc-pic, .fpen.pasture.myth, .fbed.sunny::before { animation: none; } }
 
 /* ================= Sunny Farm: the bank's locked deposit (gold) ================= */
 .bk-lock { display: block; margin-top: 2px; font-weight: 800; color: #8a5a08; }
