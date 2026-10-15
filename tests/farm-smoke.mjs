@@ -178,6 +178,7 @@ async function play(grade, tag, viewport) {
     f.day = 14;
     const b0 = MQ.state.grade === 'k' ? 1234 : 6234; // above the Piggy account limit: interest in two parts
     f.bank = { bal: b0, acct: 0, log: [], pend: [{ day: 7, bal: b0 }, { day: 14, bal: b0 + MQ.farm.interest(b0, MQ.state.grade) }] };
+    f.dream.seen = true; // the Big Dreams intro is tested below
     MQ.store.save(); });
   await page.click('[data-act=go][data-arg=farm]');
   await snap('13-bigfarm');
@@ -348,6 +349,50 @@ async function play(grade, tag, viewport) {
   const morning = await page.evaluate(() => document.querySelector('#modal').textContent);
   if (!/Sam was paid/.test(morning)) errors.push(`${tag}: no farmhand in the morning card: ${morning}`);
   await page.click('#modal [data-act=closeModal]');
+
+  // Big Dreams: the intro, paying the builders from the bank (a question), built overnight, its money on bank day
+  {
+    const k = grade === 'k', bal0 = k ? 150 : 3000, cost = k ? 100 : 2500, pay = k ? 12 : 300;
+    await page.evaluate((b) => { const f = MQ.state.farm; f.dream = { p: 0, s: 0, b: false, seen: false }; f.bank.pend = []; f.bank.bal = b; f.day = 20; MQ.store.save(); MQ.app.go('farm'); }, bal0);
+    await page.waitForSelector('#modal [data-act=go][data-arg="farm:dreams"]');
+    await snap('26-dream-intro');
+    await page.click('#modal [data-act=go][data-arg="farm:dreams"]');
+    await page.waitForSelector('.fdreams .dbuild');
+    await snap('27-dreams');
+    await page.click('[data-act=fBuild]');
+    await page.waitForSelector('.fplay #fanswer');
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    const paid = await page.evaluate(() => ({ bal: MQ.state.farm.bank.bal, b: MQ.state.farm.dream.b }));
+    if (paid.bal !== bal0 - cost || !paid.b) errors.push(`${tag}: paying the builders ${JSON.stringify(paid)}`);
+    await page.click('[data-act=fNext]');
+    await page.waitForSelector('.fdreams .dnote.work');
+    await page.click('[data-act=go][data-arg=farm]');
+    await page.waitForSelector('.fdream');
+    await page.click('[data-act=fSleep]');
+    await page.waitForSelector('#modal .dbuilt');
+    await snap('28-dream-built');
+    await page.click('#modal [data-act=closeModal]');
+    if (!(await page.$('.dreamland .dl'))) errors.push(`${tag}: the built orchard is not on the farm`);
+    await page.evaluate(() => { const F = MQ.farm, f = MQ.state.farm; while (!F.bankDue(f)) F.nextDay(f, MQ.state.grade); MQ.store.save(); MQ.app.go('farm:bank'); });
+    await page.waitForSelector('.fbank .fdreamjar');
+    const before = await page.evaluate(() => MQ.state.farm.bank.bal);
+    await page.click('[data-act=fInterest]');
+    let asked = 0, sawIncome = false;
+    while (asked < 4) {
+      await page.waitForSelector('.fplay #fanswer');
+      if (await page.evaluate(() => /buildings/.test(MQ.farmUI.playing().label || ''))) sawIncome = true;
+      await answer(page, true);
+      await page.waitForSelector('.fb.ok');
+      asked++;
+      await page.click('[data-act=fNext]');
+      if (await page.waitForSelector('.fbank', { timeout: 1500 }).then(() => true, () => false)) break;
+    }
+    const got = await page.evaluate(() => ({ bal: MQ.state.farm.bank.bal, inc: MQ.state.farm.stats.dreamIn, due: MQ.farm.bankDue(MQ.state.farm) }));
+    const int = await page.evaluate((b) => MQ.farm.interest(b, MQ.state.grade, MQ.state.farm.bank.acct), before);
+    if (!sawIncome || got.inc !== pay || got.due || got.bal !== before + int + pay) errors.push(`${tag}: bank day with the orchard ${JSON.stringify({ got, before, int, sawIncome })}`);
+    await snap('29-dream-bank');
+  }
 
   // reloading keeps the farm; the home tile shows it
   await page.reload();

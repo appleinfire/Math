@@ -81,6 +81,13 @@
     } else { state = 'idle'; badge = '＋'; label = 'make something'; }
     return `<button class="fwork ${state}" data-act="fWork" data-arg="${id}" title="${esc(W.name)}" aria-label="${esc(W.name)}: ${label}"><span class="wroof"></span><span class="wbig">${W.e}</span>${state === 'busy' ? '<span class="smoke">💨</span>' : ''}<span class="wbadge">${badge}</span></button>`;
   }
+  // The Big Dreams built so far stand behind the farm (tap one to see Big Dreams).
+  function dreamland(fm) {
+    if (!fm.dream || !MQ.dreamArt) return '';
+    const shown = F.DREAMS.map((d, k) => [d, F.dreamBuilt(fm, k), k === fm.dream.p && fm.dream.b]).filter(([, n, b]) => n || b);
+    if (!shown.length) return '';
+    return `<div class="dreamland">${shown.map(([d, n, b]) => `<button class="dl t-${d.id} ${n >= d.stages.length ? 'done' : ''}" data-act="go" data-arg="farm:dreams" aria-label="${esc(d.name)}: ${n} of ${d.stages.length} built">${MQ.dreamArt(d.id, n, { building: b, ghost: false })}</button>`).join('')}</div>`;
+  }
   let fmWorks = {};
   S.farm = (fm, grade) => {
     fmWorks = fm.works || {};
@@ -104,6 +111,7 @@
         <span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>${sky.join('')}
         <div class="hills"></div>${hill}${has('fence') ? '<div class="hfence"></div>' : ''}
       </div>
+      ${dreamland(fm)}
       <div class="land">
         <div class="beds">${fm.beds.map(bedHtml).join('')}${has('scarecrow') ? '<span class="scarecrow" title="Scarecrow">🧑‍🌾</span>' : ''}</div>
         <div class="pens">${fm.pens.map(penHtml).join('')}</div>

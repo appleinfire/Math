@@ -1191,3 +1191,75 @@ svg.nn.design { width: 156px; }
 .fbbar li.want { background: #fff0c2; box-shadow: inset 0 0 0 2px #e0a21b; }
 .fbbar li.out { opacity: 0.55; background: #eef7ee; box-shadow: inset 0 0 0 2px #bfe0c4; }
 .fbbar li.out b { color: var(--good); }
+
+/* ================= Sunny Farm: Big Dreams ================= */
+svg.dart { display: block; width: 100%; height: auto; }
+.fdream { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; border: 0; text-align: left; border-radius: var(--r); padding: 8px 12px 8px 8px; background: linear-gradient(120deg, #f2fbe9, #e3f4ff); box-shadow: inset 0 0 0 3px #7cbf4a, 0 4px 0 #5d9a31; color: var(--ink); }
+.fdream-pic { flex: none; width: 96px; border-radius: 14px; overflow: hidden; background: linear-gradient(#bfe6ff, #e9f7ff); }
+.fdream-t { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.fdream-t b { font-family: var(--display); font-weight: 600; font-size: 1.05rem; }
+.fdream-t small { color: var(--ink-soft); font-weight: 800; }
+.fdream.hot { animation: dreamglow 1.6s ease-in-out infinite; }
+@keyframes dreamglow { 50% { box-shadow: inset 0 0 0 3px #ffb547, 0 4px 0 #e39a22, 0 0 22px rgba(255, 181, 71, 0.75); } }
+.fdream.t-cottage { background: linear-gradient(120deg, #fff4e3, #ffe6e0); box-shadow: inset 0 0 0 3px #e8574a, 0 4px 0 #b8382e; }
+.fdream.t-railway { background: linear-gradient(120deg, #e8f1ff, #fff1e6); box-shadow: inset 0 0 0 3px #4d8cff, 0 4px 0 #1f4fb0; }
+.fdream.t-castle, .dbig.t-castle, .dtab.t-castle.sel, .dbuilt.t-castle { background: radial-gradient(circle at 30% 20%, #fff6d1, #f1e4ff 55%, #e2d4ff); box-shadow: inset 0 0 0 3px #d9a21a, 0 4px 0 #8a5a08, 0 0 24px rgba(255, 196, 40, 0.55); }
+.fdream.t-castle .fdream-t b, .dbig.t-castle h2 { background: linear-gradient(90deg, #8a3fd1, #c97a00); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.fdreamjar { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 12px; border: 0; text-align: left; border-radius: var(--r); padding: 10px 14px; background: #f2fbe9; box-shadow: inset 0 0 0 2px #7cbf4a; color: var(--ink); font-size: 0.95rem; }
+.fdreamjar > span:first-child { font-size: 1.8rem; }
+.fdreamjar small { display: block; color: var(--ink-soft); font-weight: 800; }
+.blog b.dream { color: var(--good); }
+.blog b.build { color: #b8780a; }
+.dreamland { display: flex; justify-content: space-around; gap: 6px; padding: 4px 8px 0; background: linear-gradient(#a6dc7e, #8fd16a); }
+.dreamland .dl { flex: 0 1 132px; min-width: 0; border: 0; padding: 0; background: none; }
+.dreamland .dl.done.t-castle { filter: drop-shadow(0 0 8px rgba(255, 210, 63, 0.9)); }
+/* the Big Dreams screen */
+.fdreams .dpath { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 4px; }
+.dtab { display: flex; flex-direction: column; align-items: center; gap: 2px; border: 0; border-radius: 14px; padding: 6px 4px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); min-width: 0; color: var(--ink); }
+.dtab-pic { width: 100%; border-radius: 10px; overflow: hidden; background: linear-gradient(#bfe6ff, #e9f7ff); }
+.dtab b { font-size: 0.72rem; line-height: 1.1; text-align: center; }
+.dtab small { font-size: 0.68rem; color: var(--ink-soft); font-weight: 800; }
+.dtab.later .dtab-pic { filter: grayscale(0.9) opacity(0.5); }
+.dtab.sel { box-shadow: inset 0 0 0 3px #5d9a31, 0 3px 0 #5d9a31; background: #f2fbe9; }
+.dtab.done small { color: var(--good); }
+.dbig { margin-top: 14px; border-radius: 22px; padding: 10px 12px 14px; background: linear-gradient(160deg, #f2fbe9, #e3f4ff); box-shadow: inset 0 0 0 3px #7cbf4a, 0 5px 0 #5d9a31; text-align: center; }
+.dbig.t-cottage { background: linear-gradient(160deg, #fff4e3, #ffe6e0); box-shadow: inset 0 0 0 3px #e8574a, 0 5px 0 #b8382e; }
+.dbig.t-railway { background: linear-gradient(160deg, #e8f1ff, #fff1e6); box-shadow: inset 0 0 0 3px #4d8cff, 0 5px 0 #1f4fb0; }
+.dbig .dpic { max-width: 440px; margin: 0 auto; position: relative; border-radius: 16px; overflow: hidden; background: linear-gradient(#9fd8ff, #e3f5ff); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.7); }
+.dbig .dpic.later svg { filter: grayscale(0.85) opacity(0.55); }
+.dbig.t-castle .dpic { background: radial-gradient(circle at 50% 30%, #fff6c4, #c9b8ff 70%, #9d7bff); }
+.dbig.done .dpic::after, .dbuilt.done .dpic::after { content: '✨'; position: absolute; top: 6px; right: 10px; font-size: 1.6rem; animation: floaty 2.5s ease-in-out infinite; }
+.dbig h2 { margin: 10px 0 2px; }
+.dstages { list-style: none; margin: 10px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.dstages li { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.75); box-shadow: inset 0 0 0 2px rgba(34, 48, 79, 0.08); }
+.dst-e { font-size: 1.5rem; width: 1.8rem; text-align: center; }
+.dst-t { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.dst-t small { color: var(--ink-soft); font-weight: 700; }
+.dst-p { font-weight: 900; font-variant-numeric: tabular-nums; }
+.dstages li.built { background: #e6f5ea; }
+.dstages li.built .dst-p { color: var(--good); }
+.dstages li.next { box-shadow: inset 0 0 0 3px var(--sun); background: #fff8e6; }
+.dstages li.work { box-shadow: inset 0 0 0 3px #f5b521; background: #fff3cf; }
+.dstages li.later { opacity: 0.6; }
+.dbig.t-castle .dstages li.next { box-shadow: inset 0 0 0 3px #d9a21a, 0 0 12px rgba(255, 196, 40, 0.6); }
+.dnote { margin: 6px 0 0; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.8); font-weight: 800; }
+.dnote.work { background: #fff3cf; }
+.dnote.ok { background: #e6f5ea; color: #1f4f33; }
+.dsave { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.dsave .fbar { width: 100%; }
+.dsave p { margin: 2px 0; }
+.dbuild { width: 100%; background: linear-gradient(90deg, #ff9f2e, #ff6b5b); animation: dreamglow 1.6s ease-in-out infinite; }
+.dlesson { margin-top: 14px; padding: 12px 14px; border-radius: var(--r); background: #fffaf0; box-shadow: inset 0 0 0 2px #f0c35a; }
+.dlesson p { margin: 6px 0 0; }
+.dlesson.castle { background: #f6efff; box-shadow: inset 0 0 0 2px #b48cf2; }
+.dincome ul { list-style: none; padding: 0; margin: 6px 0; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+/* the morning after the builders worked (special: rays, and gold for a finished dream) */
+.dbuilt { position: relative; overflow: hidden; margin: -4px 0 8px; padding: 10px; border-radius: 18px; background: linear-gradient(160deg, #f2fbe9, #e3f4ff); box-shadow: inset 0 0 0 3px #7cbf4a; }
+.dbuilt-rays { position: absolute; left: 50%; top: 38%; width: 520px; height: 520px; margin: -260px 0 0 -260px; opacity: 0.35; background: repeating-conic-gradient(#ffe066 0 8deg, transparent 8deg 16deg); -webkit-mask: radial-gradient(circle, #000 15%, transparent 60%); mask: radial-gradient(circle, #000 15%, transparent 60%); animation: hspin 22s linear infinite; pointer-events: none; }
+.dbuilt .dpic { max-width: 360px; margin: 0 auto; position: relative; border-radius: 14px; overflow: hidden; background: linear-gradient(#9fd8ff, #e3f5ff); animation: pop 0.6s; }
+.dbuilt-t { position: relative; margin-top: 8px; font-size: 1.1rem; }
+.dbuilt p { position: relative; margin: 6px 0 0; }
+.dbuilt.done { background: radial-gradient(circle at 50% 30%, #fffbe6, #ffe39a); box-shadow: inset 0 0 0 4px #e3a21a, 0 0 26px rgba(255, 196, 40, 0.7); }
+.dbuilt.done .dbuilt-rays { opacity: 0.6; }
+.dbuilt.t-castle .dpic { background: radial-gradient(circle at 50% 30%, #fff6c4, #c9b8ff 70%, #9d7bff); }
+@media (prefers-reduced-motion: reduce) { .fdream.hot, .dbuild { animation: none; } }
