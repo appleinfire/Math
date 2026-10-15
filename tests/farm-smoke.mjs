@@ -393,6 +393,28 @@ async function play(grade, tag, viewport) {
     if (!sawIncome || got.inc !== pay || got.due || got.bal !== before + int + pay) errors.push(`${tag}: bank day with the orchard ${JSON.stringify({ got, before, int, sawIncome })}`);
     await snap('29-dream-bank');
   }
+  // the traveling merchant: he arrives in the morning of his bank week, the wagon card opens his treasure, buy it
+  {
+    await page.evaluate(() => { const f = MQ.state.farm; f.day = 14; f.merchant = null; f.treasure = {}; f.money += 20000; MQ.store.save(); MQ.app.go('farm'); });
+    await page.waitForSelector('.fdream');
+    await page.click('[data-act=fSleep]');
+    await page.waitForSelector('#modal .mline');
+    await page.click('#modal [data-act=closeModal]');
+    await page.waitForSelector('.fmerchant');
+    await snap('30-merchant');
+    await page.click('.fmerchant');
+    await page.waitForSelector('#modal .tcard [data-act], #modal [data-act=fBuyTreasure]');
+    await snap('31-treasure');
+    const id = await page.evaluate(() => MQ.farm.merchantNow(MQ.state.farm));
+    await page.click('#modal [data-act=fBuyTreasure]');
+    await page.waitForSelector('.fpalette');
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    await page.click('[data-act=fNext]');
+    await page.waitForSelector('.scene');
+    const after = await page.evaluate((x) => ({ got: !!MQ.state.farm.treasure[x], card: !!document.querySelector('.fmerchant'), sprite: !!document.querySelector('.trs.tr-' + x) }), id);
+    if (!id || !after.got || after.card || !after.sprite) errors.push(`${tag}: buying ${id} from the merchant ${JSON.stringify(after)}`);
+  }
 
   // reloading keeps the farm; the home tile shows it
   await page.reload();

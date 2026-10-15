@@ -33,7 +33,7 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 | **Strategy tips** | After two misses of the same kind of problem in one session, the next question of that kind starts with a short tip ("Make a ten: 8 + 5 → 8 + 2 + 3"). Every topic has tips, at most one a day per topic. |
 | **Daily goal** | A grown-up can set problems per day (10–50) and goal days per week. The home screen shows a ring for today and the days of the week; a badge for a week that reaches the goal. |
 | **Hatchery** | A ladder of eggs to save crystals for (see below): Meadow 30 💎 → Crystal 80 💎 → Legendary 200 💎 → Dragon 500 💎 → a secret Royal Dragon Egg for 1,000 💎. 59 creatures in all; a bought egg always holds a new one. |
-| **Badges & ranks** | 38 badges (streaks, collections, the Hatchery, daily habit, lightning rounds, challenge problems, Sunny Farm and its Big Dreams). Explorer level grows with XP. |
+| **Badges & ranks** | 39 badges (streaks, collections, the Hatchery, daily habit, lightning rounds, challenge problems, Sunny Farm and its Big Dreams). Explorer level grows with XP. |
 | **Hints** | A wrong answer gets a strategy hint and one more try ("make a ten", "count up", "break a ten"). A second miss shows the answer with an explanation. |
 | **Voice** | After each answer a voice says "Great job!" or a gentle "Oops! Try again." The next problem waits until the voice has finished; the **Next →** button skips the wait. Questions can be read aloud with 🔊 (automatic for kindergarten). Both can be turned off per child in *For grown-ups*. |
 | **Navigation** | Every screen has a back button; result screens have Home. **👥 Switch** on the home screen (or the small avatar in the top bar) changes the child without reloading. The browser's back gesture moves between screens and asks before leaving a game. |
@@ -85,6 +85,14 @@ A mini-game about real money (pretend money, no real purchases). The child runs 
   - **They earn money.** Every built stage of the orchard, cottage and railway earns money every bank day (fruit sales, rent, train tickets), about 12% of its price, a bit more than the bank's big interest, and with no limit, so a stage pays for itself in 8–9 bank weeks. On bank day it goes into the bank after the interest, with an addition question. The castle earns nothing: it is the dream.
   - **Bank or building?** The dream page compares: kept in the bank the money would earn this much (and can be taken out any time); spent on the building it is gone but keeps earning. Prices are checked in the tests against what a farm makes at the level it is usually reached (the first stage is 1.5–5 farm days at level 13, the orchard 1–4 bank weeks).
   - Badges: Dreamer, Investor, Castle Builder. A one-time card introduces Big Dreams the first time the farm reaches level 10.
+- **🧳 The traveling merchant.** Once the first Big Dream stage is built, Uncle Marco comes every 3rd bank week and stays its 7 farm days (a bank day falls in his visit). He brings one rare treasure the shop never has, priced at about one bank week of what a good farm makes at its level, so it takes saving and planning:
+  - 🪿 **Golden Goose** ($60): lays a golden egg every morning, +$1.50 into the wallet, no feed;
+  - 🪣 **Magic Watering Can** ($70): every bed gives 1 more crop at every harvest;
+  - 🎻 **Street Musician** ($60): customers tip 5% more for right answers, on any stand;
+  - 🧚 **Feed Fairy** ($80): feeds one hungry pen every night, for free;
+  - 🐑 **Rainbow Sheep** ($120): a ball of 🌈 rainbow wool every morning, to sell.
+  
+  Kindergarten prices are 45¢–99¢. A wagon card on the farm and the wagon in the yard open the treasure, with its effect, the price, and how many nights he stays. If there isn't enough money, it says what to do: take money out of the bank, or how much to put aside each day to buy it in time. He announces himself in the morning card, says when he leaves tonight, and if the treasure isn't bought he comes back later with the next one (treasures above the farm level wait). Bought treasures live on the farm (the goose and the sheep in the yard, the fairy flying over it). Badge: Treasure Hunter.
 - **Growing for a long time.** Farm level has no top (level 10 ≈ 650 XP, level 50 ≈ 13,000 XP, level 60 ≈ 19,000 XP, about 3,500 problems). Every level up to 60 opens something (a crop, an animal, a workshop or recipe, a bed, a pen, an upgrade, the farmhand, a stand, a decoration, the bank or new money problems; checked by the tests), and decorations keep coming after 60. Each level pays a money gift, and the farmer's title grows: little farmer → farm helper → farmer → rancher → farm boss → market master → farm tycoon → farm legend (60) → farm hero → farm superstar.
 - **Money problems by tier.** A tier opens with the farm level, and the child climbs the open tiers by answering (4 first-try right in a row → up, 2 misses → down).
   - Kindergarten (prices in cents, read aloud): pennies to 10¢ → nickels to 20¢ and change from a dime → ⭐ dimes to 50¢ → ⭐ quarters to 99¢ → ⭐ dollars and saving (interest, how much more something made is worth).
@@ -179,7 +187,7 @@ js/logic.js           Logic Lab generators (order, who has what, yes/no/can't te
 js/farm.js            Sunny Farm rules: prices, crops, animals, shop, levels, money problems for customers
 js/farm-ui.js         Sunny Farm screens: farm, shop, stand, odd jobs, paying with coins
 js/farm-scene.js      Sunny Farm pictures and animations: farm scene, market stall, flying coins, night
-js/farm-art.js        Sunny Farm's Big Dreams pictures: orchard, cottage, railway, castle, stage by stage (SVG drawn in code)
+js/farm-art.js        Sunny Farm pictures drawn in code: the Big Dreams stage by stage, the merchant's wagon and treasures
 js/fx.js              sounds (Web Audio), read-aloud (Web Speech), confetti
 js/app.js             screens and game logic
 tools/build.py        bundles everything into dist/math-expedition.html (local-only copy)
@@ -196,7 +204,7 @@ node tests/generators.test.js      # 312,000 generated problems checked
 node tests/store.test.js           # merging progress from two devices, mistakes to practice, family keys
 node tests/hatchery.test.js        # eggs, creature pictures (valid SVG), dragon growth and treasure, the buddy
 node tests/testprep.test.js        # Placement Check accuracy on simulated children, mock tests with review questions
-node tests/farm.test.js            # Sunny Farm economy, days, shop, Big Dreams, and thousands of customer problems for both grades
+node tests/farm.test.js            # Sunny Farm economy, days, shop, Big Dreams, the merchant, and thousands of customer problems for both grades
 node tests/nnat.test.js            # NNAT-3 style puzzles: 4 kinds × 6 levels, the 48-question practice test and its scoring
 node tests/smoke.mjs               # two children, both grades, played in Chromium (needs Playwright)
 node tests/farm-smoke.mjs          # Sunny Farm played by a 2nd grader and a kindergartner in Chromium

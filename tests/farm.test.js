@@ -592,6 +592,77 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   assert.deepStrictEqual([sc.dream.p, sc.dream.s, F.dreamIncome(sc, 'g2').length], [2, 2, 3]);
 }
 
+// ---------- the traveling merchant: every 3rd bank week, one rare treasure, gone if it isn't bought in time
+{
+  const lvXp = (L) => { let x = 0; for (let k = 1; k < L; k++) x += F.need(k); return x; };
+  const goodDay = (L, g) => { // what a good farm makes in a farm day at level L (as in the Big Dreams test)
+    const gi = g === 'k' ? 0 : 1, beds = F.BEDS.filter((b) => b[0] <= L).length, pens = F.PENS.filter((p) => p[0] <= L).length;
+    const bed = { u: Math.floor(F.BED_UP.filter((u) => u.lv <= L).length / 2) };
+    let best = 0;
+    for (const [id, c] of Object.entries(F.CROPS)) if (c.lv <= L) { bed.c = id; best = Math.max(best, (F.cropYield(bed) * F.price(id, g) - c.seed[gi]) / F.cropDays(bed)); }
+    const room = 1 + F.PEN_UP.filter((x, i) => i < 2 && x.lv <= L).length;
+    return beds * best + U.sum(Object.values(F.ANIMALS).filter((a) => a.lv <= L).map((a) => (a.per * F.price(a.item, g) - a.eat * F.FEED.price[gi]) * room).sort((a, b) => b - a).slice(0, pens));
+  };
+  for (const [id, t] of Object.entries(F.TREASURES)) {
+    assert.ok(t.cost[0] <= 99, `${id}: kindergarten pays it with coins`);
+    const weeks = t.cost[1] / (7 * goodDay(t.lv, 'g2'));
+    assert.ok(weeks >= 0.7 && weeks <= 2, `${id}: about a bank week of saving at level ${t.lv} (${weeks.toFixed(2)})`);
+    assert.ok(F.treasureNote(id, 'g2', (c) => F.fmt(c, 'g2')).length > 20 && F.treasureNote(id, 'k', (c) => F.fmt(c, 'k')).length > 20);
+  }
+  const f = F.ensure({ grade: 'g2' });
+  f.xp = lvXp(13);
+  f.money = 100000;
+  const visits = (n) => { const out = []; for (let d = 0; d < n; d++) { const x = F.nextDay(f, 'g2').merchant; if (x) out.push([f.day, ...x]); } return out; };
+  assert.deepStrictEqual(visits(30), [], 'no merchant before the first Big Dream stage is built');
+  f.day = 1;
+  f.dream.s = 1;
+  // weeks 3, 6, 9 (farm days 15–21, 36–42, 57–63); each visit brings the next treasure that fits the level (10–13 here)
+  assert.deepStrictEqual(visits(62), [[15, 'came', 'can'], [21, 'last', 'can'], [22, 'left', 'can'], [36, 'came', 'musician'], [42, 'last', 'musician'], [43, 'left', 'musician'], [57, 'came', 'goose'], [63, 'last', 'goose']]);
+  assert.strictEqual(F.merchantNow(f), 'goose');
+  assert.strictEqual(F.merchantNights(f.day), 0, 'he leaves tonight');
+  f.money = 5999;
+  assert.strictEqual(F.buyTreasure(f, 'g2'), null, 'not enough in the wallet');
+  f.money = 6000;
+  const got = F.buyTreasure(f, 'g2');
+  assert.deepStrictEqual([got.id, f.money, f.treasure.goose, F.merchantNow(f)], ['goose', 0, true, null]);
+  // the Golden Goose: money every morning; no goodbye after it was bought
+  let news = F.nextDay(f, 'g2');
+  assert.deepStrictEqual([news.gold, f.money, news.merchant], [150, 150, null]);
+  // the next visits bring the treasures not bought yet; the ones above the farm level wait
+  f.day = 77;
+  news = F.nextDay(f, 'g2');
+  assert.deepStrictEqual(news.merchant, ['came', 'can'], 'week 12 (visit 4): can or musician at level 13 → can');
+  f.xp = lvXp(20);
+  f.day = 119;
+  assert.deepStrictEqual(F.nextDay(f, 'g2').merchant, ['came', 'fairy'], 'week 18 (visit 6) at level 20: can, musician, fairy, sheep → fairy');
+  // every treasure works: watering can +1 crop, musician +5% tips, fairy feeds a hungry pen, sheep gives rainbow wool
+  const t = F.ensure({ grade: 'g2' });
+  t.beds[0] = { c: 'carrot', g: 1 };
+  assert.strictEqual(F.harvest(t, 0), 3);
+  t.treasure.can = true;
+  t.beds[0] = { c: 'carrot', g: 1 };
+  assert.deepStrictEqual([F.cropYield(t.beds[0], t), F.harvest(t, 0)], [4, 4]);
+  assert.strictEqual(F.tip(t, 1000), 0, 'no tips on the wooden table');
+  t.treasure.musician = true;
+  assert.strictEqual(F.tip(t, 1000), 50, 'the musician: 5% even on the wooden table');
+  t.stand = 2;
+  assert.strictEqual(F.tip(t, 1000), 150, 'market tent 10% + musician 5%');
+  t.pens = [{ a: 'chicken', g: 5, fed: false, ready: 0 }, { a: 'goat', g: 5, fed: false, ready: 0 }];
+  t.treasure.fairy = true;
+  t.treasure.sheep = true;
+  const feed = t.feed;
+  news = F.nextDay(t, 'g2');
+  assert.deepStrictEqual([news.fairy, t.feed, t.pens[0].ready > 0, t.pens[1].ready, news.rainbow, t.basket.rainbow], ['chicken', feed, true, 0, 1, 1], 'the fairy fed the chicken for free');
+  assert.ok(F.ITEMS.rainbow.price[1] > F.ITEMS.wool.price[1]);
+  // how much to put aside each day to make it in time
+  assert.deepStrictEqual([F.perDayToSave(4726, 6, 'g2'), F.perDayToSave(4726, 0, 'g2'), F.perDayToSave(45, 4, 'k')], [700, 4800, 9]);
+  // a farm from before the merchant gets him
+  const old = { grade: 'g2', farm: Object.assign(F.fresh(), { started: true }) };
+  delete old.farm.treasure; delete old.farm.merchant;
+  const up = F.ensure(old);
+  assert.deepStrictEqual([up.treasure, up.merchant], [{}, null]);
+}
+
 // ---------- the grown-up preview shows a level-60 farm with everything open
 for (const g of ['k', 'g2']) {
   const st = { grade: g, farm: F.fresh() };
