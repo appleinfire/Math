@@ -35,6 +35,14 @@ assert.strictEqual(m.rev, 200);
 assert.deepStrictEqual(S.mergeProfiles(b, a), m, 'merge order does not matter');
 assert.strictEqual(S.mergeProfiles(null, b), b);
 
+// Dragons hatched on two devices are all kept; the newer copy names them, growth counts from the earlier hatch.
+const da = Object.assign(base(), { rev: 10, dragons: { dr_ember: { name: 'Blaze', at: 40, seen: 1 }, dr_frost: { name: 'Icy', at: 70, seen: 0 } }, buddy: 'dr_ember' });
+const db = Object.assign(base(), { rev: 20, dragons: { dr_ember: { name: 'Sparky', at: 55, seen: 0 }, dr_moon: { name: 'Luna', at: 90, seen: 0 } }, buddy: '' });
+const dm = S.mergeProfiles(da, db);
+assert.deepStrictEqual(dm.dragons, { dr_ember: { name: 'Sparky', at: 40, seen: 1 }, dr_frost: { name: 'Icy', at: 70, seen: 0 }, dr_moon: { name: 'Luna', at: 90, seen: 0 } });
+assert.strictEqual(dm.buddy, '', 'the buddy comes from the newer copy');
+assert.deepStrictEqual(S.mergeProfiles(base(), Object.assign(base(), { rev: 1 })).dragons, {}, 'old copies without dragons still merge');
+
 // Placement Check results taken on two devices are all kept, oldest first.
 const ta = Object.assign(base(), { rev: 10, tests: { checks: [{ id: 'm1', date: '2026-10-01', overall: 5 }] } });
 const tb = Object.assign(base(), { rev: 20, tests: { checks: [{ id: 'm3', date: '2026-10-09', overall: 6 }, { id: 'm1', date: '2026-10-01', overall: 5 }] } });

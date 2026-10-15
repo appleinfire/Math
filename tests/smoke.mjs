@@ -706,6 +706,71 @@ async function run(viewport, tag) {
   if (m.name !== 'Old' || m.grade !== 'g2' || m.gems !== 42 || m.old) errors.push('migrate: ' + JSON.stringify(m));
   await page.close();
 }
+// The Hatchery ladder: Meadow → Crystal → Legendary → Dragon eggs open one after another; a dragon gets a name,
+// grows from right answers, guards treasure and can become the buddy.
+{
+  const tag = 'hatchery';
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  page.on('pageerror', (e) => errors.push(tag + ': ' + e.message));
+  page.on('console', (m) => m.type() === 'error' && !/fonts\.g|ERR_|Failed to load resource/.test(m.text()) && errors.push(tag + ': ' + m.text()));
+  await page.goto(url);
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.fill('#ob-name', 'Mila');
+  await page.click('[data-act=createKid]');
+  await page.evaluate(() => { MQ.state.settings.voice = false; MQ.state.settings.sound = false; MQ.state.crystals = 5000; MQ.state.stats.correct = 10; MQ.store.save(); MQ.app.go('hatch'); });
+  const tabs = () => page.evaluate(() => [...document.querySelectorAll('.etab')].map((t) => t.dataset.arg + (t.classList.contains('locked') ? ':locked' : '')).join(' '));
+  if ((await tabs()) !== 'meadow crystal:locked legend:locked dragon:locked royal:locked') errors.push(tag + ': a new explorer should see only the Meadow Egg open: ' + (await tabs()));
+  const hatchOne = async (tier) => {
+    await page.click(`[data-act=eggTab][data-arg=${tier}]`);
+    await page.click('[data-act=buyEgg]');
+    while (await page.$('[data-act=tapEgg]')) await page.click('[data-act=tapEgg]', { force: true });
+    await page.waitForSelector('.creature', { timeout: 8000 });
+    if (await page.$('[data-act=hatchDone]')) await page.click('[data-act=hatchDone]');
+  };
+  for (let i = 0; i < 5; i++) await hatchOne('meadow');
+  if ((await tabs()).includes('crystal:locked')) errors.push(tag + ': 5 Meadow creatures should open the Crystal Egg');
+  for (let i = 0; i < 5; i++) await hatchOne('crystal');
+  for (let i = 0; i < 2; i++) await hatchOne('legend');
+  if (!(await tabs()).includes('dragon:locked')) errors.push(tag + ': the Dragon Egg opened too early');
+  await hatchOne('legend');
+  if ((await tabs()).includes('dragon:locked')) errors.push(tag + ': 3 Legendary creatures should open the Dragon Egg');
+  // a dragon: dark scene, a flying dragon, then its name
+  await page.click('[data-act=eggTab][data-arg=dragon]');
+  await page.click('[data-act=buyEgg]');
+  if (!(await page.$('.hscene.t-dragon'))) errors.push(tag + ': no dragon scene');
+  while (await page.$('[data-act=tapEgg]')) await page.click('[data-act=tapEgg]', { force: true });
+  await page.waitForSelector('.flyer', { timeout: 4000 }).catch(() => errors.push(tag + ': the dragon did not fly'));
+  await page.waitForSelector('#dname', { timeout: 6000 });
+  await page.fill('#dname', '  Sparky the Great Dragon ');
+  await page.click('[data-act=hatchDone]');
+  const d = await page.evaluate(() => { const e = Object.entries(MQ.state.dragons)[0]; return e && [e[0], e[1], !!MQ.state.creatures[e[0]]]; });
+  if (!d || d[1].name !== 'Sparky the G' || d[1].at !== 10 || !d[2]) errors.push(tag + ': dragon not saved with its name ' + JSON.stringify(d));
+  const spent = await page.evaluate(() => 5000 - MQ.state.crystals);
+  if (spent !== 5 * 30 + 5 * 80 + 3 * 200 + 500) errors.push(tag + ': crystals spent ' + spent);
+  if (!(await page.$('.den .dcard'))) errors.push(tag + ': the dragon is not in Your dragons');
+  // it grows: a celebration on the home screen, then treasure on the Daily Quest tile
+  await page.evaluate(() => { MQ.state.stats.correct += 150; MQ.store.save(); MQ.app.go('home'); });
+  await page.waitForSelector('#modal .grow', { timeout: 4000 }).catch(() => errors.push(tag + ': no growing-up celebration'));
+  if ((await page.evaluate(() => Object.values(MQ.state.dragons)[0].seen)) !== 2) errors.push(tag + ': growth not remembered');
+  await page.click('[data-act=closeModal]');
+  if (!(await page.textContent('.t-daily small')).includes('+17')) errors.push(tag + ': the Daily Quest tile should show the dragon treasure');
+  // it becomes the buddy: drawn in the header and on the explorer picker, its name in the speech bubble
+  await page.click('[data-act=go][data-arg=hatch]');
+  await page.click('.dcard');
+  await page.click('[data-act=setBuddy]');
+  await page.click('[data-act=go][data-arg=home]');
+  if (!(await page.$('.avatar svg.art')) || !(await page.textContent('#bubble')).startsWith('Sparky the G:')) errors.push(tag + ': the dragon is not the buddy on the home screen');
+  await page.click('.hello-r [data-act=go][data-arg=who]');
+  if (!(await page.$('.profile .pav svg.art'))) errors.push(tag + ': the explorer picker does not show the dragon buddy');
+  await page.click('.profile >> text=Mila');
+  await page.evaluate(() => MQ.app.go('journal'));
+  if ((await page.$$('.ccard.r-dragon')).length !== 1) errors.push(tag + ': the journal should show the dragon');
+  await page.evaluate(() => MQ.app.go('hatch'));
+  if (await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)) errors.push(tag + ': horizontal overflow in the Hatchery');
+  if (shots) await page.screenshot({ path: path.join(shots, 'hatchery-ladder.png'), fullPage: true });
+  await page.close();
+}
 await run({ width: 390, height: 844 }, 'phone');
 await run({ width: 1024, height: 768 }, 'ipad');
 await browser.close();

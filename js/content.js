@@ -127,24 +127,104 @@
     dragon: C('dragon', '🐉', 'Sky Dragon', 'Guardian of the Sky Kingdom! Real-life fact: the Komodo dragon is a lizard that can grow 10 feet long.', 'legendary'),
   };
 
-  // Rare creatures that only hatch from eggs in the Hatchery.
-  MQ.EGG_CREATURES = [
-    C('unicorn', '🦄', 'Unicorn', 'The real “unicorn of the sea” is the narwhal. Its long tusk is actually a tooth that grows through its lip!', 'mythic'),
-    C('dodo', '🦤', 'Dodo', 'Dodos lived on the island of Mauritius. They disappeared about 350 years ago, so nobody alive has ever seen one.', 'mythic'),
-    C('beaver', '🦫', 'Beaver', 'Beaver teeth are orange because they contain iron, which makes them extra strong for chewing trees.'),
-    C('skunk', '🦨', 'Spotted Skunk', 'Before spraying, a spotted skunk does a handstand as a final warning.'),
-    C('squirrel', '🐿️', 'Squirrel', 'Squirrels bury thousands of nuts and forget some of them — so they plant lots of new trees!'),
-    C('panda', '🐼', 'Giant Panda', 'Pandas spend around 12 hours a day eating bamboo.'),
-    C('koala', '🐨', 'Koala', 'Koalas have fingerprints so much like ours that they could confuse a detective.'),
-    C('badger', '🦡', 'Honey Badger', 'Honey badgers are famously fearless and have thick, loose skin that helps protect them from bee stings.'),
-    C('snail', '🐌', 'Snail', 'A snail’s tongue is covered with thousands of tiny teeth.'),
-    C('ladybug', '🐞', 'Ladybug', 'One ladybug can eat about 5,000 aphids in its life. Gardeners love them!'),
-    C('croc', '🐊', 'Crocodile', 'Crocodiles can’t stick out their tongues. They also swallow stones to help them dive.'),
-    C('llama', '🦙', 'Llama', 'Llamas hum to talk to each other, especially mothers to their babies.'),
-    C('swan', '🦢', 'Swan', 'A swan can have more than 25,000 feathers.', 'rare'),
-    C('crowned', '🦚', 'White Peacock', 'Some peacocks are pure white. They are not albino — they just don’t make color in their feathers.', 'mythic'),
+  // The Hatchery: five eggs, each with its own creatures. An egg opens after enough creatures from the egg before it
+  // (need), and a bought egg always holds a creature not hatched yet. Taps = how many taps crack it open.
+  // Real animals come from Meadow Eggs; Crystal, Legendary and Dragon eggs hold magical creatures with pictures
+  // (js/creature-art.js). Dragons get a name, grow from right answers (MQ.DRAGON_STAGES) and guard treasure.
+  MQ.EGGS = [
+    { id: 'meadow', name: 'Meadow Egg', icon: '🥚', price: 30, taps: 3, need: 0, color: '#7cbf4a', tint: '#eef8e2', blurb: 'Real animals you can’t meet on the expedition.' },
+    { id: 'crystal', name: 'Crystal Egg', icon: '💎', price: 80, taps: 5, need: 5, color: '#7a5cc9', tint: '#efeaff', blurb: 'Magic critters from fairy tales.' },
+    { id: 'legend', name: 'Legendary Egg', icon: '🌟', price: 200, taps: 7, need: 5, color: '#d99a0b', tint: '#fff4d1', blurb: 'Heroes of myths and legends.' },
+    { id: 'dragon', name: 'Dragon Egg', icon: '🐉', price: 500, taps: 9, need: 3, color: '#c0392b', tint: '#fde6e0', blurb: 'A real baby dragon! Name it and watch it grow.' },
+    { id: 'royal', name: 'Royal Dragon Egg', icon: '👑', price: 1000, taps: 12, need: 10, color: '#9a2a8c', tint: '#f8e1f3', blurb: 'The ruler of all dragons.', secret: true },
   ];
-  MQ.EGG_PRICE = 30;
+  const H = (egg, list) => list.map(([id, emoji, name, fact, rarity, more]) => Object.assign(C(id, emoji, name, fact, rarity || ({ crystal: 'crystal', legend: 'legend', dragon: 'dragon', royal: 'royal' }[egg] || 'common')), { egg }, more || {}));
+  const D = (id, emoji, name, el, names, fact) => [id, emoji, name, fact, '', { el, names, dragon: true }];
+  MQ.EGG_CREATURES = [
+    ...H('meadow', [
+      ['unicorn', '🦄', 'Unicorn', 'The real “unicorn of the sea” is the narwhal. Its long tusk is actually a tooth that grows through its lip!', 'mythic'],
+      ['dodo', '🦤', 'Dodo', 'Dodos lived on the island of Mauritius. They disappeared about 350 years ago, so nobody alive has ever seen one.', 'mythic'],
+      ['beaver', '🦫', 'Beaver', 'Beaver teeth are orange because they contain iron, which makes them extra strong for chewing trees.'],
+      ['skunk', '🦨', 'Spotted Skunk', 'Before spraying, a spotted skunk does a handstand as a final warning.'],
+      ['squirrel', '🐿️', 'Squirrel', 'Squirrels bury thousands of nuts and forget some of them — so they plant lots of new trees!'],
+      ['panda', '🐼', 'Giant Panda', 'Pandas spend around 12 hours a day eating bamboo.'],
+      ['koala', '🐨', 'Koala', 'Koalas have fingerprints so much like ours that they could confuse a detective.'],
+      ['badger', '🦡', 'Honey Badger', 'Honey badgers are famously fearless and have thick, loose skin that helps protect them from bee stings.'],
+      ['snail', '🐌', 'Snail', 'A snail’s tongue is covered with thousands of tiny teeth.'],
+      ['ladybug', '🐞', 'Ladybug', 'One ladybug can eat about 5,000 aphids in its life. Gardeners love them!'],
+      ['croc', '🐊', 'Crocodile', 'Crocodiles can’t stick out their tongues. They also swallow stones to help them dive.'],
+      ['llama', '🦙', 'Llama', 'Llamas hum to talk to each other, especially mothers to their babies.'],
+      ['swan', '🦢', 'Swan', 'A swan can have more than 25,000 feathers.', 'rare'],
+      ['crowned', '🦚', 'White Peacock', 'Some peacocks are pure white. They are not albino — they just don’t make color in their feathers.', 'mythic'],
+      ['tiger', '🐅', 'Bengal Tiger', 'Every tiger has its own stripe pattern, and the stripes are on its skin too, not just on its fur.'],
+      ['gorilla', '🦍', 'Gorilla', 'Gorillas build a fresh bed of leaves and branches to sleep in every single night.'],
+      ['bison', '🦬', 'Bison', 'A bison can run about 35 miles per hour and jump over a fence taller than a grown-up.'],
+      ['snowmonkey', '🐒', 'Snow Monkey', 'In snowy Japan, some monkeys warm up in winter by soaking in hot springs, like a bath.'],
+      ['humpback', '🐳', 'Humpback Whale', 'Humpback whales sing long songs. All the males in one part of the ocean sing the same song and change it a little every year.', 'rare'],
+      ['mandarin', '🦆', 'Mandarin Duck', 'Mandarin ducklings jump out of their nest high up in a tree on their first day and bounce safely onto the ground.', 'rare'],
+    ]),
+    ...H('crystal', [
+      ['emberfox', '🦊', 'Ember Fox', 'Legend says its tail glows like a warm campfire on cold nights. Real fact: a fox wraps its big fluffy tail around itself like a blanket when it sleeps in the snow.'],
+      ['frostowl', '🦉', 'Frost Owl', 'Legend says snow starts to fall wherever the Frost Owl flies. Real fact: snowy owls have feathers even on their toes, like warm slippers.'],
+      ['moonrabbit', '🐇', 'Moon Rabbit', 'Old stories from China, Japan and Korea say a rabbit lives on the Moon. Look at a full moon: the dark spots make a rabbit shape! Real fact: those dark spots are huge plains of old lava.'],
+      ['moonwolf', '🐺', 'Moon Wolf', 'Legend says the Moon Wolf howls to wake up the stars. Real fact: wolves don’t really howl at the Moon. They howl to call their pack and to tell other wolves “this is our home.”'],
+      ['stardust', '🐈', 'Stardust Kitten', 'Legend says this kitten naps on clouds and its fur is full of tiny stars. Real fact: cats sleep about 12 to 16 hours a day.'],
+      ['wishfish', '🐟', 'Golden Wish-Fish', 'In a Russian fairy tale, a fisherman catches a golden fish that grants wishes. Real fact: goldfish can learn tricks and remember them for months.'],
+      ['humpbackhorse', '🐴', 'Little Humpbacked Horse', 'In a Russian fairy tale, a tiny horse with two humps and very long ears helps Ivan and gallops faster than the wind. Real fact: a horse can turn each ear on its own, almost all the way around, to catch sounds.'],
+      ['silverhoof', '🦌', 'Silver Hoof', 'In a fairy tale from the Ural Mountains, a little goat stamps its silver hoof and sparkling gems appear. Real fact: the Ural Mountains really are famous for gems like emeralds and amethysts.'],
+      ['frogprince', '🐸', 'Frog Prince', 'In the fairy tale, a frog turns out to be a prince in disguise. Real fact: frogs don’t drink with their mouths. They soak up water through their skin.'],
+      ['pixie', '🧚', 'Pixie', 'Legend says pixies leave rings of mushrooms where they dance at night. Real fact: “fairy rings” are real! Mushrooms come up in a circle as the fungus spreads out underground.'],
+      ['gnome', '🍄', 'Mushroom Gnome', 'Legend says gnomes guard treasure under the roots of old trees. Real fact: a mushroom is only a small part of a fungus. Most of it is a web of threads hidden underground.'],
+      ['rainbowsnail', '🐌', 'Rainbow Snail', 'Legend says it leaves a shimmering rainbow trail. Real fact: a snail’s shell grows with it, spiraling a little bigger every year, so it never needs a new one.'],
+      ['thistlehog', '🦔', 'Thistle Hedgehog', 'Legend says flowers bloom in its spines every spring. Real fact: baby hedgehogs are called hoglets. Their spines are soft when they are born.'],
+      ['bubbleturtle', '🐢', 'Bubble Turtle', 'Legend says its bubbles carry wishes up to the surface. Real fact: some turtles sleep underwater all winter and take in air through their skin and even their bottoms!'],
+      ['glimmerwing', '🦋', 'Glimmerwing', 'Legend says its wings sparkle like jewels in the moonlight. Real fact: butterfly wings are covered with thousands of tiny scales, like the shingles on a roof.'],
+      ['acornsprite', '🌰', 'Acorn Sprite', 'Legend says it sleeps inside an acorn all winter and wakes up when the oak gets new leaves. Real fact: one big oak tree can drop thousands of acorns in a single year.'],
+    ]),
+    ...H('legend', [
+      ['firebird', '🦚', 'Firebird', 'In Russian fairy tales, one feather of the Firebird lights up a whole room. Real fact: some animals really glow under ultraviolet light. A puffin’s beak does!'],
+      ['griffin', '🦅', 'Griffin', 'A griffin has an eagle’s head and wings and a lion’s body. In stories, griffins guard treasures of gold. Real fact: an eagle sees about 4 to 8 times sharper than a person.'],
+      ['pegasus', '🐎', 'Pegasus', 'In Greek myths, Pegasus is a winged horse that flew up to the sky and became stars. Real fact: you can find the Pegasus constellation in the autumn night sky.'],
+      ['mermaid', '🧜‍♀️', 'Mermaid', 'Sailors told stories about mermaids for thousands of years. Real fact: many of those “mermaids” were probably manatees, gentle sea cows that come up to breathe.'],
+      ['genie', '🧞', 'Genie', 'In the old stories of the Thousand and One Nights, a genie lives in a lamp and grants wishes. Real fact: people used little oil lamps like that for thousands of years before electric lights.'],
+      ['merlin', '🧙', 'Merlin the Wizard', 'In the legends of King Arthur, Merlin is a wise wizard who helps a boy become king. Real fact: a merlin is also a real bird, a small and super-fast falcon.'],
+      ['kraken', '🦑', 'Kraken', 'Sailors’ legends tell of the Kraken, a sea monster so big it looked like an island. Real fact: the giant squid is real and can be as long as a school bus.'],
+      ['yeti', '❄️', 'Yeti', 'Legend says the Yeti lives high in the snowy Himalaya mountains and leaves giant footprints. Real fact: many “Yeti” footprints turned out to be bear tracks that melted and grew bigger in the sun.'],
+      ['kitsune', '🦊', 'Kitsune', 'In Japanese legends, a kitsune is a magic fox that grows a new tail every hundred years, up to nine tails. Real fact: real foxes use their tails for balance and to send signals to other foxes.'],
+      ['featherserpent', '🐍', 'Feathered Serpent', 'The Aztecs and the Maya told of Quetzalcoatl, a serpent covered in bright feathers. Real fact: those feathers came from the quetzal, a real bird whose tail feathers are longer than its body.'],
+      ['starwhale', '🐋', 'Star Whale', 'Legend says the Star Whale swims through the night sky eating stardust. Real fact: there is a whale in the stars too, the constellation Cetus, the Whale.'],
+      ['worldturtle', '🐢', 'World Turtle', 'Many old stories say the whole world rides on the back of a giant turtle. Real fact: some tortoises live more than 150 years. Jonathan, a giant tortoise, hatched around 1832!'],
+    ]),
+    ...H('dragon', [
+      D('dr_ember', '🐉', 'Ember Dragon', 'ember', ['Blaze', 'Sparky', 'Cinder', 'Flicker'], 'Legend says its breath can light a thousand candles at once. Real fact: the bombardier beetle sprays a boiling hot puff to scare enemies away.'),
+      D('dr_frost', '🐉', 'Frost Dragon', 'frost', ['Frosty', 'Icicle', 'Snowflake', 'Blizzard'], 'Legend says it breathes snowflakes and paints frost on windows. Real fact: every snowflake has six sides.'),
+      D('dr_storm', '🐉', 'Storm Dragon', 'storm', ['Zap', 'Thunder', 'Bolt', 'Flash'], 'Legend says thunder is the Storm Dragon’s roar. Real fact: lightning is about five times hotter than the surface of the Sun.'),
+      D('dr_forest', '🐉', 'Forest Dragon', 'forest', ['Fern', 'Moss', 'Clover', 'Sprout'], 'Legend says flowers bloom wherever it steps. Real fact: the flying dragon lizard of Asia glides from tree to tree on wings made of skin.'),
+      D('dr_ocean', '🐉', 'Ocean Dragon', 'ocean', ['Splash', 'Wave', 'Coral', 'Bubbles'], 'Legend says it makes the waves by swishing its tail. Real fact: the leafy sea dragon is a real fish that looks just like floating seaweed.'),
+      D('dr_crystal', '🐉', 'Crystal Dragon', 'crystal', ['Gem', 'Sparkle', 'Prism', 'Diamond'], 'Legend says its scales are made of diamonds. Real fact: diamonds are made of carbon, the same stuff as the “lead” in your pencil.'),
+      D('dr_moon', '🐉', 'Moon Dragon', 'moon', ['Luna', 'Shadow', 'Midnight', 'Star'], 'Legend says it sleeps all day and guards your dreams at night. Real fact: the Moon moves away from Earth a tiny bit every year, about 1½ inches.'),
+      D('dr_sun', '🐉', 'Sun Dragon', 'sun', ['Sunny', 'Goldie', 'Ray', 'Shine'], 'Legend says it pulls the Sun up into the sky every morning. Real fact: sunlight takes about 8 minutes to travel from the Sun to Earth.'),
+      D('dr_rainbow', '🐉', 'Rainbow Dragon', 'rainbow', ['Rainbow', 'Prism', 'Glitter', 'Joy'], 'Legend says a rainbow appears whenever this dragon smiles. Real fact: from an airplane you can sometimes see a rainbow as a full circle.'),
+      D('dr_cosmic', '🐉', 'Cosmic Dragon', 'cosmic', ['Nova', 'Comet', 'Galaxy', 'Orbit'], 'Legend says it was born from a falling star. Real fact: shooting stars are tiny space rocks, often no bigger than a grain of sand, burning up high in the sky.'),
+    ]),
+    ...H('royal', [
+      D('dr_royal', '👑', 'Royal Dragon', 'royal', ['Majesty', 'Goldie', 'Regal', 'Aurora'], 'The ruler of all dragons! It hatches only for a true Master of the Hatchery. Real fact: the Komodo dragon is the biggest lizard alive, and its babies hatch from eggs too.'),
+    ]),
+  ];
+  MQ.eggById = (id) => MQ.EGGS.find((e) => e.id === id);
+  MQ.eggCreatures = (egg) => MQ.EGG_CREATURES.filter((c) => c.egg === egg);
+  // Dragons grow from first-try right answers given after they hatched (s.dragons[id].at = answers right then).
+  MQ.DRAGON_STAGES = [{ at: 0, name: 'Baby' }, { at: 50, name: 'Young' }, { at: 150, name: 'Grown-up' }, { at: 400, name: 'Elder' }];
+  MQ.dragonFed = (s, id) => Math.max(0, ((s.stats || {}).correct || 0) - (((s.dragons || {})[id] || {}).at || 0));
+  MQ.dragonStage = (s, id) => { const n = MQ.dragonFed(s, id); let i = 0; while (i < 3 && n >= MQ.DRAGON_STAGES[i + 1].at) i++; return i; };
+  MQ.DRAGON_TREASURE = 2; // each grown-up or elder dragon adds this many crystals to the Daily Quest reward
+  MQ.dragonTreasure = (s) => Object.keys(s.dragons || {}).filter((id) => s.creatures[id] && MQ.dragonStage(s, id) >= 2).length * MQ.DRAGON_TREASURE;
+  // A creature's picture for this child (dragons at their growth stage); the emoji when it isn't drawn.
+  MQ.look = (s, c, o = {}) => (MQ.art && MQ.art(c.id, Object.assign({ stage: c.dragon ? MQ.dragonStage(s, c.id) : undefined }, o))) || c.emoji;
+  // The expedition buddy: a creature from the collection (s.buddy), or the companion picked at the start.
+  MQ.buddyCreature = (s) => (s && s.buddy && s.creatures[s.buddy] && MQ.creatureById(s.buddy)) || null;
+  MQ.face = (s) => { const c = MQ.buddyCreature(s); return c ? MQ.look(s, c) : s.companion; };
+  MQ.buddyName = (s) => { const c = MQ.buddyCreature(s); return !c ? s.buddyName : ((s.dragons || {})[c.id] || {}).name || c.name; };
 
   // A track = one grade: its own world map, topics, and creatures. Each child's profile follows one track.
   MQ.TRACKS = {
@@ -159,7 +239,8 @@
   };
   MQ.track = (grade) => MQ.TRACKS[grade] || MQ.TRACKS.g2;
   MQ.trackWorlds = (s) => MQ.track(s.grade).worlds;
-  MQ.trackCreatures = (grade) => [...MQ.track(grade).worlds.flatMap((w) => w.levels.map((l) => MQ.CREATURES[l.creature])), ...MQ.EGG_CREATURES];
+  // basic = the expedition and the Meadow Eggs only (the magical eggs are counted by their own badges)
+  MQ.trackCreatures = (grade, basic) => [...MQ.track(grade).worlds.flatMap((w) => w.levels.map((l) => MQ.CREATURES[l.creature])), ...(basic ? MQ.eggCreatures('meadow') : MQ.EGG_CREATURES)];
   // Call after a track's worlds and creatures are registered.
   MQ.linkCreatures = () => {
     Object.values(MQ.TRACKS).forEach((t) => t.worlds.forEach((w) => w.levels.forEach((l) => (MQ.CREATURES[l.creature].world = w.id))));
@@ -196,7 +277,7 @@
     { id: 'boss', icon: '🛡️', name: 'Guardian Friend', desc: 'Beat a world guardian (boss level)', test: (s) => MQ.trackWorlds(s).some((w) => s.levels[w.id + '-5']) },
     { id: 'col10', icon: '📔', name: 'Naturalist', desc: 'Discover 10 creatures', test: (s) => Object.keys(s.creatures).length >= 10 },
     { id: 'col30', icon: '🔭', name: 'Field Scientist', desc: 'Discover 25 creatures', test: (s) => Object.keys(s.creatures).length >= 25 },
-    { id: 'colall', icon: '🌍', name: 'Living Encyclopedia', desc: 'Discover every creature', test: (s) => Object.keys(s.creatures).length >= MQ.trackCreatures(s.grade).length },
+    { id: 'colall', icon: '🌍', name: 'Living Encyclopedia', desc: 'Discover every creature on the map and in Meadow Eggs', test: (s) => MQ.trackCreatures(s.grade, true).every((c) => s.creatures[c.id]) },
     { id: 'streak10', icon: '🔥', name: 'On Fire', desc: '10 right in a row', test: (s) => s.stats.bestStreak >= 10 },
     { id: 'streak25', icon: '☄️', name: 'Unstoppable', desc: '25 right in a row', test: (s) => s.stats.bestStreak >= 25 },
     { id: 'solve100', icon: '💯', name: 'Century', desc: 'Solve 100 problems', test: (s) => s.stats.correct >= 100 },
@@ -207,6 +288,12 @@
     { id: 'daily7', icon: '🗓️', name: 'Week Warrior', desc: 'Daily Quest 7 days in a row', test: (s) => s.daily.best >= 7 },
     { id: 'light15', icon: '⚡', name: 'Lightning Brain', desc: '15 right in a 60-second Lightning Round', test: (s) => (s.stats.lightning60 || 0) >= 15 },
     { id: 'egg', icon: '🥚', name: 'Hatchling', desc: 'Hatch your first egg', test: (s) => s.eggsHatched >= 1 },
+    { id: 'crystalall', icon: '💎', name: 'Crystal Keeper', desc: 'Hatch every creature from Crystal Eggs', test: (s) => MQ.eggCreatures('crystal').every((c) => s.creatures[c.id]) },
+    { id: 'legendall', icon: '🌟', name: 'Legend Hunter', desc: 'Hatch every creature from Legendary Eggs', test: (s) => MQ.eggCreatures('legend').every((c) => s.creatures[c.id]) },
+    { id: 'dragon1', icon: '🐲', name: 'Dragon Tamer', desc: 'Hatch your first dragon', test: (s) => MQ.eggCreatures('dragon').some((c) => s.creatures[c.id]) },
+    { id: 'dragonall', icon: '🐉', name: 'Dragon Master', desc: 'Hatch all 10 dragons', test: (s) => MQ.eggCreatures('dragon').every((c) => s.creatures[c.id]) },
+    { id: 'elder', icon: '🏰', name: 'Dragon Whisperer', desc: 'Raise a dragon into an Elder Dragon', test: (s) => Object.keys(s.dragons || {}).some((id) => s.creatures[id] && MQ.dragonStage(s, id) >= 3) },
+    { id: 'hatchall', icon: '👑', name: 'Master of the Hatchery', desc: 'Hatch every creature from every egg', test: (s) => MQ.EGG_CREATURES.every((c) => s.creatures[c.id]) },
     { id: 'ahead', icon: '🧠', name: 'Big Brain', desc: 'Solve 25 challenge-level problems', test: (s) => (s.stats.d5 || 0) >= 25 },
     { id: 'sky', icon: '🌠', name: 'Summit Explorer', desc: 'Befriend the guardian of the last world', test: (s) => { const w = MQ.trackWorlds(s); return !!s.levels[w[w.length - 1].id + '-5']; } },
     { id: 'fix10', icon: '🛠️', name: 'Fixer', desc: 'Fix 10 mistakes in the Fix-it Lab', test: (s) => (s.stats.fixed || 0) >= 10 },
