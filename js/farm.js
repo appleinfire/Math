@@ -343,6 +343,7 @@
     dream: { p: 0, s: 0, b: false, seen: false }, // Big Dreams: project p, stages built s, builders at work tonight b
     treasure: {}, // the traveling merchant's treasures bought: id: true
     merchant: null, // his visit: { week, item } (bank week number and the treasure he brought)
+    dep: { ok: false, amt: 0, until: 0 }, // the bank's locked deposit (2nd grade): opened once savings pass the limit (ok); amt locked until farm day `until`
   });
   F.START_MONEY = [5, 30];
   F.ensure = (st) => {
@@ -362,6 +363,8 @@
     if (!fm.dream) fm.dream = { p: 0, s: 0, b: false, seen: false }; // Big Dreams came later
     if (!fm.treasure) fm.treasure = {}; // so did the traveling merchant
     if (fm.merchant === undefined) fm.merchant = null;
+    if (!fm.dep) fm.dep = { ok: false, amt: 0, until: 0 }; // and the locked deposit
+    if (!fm.stats.depBonus) fm.stats.depBonus = 0;
     for (const k of ['built', 'dreamIn']) if (!fm.stats[k]) fm.stats[k] = 0;
     return fm;
   };
@@ -484,6 +487,8 @@
     if (tr.goose) { const x = F.TREASURES.goose.gold[gi(grade)]; fm.money += x; fm.stats.earned += x; news.gold = x; }
     if (tr.sheep) { fm.basket.rainbow = (fm.basket.rainbow || 0) + 1; news.rainbow = 1; }
     news.merchant = F.merchantMorning(fm, grade);
+    if (fm.dep && fm.dep.amt && fm.day === fm.dep.until) news.depReady = F.depositBack(fm.dep.amt);
+    news.depNew = F.depositCheck(fm, grade);
     news.bankDay = fm.bank ? F.bankMorning(fm, grade) : false; // the morning of bank day: what is saved earns interest
     return news;
   };
@@ -687,7 +692,41 @@
   // (interest counts as spent last, so taking money out uses up the child's own money first).
   F.bankSummary = (fm) => {
     const s = fm.stats, interest = Math.min(fm.bank.bal, s.interest);
-    return { saved: s.saved, tookOut: s.tookOut, interest: s.interest, days: s.bankDays, bal: fm.bank.bal, own: fm.bank.bal - interest, fromInterest: interest, built: s.built || 0, dreamIn: s.dreamIn || 0 };
+    return { saved: s.saved, tookOut: s.tookOut, interest: s.interest, days: s.bankDays, bal: fm.bank.bal, own: fm.bank.bal - interest, fromInterest: interest, built: s.built || 0, dreamIn: s.dreamIn || 0, depBonus: s.depBonus || 0, locked: (fm.dep && fm.dep.amt) || 0 };
+  };
+  // ---------------------------------------------------------------- the locked deposit (2nd grade)
+  // Savings above the account's limit earn only the small interest (1¢ a dollar). So once the savings first pass
+  // the limit, the bank offers a locked deposit: move savings in $5 steps into it for 4 bank weeks, and for every $5
+  // the bank gives back $6 (that is 5¢ a dollar a week: less than the big interest, much more than the small one).
+  // It can't be taken out early, and there is one at a time. When it unlocks, the money goes back to the savings.
+  F.DEPOSIT = { weeks: 4, step: 500, back: 600 };
+  F.depositOn = (fm, grade) => grade !== 'k' && !!fm.dep && fm.dep.ok;
+  // the offer opens the first time the savings are above the account's limit (returns true when it just opened)
+  F.depositCheck = (fm, grade) => {
+    if (grade === 'k' || !fm.dep || fm.dep.ok || !fm.bank || fm.bank.bal <= F.bankTop(fm.bank.acct, grade)) return false;
+    fm.dep.ok = true;
+    return true;
+  };
+  F.depositBack = (amt) => (amt / F.DEPOSIT.step) * F.DEPOSIT.back;
+  // it unlocks on the 4th bank day after the day it is locked
+  F.depositUntil = (day) => (Math.floor(day / F.BANK_WEEK) + F.DEPOSIT.weeks) * F.BANK_WEEK;
+  F.depositReady = (fm) => !!fm.dep && fm.dep.amt > 0 && fm.day >= fm.dep.until;
+  F.lockDeposit = (fm, grade, amt) => {
+    if (!F.depositOn(fm, grade) || fm.dep.amt || !(amt > 0) || amt % F.DEPOSIT.step || amt > fm.bank.bal) return false;
+    fm.bank.bal -= amt;
+    Object.assign(fm.dep, { amt, until: F.depositUntil(fm.day) });
+    bankLog(fm, 'lock', amt);
+    return true;
+  };
+  // Returns { amt, back } and puts the money back into the savings, or null when it is still locked.
+  F.collectDeposit = (fm) => {
+    if (!F.depositReady(fm)) return null;
+    const amt = fm.dep.amt, back = F.depositBack(amt);
+    fm.bank.bal += back;
+    fm.stats.depBonus += back - amt;
+    Object.assign(fm.dep, { amt: 0, until: 0 });
+    bankLog(fm, 'unlock', back);
+    return { amt, back };
   };
   // How the savings would grow, bank week by bank week, without adding or taking out money.
   F.project = (bal, grade, weeks = 6, acct = 0) => { const out = [bal]; for (let i = 0; i < weeks; i++) out.push(out[i] + F.interest(out[i], grade, acct)); return out; };
@@ -840,6 +879,7 @@
       dream: { p: 2, s: 2, b: false, seen: true }, // the orchard and the cottage built, the railway half done
       treasure: { goose: true, can: true, musician: true }, // three of the merchant's treasures
       merchant: { week: 2, item: 'sheep' }, // and he is visiting (farm day 14 is the last day of bank week 2)
+      dep: k ? { ok: false, amt: 0, until: 0 } : { ok: true, amt: 2000, until: 28 }, // and a locked deposit (2nd grade)
     });
     Object.assign(fm.stats, k ? { saved: 1100, tookOut: 100, interest: 234, bankDays: 9 } : { saved: 11000, tookOut: 1000, interest: 2345, bankDays: 9 }); // adds up to the bank above
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;

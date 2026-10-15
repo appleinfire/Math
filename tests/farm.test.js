@@ -343,7 +343,7 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   assert.deepStrictEqual([f.bank.bal, f.bank.log[0].kind], [700, 'out']);
   assert.strictEqual(F.withdraw(f, 701), false);
   // all-time summary: saved 435 + 100, took out 115, interest 40 + 50 + 60 + 60 + 70; the rest of the bank is own money
-  assert.deepStrictEqual(F.bankSummary(f), { saved: 535, tookOut: 115, interest: 280, days: 5, bal: 700, own: 420, fromInterest: 280, built: 0, dreamIn: 0 });
+  assert.deepStrictEqual(F.bankSummary(f), { saved: 535, tookOut: 115, interest: 280, days: 5, bal: 700, own: 420, fromInterest: 280, built: 0, dreamIn: 0, depBonus: 0, locked: 0 });
   assert.strictEqual(f.stats.saved - f.stats.tookOut + f.stats.interest, f.bank.bal, 'the totals add up to what is in the bank');
   F.withdraw(f, 600);
   assert.deepStrictEqual([F.bankSummary(f).own, F.bankSummary(f).fromInterest], [0, 100], 'taking money out uses your own money first');
@@ -661,6 +661,41 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   delete old.farm.treasure; delete old.farm.merchant;
   const up = F.ensure(old);
   assert.deepStrictEqual([up.treasure, up.merchant], [{}, null]);
+}
+
+// ---------- the locked deposit (2nd grade): every $5 comes back as $6 after 4 bank weeks
+{
+  const f = F.ensure({ grade: 'g2' });
+  f.money = 9000;
+  F.deposit(f, 4000);
+  assert.ok(!F.depositCheck(f, 'g2') && !F.depositOn(f, 'g2') && !F.lockDeposit(f, 'g2', 500), 'not offered below the account limit');
+  F.deposit(f, 5000);
+  f.day = 10;
+  const news = F.nextDay(f, 'g2');
+  assert.ok(news.depNew && F.depositOn(f, 'g2'), 'offered the first morning the savings are above $50');
+  assert.ok(!F.nextDay(f, 'g2').depNew, 'announced once');
+  const k = F.ensure({ grade: 'k' });
+  k.bank.bal = 9000;
+  assert.ok(!F.depositCheck(k, 'k') && !F.depositOn(k, 'k'), 'kindergarten has no locked deposit');
+  // the deposit's rate sits between the small interest and the big one
+  const perWeek = (F.DEPOSIT.back - F.DEPOSIT.step) / F.DEPOSIT.step / F.DEPOSIT.weeks;
+  assert.ok(perWeek > F.BANK_LOW[1] / F.BANK_LOW[0] && perWeek < F.BANK_RULE[1][1] / F.BANK_RULE[1][0], `deposit ${perWeek} a week`);
+  assert.ok(!F.lockDeposit(f, 'g2', 750) && !F.lockDeposit(f, 'g2', 10000), 'in $5 steps, only what is saved');
+  assert.strictEqual(f.day, 12);
+  assert.ok(F.lockDeposit(f, 'g2', 4000));
+  assert.deepStrictEqual([f.bank.bal, f.dep.amt, f.dep.until, F.depositBack(4000)], [5000, 4000, 35, 4800], 'locked on day 12: unlocks on the 4th bank day after (14, 21, 28, 35)');
+  assert.ok(!F.lockDeposit(f, 'g2', 500), 'one deposit at a time');
+  assert.strictEqual(F.collectDeposit(f), null, 'it can’t be taken out early');
+  let ready = 0;
+  while (f.day < 35) { const n = F.nextDay(f, 'g2'); if (n.depReady) ready = n.depReady; while (F.bankDue(f)) { F.payInterest(f, 'g2'); F.payIncome(f); } }
+  assert.ok(F.depositReady(f) && ready === 4800, 'the morning card says it unlocked');
+  const before = f.bank.bal;
+  assert.deepStrictEqual(F.collectDeposit(f), { amt: 4000, back: 4800 });
+  assert.deepStrictEqual([f.bank.bal - before, f.dep.amt, f.stats.depBonus, f.bank.log[0].kind], [4800, 0, 800, 'unlock']);
+  const s = f.stats;
+  assert.strictEqual(s.saved - s.tookOut + s.interest + s.dreamIn - s.built + s.depBonus, f.bank.bal, 'the bank totals add up with the deposit');
+  // locked on a bank day itself: the first of the 4 bank days is the next one
+  assert.strictEqual(F.depositUntil(14), 42);
 }
 
 // ---------- the grown-up preview shows a level-60 farm with everything open

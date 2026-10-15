@@ -1293,3 +1293,22 @@ svg.tart { display: block; width: 100%; height: auto; }
 @keyframes fairyfly { 25% { transform: translate(-18px, -10px); } 50% { transform: translate(8px, -16px); } 75% { transform: translate(16px, -4px); } }
 .trs.wagon { right: 4px; left: auto; width: 84px; pointer-events: auto; border: 0; padding: 0; background: none; animation: none; filter: drop-shadow(0 0 8px rgba(157, 123, 255, 0.8)); }
 @media (prefers-reduced-motion: reduce) { .fmerchant, .fm-gem, .tpic { animation: none; } }
+
+/* ================= Sunny Farm: the bank's locked deposit (gold) ================= */
+.bk-lock { display: block; margin-top: 2px; font-weight: 800; color: #8a5a08; }
+.fdep { display: flex; gap: 12px; align-items: flex-start; margin-top: 14px; padding: 12px; border-radius: var(--r); background: radial-gradient(circle at 15% 20%, #fffbe6, #fff1c7 60%, #ffe39a); box-shadow: inset 0 0 0 3px #e3a21a, 0 4px 0 #b8780a; }
+.fdep.ready { animation: dreamglow 1.6s ease-in-out infinite; }
+.fdep-pic { flex: none; width: 82px; }
+.fdep-t { flex: 1; min-width: 0; }
+.fdep-t > b { font-family: var(--display); font-weight: 600; font-size: 1.1rem; }
+.fdep-t p { margin: 6px 0 0; }
+.fdep-pick { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 10px 0 4px; }
+.fdep-pick b { font-family: var(--display); font-weight: 600; font-size: 1.6rem; min-width: 90px; text-align: center; font-variant-numeric: tabular-nums; }
+.fdep-tip { padding: 6px 10px; border-radius: 10px; background: #ffffff; box-shadow: inset 0 0 0 2px #f0c35a; font-size: 0.9rem; }
+.fdep-go { width: 100%; margin-top: 10px; background: linear-gradient(90deg, #e0961a, #ffb547); box-shadow: 0 4px 0 #8a5a08; }
+.fdep-weeks { display: flex; gap: 6px; margin-top: 8px; font-size: 1.3rem; }
+.fdep-weeks i { font-style: normal; filter: grayscale(1) opacity(0.4); }
+.fdep-weeks i.on { filter: none; }
+.blog b.lock { color: #8a5a08; }
+.blog b.unlock { color: var(--good); }
+@media (prefers-reduced-motion: reduce) { .fdep.ready { animation: none; } }
