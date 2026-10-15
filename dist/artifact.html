@@ -7402,7 +7402,11 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
       return { type, kind: 'choice', choices: ['Yes, enough', 'No, not enough'], answer: yes ? 'Yes, enough' : 'No, not enough', text: `wants <b>${things(id, q)}</b> for <b>${fmt(T)}</b>. These coins are in their pocket. Do they have enough?`, visual: MQ.V.coins(coins, true), hint: `Count the coins, then compare with ${fmt(T)}.`, explain: `The coins make ${fmt(H)}. ${fmt(H)} is ${H > T ? 'more than' : H === T ? 'the same as' : 'less than'} ${fmt(T)}, so ${yes ? 'yes, it is enough' : 'it is not enough'}.`, sale: { [id]: q }, total: T, noPay: !yes };
     }
     if (type === 'two' || type === 'budget') {
-      const two = U.shuffle(items).filter((id) => P(id) < tier.max).slice(0, type === 'budget' && tier.pay.length > 1 && items.length > 2 ? 3 : 2);
+      let two = U.shuffle(items).filter((id) => P(id) < tier.max).slice(0, type === 'budget' && tier.pay.length > 1 && items.length > 2 ? 3 : 2);
+      if (type === 'two' && two.length === 2 && P(two[0]) + P(two[1]) > tier.max) { // a second thing that fits the money with the first
+        const fit = U.shuffle(items).find((id) => id !== two[0] && P(two[0]) + P(id) <= tier.max);
+        if (fit) two = [two[0], fit];
+      }
       if (two.length < 2) return null;
       const T = U.sum(two.map(P));
       const list = two.map((id) => `${F.ITEMS[id].e} ${F.ITEMS[id].name} (${fmt(P(id))})`).join(' and ');
