@@ -740,7 +740,7 @@ async function run(viewport, tag) {
   await page.click('[data-act=buyEgg]');
   if (!(await page.$('.hscene.t-dragon'))) errors.push(tag + ': no dragon scene');
   while (await page.$('[data-act=tapEgg]')) await page.click('[data-act=tapEgg]', { force: true });
-  await page.waitForSelector('.flyer', { timeout: 4000 }).catch(() => errors.push(tag + ': the dragon did not fly'));
+  await page.waitForSelector('.dflyer', { timeout: 4000 }).catch(() => errors.push(tag + ': the dragon did not fly'));
   await page.waitForSelector('#dname', { timeout: 6000 });
   await page.fill('#dname', '  Sparky the Great Dragon ');
   await page.click('[data-act=hatchDone]');

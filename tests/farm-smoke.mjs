@@ -316,6 +316,9 @@ async function play(grade, tag, viewport) {
   if ((await page.evaluate(() => MQ.state.farm.beds[0].u)) !== 1) errors.push(`${tag}: bed upgrade not bought`);
   await page.click('[data-act=go][data-arg=farm]');
   await page.click('[data-act=fPickAll]');
+  // picked crops fly to the basket as small emoji (another screen's style must not change them)
+  const fly = await page.evaluate(() => { const el = document.querySelector('.flyer'); return el && Math.max(el.getBoundingClientRect().width, el.getBoundingClientRect().height); });
+  if (fly && fly > 80) errors.push(`${tag}: a picked crop flies ${fly}px big`);
   const picked = await page.evaluate(() => MQ.state.farm.beds.filter((b) => b.c).length);
   if (picked !== 0) errors.push(`${tag}: pick all left ${picked} beds`);
   await page.click('[data-act=fPlantAll]');

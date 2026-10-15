@@ -1671,7 +1671,7 @@
     } else if (h.stage === 'burst') {
       inner = `<div class="egg big burst">${MQ.eggArt(E.id, { crack: 1, glow })}</div><div class="flash"></div>`;
     } else if (h.stage === 'fly') {
-      inner = `<div class="flyer">${MQ.art(c.id, { stage: 0, fly: true })}</div><div class="dbanner">${E.id === 'royal' ? 'ROYAL DRAGON!' : 'DRAGON!'}</div>`;
+      inner = `<div class="dflyer">${MQ.art(c.id, { stage: 0, fly: true })}</div><div class="dbanner">${E.id === 'royal' ? 'ROYAL DRAGON!' : 'DRAGON!'}</div>`;
     } else {
       const d = st.dragons[c.id];
       inner = `${creatureCard(c, true)}
