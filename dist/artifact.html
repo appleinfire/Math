@@ -1272,6 +1272,36 @@ svg.dart { display: block; width: 100%; height: auto; }
 .dbuilt.done .dbuilt-rays { opacity: 0.6; }
 .dbuilt.t-castle .dpic { background: radial-gradient(circle at 50% 30%, #fff6c4, #c9b8ff 70%, #9d7bff); }
 @media (prefers-reduced-motion: reduce) { .fdream.hot, .dbuild { animation: none; } }
+
+/* ================= Sunny Farm: the traveling merchant (special: purple, gold and stripes) ================= */
+svg.tart { display: block; width: 100%; height: auto; }
+.fmerchant { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 12px; border: 0; text-align: left; border-radius: var(--r); padding: 8px 10px 8px 8px; color: var(--ink); overflow: hidden;
+  background: linear-gradient(120deg, #f6efff, #fff4d6); box-shadow: inset 0 0 0 3px #9d7bff, 0 4px 0 #5a2fb0, 0 0 18px rgba(157, 123, 255, 0.45); animation: merchantglow 2.4s ease-in-out infinite; }
+.fmerchant::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 7px; background: repeating-linear-gradient(90deg, #ff4d6d 0 14px, #ffffff 14px 28px); }
+@keyframes merchantglow { 50% { box-shadow: inset 0 0 0 3px #ffd23f, 0 4px 0 #a8650a, 0 0 26px rgba(255, 210, 63, 0.7); } }
+.fm-wagon { flex: none; width: 70px; }
+.fm-gem { flex: none; width: 54px; animation: floaty 2.6s ease-in-out infinite; }
+.mline { display: block; margin: -4px -6px; padding: 6px 8px; border-radius: 10px; background: linear-gradient(90deg, #f6efff, #fff4d6); box-shadow: inset 0 0 0 2px #9d7bff; }
+.tcard { position: relative; overflow: hidden; margin: -4px 0 10px; padding: 12px 10px 10px; border-radius: 18px; text-align: center;
+  background: radial-gradient(circle at 50% 30%, #fffbe6, #f1e4ff 70%); box-shadow: inset 0 0 0 4px #9d7bff, 0 0 26px rgba(157, 123, 255, 0.55); }
+.tcard .dbuilt-rays { opacity: 0.55; }
+.tcard > * { position: relative; }
+.tpic { width: 150px; margin: 0 auto; animation: pop 0.6s, floaty 3s 0.6s ease-in-out infinite; }
+.ttag { display: inline-block; margin: 4px 0; padding: 3px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; color: #3a0d40; background: linear-gradient(90deg, #ffd23f, #ff8fe0, #9ff0ff); }
+.tprice { display: inline-block; margin: 4px 0; padding: 4px 16px; border-radius: 999px; font-family: var(--display); font-weight: 600; font-size: 1.5rem; background: #ffffff; box-shadow: inset 0 0 0 3px #ffd23f; }
+.tplan { padding: 8px 10px; border-radius: 12px; background: #fff8e6; box-shadow: inset 0 0 0 2px #f0c35a; }
+.tbuy { width: 100%; background: linear-gradient(90deg, #9d7bff, #ff6fa8); box-shadow: 0 4px 0 #5a2fb0; }
+.stall .goods svg.tart { width: 2.6rem; }
+/* the treasures on the farm */
+.trs { position: absolute; bottom: 4px; width: 50px; pointer-events: none; animation: floaty 3s ease-in-out infinite; filter: drop-shadow(0 0 6px rgba(255, 230, 102, 0.8)); }
+.trs.tr-goose { left: 24%; }
+.trs.tr-sheep { left: 54%; width: 56px; animation-delay: -1s; }
+.trs.tr-musician { left: 96px; width: 44px; animation-delay: -0.5s; }
+.trs.tr-can { left: 38%; width: 42px; animation-delay: -1.5s; }
+.trs.tr-fairy { left: 70%; bottom: 30px; width: 40px; animation: fairyfly 6s ease-in-out infinite; }
+@keyframes fairyfly { 25% { transform: translate(-18px, -10px); } 50% { transform: translate(8px, -16px); } 75% { transform: translate(16px, -4px); } }
+.trs.wagon { right: 4px; left: auto; width: 84px; pointer-events: auto; border: 0; padding: 0; background: none; animation: none; filter: drop-shadow(0 0 8px rgba(157, 123, 255, 0.8)); }
+@media (prefers-reduced-motion: reduce) { .fmerchant, .fm-gem, .tpic { animation: none; } }
 </style>
 <div id="app"><p style="padding:40px;text-align:center">Loading Math Expedition…</p></div>
   <script>
@@ -5130,6 +5160,7 @@ svg.dart { display: block; width: 100%; height: auto; }
     { id: 'vip10', icon: '⭐', name: 'Challenge Champ', desc: 'Help 10 ⭐ challenge customers right on the first try', test: (s) => !!s.farm && s.farm.stats.vip >= 10 },
     { id: 'dream1', icon: '🏗️', name: 'Dreamer', desc: 'Build the first part of a Big Dream on your farm', test: (s) => !!s.farm && !!s.farm.dream && (s.farm.dream.p > 0 || s.farm.dream.s > 0) },
     { id: 'investor', icon: '🍎', name: 'Investor', desc: 'Finish the Fruit Orchard: it earns money every bank day', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 1 },
+    { id: 'treasure', icon: '🧳', name: 'Treasure Hunter', desc: 'Buy a rare treasure from the traveling merchant', test: (s) => !!s.farm && Object.keys(s.farm.treasure || {}).length >= 1 },
     { id: 'castle', icon: '🏰', name: 'Castle Builder', desc: 'Build the Castle on the Hill', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 4 },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];
@@ -6144,6 +6175,7 @@ svg.dart { display: block; width: 100%; height: auto; }
     silk: { e: '🧵', name: 'spool of silk', many: 'spools of silk', price: [9, 400] },
     sleigh: { e: '🛷', name: 'sleigh ride', many: 'sleigh rides', price: [12, 500] },
     sparkle: { e: '✨', name: 'jar of rainbow sparkles', many: 'jars of rainbow sparkles', price: [15, 900] },
+    rainbow: { e: '🌈', name: 'ball of rainbow wool', many: 'balls of rainbow wool', price: [14, 400] }, // from the merchant's Rainbow Sheep
     // made in the workshops (F.WORKS)
     jam: { e: '🫙', name: 'jar of strawberry jam', many: 'jars of strawberry jam', price: [10, 120], made: true },
     sauce: { e: '🥫', name: 'can of tomato sauce', many: 'cans of tomato sauce', price: [14, 140], made: true },
@@ -6262,7 +6294,7 @@ svg.dart { display: block; width: 100%; height: auto; }
   F.bedWater = (b) => (b.u || 0) >= 3;
   F.bedGlass = (b) => (b.u || 0) >= 5;
   F.cropDays = (b) => Math.max(1, F.CROPS[b.c].days - (F.bedWater(b) ? 1 : 0));
-  F.cropYield = (b) => F.CROPS[b.c].yield + F.bedStars(b);
+  F.cropYield = (b, fm) => F.CROPS[b.c].yield + F.bedStars(b) + (fm && fm.treasure && fm.treasure.can ? 1 : 0); // + the Magic Watering Can
   F.penCount = (p) => 1 + Math.min(p.u || 0, 2);
   F.penEat = (p) => F.ANIMALS[p.a].eat * F.penCount(p);
   F.penMakes = (p) => F.ANIMALS[p.a].per * F.penCount(p) + ((p.u || 0) >= 3 ? 1 : 0);
@@ -6443,6 +6475,8 @@ svg.dart { display: block; width: 100%; height: auto; }
     works: {}, // workshop id: { r: recipe index or null, g: nights, ready: items, out: item }
     bank: { bal: 0, acct: 0, log: [], pend: [] }, // see the bank below: bank day is every 7th farm day
     dream: { p: 0, s: 0, b: false, seen: false }, // Big Dreams: project p, stages built s, builders at work tonight b
+    treasure: {}, // the traveling merchant's treasures bought: id: true
+    merchant: null, // his visit: { week, item } (bank week number and the treasure he brought)
   });
   F.START_MONEY = [5, 30];
   F.ensure = (st) => {
@@ -6460,6 +6494,8 @@ svg.dart { display: block; width: 100%; height: auto; }
     // totals saved and taken out came later: what is in the bank and is not interest was saved
     if (fm.stats.saved == null) { fm.stats.saved = Math.max(0, fm.bank.bal - fm.stats.interest); fm.stats.tookOut = 0; }
     if (!fm.dream) fm.dream = { p: 0, s: 0, b: false, seen: false }; // Big Dreams came later
+    if (!fm.treasure) fm.treasure = {}; // so did the traveling merchant
+    if (fm.merchant === undefined) fm.merchant = null;
     for (const k of ['built', 'dreamIn']) if (!fm.stats[k]) fm.stats[k] = 0;
     return fm;
   };
@@ -6482,7 +6518,7 @@ svg.dart { display: block; width: 100%; height: auto; }
   F.harvest = (fm, i) => {
     const bed = fm.beds[i];
     if (F.cropStage(bed) !== 'ready') return 0;
-    const n = F.cropYield(bed);
+    const n = F.cropYield(bed, fm);
     fm.basket[bed.c] = (fm.basket[bed.c] || 0) + n;
     if (F.bedGlass(bed) && !bed.again) Object.assign(bed, { g: 0, again: true }); // the greenhouse grows a second harvest
     else Object.assign(bed, { c: null, g: 0, again: false });
@@ -6554,6 +6590,11 @@ svg.dart { display: block; width: 100%; height: auto; }
       w.g++;
       if (w.g >= r.days) { w.ready = (w.ready || 0) + 1; w.out = r.out; w.r = null; w.g = 0; news.cooked.push(r.out); }
     }
+    const tr = fm.treasure || {};
+    if (tr.fairy) { // the Feed Fairy feeds one hungry pen, for free
+      const p = fm.pens.find((x) => x.a && !x.fed);
+      if (p) { p.fed = true; news.fairy = p.a; }
+    }
     fm.beds.forEach((b) => {
       if (!b.c || F.cropStage(b) === 'ready') return;
       b.g++;
@@ -6574,6 +6615,9 @@ svg.dart { display: block; width: 100%; height: auto; }
     }
     news.built = F.buildOvernight(fm);
     fm.day++;
+    if (tr.goose) { const x = F.TREASURES.goose.gold[gi(grade)]; fm.money += x; fm.stats.earned += x; news.gold = x; }
+    if (tr.sheep) { fm.basket.rainbow = (fm.basket.rainbow || 0) + 1; news.rainbow = 1; }
+    news.merchant = F.merchantMorning(fm, grade);
     news.bankDay = fm.bank ? F.bankMorning(fm, grade) : false; // the morning of bank day: what is saved earns interest
     return news;
   };
@@ -6863,6 +6907,55 @@ svg.dart { display: block; width: 100%; height: auto; }
   // How many bank days until a stage has earned back its price.
   F.payback = (cost, pay) => (pay ? Math.ceil(cost / pay) : 0);
 
+  // ---------------------------------------------------------------- the traveling merchant
+  // Uncle Marco comes every 3rd bank week and stays its 7 farm days (so a bank day falls in his visit, and the child
+  // can take savings out of the bank in time). He brings one rare treasure the shop never has, priced at about one
+  // bank week of what a good farm makes at its level, so it takes some saving and planning. If it isn't bought, he
+  // leaves and comes back later; he brings every treasure in turn, until all of them are on the farm. He starts
+  // coming once the first Big Dream stage is built (so the new things come one at a time).
+  F.MERCHANT = { e: '🧔', name: 'Uncle Marco', every: 3 };
+  F.TREASURES = {
+    goose: { e: '🪿', name: 'Golden Goose', lv: 10, cost: [60, 6000], gold: [2, 150], note: (fmt) => `Lays a golden egg every morning: +${fmt(F.TREASURES.goose.gold[1])} into your wallet. No feed needed.`, noteK: (fmt) => `Lays a golden egg every morning: +${fmt(F.TREASURES.goose.gold[0])} into your wallet. No feed needed.` },
+    can: { e: '🪣', name: 'Magic Watering Can', lv: 10, cost: [80, 7000], note: () => 'Every garden bed gives 1 more crop at every harvest.' },
+    musician: { e: '🎻', name: 'Street Musician', lv: 12, cost: [50, 6000], note: () => 'Plays music at your stand: customers tip 5% more for right answers, on any stand.' },
+    fairy: { e: '🧚', name: 'Feed Fairy', lv: 14, cost: [45, 8000], note: () => 'Every night she feeds one hungry pen for free.' },
+    sheep: { e: '🐑', name: 'Rainbow Sheep', lv: 16, cost: [99, 12000], note: () => 'Gives a ball of rainbow wool every morning, to sell at your stand. No feed needed.' },
+  };
+  F.treasureNote = (id, grade, fmt) => { const t = F.TREASURES[id]; return (grade === 'k' && t.noteK ? t.noteK : t.note)(fmt); };
+  F.bankWeekNo = (day) => Math.ceil(day / F.BANK_WEEK);
+  F.merchantOn = (fm) => !!fm.dream && (fm.dream.p > 0 || fm.dream.s > 0) && F.dreamOpen(fm);
+  // the treasure he has today (null when he isn't here, or it was bought)
+  F.merchantNow = (fm) => {
+    const m = fm.merchant;
+    return m && m.week === F.bankWeekNo(fm.day) && !(fm.treasure || {})[m.item] ? m.item : null;
+  };
+  F.merchantNights = (day) => F.bankWeekNo(day) * F.BANK_WEEK - day; // nights left (0: he leaves tonight)
+  // Each morning: he arrives on the first morning of his bank week, says goodbye on his last day, and is gone after.
+  // Returns ['came' | 'last' | 'left', treasure] for the morning card, or null.
+  F.merchantMorning = (fm, grade) => {
+    const w = F.bankWeekNo(fm.day), m = fm.merchant;
+    if (w % F.MERCHANT.every === 0 && F.merchantOn(fm) && (!m || m.week !== w)) {
+      const L = F.level(fm.xp).level, left = Object.keys(F.TREASURES).filter((t) => !fm.treasure[t] && F.TREASURES[t].lv <= L);
+      if (!left.length) return null;
+      fm.merchant = { week: w, item: left[(w / F.MERCHANT.every) % left.length] };
+      return ['came', fm.merchant.item];
+    }
+    if (!m || fm.treasure[m.item]) return null;
+    if (m.week === w && F.merchantNights(fm.day) === 0) return ['last', m.item];
+    if (m.week === w - 1 && F.isBankDay(fm.day - 1)) return ['left', m.item];
+    return null;
+  };
+  F.buyTreasure = (fm, grade) => {
+    const id = F.merchantNow(fm), t = id && F.TREASURES[id], cost = t && t.cost[gi(grade)];
+    if (!t || fm.money < cost) return null;
+    fm.money -= cost;
+    fm.stats.spent += cost;
+    fm.treasure[id] = true;
+    return Object.assign({ id, cost }, t);
+  };
+  // How much to put aside each day to buy it before he leaves: today and every day left, in whole dollars (k: cents).
+  F.perDayToSave = (need, nights, grade) => { const days = nights + 1, x = Math.ceil(need / days); return grade === 'k' ? x : Math.ceil(x / 100) * 100; };
+
   // ---------------------------------------------------------------- grown-up preview
   // The farm of a level-60 farmer, to look around in the grown-up preview (a copy of the profile; nothing is saved):
   // everything open and owned, plenty of money, crops and animals at every stage, a full basket, a bank day waiting.
@@ -6879,6 +6972,8 @@ svg.dart { display: block; width: 100%; height: auto; }
       day: 14,
       bank: { bal: k ? 1234 : 12345, acct: 1, log: [], pend: [{ day: 14, bal: k ? 1234 : 12345 }] }, // above the Silver limit: both rates
       dream: { p: 2, s: 2, b: false, seen: true }, // the orchard and the cottage built, the railway half done
+      treasure: { goose: true, can: true, musician: true }, // three of the merchant's treasures
+      merchant: { week: 2, item: 'sheep' }, // and he is visiting (farm day 14 is the last day of bank week 2)
     });
     Object.assign(fm.stats, k ? { saved: 1100, tookOut: 100, interest: 234, bankDays: 9 } : { saved: 11000, tookOut: 1000, interest: 2345, bankDays: 9 }); // adds up to the bank above
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
@@ -7158,7 +7253,9 @@ svg.dart { display: block; width: 100%; height: auto; }
     return stock;
   };
   F.wage = (tier, grade) => (grade === 'k' ? (tier >= 3 ? 2 : 1) : 5 * tier);
-  F.tip = (fm, total) => (F.STANDS[fm.stand].tip ? Math.max(1, Math.round(total * F.STANDS[fm.stand].tip)) : 0);
+  // a nicer stand tips more; the merchant's Street Musician adds 5% on any stand
+  F.tipRate = (fm) => F.STANDS[fm.stand].tip + (fm.treasure && fm.treasure.musician ? 0.05 : 0);
+  F.tip = (fm, total) => (F.tipRate(fm) ? Math.max(1, Math.round(total * F.tipRate(fm))) : 0);
   F.VIP_TIP = (grade, total) => Math.max(grade === 'k' ? 2 : 10, Math.round(total * 0.5));
 
   // Is this answer right? (coins: the picked coins make the target exactly)
@@ -7877,6 +7974,76 @@ svg.dart { display: block; width: 100%; height: auto; }
   };
   const castleDefs = (k) => lin(k + 's', ['#f4f1ff', '#c9c0e6']) + lin(k + 'r', ['#9d7bff', '#4a2f9a']) + lin(k + 'o', ['#fff6c4', '#ffcf48', '#e0961a']) + glowG(k + 'g', '#ffe066');
 
+  // ---------------------------------------------------------------- the traveling merchant and his treasures
+  // (special things: gold, rainbow colors and sparkles; viewBox 0 0 120 120)
+  const svgT = (body, defs = '') => `<svg class="tart" viewBox="0 0 120 120" aria-hidden="true" focusable="false">${defs ? `<defs>${defs}</defs>` : ''}${body}</svg>`;
+  const o = (c, w = 2.2) => ` stroke="${c}" stroke-width="${w}" stroke-linejoin="round"`;
+  const eye = (x, y, r = 3) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#2b2140"/><circle cx="${f1(x + r * 0.35)}" cy="${f1(y - r * 0.4)}" r="${f1(r * 0.38)}" fill="#ffffff"/>`;
+  const TREASURE = {
+    goose: (k) => [lin(k + 'g', ['#fff6c4', '#ffd23f', '#e0961a'], 1, 1) + glowG(k + 'w', '#ffe066'),
+      `<circle cx="60" cy="64" r="54" fill="url(#${k}w)"/>` +
+      `<path d="M30 82C24 66 34 54 50 56C58 57 64 62 72 60C78 50 74 38 80 30C86 22 98 24 100 34C102 42 94 46 92 54C90 66 92 84 76 92C62 99 38 98 30 82Z" fill="url(#${k}g)"${o('#a8650a')}/>` +
+      `<path d="M40 74C48 66 62 68 70 76C62 82 48 84 40 74Z" fill="#ffe680"${o('#c9860a', 1.6)}/><path d="M100 32L112 36L100 40Z" fill="#ff8a1f"${o('#b5600c', 1.6)}/>` + eye(92, 32) +
+      `<path d="M50 92L48 102M62 94L62 104M44 102L52 102M58 104L66 104" stroke="#ff8a1f" stroke-width="3" stroke-linecap="round"/>` +
+      `<path d="M84 26L83 16L88 21L91 12L94 21L99 16L98 26Z" fill="#ffd23f"${o('#a8650a', 1.4)}/>` +
+      `<ellipse cx="20" cy="100" rx="9" ry="11" fill="url(#${k}g)"${o('#a8650a', 1.6)}/><ellipse cx="17" cy="96" rx="2.4" ry="4" fill="#ffffff" opacity=".7"/>` +
+      spk(18, 18, 7, '#fff3a6') + spk(108, 70, 5, '#fff3a6') + spk(8, 70, 4, '#ffffff')],
+    can: (k) => [lin(k + 'c', ['#7fd8ff', '#3a8be0'], 1, 1) + glowG(k + 'w', '#9ff0ff'),
+      `<circle cx="60" cy="62" r="54" fill="url(#${k}w)"/>` +
+      `<path d="M30 52L84 52L80 98C80 102 76 104 72 104L42 104C38 104 34 102 34 98Z" fill="url(#${k}c)"${o('#1f4fb0')}/>` +
+      `<path d="M30 52L84 52L84 58L30 58Z" fill="#ffd23f"${o('#a8650a', 1.6)}/><path d="M36 92L78 92" stroke="#ffd23f" stroke-width="3"/>` +
+      `<path d="M84 64L106 42L112 46L90 72Z" fill="url(#${k}c)"${o('#1f4fb0', 2)}/><ellipse cx="110" cy="43" rx="5" ry="7" fill="#ffd23f" transform="rotate(35 110 43)"${o('#a8650a', 1.4)}/>` +
+      `<path d="M40 52C40 34 74 34 74 52" fill="none" stroke="#1f4fb0" stroke-width="5" stroke-linecap="round"/>` +
+      ['#ff6b6b', '#ffb84d', '#ffe66d', '#7ed957', '#5ec8ff', '#a77bff'].map((c, i) => `<circle cx="${f1(112 - i * 2)}" cy="${56 + i * 9}" r="2.6" fill="${c}"/>`).join('') +
+      `<path d="M50 70L60 64L70 70L66 82L54 82Z" fill="#ffffff" opacity=".35"/>` + spk(18, 22, 7, '#ffffff') + spk(14, 88, 5, '#fff3a6') + spk(98, 104, 4, '#ffffff')],
+    musician: (k) => [lin(k + 'v', ['#e8a35a', '#a8622f'], 1, 1) + glowG(k + 'w', '#ff8fe0'),
+      `<circle cx="60" cy="60" r="54" fill="url(#${k}w)"/>` +
+      `<g transform="rotate(-28 56 66)"><path d="M56 30C66 30 70 38 66 46C72 50 74 58 70 64C78 70 76 90 56 92C36 90 34 70 42 64C38 58 40 50 46 46C42 38 46 30 56 30Z" fill="url(#${k}v)"${o('#6b3a14')}/>` +
+      `<path d="M53 52C51 56 51 58 53 60M59 52C61 56 61 58 59 60" stroke="#3a1f0a" stroke-width="2" fill="none"/><rect x="52" y="8" width="8" height="26" rx="2" fill="#3a1f0a"/><rect x="50" y="4" width="12" height="8" rx="3" fill="#6b3a14"/>` +
+      `<path d="M54 12L54 80M58 12L58 80" stroke="#f6e7c8" stroke-width="0.8"/><rect x="48" y="72" width="16" height="4" rx="1" fill="#3a1f0a"/></g>` +
+      `<path d="M16 96L100 30" stroke="#6b3a14" stroke-width="3" stroke-linecap="round"/><path d="M18 94L98 32" stroke="#f6e7c8" stroke-width="1"/>` +
+      `<path d="M88 64L88 82C88 86 80 88 80 84C80 80 86 80 88 82" fill="#ff4d6d" stroke="#ff4d6d" stroke-width="2.4" stroke-linecap="round"/><path d="M98 84L98 98C98 102 90 104 90 100C90 96 96 96 98 98M98 84L108 80L108 94C108 98 100 100 100 96" fill="none" stroke="#7a3fd1" stroke-width="2.6" stroke-linecap="round"/>` +
+      `<path d="M14 40L14 56C14 60 6 62 6 58C6 54 12 54 14 56" fill="none" stroke="#3a8be0" stroke-width="2.4" stroke-linecap="round"/>` + spk(26, 18, 6, '#fff3a6') + spk(104, 22, 5, '#ffffff')],
+    fairy: (k) => [lin(k + 'd', ['#b9f0a0', '#5fbf5f']) + lin(k + 'f', ['#ffffff', '#c9f0ff']) + glowG(k + 'w', '#c9f7a8'),
+      `<circle cx="60" cy="60" r="54" fill="url(#${k}w)"/>` +
+      `<g transform="rotate(-30 40 50)"><ellipse cx="40" cy="50" rx="18" ry="10" fill="url(#${k}f)"${o('#7cc7f0', 1.6)}/></g><g transform="rotate(30 80 50)"><ellipse cx="80" cy="50" rx="18" ry="10" fill="url(#${k}f)"${o('#7cc7f0', 1.6)}/></g>` +
+      `<g transform="rotate(25 42 68)"><ellipse cx="42" cy="68" rx="12" ry="7" fill="url(#${k}f)"${o('#7cc7f0', 1.6)}/></g><g transform="rotate(-25 78 68)"><ellipse cx="78" cy="68" rx="12" ry="7" fill="url(#${k}f)"${o('#7cc7f0', 1.6)}/></g>` +
+      `<path d="M50 62L70 62L78 92C68 96 52 96 42 92Z" fill="url(#${k}d)"${o('#2f7a3a', 2)}/><path d="M46 90Q50 94 54 91Q58 95 62 91Q66 95 70 91Q74 94 76 90" stroke="#ffffff" stroke-width="1.4" fill="none"/>` +
+      `<path d="M55 94L55 104M65 94L65 104" stroke="#f2b896" stroke-width="3.4" stroke-linecap="round"/>` +
+      `<circle cx="60" cy="46" r="14" fill="#ffe0cc"${o('#c98a6a', 1.8)}/><path d="M46 46C44 32 52 28 60 28C68 28 76 32 74 46C70 38 66 36 60 36C54 36 50 38 46 46Z" fill="#ffd23f"${o('#c99a00', 1.8)}/>` +
+      eye(55, 47, 2.4) + eye(65, 47, 2.4) + `<path d="M56 53Q60 56 64 53" stroke="#c2407e" stroke-width="1.6" fill="none" stroke-linecap="round"/>` +
+      `<path d="M78 70L96 58M90 52L96 58L92 64M86 56L92 60" stroke="#c9a26a" stroke-width="2.4" stroke-linecap="round"/><path d="M96 58L104 46M98 60L108 52M96 56L100 44" stroke="#e8b84a" stroke-width="2.2" stroke-linecap="round"/>` +
+      spk(18, 26, 6, '#fff3a6') + spk(104, 92, 5, '#ffffff') + spk(20, 92, 4, '#c9f7a8')],
+    sheep: (k) => {
+      const cols = ['#ff6b6b', '#ffb84d', '#ffe66d', '#7ed957', '#5ec8ff', '#a77bff'];
+      const fluff = [[36, 60], [50, 50], [66, 48], [82, 54], [90, 68], [84, 82], [68, 88], [50, 88], [34, 78], [60, 68]];
+      return [glowG(k + 'w', '#ffb8f0'),
+        `<circle cx="60" cy="64" r="54" fill="url(#${k}w)"/>` +
+        `<path d="M44 90L42 106M56 92L56 108M72 92L72 108M84 88L86 104" stroke="#3a2a4a" stroke-width="5" stroke-linecap="round"/>` +
+        fluff.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="15" fill="${cols[i % 6]}"${o('#ffffff', 2)}/>`).join('') +
+        `<ellipse cx="24" cy="58" rx="13" ry="15" fill="#4a3a5a"${o('#2b2140', 2)}/><ellipse cx="14" cy="50" rx="6" ry="3.5" fill="#4a3a5a" transform="rotate(-30 14 50)"/><ellipse cx="34" cy="48" rx="6" ry="3.5" fill="#4a3a5a" transform="rotate(30 34 48)"/>` +
+        `<circle cx="24" cy="46" r="6" fill="#ff6b6b"${o('#ffffff', 1.4)}/><circle cx="18" cy="44" r="4" fill="#ffe66d"/><circle cx="30" cy="44" r="4" fill="#5ec8ff"/>` +
+        eye(19, 58, 2.6) + eye(29, 58, 2.6) + `<path d="M21 66Q24 69 27 66" stroke="#ffd6e6" stroke-width="1.6" fill="none" stroke-linecap="round"/>` +
+        spk(100, 24, 7, '#fff3a6') + spk(108, 96, 5, '#ffffff') + spk(14, 96, 4, '#ffe66d')];
+    },
+  };
+  MQ.treasureArt = (id) => { const f = TREASURE[id]; if (!f) return ''; const [defs, body] = f('t' + (++uid).toString(36)); return svgT(body, defs); };
+  // Uncle Marco's wagon: a striped roof, a star on the side, big yellow wheels, a lantern, and Marco at the window.
+  MQ.wagonArt = () => {
+    const k = 'w' + (++uid).toString(36);
+    const stripes = [0, 1, 2, 3, 4, 5, 6].map((i) => `<path d="M${18 + i * 14} 30L${32 + i * 14} 30L${32 + i * 14} 46L${18 + i * 14} 46Z" fill="${i % 2 ? '#ffffff' : '#ff4d6d'}"/>`).join('');
+    const wheel = (x) => `<circle cx="${x}" cy="98" r="13" fill="#ffd23f" stroke="#a8650a" stroke-width="2.4"/><circle cx="${x}" cy="98" r="3.5" fill="#a8650a"/>` + [0, 45, 90, 135].map((a) => `<path d="M${x} 98L${f1(x + 12 * Math.cos((a * Math.PI) / 180))} ${f1(98 + 12 * Math.sin((a * Math.PI) / 180))}M${x} 98L${f1(x - 12 * Math.cos((a * Math.PI) / 180))} ${f1(98 - 12 * Math.sin((a * Math.PI) / 180))}" stroke="#a8650a" stroke-width="1.6"/>`).join('');
+    return `<svg class="tart wagon" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><defs>${lin(k + 'b', ['#9d7bff', '#5a2fb0'])}${glowG(k + 'w', '#ffe066')}<clipPath id="${k}r"><path d="M14 46C14 22 106 22 106 46Z"/></clipPath></defs>` +
+      `<circle cx="60" cy="58" r="56" fill="url(#${k}w)"/>` +
+      `<g clip-path="url(#${k}r)">${stripes}</g><path d="M14 46C14 22 106 22 106 46Z" fill="none" stroke="#9c1a3a" stroke-width="2.4"/>` +
+      `<rect x="16" y="46" width="88" height="44" rx="4" fill="url(#${k}b)" stroke="#3a1a7a" stroke-width="2.4"/>` +
+      `<rect x="26" y="54" width="26" height="20" rx="3" fill="#fff3c4" stroke="#3a1a7a" stroke-width="2"/><circle cx="39" cy="66" r="7" fill="#ffd9c2"/><path d="M32 61C34 55 44 55 46 61Z" fill="#7a4a22"/><path d="M34 68C36 66 38 67 39 68C40 67 42 66 44 68C42 71 36 71 34 68Z" fill="#5b3a1e"/>${eye(36.5, 63.5, 1.4)}${eye(41.5, 63.5, 1.4)}` +
+      `<path d="M78 52L81 60L90 60L83 65L86 74L78 69L70 74L73 65L66 60L75 60Z" fill="#ffd23f" stroke="#a8650a" stroke-width="1.4"/>` +
+      `<path d="M16 82L104 82" stroke="#ffd23f" stroke-width="3"/><path d="M104 66L114 66L114 72" stroke="#3a1a7a" stroke-width="2" fill="none"/><rect x="110" y="72" width="8" height="10" rx="2" fill="#ffe066" stroke="#a8650a" stroke-width="1.4"/>` +
+      wheel(34) + wheel(86) + spk(10, 16, 6, '#fff3a6') + spk(110, 18, 5, '#ffffff') + `</svg>`;
+  };
+  MQ.TREASURE_IDS = Object.keys(TREASURE);
+
   const DRAW = { orchard: ORCHARD, cottage: COTTAGE, railway: RAILWAY, castle: CASTLE };
   MQ.dreamArt = (id, built, { building = false, ghost = true } = {}) => {
     const D = DRAW[id], k = 'd' + (++uid).toString(36);
@@ -7930,7 +8097,7 @@ svg.dart { display: block; width: 100%; height: auto; }
     const stars = F.bedStars(b), ups = `${stars ? `<span class="bstars">${'★'.repeat(stars)}</span>` : ''}${F.bedWater(b) ? '<span class="bwater">💧</span>' : ''}`;
     const glass = F.bedGlass(b) ? ' glass' : '';
     if (s === 'empty') return `<button class="fbed soil empty${glass}" data-act="fBed" data-arg="${i}" aria-label="Empty garden bed: plant seeds"><span class="plus">＋</span>${ups}<span class="flabel">Plant</span></button>`;
-    const it = F.ITEMS[b.c], left = F.cropDays(b) - b.g, y = F.cropYield(b);
+    const it = F.ITEMS[b.c], left = F.cropDays(b) - b.g, y = F.cropYield(b, fmNow);
     const n = Math.min(y, 4); // the label says how many; four fit on a small bed
     const sprite = s === 'ready' ? it.e : s === 'seed' ? '🌱' : '🌿';
     const plants = Array.from({ length: s === 'ready' ? n : 3 }, (_, k) => `<i style="--k:${k}">${sprite}</i>`).join('');
@@ -7980,9 +8147,13 @@ svg.dart { display: block; width: 100%; height: auto; }
     if (!shown.length) return '';
     return `<div class="dreamland">${shown.map(([d, n, b]) => `<button class="dl t-${d.id} ${n >= d.stages.length ? 'done' : ''}" data-act="go" data-arg="farm:dreams" aria-label="${esc(d.name)}: ${n} of ${d.stages.length} built">${MQ.dreamArt(d.id, n, { building: b, ghost: false })}</button>`).join('')}</div>`;
   }
-  let fmWorks = {};
+  let fmWorks = {}, fmNow = null;
+  // The merchant's treasures live on the farm: the goose and the sheep in the yard, the musician by the stand,
+  // the fairy over the pens, the watering can by the beds.
+  const treasures = (fm) => Object.keys(fm.treasure || {}).filter((id) => fm.treasure[id] && MQ.treasureArt).map((id) => `<span class="trs tr-${id}" title="${esc(F.TREASURES[id].name)}">${MQ.treasureArt(id)}</span>`).join('');
   S.farm = (fm, grade) => {
     fmWorks = fm.works || {};
+    fmNow = fm;
     const has = (id) => !!fm.owned[id];
     const at = (zone) => Object.keys(fm.owned).filter((id) => F.DECOR[id] && (SPOTS[id] || [])[0] === zone);
     const sky = [];
@@ -8010,7 +8181,7 @@ svg.dart { display: block; width: 100%; height: auto; }
         ${works.length ? `<div class="works">${works.map(workHtml).join('')}</div>` : ''}
         <div class="yard">
           <button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
-          ${yard}${fm.helper && fm.helper.hired && fm.helper.on ? `<span class="farmhand" title="Farmhand ${F.HELPER.name}">🧑‍🌾</span>` : ''}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}
+          ${yard}${fm.helper && fm.helper.hired && fm.helper.on ? `<span class="farmhand" title="Farmhand ${F.HELPER.name}">🧑‍🌾</span>` : ''}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}${treasures(fm)}${F.merchantNow(fm) ? `<button class="trs wagon" data-act="fMerchant" aria-label="${esc(F.MERCHANT.name)}'s wagon">${MQ.wagonArt()}</button>` : ''}
         </div>
         ${park ? `<div class="park">${park}</div>` : ''}
       </div>
@@ -8167,6 +8338,7 @@ svg.dart { display: block; width: 100%; height: auto; }
     let t;
     if (F.bankDue(f) > 0) t = 'It’s bank day! Your savings grew. Go to the bank to collect the interest.';
     else if (F.canBuild(f, grade())) t = 'You saved enough in the bank for your Big Dream! Pay the builders 🏗️';
+    else if (F.merchantNow(f) && F.merchantNights(f.day) <= 1) t = `${F.MERCHANT.name} the traveling merchant leaves ${F.merchantNights(f.day) ? 'tomorrow night' : 'tonight'}! Tap his wagon.`;
     else if (Object.values(f.works).some((w) => w.ready)) t = 'Something is ready in your workshop! Tap it to take it.';
     else if (f.beds.some((b) => F.cropStage(b) === 'ready')) t = 'Your crops are ripe! Tap them to pick them.';
     else if (f.pens.some((p) => p.ready)) t = 'Your animals made something! Tap them to collect it.';
@@ -8213,6 +8385,7 @@ svg.dart { display: block; width: 100%; height: auto; }
       ${MQ.store.preview ? pvTiers() : ''}
       ${goalBar()}
       ${dreamCard()}
+      ${merchantCard()}
       ${bankDay ? `<button class="fbankday" data-act="go" data-arg="farm:bank">🏦 <b>Bank day!</b> Your savings earned interest. Tap to collect it.</button>` : ''}
       ${tipLine()}
       <button class="btn big fstand" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Open the stand ${n ? `· ${n} to sell` : '· basket is empty'}</button>
@@ -8288,7 +8461,7 @@ svg.dart { display: block; width: 100%; height: auto; }
     }
     if (s !== 'empty') {
       const left = F.cropDays(b) - b.g;
-      return K().modal(`<div class="bigemoji">${s === 'seed' ? '🌱' : '🌿'}</div><div class="mtitle">${esc(cap(F.ITEMS[b.c].many))}</div><p>Ready in ${left} ${left === 1 ? 'day' : 'days'}: ${F.cropYield(b)} ${F.ITEMS[b.c].e}${b.again ? ' (the second harvest)' : ''}. Tap 🌙 Sleep to make the night pass.</p>${bedUps(b)}<div class="row"><button class="btn ghost" data-act="fUpgrades">⬆️ Upgrades</button><button class="btn" data-act="closeModal">OK</button></div>`);
+      return K().modal(`<div class="bigemoji">${s === 'seed' ? '🌱' : '🌿'}</div><div class="mtitle">${esc(cap(F.ITEMS[b.c].many))}</div><p>Ready in ${left} ${left === 1 ? 'day' : 'days'}: ${F.cropYield(b, f)} ${F.ITEMS[b.c].e}${b.again ? ' (the second harvest)' : ''}. Tap 🌙 Sleep to make the night pass.</p>${bedUps(b)}<div class="row"><button class="btn ghost" data-act="fUpgrades">⬆️ Upgrades</button><button class="btn" data-act="closeModal">OK</button></div>`);
     }
     plantPicker(i);
   }
@@ -8419,6 +8592,16 @@ svg.dart { display: block; width: 100%; height: auto; }
     news.made.forEach(([it, n]) => (made[it] = (made[it] || 0) + n));
     for (const [it, n] of Object.entries(made)) lines.push(`${F.ITEMS[it].e} +${n} ${esc(n === 1 ? F.ITEMS[it].name : F.ITEMS[it].many)} to collect`);
     if (news.bankDay) lines.push('🏦 It’s bank day! Your savings earned interest: go to the bank to collect it.');
+    if (news.gold) lines.push(`🪿 The Golden Goose laid a golden egg: <b>+${fmt(news.gold)}</b> in your wallet!`);
+    if (news.rainbow) lines.push('🐑 The Rainbow Sheep gave a ball of 🌈 rainbow wool. It is in your basket.');
+    if (news.fairy) lines.push(`🧚 The Feed Fairy fed your hungry ${esc(F.ANIMALS[news.fairy].name.toLowerCase())}.`);
+    const mc = news.merchant;
+    if (mc) {
+      const t = F.TREASURES[mc[1]];
+      lines.unshift(mc[0] === 'came' ? `<span class="mline">🧳 <b>${esc(F.MERCHANT.name)}</b>, the traveling merchant, is here with a ${t.e} <b>${esc(t.name)}</b>! He stays ${F.merchantNights(f.day) + 1} days.</span>`
+        : mc[0] === 'last' ? `<span class="mline">🧳 ${esc(F.MERCHANT.name)} leaves <b>tonight</b> with his ${t.e} ${esc(t.name)}!</span>`
+          : `🧳 ${esc(F.MERCHANT.name)} left with the ${t.e} ${esc(t.name)}. He will be back in ${F.MERCHANT.every - 1} bank weeks.`);
+    }
     const h = news.helper;
     if (h && h.unpaid) lines.push(`🧑‍🌾 ${F.HELPER.name} didn’t work last night: there wasn’t ${fmt(h.wage)} in your wallet for the wage.`);
     else if (h) lines.push(`🧑‍🌾 ${F.HELPER.name} was paid ${fmt(h.wage)}, fed ${h.fed} ${h.fed === 1 ? 'pen' : 'pens'}${h.collected ? `, collected ${h.collected}` : ''}${h.picked ? `, picked ${h.picked}` : ''}.${h.short ? ` Not enough feed for ${h.short}!` : ''}`);
@@ -8464,6 +8647,48 @@ svg.dart { display: block; width: 100%; height: auto; }
       <span class="fdream-pic">${MQ.dreamArt(n.d.id, f.dream.s, { building: f.dream.b })}</span>
       <span class="fdream-t"><b>🏗️ Big Dream: ${esc(n.d.name)}</b>${f.dream.b || ready ? '' : `<span class="fbar"><span style="width:${Math.round((have / n.cost) * 100)}%"></span></span>`}<small>${line}</small></span></button>`;
   }
+  // ---------------------------------------------------------------- the traveling merchant
+  function merchantCard() {
+    const f = fm(), id = F.merchantNow(f);
+    if (!id) return '';
+    const t = F.TREASURES[id], n = F.merchantNights(f.day);
+    return `<button class="fmerchant" data-act="fMerchant" aria-label="${esc(F.MERCHANT.name)}, the traveling merchant">
+      <span class="fm-wagon">${MQ.wagonArt()}</span>
+      <span class="fdream-t"><b>🧳 ${esc(F.MERCHANT.name)} is here!</b><small>${t.e} ${esc(t.name)} · ${fmt(t.cost[grade() === 'k' ? 0 : 1])} · ${n ? `leaves in ${n} ${n === 1 ? 'night' : 'nights'}` : '<b>leaves tonight!</b>'}</small></span>
+      <span class="fm-gem">${MQ.treasureArt(id)}</span></button>`;
+  }
+  function merchant() {
+    const f = fm(), g = grade(), id = F.merchantNow(f);
+    if (!id) return K().toast(`${F.MERCHANT.name} has left`);
+    const t = F.TREASURES[id], cost = t.cost[g === 'k' ? 0 : 1], n = F.merchantNights(f.day), bank = f.bank.bal;
+    let plan;
+    if (f.money >= cost) plan = `<button class="btn big tbuy" data-act="fBuyTreasure">Buy it · ${fmt(cost)}</button>`;
+    else if (f.money + bank >= cost) plan = `<p>You have <b>${fmt(f.money)}</b> in your wallet and <b>${fmt(bank)}</b> in the bank. Take <b>${fmt(cost - f.money)}</b> out of the bank, and it’s yours!</p><button class="btn" data-act="go" data-arg="farm:bank">🏦 Go to the bank</button>`;
+    else {
+      const need = cost - f.money - bank, per = F.perDayToSave(need, n, g);
+      plan = `<p>You have <b>${fmt(f.money)}</b>${bank ? ` + <b>${fmt(bank)}</b> in the bank` : ''}. You need <b>${fmt(need)}</b> more.</p>
+        <p class="tplan">📅 He is here today${n ? ` and ${n} more ${n === 1 ? 'day' : 'days'}` : ' only'}: save about <b>${fmt(per)}</b> ${n ? 'a day' : 'today'} to buy it in time.</p>`;
+    }
+    K().modal(`<div class="tcard t-${id}"><div class="dbuilt-rays"></div><div class="tpic">${MQ.treasureArt(id)}</div>
+      <div class="ttag">✨ Rare treasure · only from ${esc(F.MERCHANT.name)}</div><div class="mtitle">${t.e} ${esc(t.name)}</div>
+      <p>${esc(F.treasureNote(id, g, fmt))}</p><div class="tprice">${fmt(cost)}</div>
+      <p class="muted">🧳 ${n ? `${esc(F.MERCHANT.name)} leaves in ${n} ${n === 1 ? 'night' : 'nights'}.` : `<b>${esc(F.MERCHANT.name)} leaves tonight!</b>`} If you don’t buy it, he comes back later.</p></div>
+      ${plan}<div class="row"><button class="btn ghost" data-act="closeModal">Maybe later</button></div>`);
+    MQ.sfx('shimmer');
+  }
+  function buyTreasure() {
+    const f = fm(), g = grade(), id = F.merchantNow(f), t = id && F.TREASURES[id];
+    K().closeModal();
+    if (!t || f.money < t.cost[g === 'k' ? 0 : 1]) return;
+    startPay(t.cost[g === 'k' ? 0 : 1], `the ${t.e} ${esc(t.name)}`, () => {
+      const x = F.buyTreasure(fm(), grade());
+      if (!x) return 'He already left.';
+      MQ.confetti(200, { colors: ['#ffd23f', '#ff8fe0', '#9ff0ff', '#7ed957'], shape: 'star' });
+      MQ.sfx('fanfare');
+      return `✨ The ${x.e} <b>${esc(x.name)}</b> is yours! ${esc(F.treasureNote(id, grade(), fmt))}`;
+    }, MQ.treasureArt(id));
+  }
+
   function dreamIntro() {
     const f = fm(), d = F.dreamNow(f);
     f.dream.seen = true;
@@ -9103,6 +9328,8 @@ svg.dart { display: block; width: 100%; height: auto; }
     fWithdraw: () => startWithdraw(),
     fInterest: () => startInterest(),
     fBuild: () => startBuild(),
+    fMerchant: () => merchant(),
+    fBuyTreasure: () => buyTreasure(),
     fDreamView: (a) => { dreamView = +a === fm().dream.p ? null : +a; MQ.sfx('tap'); keepY(dreams); },
     fJobs: () => startJobs(),
     fTab: (a) => { tab = a; shop(); },
@@ -9594,8 +9821,9 @@ svg.dart { display: block; width: 100%; height: auto; }
     const bankDay = !!(fm.bank && fm.bank.pend && fm.bank.pend.length);
     const made = fm.works && Object.values(fm.works).some((w) => w.ready);
     const build = F.canBuild(F.ensure(st), st.grade);
-    const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
-    return `<button class="tile t-farm wide ${waiting || made || bankDay || build || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
+    const trader = !!F.merchantNow(fm);
+    const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : trader ? `🧳 A traveling merchant is here!` : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
+    return `<button class="tile t-farm wide ${waiting || made || bankDay || build || trader || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
   }
 
   // For grown-ups: how Sunny Farm is going (its money problems also count in the daily totals above).
@@ -9608,6 +9836,7 @@ svg.dart { display: block; width: 100%; height: auto; }
       ${fm.bank && (fm.bank.bal || s.interest) ? `<p>🏦 Bank: <b>${F.fmt(fm.bank.bal, st.grade)}</b> saved · ${F.fmt(s.interest || 0, st.grade)} interest earned on ${s.bankDays || 0} bank days. ${esc(F.ruleText(st.grade))}</p>` : ''}
       ${s.made ? `<p>🏭 ${s.made} things made in the workshops (each one starts with a question: how much more is it worth?).</p>` : ''}
       ${fm.dream && (fm.dream.p || fm.dream.s) ? `<p>🏗️ Big Dreams: ${F.DREAMS.map((d, k) => [d, F.dreamBuilt(fm, k)]).filter(([, n]) => n).map(([d, n]) => `${d.e} ${esc(d.name)} ${n >= d.stages.length ? '✓' : n + ' of ' + d.stages.length}`).join(', ')}. Paid to builders from the bank: ${F.fmt(s.built || 0, st.grade)}; the buildings earned ${F.fmt(s.dreamIn || 0, st.grade)} on bank days.</p>` : ''}
+      ${Object.keys(fm.treasure || {}).length ? `<p>🧳 Treasures from the traveling merchant: ${Object.keys(fm.treasure).map((id) => F.TREASURES[id].e + ' ' + esc(F.TREASURES[id].name)).join(', ')}.</p>` : ''}
       <p>${s.tasks} money problems from customers and odd jobs, <b>${pct(s.right, s.tasks)}%</b> right on the first try · ${s.vip} ⭐ challenge customers. Now practicing: <b>${esc(tier.name)}</b>${tier.ahead ? ' (ahead of grade)' : ''}.</p>
       <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p></section>`;
   }

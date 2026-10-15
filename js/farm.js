@@ -41,6 +41,7 @@
     silk: { e: '🧵', name: 'spool of silk', many: 'spools of silk', price: [9, 400] },
     sleigh: { e: '🛷', name: 'sleigh ride', many: 'sleigh rides', price: [12, 500] },
     sparkle: { e: '✨', name: 'jar of rainbow sparkles', many: 'jars of rainbow sparkles', price: [15, 900] },
+    rainbow: { e: '🌈', name: 'ball of rainbow wool', many: 'balls of rainbow wool', price: [14, 400] }, // from the merchant's Rainbow Sheep
     // made in the workshops (F.WORKS)
     jam: { e: '🫙', name: 'jar of strawberry jam', many: 'jars of strawberry jam', price: [10, 120], made: true },
     sauce: { e: '🥫', name: 'can of tomato sauce', many: 'cans of tomato sauce', price: [14, 140], made: true },
@@ -159,7 +160,7 @@
   F.bedWater = (b) => (b.u || 0) >= 3;
   F.bedGlass = (b) => (b.u || 0) >= 5;
   F.cropDays = (b) => Math.max(1, F.CROPS[b.c].days - (F.bedWater(b) ? 1 : 0));
-  F.cropYield = (b) => F.CROPS[b.c].yield + F.bedStars(b);
+  F.cropYield = (b, fm) => F.CROPS[b.c].yield + F.bedStars(b) + (fm && fm.treasure && fm.treasure.can ? 1 : 0); // + the Magic Watering Can
   F.penCount = (p) => 1 + Math.min(p.u || 0, 2);
   F.penEat = (p) => F.ANIMALS[p.a].eat * F.penCount(p);
   F.penMakes = (p) => F.ANIMALS[p.a].per * F.penCount(p) + ((p.u || 0) >= 3 ? 1 : 0);
@@ -340,6 +341,8 @@
     works: {}, // workshop id: { r: recipe index or null, g: nights, ready: items, out: item }
     bank: { bal: 0, acct: 0, log: [], pend: [] }, // see the bank below: bank day is every 7th farm day
     dream: { p: 0, s: 0, b: false, seen: false }, // Big Dreams: project p, stages built s, builders at work tonight b
+    treasure: {}, // the traveling merchant's treasures bought: id: true
+    merchant: null, // his visit: { week, item } (bank week number and the treasure he brought)
   });
   F.START_MONEY = [5, 30];
   F.ensure = (st) => {
@@ -357,6 +360,8 @@
     // totals saved and taken out came later: what is in the bank and is not interest was saved
     if (fm.stats.saved == null) { fm.stats.saved = Math.max(0, fm.bank.bal - fm.stats.interest); fm.stats.tookOut = 0; }
     if (!fm.dream) fm.dream = { p: 0, s: 0, b: false, seen: false }; // Big Dreams came later
+    if (!fm.treasure) fm.treasure = {}; // so did the traveling merchant
+    if (fm.merchant === undefined) fm.merchant = null;
     for (const k of ['built', 'dreamIn']) if (!fm.stats[k]) fm.stats[k] = 0;
     return fm;
   };
@@ -379,7 +384,7 @@
   F.harvest = (fm, i) => {
     const bed = fm.beds[i];
     if (F.cropStage(bed) !== 'ready') return 0;
-    const n = F.cropYield(bed);
+    const n = F.cropYield(bed, fm);
     fm.basket[bed.c] = (fm.basket[bed.c] || 0) + n;
     if (F.bedGlass(bed) && !bed.again) Object.assign(bed, { g: 0, again: true }); // the greenhouse grows a second harvest
     else Object.assign(bed, { c: null, g: 0, again: false });
@@ -451,6 +456,11 @@
       w.g++;
       if (w.g >= r.days) { w.ready = (w.ready || 0) + 1; w.out = r.out; w.r = null; w.g = 0; news.cooked.push(r.out); }
     }
+    const tr = fm.treasure || {};
+    if (tr.fairy) { // the Feed Fairy feeds one hungry pen, for free
+      const p = fm.pens.find((x) => x.a && !x.fed);
+      if (p) { p.fed = true; news.fairy = p.a; }
+    }
     fm.beds.forEach((b) => {
       if (!b.c || F.cropStage(b) === 'ready') return;
       b.g++;
@@ -471,6 +481,9 @@
     }
     news.built = F.buildOvernight(fm);
     fm.day++;
+    if (tr.goose) { const x = F.TREASURES.goose.gold[gi(grade)]; fm.money += x; fm.stats.earned += x; news.gold = x; }
+    if (tr.sheep) { fm.basket.rainbow = (fm.basket.rainbow || 0) + 1; news.rainbow = 1; }
+    news.merchant = F.merchantMorning(fm, grade);
     news.bankDay = fm.bank ? F.bankMorning(fm, grade) : false; // the morning of bank day: what is saved earns interest
     return news;
   };
@@ -760,6 +773,55 @@
   // How many bank days until a stage has earned back its price.
   F.payback = (cost, pay) => (pay ? Math.ceil(cost / pay) : 0);
 
+  // ---------------------------------------------------------------- the traveling merchant
+  // Uncle Marco comes every 3rd bank week and stays its 7 farm days (so a bank day falls in his visit, and the child
+  // can take savings out of the bank in time). He brings one rare treasure the shop never has, priced at about one
+  // bank week of what a good farm makes at its level, so it takes some saving and planning. If it isn't bought, he
+  // leaves and comes back later; he brings every treasure in turn, until all of them are on the farm. He starts
+  // coming once the first Big Dream stage is built (so the new things come one at a time).
+  F.MERCHANT = { e: '🧔', name: 'Uncle Marco', every: 3 };
+  F.TREASURES = {
+    goose: { e: '🪿', name: 'Golden Goose', lv: 10, cost: [60, 6000], gold: [2, 150], note: (fmt) => `Lays a golden egg every morning: +${fmt(F.TREASURES.goose.gold[1])} into your wallet. No feed needed.`, noteK: (fmt) => `Lays a golden egg every morning: +${fmt(F.TREASURES.goose.gold[0])} into your wallet. No feed needed.` },
+    can: { e: '🪣', name: 'Magic Watering Can', lv: 10, cost: [80, 7000], note: () => 'Every garden bed gives 1 more crop at every harvest.' },
+    musician: { e: '🎻', name: 'Street Musician', lv: 12, cost: [50, 6000], note: () => 'Plays music at your stand: customers tip 5% more for right answers, on any stand.' },
+    fairy: { e: '🧚', name: 'Feed Fairy', lv: 14, cost: [45, 8000], note: () => 'Every night she feeds one hungry pen for free.' },
+    sheep: { e: '🐑', name: 'Rainbow Sheep', lv: 16, cost: [99, 12000], note: () => 'Gives a ball of rainbow wool every morning, to sell at your stand. No feed needed.' },
+  };
+  F.treasureNote = (id, grade, fmt) => { const t = F.TREASURES[id]; return (grade === 'k' && t.noteK ? t.noteK : t.note)(fmt); };
+  F.bankWeekNo = (day) => Math.ceil(day / F.BANK_WEEK);
+  F.merchantOn = (fm) => !!fm.dream && (fm.dream.p > 0 || fm.dream.s > 0) && F.dreamOpen(fm);
+  // the treasure he has today (null when he isn't here, or it was bought)
+  F.merchantNow = (fm) => {
+    const m = fm.merchant;
+    return m && m.week === F.bankWeekNo(fm.day) && !(fm.treasure || {})[m.item] ? m.item : null;
+  };
+  F.merchantNights = (day) => F.bankWeekNo(day) * F.BANK_WEEK - day; // nights left (0: he leaves tonight)
+  // Each morning: he arrives on the first morning of his bank week, says goodbye on his last day, and is gone after.
+  // Returns ['came' | 'last' | 'left', treasure] for the morning card, or null.
+  F.merchantMorning = (fm, grade) => {
+    const w = F.bankWeekNo(fm.day), m = fm.merchant;
+    if (w % F.MERCHANT.every === 0 && F.merchantOn(fm) && (!m || m.week !== w)) {
+      const L = F.level(fm.xp).level, left = Object.keys(F.TREASURES).filter((t) => !fm.treasure[t] && F.TREASURES[t].lv <= L);
+      if (!left.length) return null;
+      fm.merchant = { week: w, item: left[(w / F.MERCHANT.every) % left.length] };
+      return ['came', fm.merchant.item];
+    }
+    if (!m || fm.treasure[m.item]) return null;
+    if (m.week === w && F.merchantNights(fm.day) === 0) return ['last', m.item];
+    if (m.week === w - 1 && F.isBankDay(fm.day - 1)) return ['left', m.item];
+    return null;
+  };
+  F.buyTreasure = (fm, grade) => {
+    const id = F.merchantNow(fm), t = id && F.TREASURES[id], cost = t && t.cost[gi(grade)];
+    if (!t || fm.money < cost) return null;
+    fm.money -= cost;
+    fm.stats.spent += cost;
+    fm.treasure[id] = true;
+    return Object.assign({ id, cost }, t);
+  };
+  // How much to put aside each day to buy it before he leaves: today and every day left, in whole dollars (k: cents).
+  F.perDayToSave = (need, nights, grade) => { const days = nights + 1, x = Math.ceil(need / days); return grade === 'k' ? x : Math.ceil(x / 100) * 100; };
+
   // ---------------------------------------------------------------- grown-up preview
   // The farm of a level-60 farmer, to look around in the grown-up preview (a copy of the profile; nothing is saved):
   // everything open and owned, plenty of money, crops and animals at every stage, a full basket, a bank day waiting.
@@ -776,6 +838,8 @@
       day: 14,
       bank: { bal: k ? 1234 : 12345, acct: 1, log: [], pend: [{ day: 14, bal: k ? 1234 : 12345 }] }, // above the Silver limit: both rates
       dream: { p: 2, s: 2, b: false, seen: true }, // the orchard and the cottage built, the railway half done
+      treasure: { goose: true, can: true, musician: true }, // three of the merchant's treasures
+      merchant: { week: 2, item: 'sheep' }, // and he is visiting (farm day 14 is the last day of bank week 2)
     });
     Object.assign(fm.stats, k ? { saved: 1100, tookOut: 100, interest: 234, bankDays: 9 } : { saved: 11000, tookOut: 1000, interest: 2345, bankDays: 9 }); // adds up to the bank above
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
@@ -1055,7 +1119,9 @@
     return stock;
   };
   F.wage = (tier, grade) => (grade === 'k' ? (tier >= 3 ? 2 : 1) : 5 * tier);
-  F.tip = (fm, total) => (F.STANDS[fm.stand].tip ? Math.max(1, Math.round(total * F.STANDS[fm.stand].tip)) : 0);
+  // a nicer stand tips more; the merchant's Street Musician adds 5% on any stand
+  F.tipRate = (fm) => F.STANDS[fm.stand].tip + (fm.treasure && fm.treasure.musician ? 0.05 : 0);
+  F.tip = (fm, total) => (F.tipRate(fm) ? Math.max(1, Math.round(total * F.tipRate(fm))) : 0);
   F.VIP_TIP = (grade, total) => Math.max(grade === 'k' ? 2 : 10, Math.round(total * 0.5));
 
   // Is this answer right? (coins: the picked coins make the target exactly)

@@ -38,7 +38,7 @@
     const stars = F.bedStars(b), ups = `${stars ? `<span class="bstars">${'★'.repeat(stars)}</span>` : ''}${F.bedWater(b) ? '<span class="bwater">💧</span>' : ''}`;
     const glass = F.bedGlass(b) ? ' glass' : '';
     if (s === 'empty') return `<button class="fbed soil empty${glass}" data-act="fBed" data-arg="${i}" aria-label="Empty garden bed: plant seeds"><span class="plus">＋</span>${ups}<span class="flabel">Plant</span></button>`;
-    const it = F.ITEMS[b.c], left = F.cropDays(b) - b.g, y = F.cropYield(b);
+    const it = F.ITEMS[b.c], left = F.cropDays(b) - b.g, y = F.cropYield(b, fmNow);
     const n = Math.min(y, 4); // the label says how many; four fit on a small bed
     const sprite = s === 'ready' ? it.e : s === 'seed' ? '🌱' : '🌿';
     const plants = Array.from({ length: s === 'ready' ? n : 3 }, (_, k) => `<i style="--k:${k}">${sprite}</i>`).join('');
@@ -88,9 +88,13 @@
     if (!shown.length) return '';
     return `<div class="dreamland">${shown.map(([d, n, b]) => `<button class="dl t-${d.id} ${n >= d.stages.length ? 'done' : ''}" data-act="go" data-arg="farm:dreams" aria-label="${esc(d.name)}: ${n} of ${d.stages.length} built">${MQ.dreamArt(d.id, n, { building: b, ghost: false })}</button>`).join('')}</div>`;
   }
-  let fmWorks = {};
+  let fmWorks = {}, fmNow = null;
+  // The merchant's treasures live on the farm: the goose and the sheep in the yard, the musician by the stand,
+  // the fairy over the pens, the watering can by the beds.
+  const treasures = (fm) => Object.keys(fm.treasure || {}).filter((id) => fm.treasure[id] && MQ.treasureArt).map((id) => `<span class="trs tr-${id}" title="${esc(F.TREASURES[id].name)}">${MQ.treasureArt(id)}</span>`).join('');
   S.farm = (fm, grade) => {
     fmWorks = fm.works || {};
+    fmNow = fm;
     const has = (id) => !!fm.owned[id];
     const at = (zone) => Object.keys(fm.owned).filter((id) => F.DECOR[id] && (SPOTS[id] || [])[0] === zone);
     const sky = [];
@@ -118,7 +122,7 @@
         ${works.length ? `<div class="works">${works.map(workHtml).join('')}</div>` : ''}
         <div class="yard">
           <button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
-          ${yard}${fm.helper && fm.helper.hired && fm.helper.on ? `<span class="farmhand" title="Farmhand ${F.HELPER.name}">🧑‍🌾</span>` : ''}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}
+          ${yard}${fm.helper && fm.helper.hired && fm.helper.on ? `<span class="farmhand" title="Farmhand ${F.HELPER.name}">🧑‍🌾</span>` : ''}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}${treasures(fm)}${F.merchantNow(fm) ? `<button class="trs wagon" data-act="fMerchant" aria-label="${esc(F.MERCHANT.name)}'s wagon">${MQ.wagonArt()}</button>` : ''}
         </div>
         ${park ? `<div class="park">${park}</div>` : ''}
       </div>

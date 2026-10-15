@@ -135,6 +135,76 @@
   };
   const castleDefs = (k) => lin(k + 's', ['#f4f1ff', '#c9c0e6']) + lin(k + 'r', ['#9d7bff', '#4a2f9a']) + lin(k + 'o', ['#fff6c4', '#ffcf48', '#e0961a']) + glowG(k + 'g', '#ffe066');
 
+  // ---------------------------------------------------------------- the traveling merchant and his treasures
+  // (special things: gold, rainbow colors and sparkles; viewBox 0 0 120 120)
+  const svgT = (body, defs = '') => `<svg class="tart" viewBox="0 0 120 120" aria-hidden="true" focusable="false">${defs ? `<defs>${defs}</defs>` : ''}${body}</svg>`;
+  const o = (c, w = 2.2) => ` stroke="${c}" stroke-width="${w}" stroke-linejoin="round"`;
+  const eye = (x, y, r = 3) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#2b2140"/><circle cx="${f1(x + r * 0.35)}" cy="${f1(y - r * 0.4)}" r="${f1(r * 0.38)}" fill="#ffffff"/>`;
+  const TREASURE = {
+    goose: (k) => [lin(k + 'g', ['#fff6c4', '#ffd23f', '#e0961a'], 1, 1) + glowG(k + 'w', '#ffe066'),
+      `<circle cx="60" cy="64" r="54" fill="url(#${k}w)"/>` +
+      `<path d="M30 82C24 66 34 54 50 56C58 57 64 62 72 60C78 50 74 38 80 30C86 22 98 24 100 34C102 42 94 46 92 54C90 66 92 84 76 92C62 99 38 98 30 82Z" fill="url(#${k}g)"${o('#a8650a')}/>` +
+      `<path d="M40 74C48 66 62 68 70 76C62 82 48 84 40 74Z" fill="#ffe680"${o('#c9860a', 1.6)}/><path d="M100 32L112 36L100 40Z" fill="#ff8a1f"${o('#b5600c', 1.6)}/>` + eye(92, 32) +
+      `<path d="M50 92L48 102M62 94L62 104M44 102L52 102M58 104L66 104" stroke="#ff8a1f" stroke-width="3" stroke-linecap="round"/>` +
+      `<path d="M84 26L83 16L88 21L91 12L94 21L99 16L98 26Z" fill="#ffd23f"${o('#a8650a', 1.4)}/>` +
+      `<ellipse cx="20" cy="100" rx="9" ry="11" fill="url(#${k}g)"${o('#a8650a', 1.6)}/><ellipse cx="17" cy="96" rx="2.4" ry="4" fill="#ffffff" opacity=".7"/>` +
+      spk(18, 18, 7, '#fff3a6') + spk(108, 70, 5, '#fff3a6') + spk(8, 70, 4, '#ffffff')],
+    can: (k) => [lin(k + 'c', ['#7fd8ff', '#3a8be0'], 1, 1) + glowG(k + 'w', '#9ff0ff'),
+      `<circle cx="60" cy="62" r="54" fill="url(#${k}w)"/>` +
+      `<path d="M30 52L84 52L80 98C80 102 76 104 72 104L42 104C38 104 34 102 34 98Z" fill="url(#${k}c)"${o('#1f4fb0')}/>` +
+      `<path d="M30 52L84 52L84 58L30 58Z" fill="#ffd23f"${o('#a8650a', 1.6)}/><path d="M36 92L78 92" stroke="#ffd23f" stroke-width="3"/>` +
+      `<path d="M84 64L106 42L112 46L90 72Z" fill="url(#${k}c)"${o('#1f4fb0', 2)}/><ellipse cx="110" cy="43" rx="5" ry="7" fill="#ffd23f" transform="rotate(35 110 43)"${o('#a8650a', 1.4)}/>` +
+      `<path d="M40 52C40 34 74 34 74 52" fill="none" stroke="#1f4fb0" stroke-width="5" stroke-linecap="round"/>` +
+      ['#ff6b6b', '#ffb84d', '#ffe66d', '#7ed957', '#5ec8ff', '#a77bff'].map((c, i) => `<circle cx="${f1(112 - i * 2)}" cy="${56 + i * 9}" r="2.6" fill="${c}"/>`).join('') +
+      `<path d="M50 70L60 64L70 70L66 82L54 82Z" fill="#ffffff" opacity=".35"/>` + spk(18, 22, 7, '#ffffff') + spk(14, 88, 5, '#fff3a6') + spk(98, 104, 4, '#ffffff')],
+    musician: (k) => [lin(k + 'v', ['#e8a35a', '#a8622f'], 1, 1) + glowG(k + 'w', '#ff8fe0'),
+      `<circle cx="60" cy="60" r="54" fill="url(#${k}w)"/>` +
+      `<g transform="rotate(-28 56 66)"><path d="M56 30C66 30 70 38 66 46C72 50 74 58 70 64C78 70 76 90 56 92C36 90 34 70 42 64C38 58 40 50 46 46C42 38 46 30 56 30Z" fill="url(#${k}v)"${o('#6b3a14')}/>` +
+      `<path d="M53 52C51 56 51 58 53 60M59 52C61 56 61 58 59 60" stroke="#3a1f0a" stroke-width="2" fill="none"/><rect x="52" y="8" width="8" height="26" rx="2" fill="#3a1f0a"/><rect x="50" y="4" width="12" height="8" rx="3" fill="#6b3a14"/>` +
+      `<path d="M54 12L54 80M58 12L58 80" stroke="#f6e7c8" stroke-width="0.8"/><rect x="48" y="72" width="16" height="4" rx="1" fill="#3a1f0a"/></g>` +
+      `<path d="M16 96L100 30" stroke="#6b3a14" stroke-width="3" stroke-linecap="round"/><path d="M18 94L98 32" stroke="#f6e7c8" stroke-width="1"/>` +
+      `<path d="M88 64L88 82C88 86 80 88 80 84C80 80 86 80 88 82" fill="#ff4d6d" stroke="#ff4d6d" stroke-width="2.4" stroke-linecap="round"/><path d="M98 84L98 98C98 102 90 104 90 100C90 96 96 96 98 98M98 84L108 80L108 94C108 98 100 100 100 96" fill="none" stroke="#7a3fd1" stroke-width="2.6" stroke-linecap="round"/>` +
+      `<path d="M14 40L14 56C14 60 6 62 6 58C6 54 12 54 14 56" fill="none" stroke="#3a8be0" stroke-width="2.4" stroke-linecap="round"/>` + spk(26, 18, 6, '#fff3a6') + spk(104, 22, 5, '#ffffff')],
+    fairy: (k) => [lin(k + 'd', ['#b9f0a0', '#5fbf5f']) + lin(k + 'f', ['#ffffff', '#c9f0ff']) + glowG(k + 'w', '#c9f7a8'),
+      `<circle cx="60" cy="60" r="54" fill="url(#${k}w)"/>` +
+      `<g transform="rotate(-30 40 50)"><ellipse cx="40" cy="50" rx="18" ry="10" fill="url(#${k}f)"${o('#7cc7f0', 1.6)}/></g><g transform="rotate(30 80 50)"><ellipse cx="80" cy="50" rx="18" ry="10" fill="url(#${k}f)"${o('#7cc7f0', 1.6)}/></g>` +
+      `<g transform="rotate(25 42 68)"><ellipse cx="42" cy="68" rx="12" ry="7" fill="url(#${k}f)"${o('#7cc7f0', 1.6)}/></g><g transform="rotate(-25 78 68)"><ellipse cx="78" cy="68" rx="12" ry="7" fill="url(#${k}f)"${o('#7cc7f0', 1.6)}/></g>` +
+      `<path d="M50 62L70 62L78 92C68 96 52 96 42 92Z" fill="url(#${k}d)"${o('#2f7a3a', 2)}/><path d="M46 90Q50 94 54 91Q58 95 62 91Q66 95 70 91Q74 94 76 90" stroke="#ffffff" stroke-width="1.4" fill="none"/>` +
+      `<path d="M55 94L55 104M65 94L65 104" stroke="#f2b896" stroke-width="3.4" stroke-linecap="round"/>` +
+      `<circle cx="60" cy="46" r="14" fill="#ffe0cc"${o('#c98a6a', 1.8)}/><path d="M46 46C44 32 52 28 60 28C68 28 76 32 74 46C70 38 66 36 60 36C54 36 50 38 46 46Z" fill="#ffd23f"${o('#c99a00', 1.8)}/>` +
+      eye(55, 47, 2.4) + eye(65, 47, 2.4) + `<path d="M56 53Q60 56 64 53" stroke="#c2407e" stroke-width="1.6" fill="none" stroke-linecap="round"/>` +
+      `<path d="M78 70L96 58M90 52L96 58L92 64M86 56L92 60" stroke="#c9a26a" stroke-width="2.4" stroke-linecap="round"/><path d="M96 58L104 46M98 60L108 52M96 56L100 44" stroke="#e8b84a" stroke-width="2.2" stroke-linecap="round"/>` +
+      spk(18, 26, 6, '#fff3a6') + spk(104, 92, 5, '#ffffff') + spk(20, 92, 4, '#c9f7a8')],
+    sheep: (k) => {
+      const cols = ['#ff6b6b', '#ffb84d', '#ffe66d', '#7ed957', '#5ec8ff', '#a77bff'];
+      const fluff = [[36, 60], [50, 50], [66, 48], [82, 54], [90, 68], [84, 82], [68, 88], [50, 88], [34, 78], [60, 68]];
+      return [glowG(k + 'w', '#ffb8f0'),
+        `<circle cx="60" cy="64" r="54" fill="url(#${k}w)"/>` +
+        `<path d="M44 90L42 106M56 92L56 108M72 92L72 108M84 88L86 104" stroke="#3a2a4a" stroke-width="5" stroke-linecap="round"/>` +
+        fluff.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="15" fill="${cols[i % 6]}"${o('#ffffff', 2)}/>`).join('') +
+        `<ellipse cx="24" cy="58" rx="13" ry="15" fill="#4a3a5a"${o('#2b2140', 2)}/><ellipse cx="14" cy="50" rx="6" ry="3.5" fill="#4a3a5a" transform="rotate(-30 14 50)"/><ellipse cx="34" cy="48" rx="6" ry="3.5" fill="#4a3a5a" transform="rotate(30 34 48)"/>` +
+        `<circle cx="24" cy="46" r="6" fill="#ff6b6b"${o('#ffffff', 1.4)}/><circle cx="18" cy="44" r="4" fill="#ffe66d"/><circle cx="30" cy="44" r="4" fill="#5ec8ff"/>` +
+        eye(19, 58, 2.6) + eye(29, 58, 2.6) + `<path d="M21 66Q24 69 27 66" stroke="#ffd6e6" stroke-width="1.6" fill="none" stroke-linecap="round"/>` +
+        spk(100, 24, 7, '#fff3a6') + spk(108, 96, 5, '#ffffff') + spk(14, 96, 4, '#ffe66d')];
+    },
+  };
+  MQ.treasureArt = (id) => { const f = TREASURE[id]; if (!f) return ''; const [defs, body] = f('t' + (++uid).toString(36)); return svgT(body, defs); };
+  // Uncle Marco's wagon: a striped roof, a star on the side, big yellow wheels, a lantern, and Marco at the window.
+  MQ.wagonArt = () => {
+    const k = 'w' + (++uid).toString(36);
+    const stripes = [0, 1, 2, 3, 4, 5, 6].map((i) => `<path d="M${18 + i * 14} 30L${32 + i * 14} 30L${32 + i * 14} 46L${18 + i * 14} 46Z" fill="${i % 2 ? '#ffffff' : '#ff4d6d'}"/>`).join('');
+    const wheel = (x) => `<circle cx="${x}" cy="98" r="13" fill="#ffd23f" stroke="#a8650a" stroke-width="2.4"/><circle cx="${x}" cy="98" r="3.5" fill="#a8650a"/>` + [0, 45, 90, 135].map((a) => `<path d="M${x} 98L${f1(x + 12 * Math.cos((a * Math.PI) / 180))} ${f1(98 + 12 * Math.sin((a * Math.PI) / 180))}M${x} 98L${f1(x - 12 * Math.cos((a * Math.PI) / 180))} ${f1(98 - 12 * Math.sin((a * Math.PI) / 180))}" stroke="#a8650a" stroke-width="1.6"/>`).join('');
+    return `<svg class="tart wagon" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><defs>${lin(k + 'b', ['#9d7bff', '#5a2fb0'])}${glowG(k + 'w', '#ffe066')}<clipPath id="${k}r"><path d="M14 46C14 22 106 22 106 46Z"/></clipPath></defs>` +
+      `<circle cx="60" cy="58" r="56" fill="url(#${k}w)"/>` +
+      `<g clip-path="url(#${k}r)">${stripes}</g><path d="M14 46C14 22 106 22 106 46Z" fill="none" stroke="#9c1a3a" stroke-width="2.4"/>` +
+      `<rect x="16" y="46" width="88" height="44" rx="4" fill="url(#${k}b)" stroke="#3a1a7a" stroke-width="2.4"/>` +
+      `<rect x="26" y="54" width="26" height="20" rx="3" fill="#fff3c4" stroke="#3a1a7a" stroke-width="2"/><circle cx="39" cy="66" r="7" fill="#ffd9c2"/><path d="M32 61C34 55 44 55 46 61Z" fill="#7a4a22"/><path d="M34 68C36 66 38 67 39 68C40 67 42 66 44 68C42 71 36 71 34 68Z" fill="#5b3a1e"/>${eye(36.5, 63.5, 1.4)}${eye(41.5, 63.5, 1.4)}` +
+      `<path d="M78 52L81 60L90 60L83 65L86 74L78 69L70 74L73 65L66 60L75 60Z" fill="#ffd23f" stroke="#a8650a" stroke-width="1.4"/>` +
+      `<path d="M16 82L104 82" stroke="#ffd23f" stroke-width="3"/><path d="M104 66L114 66L114 72" stroke="#3a1a7a" stroke-width="2" fill="none"/><rect x="110" y="72" width="8" height="10" rx="2" fill="#ffe066" stroke="#a8650a" stroke-width="1.4"/>` +
+      wheel(34) + wheel(86) + spk(10, 16, 6, '#fff3a6') + spk(110, 18, 5, '#ffffff') + `</svg>`;
+  };
+  MQ.TREASURE_IDS = Object.keys(TREASURE);
+
   const DRAW = { orchard: ORCHARD, cottage: COTTAGE, railway: RAILWAY, castle: CASTLE };
   MQ.dreamArt = (id, built, { building = false, ghost = true } = {}) => {
     const D = DRAW[id], k = 'd' + (++uid).toString(36);

@@ -57,6 +57,7 @@
     let t;
     if (F.bankDue(f) > 0) t = 'It’s bank day! Your savings grew. Go to the bank to collect the interest.';
     else if (F.canBuild(f, grade())) t = 'You saved enough in the bank for your Big Dream! Pay the builders 🏗️';
+    else if (F.merchantNow(f) && F.merchantNights(f.day) <= 1) t = `${F.MERCHANT.name} the traveling merchant leaves ${F.merchantNights(f.day) ? 'tomorrow night' : 'tonight'}! Tap his wagon.`;
     else if (Object.values(f.works).some((w) => w.ready)) t = 'Something is ready in your workshop! Tap it to take it.';
     else if (f.beds.some((b) => F.cropStage(b) === 'ready')) t = 'Your crops are ripe! Tap them to pick them.';
     else if (f.pens.some((p) => p.ready)) t = 'Your animals made something! Tap them to collect it.';
@@ -103,6 +104,7 @@
       ${MQ.store.preview ? pvTiers() : ''}
       ${goalBar()}
       ${dreamCard()}
+      ${merchantCard()}
       ${bankDay ? `<button class="fbankday" data-act="go" data-arg="farm:bank">🏦 <b>Bank day!</b> Your savings earned interest. Tap to collect it.</button>` : ''}
       ${tipLine()}
       <button class="btn big fstand" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Open the stand ${n ? `· ${n} to sell` : '· basket is empty'}</button>
@@ -178,7 +180,7 @@
     }
     if (s !== 'empty') {
       const left = F.cropDays(b) - b.g;
-      return K().modal(`<div class="bigemoji">${s === 'seed' ? '🌱' : '🌿'}</div><div class="mtitle">${esc(cap(F.ITEMS[b.c].many))}</div><p>Ready in ${left} ${left === 1 ? 'day' : 'days'}: ${F.cropYield(b)} ${F.ITEMS[b.c].e}${b.again ? ' (the second harvest)' : ''}. Tap 🌙 Sleep to make the night pass.</p>${bedUps(b)}<div class="row"><button class="btn ghost" data-act="fUpgrades">⬆️ Upgrades</button><button class="btn" data-act="closeModal">OK</button></div>`);
+      return K().modal(`<div class="bigemoji">${s === 'seed' ? '🌱' : '🌿'}</div><div class="mtitle">${esc(cap(F.ITEMS[b.c].many))}</div><p>Ready in ${left} ${left === 1 ? 'day' : 'days'}: ${F.cropYield(b, f)} ${F.ITEMS[b.c].e}${b.again ? ' (the second harvest)' : ''}. Tap 🌙 Sleep to make the night pass.</p>${bedUps(b)}<div class="row"><button class="btn ghost" data-act="fUpgrades">⬆️ Upgrades</button><button class="btn" data-act="closeModal">OK</button></div>`);
     }
     plantPicker(i);
   }
@@ -309,6 +311,16 @@
     news.made.forEach(([it, n]) => (made[it] = (made[it] || 0) + n));
     for (const [it, n] of Object.entries(made)) lines.push(`${F.ITEMS[it].e} +${n} ${esc(n === 1 ? F.ITEMS[it].name : F.ITEMS[it].many)} to collect`);
     if (news.bankDay) lines.push('🏦 It’s bank day! Your savings earned interest: go to the bank to collect it.');
+    if (news.gold) lines.push(`🪿 The Golden Goose laid a golden egg: <b>+${fmt(news.gold)}</b> in your wallet!`);
+    if (news.rainbow) lines.push('🐑 The Rainbow Sheep gave a ball of 🌈 rainbow wool. It is in your basket.');
+    if (news.fairy) lines.push(`🧚 The Feed Fairy fed your hungry ${esc(F.ANIMALS[news.fairy].name.toLowerCase())}.`);
+    const mc = news.merchant;
+    if (mc) {
+      const t = F.TREASURES[mc[1]];
+      lines.unshift(mc[0] === 'came' ? `<span class="mline">🧳 <b>${esc(F.MERCHANT.name)}</b>, the traveling merchant, is here with a ${t.e} <b>${esc(t.name)}</b>! He stays ${F.merchantNights(f.day) + 1} days.</span>`
+        : mc[0] === 'last' ? `<span class="mline">🧳 ${esc(F.MERCHANT.name)} leaves <b>tonight</b> with his ${t.e} ${esc(t.name)}!</span>`
+          : `🧳 ${esc(F.MERCHANT.name)} left with the ${t.e} ${esc(t.name)}. He will be back in ${F.MERCHANT.every - 1} bank weeks.`);
+    }
     const h = news.helper;
     if (h && h.unpaid) lines.push(`🧑‍🌾 ${F.HELPER.name} didn’t work last night: there wasn’t ${fmt(h.wage)} in your wallet for the wage.`);
     else if (h) lines.push(`🧑‍🌾 ${F.HELPER.name} was paid ${fmt(h.wage)}, fed ${h.fed} ${h.fed === 1 ? 'pen' : 'pens'}${h.collected ? `, collected ${h.collected}` : ''}${h.picked ? `, picked ${h.picked}` : ''}.${h.short ? ` Not enough feed for ${h.short}!` : ''}`);
@@ -354,6 +366,48 @@
       <span class="fdream-pic">${MQ.dreamArt(n.d.id, f.dream.s, { building: f.dream.b })}</span>
       <span class="fdream-t"><b>🏗️ Big Dream: ${esc(n.d.name)}</b>${f.dream.b || ready ? '' : `<span class="fbar"><span style="width:${Math.round((have / n.cost) * 100)}%"></span></span>`}<small>${line}</small></span></button>`;
   }
+  // ---------------------------------------------------------------- the traveling merchant
+  function merchantCard() {
+    const f = fm(), id = F.merchantNow(f);
+    if (!id) return '';
+    const t = F.TREASURES[id], n = F.merchantNights(f.day);
+    return `<button class="fmerchant" data-act="fMerchant" aria-label="${esc(F.MERCHANT.name)}, the traveling merchant">
+      <span class="fm-wagon">${MQ.wagonArt()}</span>
+      <span class="fdream-t"><b>🧳 ${esc(F.MERCHANT.name)} is here!</b><small>${t.e} ${esc(t.name)} · ${fmt(t.cost[grade() === 'k' ? 0 : 1])} · ${n ? `leaves in ${n} ${n === 1 ? 'night' : 'nights'}` : '<b>leaves tonight!</b>'}</small></span>
+      <span class="fm-gem">${MQ.treasureArt(id)}</span></button>`;
+  }
+  function merchant() {
+    const f = fm(), g = grade(), id = F.merchantNow(f);
+    if (!id) return K().toast(`${F.MERCHANT.name} has left`);
+    const t = F.TREASURES[id], cost = t.cost[g === 'k' ? 0 : 1], n = F.merchantNights(f.day), bank = f.bank.bal;
+    let plan;
+    if (f.money >= cost) plan = `<button class="btn big tbuy" data-act="fBuyTreasure">Buy it · ${fmt(cost)}</button>`;
+    else if (f.money + bank >= cost) plan = `<p>You have <b>${fmt(f.money)}</b> in your wallet and <b>${fmt(bank)}</b> in the bank. Take <b>${fmt(cost - f.money)}</b> out of the bank, and it’s yours!</p><button class="btn" data-act="go" data-arg="farm:bank">🏦 Go to the bank</button>`;
+    else {
+      const need = cost - f.money - bank, per = F.perDayToSave(need, n, g);
+      plan = `<p>You have <b>${fmt(f.money)}</b>${bank ? ` + <b>${fmt(bank)}</b> in the bank` : ''}. You need <b>${fmt(need)}</b> more.</p>
+        <p class="tplan">📅 He is here today${n ? ` and ${n} more ${n === 1 ? 'day' : 'days'}` : ' only'}: save about <b>${fmt(per)}</b> ${n ? 'a day' : 'today'} to buy it in time.</p>`;
+    }
+    K().modal(`<div class="tcard t-${id}"><div class="dbuilt-rays"></div><div class="tpic">${MQ.treasureArt(id)}</div>
+      <div class="ttag">✨ Rare treasure · only from ${esc(F.MERCHANT.name)}</div><div class="mtitle">${t.e} ${esc(t.name)}</div>
+      <p>${esc(F.treasureNote(id, g, fmt))}</p><div class="tprice">${fmt(cost)}</div>
+      <p class="muted">🧳 ${n ? `${esc(F.MERCHANT.name)} leaves in ${n} ${n === 1 ? 'night' : 'nights'}.` : `<b>${esc(F.MERCHANT.name)} leaves tonight!</b>`} If you don’t buy it, he comes back later.</p></div>
+      ${plan}<div class="row"><button class="btn ghost" data-act="closeModal">Maybe later</button></div>`);
+    MQ.sfx('shimmer');
+  }
+  function buyTreasure() {
+    const f = fm(), g = grade(), id = F.merchantNow(f), t = id && F.TREASURES[id];
+    K().closeModal();
+    if (!t || f.money < t.cost[g === 'k' ? 0 : 1]) return;
+    startPay(t.cost[g === 'k' ? 0 : 1], `the ${t.e} ${esc(t.name)}`, () => {
+      const x = F.buyTreasure(fm(), grade());
+      if (!x) return 'He already left.';
+      MQ.confetti(200, { colors: ['#ffd23f', '#ff8fe0', '#9ff0ff', '#7ed957'], shape: 'star' });
+      MQ.sfx('fanfare');
+      return `✨ The ${x.e} <b>${esc(x.name)}</b> is yours! ${esc(F.treasureNote(id, grade(), fmt))}`;
+    }, MQ.treasureArt(id));
+  }
+
   function dreamIntro() {
     const f = fm(), d = F.dreamNow(f);
     f.dream.seen = true;
@@ -993,6 +1047,8 @@
     fWithdraw: () => startWithdraw(),
     fInterest: () => startInterest(),
     fBuild: () => startBuild(),
+    fMerchant: () => merchant(),
+    fBuyTreasure: () => buyTreasure(),
     fDreamView: (a) => { dreamView = +a === fm().dream.p ? null : +a; MQ.sfx('tap'); keepY(dreams); },
     fJobs: () => startJobs(),
     fTab: (a) => { tab = a; shop(); },
