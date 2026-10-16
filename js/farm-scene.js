@@ -194,7 +194,7 @@
     if (!r) return;
     const d = document.createElement('div');
     d.className = 'flyer ftext' + (minus ? ' minus' : '');
-    d.textContent = text;
+    d.innerHTML = text; // our own text: a number and an icon (a mythic thing's icon is a glowing <i>)
     d.style.left = r.left + r.width / 2 + 'px';
     d.style.top = r.top + r.height * 0.35 + 'px';
     document.body.appendChild(d);

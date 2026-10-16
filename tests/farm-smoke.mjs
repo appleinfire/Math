@@ -429,6 +429,12 @@ async function play(grade, tag, viewport) {
     if (!myth.on || !myth.pen || !myth.strip) errors.push(`${tag}: Mythic Feed for ${visit.m.a} ${JSON.stringify(myth)}`);
     await page.evaluate(() => document.querySelector('.fpen.myth').scrollIntoView({ block: 'center' }));
     await snap('32-mythic');
+    // collecting mythic things: they fly to the basket and "+3" floats up with the glowing icon (not its HTML)
+    const pen = await page.evaluate((a) => { const f = MQ.state.farm, i = f.pens.findIndex((p) => p.a === a); f.pens[i].rare = 3; MQ.store.save(); MQ.farmUI.redraw(); return i; }, visit.m.a);
+    await page.click(`.fpen[data-arg="${pen}"]`, { force: true });
+    await page.waitForSelector('.ftext');
+    const float = await page.evaluate(() => [...document.querySelectorAll('.ftext')].map((d) => ({ text: d.textContent, glow: !!d.querySelector('.mye') })));
+    if (!float.some((x) => x.glow) || float.some((x) => /class=|</.test(x.text))) errors.push(`${tag}: collecting mythic things ${JSON.stringify(float)}`);
     // the week is over: the morning card says what it cost and brought, and asks whether it paid off
     await page.evaluate(() => { const c = MQ.state.farm.charms.myth; c.until = MQ.state.farm.day + 1; c.gain = c.cost * 3; MQ.store.save(); MQ.app.go('farm'); });
     await page.waitForSelector('.scene');
