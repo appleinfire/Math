@@ -9360,11 +9360,12 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
           <p class="muted">The builders are paid from the bank, not from your wallet.${f.money ? ` You have ${fmt(f.money)} in your wallet: put it in the bank!` : ''}${f.dep && f.dep.amt ? ` Your locked deposit (${fmt(F.depositBack(f.dep.amt))}) comes back on farm day ${f.dep.until}.` : ''}</p>
           <button class="btn" data-act="go" data-arg="farm:bank">🏦 Go to the bank</button></div>`;
       if (n.pay) {
-        // the same money kept in the bank: what it would add to this bank day's interest
-        const base = Math.max(f.bank.bal, n.cost), inBank = F.interest(base, g, f.bank.acct) - F.interest(base - n.cost, g, f.bank.acct);
+        // the same money kept in the bank, at the bank's usual interest (10¢ a dollar; kindergarten 1¢ for every 10¢):
+        // a simple comparison, without the account limits
+        const [per, add] = F.bankRule(g), inBank = Math.floor(n.cost / per) * add;
         lesson = `<section class="dlesson"><b>💡 Bank or building?</b>
           <p>${n.st.e} ${esc(n.st.name)} earns <b>${fmt(n.pay)}</b> every bank day. It pays for itself in <b>${F.payback(n.cost, n.pay)} bank days</b>, and after that it is all profit.</p>
-          <p>Kept in the bank, ${fmt(n.cost)} would earn about <b>${fmt(inBank)}</b> a bank day${base > F.bankTop(f.bank.acct, g) ? ` (savings above ${fmt(F.bankTop(f.bank.acct, g))} earn only the small interest)` : ''}, and you could take it out any time. Spent on the building, the money is gone, but the building earns every bank day.</p></section>`;
+          <p>Kept in the bank, ${fmt(n.cost)} would earn <b>${fmt(inBank)}</b> a bank day (${g === 'k' ? '1¢ for every 10¢' : '10¢ for every dollar'}), and you could take it out any time. Spent on the building, the money is gone, but the building earns every bank day.</p></section>`;
       } else if (d.castle) lesson = '<section class="dlesson castle"><b>👑 The biggest dream</b><p>The castle doesn’t earn money. Your orchard, cottage and railway help you save for it. Build it because it is amazing!</p></section>';
     }
     const inc = F.dreamIncome(f, g), all = U.sum(inc.map((x) => x[2]));
