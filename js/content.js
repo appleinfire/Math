@@ -313,6 +313,8 @@
     { id: 'charm', icon: '🍀', name: 'Smart Shopper', desc: 'Buy a week charm from the traveling merchant that pays for itself', test: (s) => !!s.farm && (s.farm.stats.charmWins || 0) >= 1 },
     { id: 'deposit', icon: '🔐', name: 'Patient Saver', desc: 'Collect a locked deposit from the farm bank', test: (s) => !!s.farm && (s.farm.stats.depBonus || 0) > 0 },
     { id: 'castle', icon: '🏰', name: 'Castle Builder', desc: 'Build the Castle on the Hill', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 4 },
+    { id: 'puzzle1', icon: '🔷', name: 'Shape Maker', desc: 'Finish your first Shape Puzzle', test: (s) => !!MQ.shapes && MQ.shapes.count(s) >= 1 },
+    { id: 'puzzleall', icon: '🖼️', name: 'Shape Master', desc: 'Finish every shape, picture and dot-to-dot in Shape Puzzles', test: (s) => !!MQ.shapes && MQ.shapes.count(s) >= MQ.shapes.total() },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];
 

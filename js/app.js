@@ -316,7 +316,7 @@
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
-    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg) }[scr];
+    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg), shapes: () => MQ.shapesUI.show() }[scr];
     if (redraw) redraw();
   }
   function newExplorer() {
@@ -408,6 +408,7 @@
         <button class="tile t-fixit ${toFix ? 'hot' : ''}" data-act="go" data-arg="fixit"><span class="ti">🛠️</span><b>Fix-it Lab</b><small>${toFix ? `${toFix} to fix today` : inRepair ? 'All done today ✓' : 'No mistakes to fix'}</small></button>
         <button class="tile t-journal" data-act="go" data-arg="journal"><span class="ti">📔</span><b>Field Journal</b><small>${have} / ${total} creatures</small></button>
         ${farmTile()}
+        ${shapesTile()}
         ${hatchTile()}
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
         <button class="tile t-progress" data-act="go" data-arg="progress"><span class="ti">📈</span><b>My Progress</b><small>${weekAcc}</small></button>
@@ -431,6 +432,12 @@
     const trader = F.merchantHas(fm), unlocked = F.depositReady(fm);
     const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
     return `<button class="tile t-farm wide ${waiting || made || bankDay || build || trader || unlocked || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
+  }
+
+  // Shape Puzzles (js/shapes-ui.js): how full the album is.
+  function shapesTile() {
+    const n = MQ.shapes.count(st);
+    return `<button class="tile t-shapes wide" data-act="go" data-arg="shapes"><span class="ti">🧩</span><span><b>Shape Puzzles</b><small>${n ? `Album: ${n} of ${MQ.shapes.total()} · ` : 'New! '}Make shapes, build pictures, connect the dots</small></span></button>`;
   }
 
   // For grown-ups: how Sunny Farm is going (its money problems also count in the daily totals above).
@@ -593,14 +600,19 @@
   }
   // Every answer of a game goes through here: statistics, mistakes to practice, tips, rewards for fixing.
   function rec(p, first, given) {
-    const r = S.record(p, first, given);
+    const r = record(p, first, given);
     if (!first) {
       const n = (sess.missBy[p.topic] = (sess.missBy[p.topic] || 0) + 1);
       if (n >= 2 && !sess.tipNext.includes(p.topic)) sess.tipNext.push(p.topic);
     }
+    if (r === 'fixed' && !S.preview) sess.fixedNow++;
+    return r;
+  }
+  // Statistics, mistakes to practice and the rewards that go with them, for games and for Shape Puzzles.
+  function record(p, first, given) {
+    const r = S.record(p, first, given);
     if (r === 'fixed' && !S.preview) {
       addGems(FIX_REWARD);
-      sess.fixedNow++;
       later(() => toast(`🛠️ Mistake fixed for good! <b>+${FIX_REWARD} 💎</b>`, 'gold'), 700);
     }
     const g = st.goal || {}, n = (st.days[U.dateKey()] || {}).a || 0;
@@ -2063,7 +2075,7 @@
     closeModal();
     if (where !== 'hatch') ui.hatch = null;
     if (where !== 'parent') { ui.resetArmed = false; ui.delArmed = null; ui.discArmed = false; }
-    const [scr, arg] = where.split(':');
+    const k = where.indexOf(':'), scr = k < 0 ? where : where.slice(0, k), arg = k < 0 ? undefined : where.slice(k + 1); // 'shapes:shape:star' → shapes, shape:star
     if (scr !== 'play') sess = null;
     if (scr === 'who') return who();
     if (scr === 'new') { ui.newKid = null; return newExplorer(); }
@@ -2072,6 +2084,7 @@
     if (scr === 'parent' && S.preview) { endPreview(); toast('Preview ended'); }
     endContest();
     if (scr === 'farm') return MQ.farmUI.show(arg);
+    if (scr === 'shapes') return MQ.shapesUI.show(arg);
     ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, nntypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
 
@@ -2297,7 +2310,8 @@
   };
   function act(name, arg, el) {
     if (ACTIONS[name]) return ACTIONS[name](arg, el);
-    if (st && MQ.farmUI && MQ.farmUI.actions[name]) MQ.farmUI.actions[name](arg, el); // Sunny Farm (js/farm-ui.js)
+    if (st && MQ.farmUI && MQ.farmUI.actions[name]) return MQ.farmUI.actions[name](arg, el); // Sunny Farm (js/farm-ui.js)
+    if (st && MQ.shapesUI && MQ.shapesUI.actions[name]) MQ.shapesUI.actions[name](arg, el); // Shape Puzzles (js/shapes-ui.js)
   }
 
   function init() {
@@ -2349,8 +2363,8 @@
     startScreen();
   }
 
-  // kit: what the Sunny Farm screens (js/farm-ui.js) borrow from the app
-  const kit = { render, toast, modal, closeModal, go, checkBadges, state: () => st, setCur: (c) => { cur = c; } };
+  // kit: what the Sunny Farm and Shape Puzzles screens (js/farm-ui.js, js/shapes-ui.js) borrow from the app
+  const kit = { render, toast, modal, closeModal, go, checkBadges, addGems, addXp, record, state: () => st, setCur: (c) => { cur = c; } };
   MQ.app = { init, go, kit, session: () => sess, contest: () => ct }; // session() and contest() are used by the browser tests
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
