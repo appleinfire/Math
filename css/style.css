@@ -286,6 +286,23 @@ svg.blocks { max-height: 120px; }
 .cemoji { font-size: 5.2rem; line-height: 1.15; margin-top: 6px; }
 .cname { font-family: var(--display); font-weight: 600; font-size: 1.5rem; }
 .cfact { font-size: 0.98rem; color: var(--ink); text-align: left; }
+/* creature stats (js/stats.js): four bars, Power and a special power */
+.cstats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; margin: 8px 0 2px; text-align: left; }
+.cst { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1px 6px; font-size: 0.78rem; font-weight: 800; }
+.cst span { white-space: nowrap; }
+.cst i { grid-column: 1 / -1; grid-row: 2; height: 8px; border-radius: 999px; background: rgba(120, 130, 160, 0.22); overflow: hidden; }
+.cst i b { display: block; height: 100%; border-radius: inherit; background: var(--sc); }
+.cst em { font-style: normal; font-weight: 900; font-variant-numeric: tabular-nums; }
+.s-speed { --sc: linear-gradient(90deg, #ffd23f, #ff9a2e); }
+.s-strength { --sc: linear-gradient(90deg, #ff8a7a, #e8453c); }
+.s-smarts { --sc: linear-gradient(90deg, #7fd0ff, #3a8be0); }
+.s-magic { --sc: linear-gradient(90deg, #d9a6ff, #9d4dff); }
+.cpow { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; padding: 4px 10px; border-radius: 12px; background: rgba(255, 210, 63, 0.22); }
+.cpow span { font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.75rem; }
+.cpow b { font-family: var(--display); font-weight: 600; font-size: 1.35rem; }
+.cpow small { flex-basis: 100%; text-align: center; font-size: 0.72rem; font-weight: 800; opacity: 0.8; }
+.cspec { grid-column: 1 / -1; font-size: 0.85rem; font-weight: 800; text-align: center; }
+.r-dragon .cst i, .r-royal .cst i { background: rgba(255, 255, 255, 0.18); }
 .cwhere { font-size: 0.82rem; font-weight: 800; color: var(--ink-soft); margin-top: 6px; }
 
 /* ---------- trainer ---------- */
@@ -1374,3 +1391,86 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
 .blog b.lock { color: #8a5a08; }
 .blog b.unlock { color: var(--good); }
 @media (prefers-reduced-motion: reduce) { .fdep.ready { animation: none; } }
+
+/* ================= Card Duels (js/duel.js) ================= */
+.tile.t-duel { background: linear-gradient(135deg, #fff2e8, #f3eeff); box-shadow: inset 0 0 0 3px #ff8a5a, 0 4px 0 #c85a2a; }
+.htap { margin: -4px 0 8px; font-size: 0.85rem; }
+.duelnudge { background: linear-gradient(90deg, #fff2e8, #f3eeff); box-shadow: inset 0 0 0 2px #ff8a5a; margin: 14px auto; }
+.duels .lead { margin-top: 4px; }
+.du-note { padding: 10px 12px; border-radius: 14px; background: #fff8e6; box-shadow: inset 0 0 0 2px #f0c35a; font-weight: 700; }
+.du-top { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.leagues { display: grid; gap: 12px; margin-top: 16px; }
+.league { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 12px; border-radius: var(--r); background: var(--card); box-shadow: inset 0 0 0 3px var(--lc), 0 4px 0 var(--lc); }
+.league.locked { opacity: 0.6; box-shadow: inset 0 0 0 2px var(--line), 0 3px 0 var(--line); }
+.league.l-crystal:not(.locked) { background: linear-gradient(150deg, #f6f2ff, #e6f6ff); }
+.league.l-dragon:not(.locked) { background: radial-gradient(circle at 15% 30%, #fff1e6, #ffe0d6 60%, #ffd0c2); }
+.lg-rival { font-size: 2.6rem; line-height: 1; }
+.lg-t { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.lg-t > b { font-family: var(--display); font-weight: 600; font-size: 1.15rem; }
+.lg-t small { color: var(--ink-soft); font-weight: 700; }
+.lg-goal { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; }
+.lg-goal i { font-style: normal; filter: grayscale(1) opacity(0.35); }
+.lg-goal i.on { filter: none; }
+.lg-goal small { margin-left: 6px; }
+@media (max-width: 460px) { .league { grid-template-columns: auto 1fr; } .league .btn { grid-column: 1 / -1; } }
+/* a duel card */
+.du-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; min-width: 0; padding: 8px 6px 7px; border: 0; border-radius: 16px; color: var(--ink); text-align: center;
+  background: var(--card); box-shadow: inset 0 0 0 2px var(--line), 0 4px 0 var(--line); }
+button.du-card:active { transform: translateY(3px); }
+.du-card.r-rare { box-shadow: inset 0 0 0 3px #7f8fe0, 0 4px 0 #5a68c0; }
+.du-card.r-legendary { box-shadow: inset 0 0 0 3px #e3a21a, 0 4px 0 #b8780a; background: #fffbea; }
+.du-card.r-mythic { box-shadow: inset 0 0 0 3px #d66fc0, 0 4px 0 #a8459a; background: #fff4fb; }
+.du-card.r-crystal { background: linear-gradient(160deg, #f6f2ff, #e3f5ff); box-shadow: inset 0 0 0 3px #8b6fe0, 0 4px 0 #6f55c4; }
+.du-card.r-legend { background: radial-gradient(circle at 50% 25%, #fffbe6, #ffd970); box-shadow: inset 0 0 0 3px #e3a21a, 0 4px 0 #b8780a, 0 0 12px rgba(255, 196, 40, 0.6); }
+.du-card.r-dragon, .du-card.r-royal { color: #ffffff; background: radial-gradient(circle at 50% 25%, #3a2470, #1a1036); box-shadow: inset 0 0 0 3px var(--el), 0 4px 0 #0d0820, 0 0 12px var(--el); }
+.du-pic { display: grid; place-items: center; width: 72px; height: 72px; font-size: 3.2rem; line-height: 1; }
+.du-pic .art { width: 100%; height: 100%; }
+.du-name { font-size: 0.86rem; line-height: 1.15; min-height: 2.3em; display: flex; align-items: center; }
+.du-stats { display: grid; gap: 3px; width: 100%; }
+.du-st { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0 4px; width: 100%; padding: 2px 5px; border: 0; border-radius: 8px; background: none; color: inherit; font-size: 0.74rem; font-weight: 800; text-align: left; }
+.du-st span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.du-st i { grid-column: 1 / -1; grid-row: 2; height: 6px; border-radius: 999px; background: rgba(120, 130, 160, 0.22); overflow: hidden; }
+.du-st i b { display: block; height: 100%; border-radius: inherit; background: var(--sc); }
+.du-st em { font-style: normal; font-weight: 900; font-variant-numeric: tabular-nums; }
+.du-st.hi, .du-pow.hi { background: rgba(255, 210, 63, 0.45); box-shadow: inset 0 0 0 2px #e0a21b; }
+button.du-st { padding: 6px 8px; font-size: 0.95rem; background: rgba(255, 255, 255, 0.55); box-shadow: inset 0 0 0 2px var(--line), 0 3px 0 var(--line); cursor: pointer; }
+button.du-st i { height: 9px; }
+button.du-st:active { transform: translateY(2px); }
+.du-card.r-dragon .du-st i, .du-card.r-royal .du-st i { background: rgba(255, 255, 255, 0.2); }
+.du-card.r-dragon button.du-st, .du-card.r-royal button.du-st { background: rgba(255, 255, 255, 0.12); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35); }
+.du-pow { width: 100%; margin-top: 2px; padding: 2px 6px; border-radius: 8px; font-size: 0.78rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; }
+.du-pow b { font-family: var(--display); font-weight: 600; font-size: 1.05rem; letter-spacing: 0; }
+/* playing */
+.duel-play { --wc: var(--lc); }
+.du-score { margin-left: auto; display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); font-weight: 900; }
+.du-score span { display: flex; align-items: center; gap: 4px; }
+.du-score .art { width: 26px; height: 26px; }
+.du-score b { font-family: var(--display); font-size: 1.2rem; }
+.du-arena { margin-top: 10px; }
+.du-prompt { text-align: center; font-weight: 800; font-size: 1.05rem; margin: 6px 0 10px; }
+.du-hand { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.du-big { width: min(260px, 100%); margin: 0 auto 10px; }
+.du-big .du-card { padding: 12px 12px 10px; }
+.du-big .du-pic { width: 110px; height: 110px; font-size: 4.6rem; }
+.du-big .du-name { font-size: 1.1rem; min-height: 0; margin: 2px 0 6px; }
+.du-big .du-stats { gap: 7px; }
+.du-rival { display: flex; align-items: center; gap: 10px; margin: 0 auto 4px; padding: 8px 12px; width: fit-content; max-width: 100%; border-radius: 14px; background: var(--card); box-shadow: inset 0 0 0 3px var(--lc); font-weight: 800; animation: pop 0.35s; }
+.du-rcard { font-size: 2rem; }
+.du-rival b[class^='s-'] { padding: 0 6px; border-radius: 6px; background: rgba(255, 210, 63, 0.45); }
+.du-vs { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; margin-bottom: 10px; }
+.du-vs .vs { font-family: var(--display); font-weight: 600; font-size: 1.3rem; color: var(--lc); }
+.du-vs .du-card.flip { animation: cardflip 0.6s ease-out; }
+@keyframes cardflip { from { transform: perspective(600px) rotateY(90deg); } to { transform: none; } }
+.du-vs .du-card.won { animation: cardwin 0.6s ease-out; box-shadow: inset 0 0 0 3px #2fb36b, 0 4px 0 #1f8a4f, 0 0 16px rgba(47, 179, 107, 0.7); }
+.du-vs .du-card.lost { opacity: 0.7; filter: saturate(0.6); }
+@keyframes cardwin { 40% { transform: scale(1.06); } }
+.du-q { border-top-color: var(--lc); position: relative; }
+.du-q .speak { position: absolute; top: 10px; right: 10px; }
+.du-q .ptext { padding-right: 40px; }
+.duel-result .du-log { list-style: none; padding: 0; margin: 4px 0; display: grid; gap: 4px; width: min(340px, 100%); }
+.du-log li { display: flex; align-items: center; gap: 8px; padding: 5px 10px; border-radius: 10px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); font-weight: 800; }
+.du-log li small { color: var(--ink-soft); flex: 1; text-align: center; }
+.du-log li.me { box-shadow: inset 0 0 0 2px #2fb36b; }
+.du-log li.rival { box-shadow: inset 0 0 0 2px #e8453c; }
+@media (prefers-reduced-motion: reduce) { .du-vs .du-card.flip, .du-vs .du-card.won, .du-rival { animation: none; } }
+@media (min-width: 700px) { .du-arena { max-width: 640px; margin-left: auto; margin-right: auto; } .du-hand .du-pic, .du-vs .du-pic { width: 60px; height: 60px; font-size: 2.8rem; } }

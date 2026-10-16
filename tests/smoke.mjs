@@ -771,6 +771,65 @@ async function run(viewport, tag) {
   if (shots) await page.screenshot({ path: path.join(shots, 'hatchery-ladder.png'), fullPage: true });
   await page.close();
 }
+// Creature stats and Card Duels: a hatched creature's card shows its stats; a duel in each grade is played round by
+// round through the screens (cards, stats, the rival's turn, the math), and the prize and the win are saved.
+for (const [grade, vp] of [['g2', { width: 390, height: 844 }], ['k', { width: 1024, height: 768 }]]) {
+  const tag = 'duel-' + grade;
+  const page = await browser.newPage({ viewport: vp });
+  page.on('pageerror', (e) => errors.push(tag + ': ' + e.message));
+  page.on('console', (m) => m.type() === 'error' && !/fonts\.g|ERR_|Failed to load resource/.test(m.text()) && errors.push(tag + ': ' + m.text()));
+  await page.goto(url);
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.fill('#ob-name', grade === 'k' ? 'Leo' : 'Nina');
+  if (grade === 'k') await page.click('[data-act=pickGrade][data-arg=k]');
+  await page.click('[data-act=createKid]');
+  await page.evaluate(() => { const s = MQ.state; Object.assign(s.settings, { voice: false, sound: false, readAloud: false }); MQ.store.save(); MQ.app.go('home'); });
+  if (!(await page.textContent('.t-duel small')).includes('Collect 3')) errors.push(tag + ': a new explorer needs 3 creatures for duels');
+  await page.evaluate(() => { const s = MQ.state; MQ.trackCreatures(s.grade, true).slice(0, 8).forEach((c) => (s.creatures[c.id] = { got: '2026-10-01' })); MQ.store.save(); MQ.app.go('hatch'); });
+  await page.click('[data-act=eggTab][data-arg=meadow]');
+  if (!(await page.$('.htap'))) errors.push(tag + ': the Hatchery should say the creatures can be tapped');
+  await page.evaluate(() => MQ.app.go('journal'));
+  await page.click('.ccard');
+  await page.waitForSelector('#modal .cstats');
+  const stats = await page.evaluate(() => [...document.querySelectorAll('#modal .cst em')].map((e) => +e.textContent));
+  const power = await page.evaluate(() => +document.querySelector('#modal .cpow b').textContent);
+  if (stats.length !== 4 || stats.reduce((a, b) => a + b, 0) !== power || !(await page.$('#modal .cspec'))) errors.push(tag + ': the creature card should show 4 stats adding up to its Power ' + JSON.stringify({ stats, power }));
+  await page.click('#modal [data-act=closeModal]');
+  const gems0 = await page.evaluate(() => MQ.state.crystals);
+  await page.evaluate(() => MQ.app.go('duel'));
+  await page.waitForSelector('.league.l-meadow [data-act=duelStart]');
+  if (!(await page.$('.league.l-crystal.locked')) || (await page.$$('.du-top .du-card')).length !== 3) errors.push(tag + ': the lobby should show 3 strongest cards and a locked Crystal League');
+  if (await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)) errors.push(tag + ': horizontal overflow in the duel lobby');
+  if (shots) await page.screenshot({ path: path.join(shots, tag + '-lobby.png'), fullPage: true });
+  await page.click('.league.l-meadow [data-act=duelStart]');
+  let rivalTurns = 0, questions = 0;
+  for (let r = 1; r <= 5; r++) {
+    await page.waitForSelector('.du-hand');
+    if (await page.$('.du-rival')) rivalTurns++;
+    await page.click('.du-hand .du-card >> nth=1');
+    if (await page.$('.du-big')) await page.click('.du-big [data-act=duelStat] >> nth=2');
+    await page.waitForSelector('.du-vs');
+    if (r === 3 && shots) await page.screenshot({ path: path.join(shots, tag + '-battle.png'), fullPage: true });
+    const q = await page.evaluate(() => { const d = MQ.duelUI.playing(); return d.q && { kind: d.q.kind, answer: d.q.answer, choices: d.q.choices }; });
+    if (q) {
+      questions++;
+      if (q.kind !== (grade === 'k' ? 'choice' : 'num')) errors.push(tag + ': question kind ' + q.kind);
+      if (q.kind === 'num') { for (const ch of String(q.answer)) await page.click(`[data-act=duelKey][data-arg="${ch}"]`); await page.click('[data-act=duelCheck]'); }
+      else await page.click(`[data-act=duelChoose][data-arg="${q.choices.indexOf(q.answer)}"]`);
+    }
+    await page.waitForSelector('[data-act=duelNext]');
+    await page.click('[data-act=duelNext]');
+  }
+  await page.waitForSelector('.duel-result');
+  if (shots) await page.screenshot({ path: path.join(shots, tag + '-result.png'), fullPage: true });
+  const res = await page.evaluate(() => ({ played: MQ.state.duels.played, wins: MQ.state.duels.wins.meadow || 0, gems: MQ.state.crystals, log: document.querySelectorAll('.du-log li').length, title: document.querySelector('.duel-result .title').textContent }));
+  const prize = /won the duel/.test(res.title) ? 3 : /draw/i.test(res.title) ? 1 : 0;
+  if (rivalTurns !== 2 || res.played !== 1 || res.log !== 5 || res.gems - gems0 !== questions + prize || (prize === 3) !== (res.wins === 1)) errors.push(tag + ': duel result ' + JSON.stringify({ rivalTurns, questions, prize, res, gems0 }));
+  await page.click('[data-act=go][data-arg=duel]');
+  await page.waitForSelector('.leagues');
+  await page.close();
+}
 await run({ width: 390, height: 844 }, 'phone');
 await run({ width: 1024, height: 768 }, 'ipad');
 await browser.close();

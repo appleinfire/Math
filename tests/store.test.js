@@ -42,6 +42,11 @@ const dm = S.mergeProfiles(da, db);
 assert.deepStrictEqual(dm.dragons, { dr_ember: { name: 'Sparky', at: 40, seen: 1 }, dr_frost: { name: 'Icy', at: 70, seen: 0 }, dr_moon: { name: 'Luna', at: 90, seen: 0 } });
 assert.strictEqual(dm.buddy, '', 'the buddy comes from the newer copy');
 assert.deepStrictEqual(S.mergeProfiles(base(), Object.assign(base(), { rev: 1 })).dragons, {}, 'old copies without dragons still merge');
+// card duels: the higher count of each league's wins and of duels played; old copies without duels still merge
+const ua = Object.assign(base(), { rev: 10, duels: { wins: { meadow: 5, crystal: 1 }, played: 9 } });
+const ub = Object.assign(base(), { rev: 20, duels: { wins: { meadow: 3, dragon: 1 }, played: 12 } });
+assert.deepStrictEqual(S.mergeProfiles(ua, ub).duels, { played: 12, wins: { meadow: 5, crystal: 1, dragon: 1 } });
+assert.deepStrictEqual(S.mergeProfiles(base(), Object.assign(base(), { rev: 1 })).duels, { played: 0, wins: {} });
 
 // Placement Check results taken on two devices are all kept, oldest first.
 const ta = Object.assign(base(), { rev: 10, tests: { checks: [{ id: 'm1', date: '2026-10-01', overall: 5 }] } });

@@ -33,7 +33,8 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 | **Strategy tips** | After two misses of the same kind of problem in one session, the next question of that kind starts with a short tip ("Make a ten: 8 + 5 → 8 + 2 + 3"). Every topic has tips, at most one a day per topic. |
 | **Daily goal** | A grown-up can set problems per day (10–50) and goal days per week. The home screen shows a ring for today and the days of the week; a badge for a week that reaches the goal. |
 | **Hatchery** | A ladder of eggs to save crystals for (see below): Meadow 30 💎 → Crystal 80 💎 → Legendary 200 💎 → Dragon 500 💎 → a secret Royal Dragon Egg for 1,000 💎. 59 creatures in all; a bought egg always holds a new one. |
-| **Badges & ranks** | 41 badges (streaks, collections, the Hatchery, daily habit, lightning rounds, challenge problems, Sunny Farm, its Big Dreams and the merchant). Explorer level grows with XP. |
+| **Card Duels** | The collected creatures battle with their stats against a rival in three leagues; every round ends with a question about the two numbers (see below). |
+| **Badges & ranks** | 43 badges (streaks, collections, the Hatchery, Card Duels, daily habit, lightning rounds, challenge problems, Sunny Farm, its Big Dreams and the merchant). Explorer level grows with XP. |
 | **Hints** | A wrong answer gets a strategy hint and one more try ("make a ten", "count up", "break a ten"). A second miss shows the answer with an explanation. |
 | **Voice** | After each answer a voice says "Great job!" or a gentle "Oops! Try again." The next problem waits until the voice has finished; the **Next →** button skips the wait. Questions can be read aloud with 🔊 (automatic for kindergarten). Both can be turned off per child in *For grown-ups*. |
 | **Navigation** | Every screen has a back button; result screens have Home. **👥 Switch** on the home screen (or the small avatar in the top bar) changes the child without reloading. The browser's back gesture moves between screens and asks before leaving a game. |
@@ -59,6 +60,21 @@ Crystals earned in the game buy eggs. The eggs open one after another, so there 
 - **Saving up.** The Hatchery tile on the home screen shows a progress bar towards the best open egg (“🐉 Dragon Egg · 340 / 500 💎”), and level, quest and training results say how many crystals are left.
 - **About how long it takes** at about 50 💎 a day: a Crystal Egg every couple of days, the first Legendary Egg in about two weeks, the first dragon in about a month, everything in about half a year. Prices are in `MQ.EGGS`.
 - **Badges:** Crystal Keeper, Legend Hunter, Dragon Tamer, Dragon Master, Dragon Whisperer, Master of the Hatchery. *Living Encyclopedia* counts the map and the Meadow Eggs.
+- **Cards to look at again.** A tap on any discovered creature (in the Hatchery, in the Field Journal) opens its card.
+
+## ⚔️ Creature stats and Card Duels
+
+Every creature card shows four stats, like a game character: ⚡ Speed, 💪 Strength, 🧠 Smarts and ✨ Magic (0 to 100 each), their sum **Power**, and a 🌟 special power. The data is in `js/stats.js`.
+
+- **Real animals get stats from real life**: the golden eagle is fast, the elephant strong, the octopus smart, the sloth very slow. Their Magic is a real "superpower" of nature (the scorpion glows under UV light, the bat sees with echoes, the chameleon changes color), and the special power is a true fact. Magical creatures are stronger, and rarer ones stronger still: about 160 Power for a common animal, 260 for a Crystal creature, 320 for a Legendary one, 350–400 for a dragon (the Royal Dragon: 100 in everything).
+- **Dragons grow stronger as they grow up**: a baby has 55% of its full stats, a young dragon 70%, a grown-up 85%, an elder 100%, and the card says how much Power it will have as an elder. Right answers make a child's dragons win more duels.
+
+**Card Duels** (a home-screen tile, and a link in the Hatchery; rules in `js/duel.js`):
+
+- A duel is 5 rounds against a rival, with three cards from the child's collection in hand each round. In rounds 1 and 3 the child picks a card and a stat; in rounds 2 and 4 the rival plays a card and picks the stat, and the child picks the card with the most of it; round 5 is the ⚡ Power round. The rival's card is turned over, and the bigger number wins the round.
+- **Every round ends with math about the two numbers.** Kindergarten: which number is bigger (tap it). 2nd grade: how much more (two-digit subtraction; the Power round within 1,000). A wrong answer gets a hint, then the answer with its explanation. Answers count in the day's totals; a first-try right answer earns +1 💎 and 10 XP.
+- **Three leagues**, each opened by 3 wins in the one before: 🌿 Meadow League (🦝 Rocky plays animals from the child's own map and picks stats at random: a beginner wins most duels; +3 💎 a win), 💎 Crystal League (🦉 Professor Hoot plays Legendary map animals, mythic and Crystal creatures and picks his best stat; +5 💎), 🐉 Dragon League (🧙‍♀️ Queen Aurora plays Legendary creatures and grown-up dragons; +8 💎). A draw earns 1 💎. The balance is checked by simulated duels in `tests/duel.test.js` (a beginner wins about 60% in the Meadow League; the Crystal League takes magical cards, the Dragon League Legendary and Dragon cards).
+- The result screen lists the five rounds. Badges: Card Duelist, Dragon League Champion.
 
 ## 🌻 Sunny Farm
 
@@ -184,6 +200,8 @@ js/generators-k.js    kindergarten problem generators, 10 topics × 5 difficulti
 js/content.js         2nd-grade worlds and creatures, grade tracks, badges, buddy phrases
 js/content-k.js       kindergarten worlds and baby animals
 js/creature-art.js    Hatchery pictures: magical creatures, dragons at each growth stage, eggs (SVG drawn in code)
+js/stats.js           creature stats: Speed, Strength, Smarts, Magic, Power and a special power for every creature
+js/duel.js            Card Duels: rules, leagues, questions, and their screens
 js/store.js           one saved profile per child (localStorage), stats, merging copies from two devices
 js/cloud.js           family sync through Firebase (code + PIN, live updates, offline queue)
 js/cloud-config.js    Firebase project settings (public identifiers)
@@ -212,6 +230,7 @@ No build step or dependencies are needed to run it. After changing code, run:
 node tests/generators.test.js      # 312,000 generated problems checked
 node tests/store.test.js           # merging progress from two devices, mistakes to practice, family keys
 node tests/hatchery.test.js        # eggs, creature pictures (valid SVG), dragon growth and treasure, the buddy, the farm merchant's pictures
+node tests/duel.test.js            # creature stats by rarity, Card Duel rules and questions, league balance in simulated duels
 node tests/testprep.test.js        # Placement Check accuracy on simulated children, mock tests with review questions
 node tests/farm.test.js            # Sunny Farm economy, days, shop, Big Dreams, the merchant and his week charms, the locked deposit, and thousands of customer problems for both grades
 node tests/nnat.test.js            # NNAT-3 style puzzles: 4 kinds × 6 levels, the 48-question practice test and its scoring
