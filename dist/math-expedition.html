@@ -1388,6 +1388,101 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
 .blog b.lock { color: #8a5a08; }
 .blog b.unlock { color: var(--good); }
 @media (prefers-reduced-motion: reduce) { .fdep.ready { animation: none; } }
+
+/* ---------- Shape Puzzles (js/shapes-ui.js): an album page, then a board and a math card side by side on an iPad ---------- */
+.tile.t-shapes { background: #f6efff; box-shadow: inset 0 0 0 3px #9b7be0, 0 4px 0 #7a5cd6; }
+.pzhub { display: flex; flex-direction: column; gap: 14px; }
+.pz-intro { margin: 0; color: var(--ink-soft); }
+.pz-intro b { color: var(--ink); }
+.pzcard { background: var(--card); border-radius: var(--r); padding: 14px; box-shadow: inset 0 0 0 2px var(--line), 0 4px 0 var(--line); display: flex; flex-direction: column; gap: 12px; }
+.pzc-h { display: flex; gap: 12px; align-items: center; }
+.pzc-h h2 { font-size: 1.25rem; }
+.pzc-h p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; line-height: 1.3; }
+.pzc-i { font-size: 2rem; flex: none; }
+.pz-thumbs { display: flex; flex-wrap: wrap; gap: 10px; }
+.pz-thumb { position: relative; width: 68px; height: 68px; border: 0; border-radius: 16px; padding: 4px; background: #f3f5fb; box-shadow: inset 0 0 0 2px var(--line); display: grid; place-items: center; }
+.pz-thumb svg { width: 100%; height: 100%; display: block; }
+.pz-thumb.got { background: #fffaf0; box-shadow: inset 0 0 0 3px var(--sun); }
+.pz-thumb i { position: absolute; right: -4px; top: -4px; width: 22px; height: 22px; border-radius: 50%; background: var(--good); color: #ffffff; font: 800 0.8rem/22px var(--body); font-style: normal; text-align: center; }
+.pz-thumb.mystery { font: 600 1.8rem var(--display); color: #b7c3e6; }
+.pz-size { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pz-size > span { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.pz-dots .btn { align-self: flex-start; }
+
+#app.is-pz { max-width: 1000px; }
+.pzplay { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 760px) { .pzplay { grid-template-columns: minmax(0, 1fr); } }
+.pz-board { background: var(--card); border-radius: 24px; padding: 12px; box-shadow: inset 0 0 0 2px var(--line), 0 4px 0 var(--line); width: min(100%, 64vh); justify-self: center; }
+.pz-svg { display: block; width: 100%; height: auto; overflow: visible; -webkit-user-select: none; user-select: none; }
+.pz-panel { background: var(--card); border-radius: 24px; padding: 16px; box-shadow: inset 0 0 0 2px var(--line), 0 4px 0 var(--line); display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.pz-prog { display: flex; gap: 6px; flex-wrap: wrap; }
+.pz-prog i { width: 18px; height: 18px; border-radius: 6px; background: var(--line); transition: background 0.3s; }
+.pz-prog i.on { background: var(--teal); }
+.pz-q { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 72px; }
+.pz-eq { font: 600 clamp(2.4rem, 8vw, 3.4rem)/1 var(--display); font-variant-numeric: tabular-nums; }
+.pz-lead { font: 600 clamp(1.4rem, 5vw, 1.8rem)/1.15 var(--display); text-align: center; text-wrap: balance; }
+.pz-say { flex: none; width: 50px; height: 50px; border: 0; border-radius: 50%; background: var(--sun-soft); font-size: 1.4rem; }
+.pz-frames { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.pz-frame { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: min(100%, 280px); padding: 8px; background: #f6f8fd; border: 3px solid var(--ink); border-radius: 12px; }
+.pz-frame i { aspect-ratio: 1; border-radius: 50%; border: 2px dashed #cfd7ea; position: relative; }
+.pz-frame i.a { background: var(--coral); border: 0; }
+.pz-frame i.b { background: var(--teal); border: 0; }
+.pz-frame i.x { background: #ffc9c1; border: 0; }
+.pz-frame i.x::after { content: '×'; position: absolute; inset: 0; display: grid; place-items: center; font: 600 1.4rem/1 var(--display); }
+.pz-hint { display: flex; flex-direction: column; gap: 6px; animation: pop 0.3s; }
+.pz-hint p { margin: 0; text-align: center; font-weight: 800; color: var(--ink-soft); }
+.pz-answers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.pz-ans { font: 600 2.4rem/1.1 var(--display); font-variant-numeric: tabular-nums; background: var(--card); border: 3px solid var(--line); border-bottom-width: 7px; border-radius: 20px; padding: 12px 0; }
+.pz-ans:active:not(:disabled) { transform: translateY(3px); border-bottom-width: 4px; }
+.pz-ans:disabled { cursor: default; }
+.pz-ans.nope { background: var(--bad-soft); border-color: #f3b4a8; color: #b5523f; animation: shake 0.4s; }
+.pz-ans.right { background: var(--good-soft); border-color: #8fd3ac; color: var(--good); }
+.pz-ans.show { border-color: var(--sun); animation: pzglow 1s infinite; }
+@keyframes pzglow { 50% { box-shadow: 0 0 0 8px rgba(255, 181, 71, 0.35); } }
+.pz-tray { display: flex; justify-content: center; align-items: center; min-height: 110px; padding: 6px 0; }
+.pz-tp { touch-action: none; cursor: grab; position: relative; filter: drop-shadow(0 4px 0 rgba(34, 48, 79, 0.18)); transition: transform 0.35s cubic-bezier(0.3, 1.35, 0.5, 1); }
+.pz-tp svg { display: block; overflow: visible; }
+.pz-tp.drag { transition: none; cursor: grabbing; z-index: 5; filter: drop-shadow(0 10px 6px rgba(34, 48, 79, 0.25)); }
+.pz-tip { margin: 0; text-align: center; color: var(--ink-soft); font-weight: 700; font-size: 0.92rem; }
+.pz-win { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; animation: pop 0.4s; }
+.pz-winart { width: 140px; height: 140px; animation: floaty 2.4s ease-in-out infinite; }
+.pz-win b { font: 600 1.6rem/1.15 var(--display); text-wrap: balance; }
+.pz-win p { margin: 0; font-weight: 700; color: var(--ink-soft); }
+.pz-win .pz-gems { color: var(--ink); font-weight: 800; }
+.pz-win .row { margin-top: 6px; }
+/* the board: shape puzzle */
+.pz-bg { fill: #f3f6fd; }
+.pz-slot { fill: none; stroke: #c3cde6; stroke-width: 0.55; stroke-dasharray: 2 1.5; }
+.pz-edge { fill: none; stroke: #9aa8cf; stroke-width: 1; stroke-dasharray: 3 2; }
+.pz-pc, .pz-part { transform-box: view-box; }
+.pz-pc.off { display: none; }
+.pz-seam { fill: none; stroke: #ffffff; stroke-width: 0.7; stroke-opacity: 0.9; transition: stroke-opacity 0.9s; }
+.pz-full { opacity: 0; transition: opacity 0.9s; pointer-events: none; }
+.done .pz-seam { stroke-opacity: 0; }
+.done .pz-full { opacity: 1; }
+.pz-pc { transition: opacity 0.9s; }
+.done .pz-pc { opacity: 0; } /* the whole picture fades in over the pieces */
+/* build it */
+.pz-pslot { fill: #f3f6fd; stroke: #9aa8cf; stroke-width: 0.9; stroke-dasharray: 2.5 1.8; stroke-linejoin: round; }
+.pz-part.hint .pz-pslot { fill: #fff8e6; stroke: var(--sun); stroke-width: 1.8; animation: pzmarch 1s linear infinite; }
+.pz-pfill { stroke: rgba(34, 48, 79, 0.55); stroke-width: 0.9; stroke-linejoin: round; }
+@keyframes pzmarch { to { stroke-dashoffset: -9; } }
+/* dot to dot */
+.pz-dot circle { fill: var(--ink); transform-box: fill-box; transform-origin: center; }
+.pz-dot.cur circle { fill: var(--coral); animation: pzpulse 1s ease-in-out infinite; }
+.pz-dot.past circle { fill: var(--coral); }
+.pz-dnum { font: 600 7.5px var(--display); fill: var(--ink-soft); text-anchor: middle; dominant-baseline: central; }
+.pz-dfill { opacity: 0; transition: opacity 1s; }
+.done .pz-dfill { opacity: 1; }
+.done .pz-dot { opacity: 0; transition: opacity 0.8s; }
+.pz-seg { stroke: var(--coral); stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: pzdraw 0.6s ease-out forwards; transition: stroke 1s; }
+.done .pz-seg { stroke: rgba(34, 48, 79, 0.7); }
+@keyframes pzdraw { to { stroke-dashoffset: 0; } }
+@keyframes pzpulse { 50% { transform: scale(1.6); } }
+@media (prefers-reduced-motion: reduce) {
+  .pz-dot.cur circle, .pz-part.hint .pz-pslot, .pz-ans.show, .pz-winart { animation: none; }
+  .pz-seg { animation-duration: 0.01ms; }
+}
 </style>
 </head>
 <body>
@@ -5252,6 +5347,8 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     { id: 'charm', icon: '🍀', name: 'Smart Shopper', desc: 'Buy a week charm from the traveling merchant that pays for itself', test: (s) => !!s.farm && (s.farm.stats.charmWins || 0) >= 1 },
     { id: 'deposit', icon: '🔐', name: 'Patient Saver', desc: 'Collect a locked deposit from the farm bank', test: (s) => !!s.farm && (s.farm.stats.depBonus || 0) > 0 },
     { id: 'castle', icon: '🏰', name: 'Castle Builder', desc: 'Build the Castle on the Hill', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 4 },
+    { id: 'puzzle1', icon: '🔷', name: 'Shape Maker', desc: 'Finish your first Shape Puzzle', test: (s) => !!MQ.shapes && MQ.shapes.count(s) >= 1 },
+    { id: 'puzzleall', icon: '🖼️', name: 'Shape Master', desc: 'Finish every shape, picture and dot-to-dot in Shape Puzzles', test: (s) => !!MQ.shapes && MQ.shapes.count(s) >= MQ.shapes.total() },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];
 
@@ -7643,6 +7740,7 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     tests: { checks: [], contests: [] }, // Placement Check and mock contest results (newest last)
     seen: {}, // test-prep topic: recently shown question keys (oldest first), so retakes bring new questions
     nnatDays: {}, // 'YYYY-MM-DD': NNAT-3 practice puzzles answered that day (the GATE plan counts practice days)
+    puzzles: { n: 6, done: {} }, // Shape Puzzles: pieces in a shape puzzle, and how many times each puzzle was finished (js/shapes.js)
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
     settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true },
   });
@@ -7881,6 +7979,9 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     out.tips = Object.assign({}, old.tips || {}, nw.tips || {});
     out.nnatDays = Object.assign({}, old.nnatDays || {});
     for (const [d, n] of Object.entries(nw.nnatDays || {})) out.nnatDays[d] = max(n, (old.nnatDays || {})[d]);
+    // Shape Puzzles: every puzzle finished on either device stays in the album
+    out.puzzles = Object.assign({}, nw.puzzles || {}, { done: Object.assign({}, (old.puzzles || {}).done) });
+    for (const [k, n] of Object.entries((nw.puzzles || {}).done || {})) out.puzzles.done[k] = max(n, out.puzzles.done[k]);
     // Sunny Farm: the copy changed last wins as a whole (money is spent, animals move), by the farm's own clock,
     // so a device that only opened the farm can't replace a farm played on another device.
     if (old.farm && (!nw.farm || (old.farm.t || 0) > (nw.farm.t || 0))) out.farm = JSON.parse(JSON.stringify(old.farm));
@@ -10090,6 +10191,573 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
 })();
 </script>
   <script>
+// Shape Puzzles: the shapes and pictures (drawn from code), the jigsaw cut, the album, and the short problems that build them.
+//   SH.SHAPES   smiling shapes cut into jigsaw pieces: every right answer brings a piece (⭐ Shape Puzzle)
+//   SH.FIGS     pictures made of shapes: every right answer gives a shape to put in its outline (🏠 Build It)
+//   SH.DOTS     dot-to-dot pictures: every right answer draws the line to the next dot (✏️ Dot to Dot)
+//   SH.cut(n, shape)        → jigsaw pieces of a shape cut on a grid of n cells
+//   SH.problem(grade, prev) → a problem with three answers to tap, recorded under a regular topic of the grade
+// The screens are in js/shapes-ui.js. Everything here is plain data and math, so the tests run it in node.
+(function () {
+  const MQ = (globalThis.MQ = globalThis.MQ || {});
+  const U = MQ.U;
+  const SH = {};
+  const f1 = (x) => +(+x).toFixed(2);
+  let uid = 0;
+
+  // ---------------------------------------------------------------- outlines (every shape is also a polygon, for the cut)
+  const polyD = (pts) => 'M' + pts.map((p) => p.join(' ')).join('L') + 'Z';
+  const ring = (cx, cy, R, n) => U.range(0, n - 1).map((i) => { const a = (i * 2 * Math.PI) / n; return [f1(cx + R * Math.cos(a)), f1(cy + R * Math.sin(a))]; });
+  const starPts = (cx, cy, R, r) => U.range(0, 9).map((i) => { const a = -Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? r : R; return [f1(cx + rr * Math.cos(a)), f1(cy + rr * Math.sin(a))]; });
+  // the classic heart curve, scaled into the 120 × 120 picture
+  const heartPts = () => U.range(0, 63).map((i) => {
+    const t = (i / 64) * 2 * Math.PI, x = 16 * Math.sin(t) ** 3, y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+    return [f1(60 + x * 3.25), f1(56 - y * 3.25)];
+  });
+  const R4 = (a, b, c, d) => [[a, b], [c, b], [c, d], [a, d]];
+  SH.polyD = polyD;
+
+  // Ray casting: is the point inside the polygon?
+  SH.inside = (pts, x, y) => {
+    let c = false;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      const [xi, yi] = pts[i], [xj, yj] = pts[j];
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+  };
+
+  SH.SHAPES = [
+    { id: 'circle', name: 'circle', pts: ring(60, 60, 50, 48), d: 'M10 60A50 50 0 1 0 110 60A50 50 0 1 0 10 60Z', c: ['#8fd8ff', '#3f8fe0'], face: [60, 58, 1.2], fact: 'A circle is round. It has no corners and no straight sides.' },
+    { id: 'square', name: 'square', pts: R4(14, 14, 106, 106), c: ['#a8eb96', '#3fae6a'], face: [60, 58, 1.2], fact: 'A square has 4 sides, all the same length, and 4 corners.' },
+    { id: 'triangle', name: 'triangle', pts: [[60, 8], [114, 108], [6, 108]], c: ['#ffd97a', '#ff9f1c'], face: [60, 78, 1], fact: 'A triangle has 3 sides and 3 corners.' },
+    { id: 'hexagon', name: 'hexagon', pts: ring(60, 60, 54, 6), c: ['#ffb8d6', '#e0407a'], face: [60, 58, 1.2], fact: 'A hexagon has 6 sides and 6 corners, like a honeycomb.' },
+    { id: 'star', name: 'star', pts: starPts(60, 64, 56, 23), c: ['#fff07a', '#ffb547'], face: [60, 68, 0.9], fact: 'This star has 5 points.' },
+    { id: 'heart', name: 'heart', pts: heartPts(), c: ['#ffa3bf', '#ff4d6d'], face: [60, 52, 1.1], fact: 'A heart has two bumps on top and a point at the bottom.' },
+  ];
+  for (const s of SH.SHAPES) if (!s.d) s.d = polyD(s.pts);
+
+  // Pictures made of shapes. Parts are drawn in this order, so a door sits on its wall.
+  SH.FIGS = [
+    { id: 'house', name: 'a house', parts: [
+      { kind: 'square', pts: R4(34, 58, 86, 110), col: '#ffd27a' },
+      { kind: 'triangle', pts: [[24, 58], [60, 20], [96, 58]], col: '#ff6b5b' },
+      { kind: 'rectangle', pts: R4(53, 82, 67, 110), col: '#a8673a' },
+      { kind: 'circle', c: [74, 70], r: 6.5, col: '#8fd3ff' },
+      { kind: 'circle', c: [104, 18], r: 9, col: '#ffe14d' },
+    ] },
+    { id: 'rocket', name: 'a rocket', parts: [
+      { kind: 'triangle', pts: [[50, 92], [70, 92], [60, 114]], col: '#ffb547' },
+      { kind: 'rectangle', pts: R4(46, 32, 74, 92), col: '#9fc3ff' },
+      { kind: 'triangle', pts: [[46, 32], [60, 8], [74, 32]], col: '#ff6b5b' },
+      { kind: 'circle', c: [60, 52], r: 7.5, col: '#ffe14d' },
+      { kind: 'triangle', pts: [[46, 66], [28, 96], [46, 90]], col: '#ff6b5b' },
+      { kind: 'triangle', pts: [[74, 66], [92, 96], [74, 90]], col: '#ff6b5b' },
+    ] },
+    { id: 'tree', name: 'a Christmas tree', parts: [
+      { kind: 'rectangle', pts: R4(53, 88, 67, 112), col: '#a8673a' },
+      { kind: 'triangle', pts: [[24, 94], [60, 56], [96, 94]], col: '#2f9a5a' },
+      { kind: 'triangle', pts: [[31, 72], [60, 38], [89, 72]], col: '#45b86a' },
+      { kind: 'triangle', pts: [[38, 50], [60, 22], [82, 50]], col: '#6fd18a' },
+      { kind: 'star', pts: starPts(60, 17, 11, 4.6), col: '#ffd23f' },
+      { kind: 'circle', c: [44, 84], r: 5.5, col: '#ff6b5b' },
+    ] },
+    { id: 'fish', name: 'a fish', parts: [
+      { kind: 'triangle', pts: [[74, 62], [108, 38], [108, 86]], col: '#ff6b5b' },
+      { kind: 'triangle', pts: [[36, 40], [62, 36], [42, 16]], col: '#ff8a3c' },
+      { kind: 'triangle', pts: [[40, 86], [60, 88], [46, 106]], col: '#ff8a3c' },
+      { kind: 'circle', c: [50, 62], r: 28, col: '#ffc24d' },
+      { kind: 'circle', c: [38, 55], r: 6.5, col: '#ffffff' },
+      { kind: 'circle', c: [16, 24], r: 6.5, col: '#bfeaff' },
+    ] },
+    { id: 'boat', name: 'a sailboat', parts: [
+      { kind: 'rectangle', pts: R4(56, 22, 64, 84), col: '#5b3524' },
+      { kind: 'triangle', pts: [[67, 28], [67, 80], [103, 80]], col: '#ff8fb1' },
+      { kind: 'triangle', pts: [[53, 34], [53, 80], [24, 80]], col: '#8fd3ff' },
+      { kind: 'triangle', pts: [[64, 8], [83, 15], [64, 22]], col: '#ff6b5b' },
+      { kind: 'trapezoid', pts: [[16, 84], [104, 84], [90, 106], [30, 106]], col: '#a8673a' },
+      { kind: 'circle', c: [20, 20], r: 9, col: '#ffe14d' },
+    ] },
+  ];
+
+  // Dot-to-dot: the line goes 1 → 2 → … and back to 1.
+  SH.DOTS = [
+    { id: 'star', name: 'star', pts: starPts(60, 64, 52, 21), c: ['#fff07a', '#ffb547'], face: [60, 68, 0.85], fact: 'A star has 5 points. Count them!' },
+    { id: 'heart', name: 'heart', pts: [[60, 34], [80, 14], [104, 24], [106, 50], [60, 104], [14, 50], [16, 24], [40, 14]], c: ['#ffa3bf', '#ff4d6d'], face: [60, 52, 1], fact: 'A heart has two bumps on top and a point at the bottom.' },
+    { id: 'house', name: 'house', pts: [[32, 58], [60, 18], [88, 58], [88, 108], [32, 108]], c: ['#ffd97a', '#ff9f1c'], face: [60, 80, 1], fact: 'A house is a square with a triangle roof!' },
+    { id: 'fish', name: 'fish', pts: [[8, 60], [32, 38], [64, 36], [86, 54], [112, 36], [112, 86], [86, 68], [64, 86], [32, 84]], c: ['#8fd8ff', '#3f8fe0'], face: [42, 58, 0.8], fact: 'A fish swims with its tail. This tail is a triangle!' },
+    { id: 'diamond', name: 'diamond', pts: [[38, 22], [82, 22], [106, 48], [60, 108], [14, 48]], c: ['#d3c2ff', '#7a5cd6'], face: [60, 50, 1], fact: 'This diamond has 5 corners. Count them: 1, 2, 3, 4, 5!' },
+  ];
+
+  // ---------------------------------------------------------------- pictures
+  const face = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><ellipse cx="-10" cy="0" rx="4.2" ry="5.4" fill="#22304f"/><ellipse cx="10" cy="0" rx="4.2" ry="5.4" fill="#22304f"/>` +
+    '<circle cx="-8.6" cy="-1.8" r="1.6" fill="#ffffff"/><circle cx="11.4" cy="-1.8" r="1.6" fill="#ffffff"/><ellipse cx="-17" cy="8" rx="4.5" ry="2.6" fill="#ff5d8f" opacity=".45"/><ellipse cx="17" cy="8" rx="4.5" ry="2.6" fill="#ff5d8f" opacity=".45"/>' +
+    '<path d="M-6 8Q0 14 6 8" fill="none" stroke="#22304f" stroke-width="2.2" stroke-linecap="round"/></g>';
+  const grad = (k, c) => `<linearGradient id="${k}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c[0]}"/><stop offset="1" stop-color="${c[1]}"/></linearGradient>`;
+
+  // The inside of an SVG with viewBox 0 0 120 120. Each call makes its own ids, so a picture can be on screen twice.
+  SH.shapeArt = (sh) => {
+    const k = 'sp' + (++uid).toString(36), [fx, fy, s] = sh.face;
+    let dots = '';
+    for (let y = 8, row = 0; y < 120; y += 16, row++) for (let x = row % 2 ? 16 : 8; x < 120; x += 16) dots += `<circle cx="${x}" cy="${y}" r="3.2"/>`;
+    return `<defs>${grad(k + 'g', sh.c)}<clipPath id="${k}c"><path d="${sh.d}"/></clipPath></defs>` +
+      `<path d="${sh.d}" fill="url(#${k}g)"/><g clip-path="url(#${k}c)"><g fill="#ffffff" opacity=".22">${dots}</g><ellipse cx="38" cy="32" rx="15" ry="7" fill="#ffffff" opacity=".35" transform="rotate(-30 38 32)"/></g>` +
+      face(fx, fy, s) + `<path d="${sh.d}" fill="none" stroke="rgba(34,48,79,.55)" stroke-width="2" stroke-linejoin="round"/>`;
+  };
+  SH.partShape = (pt, attrs) => (pt.c ? `<circle cx="${pt.c[0]}" cy="${pt.c[1]}" r="${pt.r}" ${attrs}/>` : `<polygon points="${pt.pts.map((p) => p.join(',')).join(' ')}" ${attrs}/>`);
+  SH.partBB = (pt, pad = 0) => {
+    if (pt.c) return [pt.c[0] - pt.r - pad, pt.c[1] - pt.r - pad, 2 * (pt.r + pad), 2 * (pt.r + pad)];
+    const xs = pt.pts.map((p) => p[0]), ys = pt.pts.map((p) => p[1]), x = Math.min(...xs), y = Math.min(...ys);
+    return [f1(x - pad), f1(y - pad), f1(Math.max(...xs) - x + 2 * pad), f1(Math.max(...ys) - y + 2 * pad)];
+  };
+  SH.figArt = (fig) => fig.parts.map((p) => SH.partShape(p, `class="pfill" fill="${p.col}" stroke="rgba(34,48,79,.55)" stroke-width=".9" stroke-linejoin="round"`)).join('');
+  SH.dotArt = (d) => {
+    const k = 'sp' + (++uid).toString(36);
+    return `<defs>${grad(k, d.c)}</defs><path d="${polyD(d.pts)}" fill="url(#${k})" stroke="rgba(34,48,79,.6)" stroke-width="2" stroke-linejoin="round"/>` + face(...d.face);
+  };
+
+  // ---------------------------------------------------------------- the jigsaw cut
+  // Every inside edge gets a knob to one side. The knob is symmetric, so the two pieces that share an edge draw
+  // it the same way whichever direction they walk it.
+  SH.GRID = { 4: [2, 2], 6: [3, 2], 9: [3, 3], 12: [4, 3] };
+  function edge(P, Q, n, T) {
+    if (!n) return `L${f1(Q[0])} ${f1(Q[1])}`;
+    const dx = Q[0] - P[0], dy = Q[1] - P[1];
+    const pt = (u, v) => f1(P[0] + dx * u + n[0] * v * T) + ' ' + f1(P[1] + dy * u + n[1] * v * T);
+    return `L${pt(0.37, 0)}C${pt(0.42, 0)} ${pt(0.43, 0.06)} ${pt(0.4, 0.1)}C${pt(0.35, 0.17)} ${pt(0.39, 0.26)} ${pt(0.5, 0.26)}` +
+      `C${pt(0.61, 0.26)} ${pt(0.65, 0.17)} ${pt(0.6, 0.1)}C${pt(0.57, 0.06)} ${pt(0.58, 0)} ${pt(0.63, 0)}L${f1(Q[0])} ${f1(Q[1])}`;
+  }
+  // How much of each grid cell the shape covers (sampled on a 10 × 10 grid inside the cell).
+  SH.coverage = (n, shape) => {
+    const [cols, rows] = SH.GRID[n], W = 120 / cols, H = 120 / rows, out = [];
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      let k = 0;
+      for (let i = 0; i < 10; i++) for (let j = 0; j < 10; j++) if (SH.inside(shape.pts, c * W + ((i + 0.5) * W) / 10, r * H + ((j + 0.5) * H) / 10)) k++;
+      out.push(k / 100);
+    }
+    return out;
+  };
+  SH.MIN_COVER = 0.04; // a cell with less of the shape than this is not a piece (it would be a crumb)
+  // Pieces of the shape. Only cells that hold some of the shape are pieces, and a knob on the shape's border
+  // always belongs to the piece inside, so no piece has a bite missing.
+  SH.cut = (n, shape) => {
+    const [cols, rows] = SH.GRID[n], W = 120 / cols, H = 120 / rows, T = Math.min(W, H);
+    const cov = SH.coverage(n, shape);
+    const inc = (r, c) => r >= 0 && c >= 0 && r < rows && c < cols && cov[r * cols + c] >= SH.MIN_COVER;
+    const dir = (r1, c1, r2, c2) => (inc(r1, c1) && !inc(r2, c2) ? 1 : !inc(r1, c1) && inc(r2, c2) ? -1 : U.pick([1, -1]));
+    const hz = U.range(0, rows - 2).map((r) => U.range(0, cols - 1).map((c) => dir(r, c, r + 1, c))); // +1: the knob points down
+    const vt = U.range(0, rows - 1).map((r) => U.range(0, cols - 2).map((c) => dir(r, c, r, c + 1))); // +1: the knob points right
+    const pieces = [];
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      if (!inc(r, c)) continue;
+      const x0 = c * W, y0 = r * H, x1 = x0 + W, y1 = y0 + H, m = 0.28 * T;
+      const d = `M${f1(x0)} ${f1(y0)}` +
+        edge([x0, y0], [x1, y0], r > 0 ? [0, hz[r - 1][c]] : null, T) +
+        edge([x1, y0], [x1, y1], c < cols - 1 ? [vt[r][c], 0] : null, T) +
+        edge([x1, y1], [x0, y1], r < rows - 1 ? [0, hz[r][c]] : null, T) +
+        edge([x0, y1], [x0, y0], c > 0 ? [vt[r][c - 1], 0] : null, T) + 'Z';
+      const bx = Math.max(0, x0 - m), by = Math.max(0, y0 - m);
+      pieces.push({ i: pieces.length, r, c, x0, y0, W, H, T, cx: x0 + W / 2, cy: y0 + H / 2, d, clip: d, cover: cov[r * cols + c],
+        bb: [f1(bx), f1(by), f1(Math.min(120, x1 + m) - bx), f1(Math.min(120, y1 + m) - by)] });
+    }
+    // A crumb of the shape in a cell that is not a piece goes with the neighbouring piece that has the most of the shape:
+    // that piece's picture is cut by its outline plus the crumb's cell (both drawn clockwise, so they add up).
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      if (inc(r, c) || !cov[r * cols + c]) continue;
+      const host = pieces.filter((p) => Math.abs(p.r - r) + Math.abs(p.c - c) === 1).sort((a, b) => b.cover - a.cover)[0];
+      if (!host) continue;
+      const x0 = c * W, y0 = r * H;
+      host.clip += `M${f1(x0)} ${f1(y0)}H${f1(x0 + W)}V${f1(y0 + H)}H${f1(x0)}Z`;
+      (host.crumbs = host.crumbs || []).push([r, c]);
+    }
+    return { cols, rows, pieces };
+  };
+
+  // ---------------------------------------------------------------- problems
+  // Kindergarten: adding and taking away within 10, counting dots in a ten-frame (K.OA.1–5, K.CC.5).
+  // 2nd grade: facts to 20 that cross ten (2.OA.2). Each is recorded under the topic and level whose problems
+  // look the same, so a miss comes back in the Fix-it Lab as a regular problem of that skill.
+  const P = (t, a, b, answer, topic, d, sign, word) => ({ t, a, b, answer, topic, d, text: `${a} ${sign} ${b} = ?`, eq: `${a} ${sign} ${b}`, say: `${a} ${word} ${b}?` });
+  function make(grade) {
+    const { rnd } = U;
+    if (grade === 'k') {
+      const t = U.pick(['add', 'add', 'sub', 'sub', 'count']);
+      if (t === 'add') { const s = rnd(2, 10), a = rnd(1, s - 1); return P('add', a, s - a, s, 'k_add', 3, '+', 'plus'); }
+      if (t === 'sub') { const a = rnd(3, 10), b = rnd(1, a - 1); return P('sub', a, b, a - b, 'k_sub', 3, '−', 'take away'); }
+      const n = rnd(4, 10);
+      return { t: 'count', n, answer: n, topic: 'k_count', d: 2, text: 'How many dots?', eq: '', say: 'How many dots?' };
+    }
+    if (U.chance(0.5)) { const a = rnd(2, 9), b = rnd(Math.max(2, 11 - a), 9); return P('add', a, b, a + b, 'add20', 2, '+', 'plus'); }
+    const c = rnd(11, 18), b = rnd(c - 9, 9);
+    return P('sub', c, b, c - b, 'add20', 2, '−', 'minus');
+  }
+  SH.problem = (grade, prev) => {
+    let p = make(grade);
+    for (let k = 0; k < 20 && prev && p.text === prev.text && p.answer === prev.answer; k++) p = make(grade);
+    const top = grade === 'k' ? 10 : 20, opts = new Set([p.answer]);
+    while (opts.size < 3) { const v = p.answer + U.pick([-2, -1, 1, 2]); if (v >= 0 && v <= top) opts.add(v); }
+    p.opts = [...opts].sort((x, y) => x - y);
+    return p;
+  };
+  // The dots that show a problem: ten-frames (one for kindergarten, two for facts to 20), filled in reading order.
+  // 'a' first number, 'b' the number added, 'x' taken away (crossed out).
+  SH.cells = (p, grade) => U.range(0, (grade === 'k' ? 10 : 20) - 1).map((i) =>
+    p.t === 'count' ? (i < p.n ? 'a' : '') : p.t === 'add' ? (i < p.a ? 'a' : i < p.a + p.b ? 'b' : '') : i < p.a - p.b ? 'a' : i < p.a ? 'x' : '');
+
+  // ---------------------------------------------------------------- the album
+  // st.puzzles = { n: pieces for a shape puzzle, done: { 'shape:circle': times finished, 'build:house': …, 'dots:star': … } }
+  SH.ITEMS = [...SH.SHAPES.map((s) => 'shape:' + s.id), ...SH.FIGS.map((f) => 'build:' + f.id), ...SH.DOTS.map((d) => 'dots:' + d.id)];
+  SH.ensure = (st) => {
+    st.puzzles = st.puzzles || {};
+    if (!SH.GRID[st.puzzles.n]) st.puzzles.n = 6;
+    st.puzzles.done = st.puzzles.done || {};
+    return st.puzzles;
+  };
+  SH.count = (st) => SH.ITEMS.filter((k) => ((st.puzzles || {}).done || {})[k]).length;
+  SH.total = () => SH.ITEMS.length;
+  SH.REWARD = { right: 1, done: 3, fresh: 5 }; // 💎 for a first-try answer, a finished puzzle, a new one for the album
+  // Mark a puzzle finished; returns true when it is new in the album.
+  SH.finish = (st, key) => {
+    const done = SH.ensure(st).done, fresh = !done[key];
+    done[key] = (done[key] || 0) + 1;
+    return fresh;
+  };
+  // The next dot-to-dot surprise: one not found yet, else any but the one just played.
+  SH.nextDots = (st, last) => {
+    const done = SH.ensure(st).done;
+    const notYet = SH.DOTS.filter((d) => !done['dots:' + d.id] && d.id !== last);
+    return U.pick(notYet.length ? notYet : SH.DOTS.filter((d) => d.id !== last));
+  };
+  SH.find = (key) => {
+    const [mode, id] = String(key).split(':');
+    const list = { shape: SH.SHAPES, build: SH.FIGS, dots: SH.DOTS }[mode];
+    return list ? { mode, item: list.find((x) => x.id === id) || null } : null;
+  };
+  // "It has 4 triangles, 1 rectangle and 1 star."
+  SH.shapeCount = (fig) => {
+    const n = {};
+    for (const p of fig.parts) n[p.kind] = (n[p.kind] || 0) + 1;
+    const list = Object.entries(n).sort((a, b) => b[1] - a[1]).map(([k, c]) => `${c} ${k}${c > 1 ? 's' : ''}`);
+    return 'It has ' + (list.length > 1 ? list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1] : list[0]) + '.';
+  };
+
+  MQ.shapes = SH;
+})();
+</script>
+  <script>
+// Shape Puzzles screens: the album page with the three kinds of puzzles, and the puzzle in play.
+//   ⭐ Shape Puzzle  every right answer flies a jigsaw piece into a smiling shape
+//   🏠 Build It      every right answer gives a shape; the child drags it into its outline
+//   ✏️ Dot to Dot    every right answer draws the line to the next dot; the last one closes the surprise shape
+// Shapes, pictures, the cut and the problems are in js/shapes.js. The app shell (js/app.js) lends render, toast,
+// rewards and answer recording via MQ.app.kit, like Sunny Farm.
+(function () {
+  const MQ = globalThis.MQ, U = MQ.U, SH = MQ.shapes;
+  const esc = U.esc;
+  const K = () => MQ.app.kit;
+  const st = () => K().state();
+  const $ = (sel, el = document) => el.querySelector(sel);
+  const f1 = (x) => +(+x).toFixed(2);
+  const reduced = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const MODES = {
+    shape: { icon: '⭐', title: 'Shape Puzzle', blurb: 'Every right answer brings a puzzle piece. Make a shape!' },
+    build: { icon: '🏠', title: 'Build It', blurb: 'Every right answer gives you a shape. Put it in its place!' },
+    dots: { icon: '✏️', title: 'Dot to Dot', blurb: 'Every right answer draws a line to the next dot. What will it be?' },
+  };
+  let G = null; // the puzzle in play
+  let lastDots = '';
+  let boards = 0; // makes the board's ids unique
+
+  // Timers of a puzzle only fire while that puzzle is still on screen.
+  const later = (fn, ms) => { const g = G; setTimeout(() => { if (g && G === g && g.svg && g.svg.isConnected) fn(); }, reduced() ? Math.min(ms, 60) : ms); };
+  const voiceOn = () => st().settings.voice !== false && MQ.canSpeak();
+  const speak = (t) => { if (voiceOn() && t) MQ.speak(t); };
+  const gemPill = () => `<span class="pill gem" aria-label="crystals">💎 <b id="gems">${st().crystals}</b></span>`;
+  function header(title, back) {
+    return `<header class="bar"><button class="iconbtn" data-act="go" data-arg="${back}" aria-label="Back">←</button><h1>${title}</h1>${gemPill()}</header>`;
+  }
+  const svgBox = (inner, cls = '') => `<svg class="${cls}" viewBox="0 0 120 120" aria-hidden="true" focusable="false">${inner}</svg>`;
+
+  // ---------------------------------------------------------------- the album page
+  function hub() {
+    G = null;
+    const s = st(), pz = SH.ensure(s), done = pz.done;
+    const thumb = (key, art, label) => `<button class="pz-thumb ${done[key] ? 'got' : ''}" data-act="pzPlay" data-arg="${key}" aria-label="${esc(label)}${done[key] ? ' (done)' : ''}">${svgBox(art)}${done[key] ? '<i aria-hidden="true">✓</i>' : ''}</button>`;
+    const card = (mode, body) => `<section class="pzcard pz-${mode}"><div class="pzc-h"><span class="pzc-i" aria-hidden="true">${MODES[mode].icon}</span><div><h2>${MODES[mode].title}</h2><p>${MODES[mode].blurb}</p></div></div>${body}</section>`;
+    const found = SH.DOTS.map((d) => (done['dots:' + d.id] ? `<span class="pz-thumb got" role="img" aria-label="${d.name}">${svgBox(SH.dotArt(d))}<i aria-hidden="true">✓</i></span>` : '<span class="pz-thumb mystery" role="img" aria-label="not found yet">?</span>')).join('');
+    K().render(header('🧩 Shape Puzzles', 'home') + `<main class="pzhub">
+      <p class="pz-intro">Solve short problems to build shapes. Your album: <b>${SH.count(s)} of ${SH.total()}</b></p>
+      ${card('shape', `<div class="pz-thumbs">${SH.SHAPES.map((x) => thumb('shape:' + x.id, SH.shapeArt(x), x.name)).join('')}</div>
+        <div class="pz-size"><span>Pieces</span><div class="chips">${Object.keys(SH.GRID).map((n) => `<button class="chip ${+n === pz.n ? 'sel' : ''}" data-act="pzSize" data-arg="${n}" aria-pressed="${+n === pz.n}">${n}</button>`).join('')}</div></div>`)}
+      ${card('build', `<div class="pz-thumbs">${SH.FIGS.map((f) => thumb('build:' + f.id, SH.figArt(f), f.name)).join('')}</div>`)}
+      ${card('dots', `<div class="pz-thumbs">${found}</div><button class="btn" data-act="pzPlay" data-arg="dots">Start a surprise ✏️</button>`)}
+    </main>`);
+    K().setCur('shapes');
+  }
+
+  // ---------------------------------------------------------------- a puzzle
+  function start(key) {
+    const s = st();
+    let mode = String(key).split(':')[0], item = null;
+    if (mode === 'dots' && !String(key).includes(':')) item = SH.nextDots(s, lastDots);
+    else { const f = SH.find(key); if (!f || !f.item) return hub(); mode = f.mode; item = f.item; }
+    G = { mode, item, key: mode + ':' + item.id, prob: null, tries: 0, given: undefined, busy: false, done: false, earn: -1, miss: 0 };
+    if (mode === 'shape') { G.pz = SH.cut(SH.ensure(s).n, item); G.left = G.pz.pieces.map((p) => p.i); }
+    else if (mode === 'build') G.left = item.parts.map((_, i) => i);
+    else { G.left = item.pts.map((_, i) => i); lastDots = item.id; }
+    G.total = G.left.length;
+    const M = MODES[mode];
+    K().render(header(`${M.icon} ${M.title}`, 'shapes') + `<main class="pzplay pz-${mode}">
+      <div class="pz-board" id="pzboard"></div><section class="pz-panel" id="pzpanel" aria-live="polite"></section></main>`, 'is-pz');
+    drawBoard();
+    next();
+  }
+
+  function drawBoard() {
+    const el = $('#pzboard');
+    let svg;
+    if (G.mode === 'shape') {
+      const k = 'pzb' + ++boards, sh = G.item, ps = G.pz.pieces;
+      const clipped = (s) => `<g clip-path="url(#${k}sh)">${s}</g>`;
+      svg = `<defs><g id="${k}p">${SH.shapeArt(sh)}</g><clipPath id="${k}sh"><path d="${sh.d}"/></clipPath>${ps.map((p) => `<clipPath id="${k}c${p.i}"><path d="${p.clip}"/></clipPath>`).join('')}</defs>` +
+        clipped('<rect width="120" height="120" class="pz-bg"/>' + ps.map((p) => `<path class="pz-slot" d="${p.d}"/>`).join('')) +
+        `<path class="pz-edge" d="${sh.d}"/>` +
+        ps.map((p) => `<g class="pz-pc off" data-i="${p.i}" style="transform-origin:${f1(p.cx)}px ${f1(p.cy)}px">` + clipped(`<g clip-path="url(#${k}c${p.i})"><use href="#${k}p"/></g><path class="pz-seam" d="${p.d}"/>`) + '</g>').join('') +
+        `<use class="pz-full" href="#${k}p"/>`;
+    } else if (G.mode === 'build') {
+      svg = G.item.parts.map((pt, i) => { const [x, y, w, h] = SH.partBB(pt);
+        return `<g class="pz-part" data-i="${i}" style="transform-origin:${f1(x + w / 2)}px ${f1(y + h / 2)}px">${SH.partShape(pt, 'class="pz-pslot"')}</g>`; }).join('');
+    } else {
+      const d = G.item, pts = d.pts, n = pts.length;
+      const cx = U.sum(pts.map((p) => p[0])) / n, cy = U.sum(pts.map((p) => p[1])) / n;
+      const clamp = (v) => Math.max(4, Math.min(116, v));
+      svg = `<g class="pz-dfill">${SH.dotArt(d)}</g><g class="pz-segs"></g>` + pts.map((p, i) => {
+        const dx = p[0] - cx, dy = p[1] - cy, L = Math.hypot(dx, dy) || 1;
+        return `<g class="pz-dot${i === 0 ? ' cur' : ''}" data-i="${i}"><circle cx="${p[0]}" cy="${p[1]}" r="2.6"/><text class="pz-dnum" x="${f1(clamp(p[0] + (dx / L) * 8))}" y="${f1(clamp(p[1] + (dy / L) * 8))}">${i + 1}</text></g>`;
+      }).join('');
+    }
+    el.innerHTML = `<svg class="pz-svg" viewBox="0 0 120 120" role="img" aria-label="${esc(MODES[G.mode].title)}">${svg}</svg>`;
+    G.svg = el.firstElementChild;
+  }
+
+  const placed = () => G.total - G.left.length - (G.earn >= 0 ? 1 : 0);
+  const takeRandom = () => G.left.splice(Math.floor(Math.random() * G.left.length), 1)[0];
+  const sayQ = () => (G.mode === 'build' && G.earn >= 0 ? `You got a ${G.item.parts[G.earn].kind}! Where does it go?` : G.prob ? G.prob.say : '');
+
+  function next() {
+    G.prob = SH.problem(st().grade, G.prob);
+    G.tries = 0;
+    G.given = undefined;
+    panel();
+    if (st().settings.readAloud) later(() => speak(G.prob.say), 250);
+  }
+
+  const progHtml = () => `<div class="pz-prog" role="img" aria-label="${placed()} of ${G.total} done">${U.range(1, G.total).map((i) => `<i class="${i <= placed() ? 'on' : ''}"></i>`).join('')}</div>`;
+  const sayBtn = '<button class="pz-say" data-act="pzSay" aria-label="Read it to me">🔊</button>';
+  const frames = (p) => {
+    const cells = SH.cells(p, st().grade), out = [];
+    for (let i = 0; i < cells.length; i += 10) out.push(`<div class="pz-frame" aria-hidden="true">${cells.slice(i, i + 10).map((c) => `<i class="${c}"></i>`).join('')}</div>`);
+    return `<div class="pz-frames">${out.join('')}</div>`;
+  };
+  function panel() {
+    if (G.mode === 'build' && G.earn >= 0) return earned();
+    const p = G.prob;
+    $('#pzpanel').innerHTML = progHtml() +
+      `<div class="pz-q">${p.t === 'count' ? '<div class="pz-lead">How many dots?</div>' : `<div class="pz-eq">${p.eq} = ?</div>`}${sayBtn}</div>` +
+      (p.t === 'count' ? frames(p) : '') + '<div id="pzhint"></div>' +
+      `<div class="pz-answers">${p.opts.map((v) => `<button class="pz-ans" data-act="pzAns" data-arg="${v}">${v}</button>`).join('')}</div>`;
+  }
+  function hint() {
+    const p = G.prob, h = $('#pzhint');
+    if (!h) return;
+    const text = p.t === 'count' ? 'Touch each dot and count.' : p.t === 'add' ? 'Count all the dots together!' : 'Count the dots that are left!';
+    h.innerHTML = `<div class="pz-hint">${p.t === 'count' ? '' : frames(p)}<p>💡 ${text}</p></div>`;
+  }
+
+  // One problem is recorded once, when it is finally solved: right on the first try, or not (with the first wrong answer).
+  function solved() {
+    const first = G.tries === 0;
+    K().record(G.prob, first, G.given);
+    K().addXp(first ? 10 : 5);
+    if (first) K().addGems(SH.REWARD.right);
+    MQ.store.save();
+  }
+
+  function answer(arg, btn) {
+    if (!G || G.busy || G.done) return;
+    const v = +arg, p = G.prob;
+    if (v !== p.answer) {
+      G.tries++;
+      if (G.given === undefined) G.given = v;
+      btn.disabled = true;
+      btn.classList.add('nope');
+      MQ.sfx('wrong');
+      if (G.tries === 1) { hint(); speak('Oops! Try again.'); }
+      else { const c = $(`.pz-ans[data-arg="${p.answer}"]`); if (c) c.classList.add('show'); speak(`It's ${p.answer}. Tap ${p.answer}.`); }
+      return;
+    }
+    G.busy = true;
+    btn.classList.add('right');
+    document.querySelectorAll('.pz-ans').forEach((b) => { b.disabled = true; });
+    MQ.sfx('correct');
+    solved();
+    if (G.mode === 'build') {
+      G.earn = takeRandom();
+      later(() => { G.busy = false; earned(); }, 650);
+      return;
+    }
+    if (G.mode === 'shape') flyIn(takeRandom(), btn);
+    else drawSeg(G.left.shift());
+    speak(U.pick(['Great job!', 'Yes!', 'You got it!', 'Awesome!', 'Super!']));
+    later(() => { G.busy = false; if (!G.left.length) finish(); else next(); }, 1000);
+  }
+
+  function updateProg() {
+    document.querySelectorAll('.pz-prog i').forEach((el, i) => el.classList.toggle('on', i < placed()));
+  }
+  const toUser = (x, y) => new DOMPoint(x, y).matrixTransform(G.svg.getScreenCTM().inverse());
+  const toScreen = (x, y) => new DOMPoint(x, y).matrixTransform(G.svg.getScreenCTM());
+
+  // ⭐ a piece flies from the answer button into its place
+  function flyIn(i, from) {
+    const p = G.pz.pieces[i], g = $(`.pz-pc[data-i="${i}"]`, G.svg);
+    g.classList.remove('off');
+    const r = from.getBoundingClientRect(), u = toUser(r.left + r.width / 2, r.top + r.height / 2);
+    if (!reduced()) {
+      g.animate([
+        { transform: `translate(${f1(u.x - p.cx)}px, ${f1(u.y - p.cy)}px) scale(.35) rotate(-30deg)`, opacity: 0.3 },
+        { transform: 'translate(0px, 0px) scale(1.1) rotate(4deg)', opacity: 1, offset: 0.78 },
+        { transform: 'none', opacity: 1 },
+      ], { duration: 750, easing: 'cubic-bezier(.25,.8,.35,1)' });
+    }
+    later(() => { MQ.sfx('tap'); updateProg(); }, 620);
+  }
+
+  // ✏️ the line to the next dot
+  function drawSeg(i) {
+    const pts = G.item.pts, n = pts.length, a = pts[i], b = pts[(i + 1) % n];
+    $('.pz-segs', G.svg).insertAdjacentHTML('beforeend', `<line class="pz-seg" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" pathLength="1"/>`);
+    const dots = G.svg.querySelectorAll('.pz-dot');
+    dots[i].classList.remove('cur');
+    dots[i].classList.add('past');
+    if (G.left.length) dots[(i + 1) % n].classList.add('cur');
+    later(() => MQ.sfx('tap'), 450);
+    updateProg();
+  }
+
+  // 🏠 the shape just won waits in the tray: drag it into its outline (a tap puts it there)
+  function earned() {
+    const pt = G.item.parts[G.earn], bb = SH.partBB(pt, 2), big = Math.max(bb[2], bb[3]);
+    $('#pzpanel').innerHTML = progHtml() + `<div class="pz-q"><div class="pz-lead">You got a ${pt.kind}!</div>${sayBtn}</div>` +
+      '<div class="pz-tray" id="pztray"></div><p class="pz-tip">Drag it to its place in the picture, or just tap it.</p>';
+    const sc = Math.max(64 / big, Math.min(G.svg.getBoundingClientRect().width / 120, 150 / big));
+    $('#pztray').innerHTML = `<div class="pz-tp" tabindex="0" role="button" aria-label="${pt.kind}: put it in its place" style="width:${f1(bb[2] * sc)}px;height:${f1(bb[3] * sc)}px">` +
+      `<svg viewBox="${bb.join(' ')}" width="100%" height="100%" aria-hidden="true">${SH.partShape(pt, `fill="${pt.col}" stroke="rgba(34,48,79,.55)" stroke-width="${f1(2 / sc)}" stroke-linejoin="round"`)}</svg></div>`;
+    G.miss = 0;
+    bindDrag($('#pztray .pz-tp'), partBox, (el, dx, dy, hit) => (hit ? placePart(el, dx, dy) : missPart(el)));
+    speak(`Yes! You got a ${pt.kind}! Where does it go?`);
+  }
+  function partBox() {
+    const [x, y, w, h] = SH.partBB(G.item.parts[G.earn]), a = toScreen(x, y), b = toScreen(x + w, y + h);
+    return { l: a.x, t: a.y, r: b.x, b: b.y };
+  }
+  const near = (x, y, h, m) => x > h.l - m && x < h.r + m && y > h.t - m && y < h.b + m;
+  // Drag with a finger or the mouse. onDrop(el, dx, dy, hit): hit is a tap, or a drop near the target box.
+  function bindDrag(el, box, onDrop) {
+    el.addEventListener('pointerdown', (e) => {
+      if (!G || G.busy || G.done || e.button > 0) return;
+      e.preventDefault();
+      try { el.setPointerCapture(e.pointerId); } catch (err) { /* fine without */ }
+      const sx = e.clientX, sy = e.clientY, target = box();
+      let dx = 0, dy = 0, moved = false;
+      el.classList.add('drag');
+      const mv = (ev) => {
+        dx = ev.clientX - sx; dy = ev.clientY - sy;
+        if (Math.hypot(dx, dy) > 8) moved = true;
+        el.style.transform = `translate(${dx}px, ${dy}px) scale(1.08)`;
+      };
+      const up = (ev) => {
+        el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
+        el.classList.remove('drag');
+        if (ev.type === 'pointercancel') { el.style.transform = ''; return; }
+        onDrop(el, dx, dy, !moved || near(ev.clientX, ev.clientY, target, 30));
+      };
+      el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+    });
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onDrop(el, 0, 0, true); } });
+  }
+  function placePart(el, dx, dy) {
+    if (G.busy || G.done) return;
+    G.busy = true;
+    const i = G.earn, pt = G.item.parts[i], [bx, by, bw, bh] = SH.partBB(pt, 2);
+    // fly onto the outline at the outline's size
+    const r = el.getBoundingClientRect(), a = toScreen(bx, by), b = toScreen(bx + bw, by + bh);
+    const nx = f1(dx + (a.x + b.x) / 2 - (r.left + r.width / 2)), ny = f1(dy + (a.y + b.y) / 2 - (r.top + r.height / 2));
+    el.style.transition = 'transform .32s cubic-bezier(.3,.9,.4,1)';
+    el.style.transform = `translate(${nx}px, ${ny}px) scale(${f1((b.x - a.x) / el.offsetWidth)})`;
+    later(() => {
+      el.style.visibility = 'hidden';
+      const g = $(`.pz-part[data-i="${i}"]`, G.svg);
+      g.classList.remove('hint');
+      g.innerHTML = SH.partShape(pt, `class="pz-pfill" fill="${pt.col}"`);
+      if (!reduced()) g.animate([{ transform: 'scale(1.25)' }, { transform: 'none' }], { duration: 300, easing: 'ease-out' });
+      MQ.sfx('tap');
+      G.earn = -1;
+      updateProg();
+      speak(U.pick(['It fits!', 'Great job!', 'Perfect!']));
+      later(() => { G.busy = false; if (!G.left.length) finish(); else next(); }, 900);
+    }, 340);
+  }
+  function missPart(el) {
+    MQ.sfx('wrong');
+    el.style.transition = 'transform .45s cubic-bezier(.3,1.4,.5,1)';
+    el.style.transform = '';
+    if (++G.miss >= 2) {
+      const g = $(`.pz-part[data-i="${G.earn}"]`, G.svg);
+      if (g) g.classList.add('hint');
+      speak('It goes here. Look for the glowing outline!');
+    } else speak(`Not there. Find the ${G.item.parts[G.earn].kind} outline!`);
+  }
+
+  // ---------------------------------------------------------------- finished
+  function finish() {
+    G.done = true;
+    G.svg.classList.add('done');
+    const s = st(), fresh = SH.finish(s, G.key), gems = SH.REWARD.done + (fresh ? SH.REWARD.fresh : 0);
+    K().addGems(gems);
+    MQ.store.save();
+    let art, title, fact;
+    if (G.mode === 'shape') { art = SH.shapeArt(G.item); title = `You made a ${G.item.name}!`; fact = G.item.fact; }
+    else if (G.mode === 'build') { art = SH.figArt(G.item); title = `You built ${G.item.name}!`; fact = SH.shapeCount(G.item); }
+    else { art = SH.dotArt(G.item); title = `It's a ${G.item.name}!`; fact = G.item.fact; }
+    $('#pzpanel').innerHTML = `<div class="pz-win">${svgBox(art, 'pz-winart')}<b>${esc(title)}</b><p>${esc(fact)}</p>
+      <p class="pz-gems">+${gems} 💎${fresh ? ' · new in your album!' : ''}</p>
+      <div class="row"><button class="btn ghost" data-act="go" data-arg="shapes">All puzzles</button><button class="btn" data-act="pzNext">Next puzzle →</button></div></div>`;
+    MQ.sfx('reward');
+    MQ.confetti(120);
+    later(() => speak(`Hooray! ${title} ${fact}`), 300);
+    setTimeout(() => { if (st() === s) K().checkBadges(); }, 1600); // even if the child has already left the puzzle
+  }
+  function nextKey() {
+    const list = G.mode === 'shape' ? SH.SHAPES : G.mode === 'build' ? SH.FIGS : null;
+    if (!list) return 'dots';
+    const k = list.findIndex((x) => x.id === G.item.id);
+    return G.mode + ':' + list[(k + 1) % list.length].id;
+  }
+
+  const A = {
+    pzPlay: (a) => K().go('shapes:' + a), // through go(), so the back gesture returns to the album page
+    pzNext: () => K().go(G ? 'shapes:' + nextKey() : 'shapes'),
+    pzSize: (a) => { if (SH.GRID[a]) { SH.ensure(st()).n = +a; MQ.store.save(); } hub(); },
+    pzAns: (a, el) => answer(a, el),
+    pzSay: () => { if (G) MQ.speak(sayQ()); },
+  };
+  // show(): the album page; show('shape:star') starts that puzzle (used by links and the browser test)
+  const show = (arg) => (arg ? start(arg) : hub());
+  MQ.shapesUI = { show, actions: A, playing: () => G };
+})();
+</script>
+  <script>
 // UI: screens, game loop, rewards. Screens render into #app; clicks are routed through data-act attributes.
 (function () {
   const MQ = globalThis.MQ, U = MQ.U, S = MQ.store;
@@ -10408,7 +11076,7 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
-    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg) }[scr];
+    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg), shapes: () => MQ.shapesUI.show() }[scr];
     if (redraw) redraw();
   }
   function newExplorer() {
@@ -10500,6 +11168,7 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
         <button class="tile t-fixit ${toFix ? 'hot' : ''}" data-act="go" data-arg="fixit"><span class="ti">🛠️</span><b>Fix-it Lab</b><small>${toFix ? `${toFix} to fix today` : inRepair ? 'All done today ✓' : 'No mistakes to fix'}</small></button>
         <button class="tile t-journal" data-act="go" data-arg="journal"><span class="ti">📔</span><b>Field Journal</b><small>${have} / ${total} creatures</small></button>
         ${farmTile()}
+        ${shapesTile()}
         ${hatchTile()}
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
         <button class="tile t-progress" data-act="go" data-arg="progress"><span class="ti">📈</span><b>My Progress</b><small>${weekAcc}</small></button>
@@ -10523,6 +11192,12 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     const trader = F.merchantHas(fm), unlocked = F.depositReady(fm);
     const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
     return `<button class="tile t-farm wide ${waiting || made || bankDay || build || trader || unlocked || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
+  }
+
+  // Shape Puzzles (js/shapes-ui.js): how full the album is.
+  function shapesTile() {
+    const n = MQ.shapes.count(st);
+    return `<button class="tile t-shapes wide" data-act="go" data-arg="shapes"><span class="ti">🧩</span><span><b>Shape Puzzles</b><small>${n ? `Album: ${n} of ${MQ.shapes.total()} · ` : 'New! '}Make shapes, build pictures, connect the dots</small></span></button>`;
   }
 
   // For grown-ups: how Sunny Farm is going (its money problems also count in the daily totals above).
@@ -10685,14 +11360,19 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
   }
   // Every answer of a game goes through here: statistics, mistakes to practice, tips, rewards for fixing.
   function rec(p, first, given) {
-    const r = S.record(p, first, given);
+    const r = record(p, first, given);
     if (!first) {
       const n = (sess.missBy[p.topic] = (sess.missBy[p.topic] || 0) + 1);
       if (n >= 2 && !sess.tipNext.includes(p.topic)) sess.tipNext.push(p.topic);
     }
+    if (r === 'fixed' && !S.preview) sess.fixedNow++;
+    return r;
+  }
+  // Statistics, mistakes to practice and the rewards that go with them, for games and for Shape Puzzles.
+  function record(p, first, given) {
+    const r = S.record(p, first, given);
     if (r === 'fixed' && !S.preview) {
       addGems(FIX_REWARD);
-      sess.fixedNow++;
       later(() => toast(`🛠️ Mistake fixed for good! <b>+${FIX_REWARD} 💎</b>`, 'gold'), 700);
     }
     const g = st.goal || {}, n = (st.days[U.dateKey()] || {}).a || 0;
@@ -12155,7 +12835,7 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     closeModal();
     if (where !== 'hatch') ui.hatch = null;
     if (where !== 'parent') { ui.resetArmed = false; ui.delArmed = null; ui.discArmed = false; }
-    const [scr, arg] = where.split(':');
+    const k = where.indexOf(':'), scr = k < 0 ? where : where.slice(0, k), arg = k < 0 ? undefined : where.slice(k + 1); // 'shapes:shape:star' → shapes, shape:star
     if (scr !== 'play') sess = null;
     if (scr === 'who') return who();
     if (scr === 'new') { ui.newKid = null; return newExplorer(); }
@@ -12164,6 +12844,7 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     if (scr === 'parent' && S.preview) { endPreview(); toast('Preview ended'); }
     endContest();
     if (scr === 'farm') return MQ.farmUI.show(arg);
+    if (scr === 'shapes') return MQ.shapesUI.show(arg);
     ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, nntypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
 
@@ -12389,7 +13070,8 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
   };
   function act(name, arg, el) {
     if (ACTIONS[name]) return ACTIONS[name](arg, el);
-    if (st && MQ.farmUI && MQ.farmUI.actions[name]) MQ.farmUI.actions[name](arg, el); // Sunny Farm (js/farm-ui.js)
+    if (st && MQ.farmUI && MQ.farmUI.actions[name]) return MQ.farmUI.actions[name](arg, el); // Sunny Farm (js/farm-ui.js)
+    if (st && MQ.shapesUI && MQ.shapesUI.actions[name]) MQ.shapesUI.actions[name](arg, el); // Shape Puzzles (js/shapes-ui.js)
   }
 
   function init() {
@@ -12441,8 +13123,8 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     startScreen();
   }
 
-  // kit: what the Sunny Farm screens (js/farm-ui.js) borrow from the app
-  const kit = { render, toast, modal, closeModal, go, checkBadges, state: () => st, setCur: (c) => { cur = c; } };
+  // kit: what the Sunny Farm and Shape Puzzles screens (js/farm-ui.js, js/shapes-ui.js) borrow from the app
+  const kit = { render, toast, modal, closeModal, go, checkBadges, addGems, addXp, record, state: () => st, setCur: (c) => { cur = c; } };
   MQ.app = { init, go, kit, session: () => sess, contest: () => ct }; // session() and contest() are used by the browser tests
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
