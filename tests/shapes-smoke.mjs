@@ -1,4 +1,4 @@
-// Browser test for Shape Puzzles: node tests/shapes-smoke.mjs [screenshotDir]
+// Browser test for Puzzle Time: node tests/shapes-smoke.mjs [screenshotDir]
 // A kindergartner (iPad) and a 2nd grader (phone) each finish a shape puzzle (with two misses first), build a picture
 // (dragging shapes, one into the wrong place) and a dot-to-dot. Fails on any console error, a stuck screen,
 // or crystals, album and daily totals that don't add up.
@@ -38,7 +38,7 @@ async function play(grade, tag, viewport) {
   await page.waitForSelector('.t-shapes');
   await page.click('.t-shapes');
   await page.waitForSelector('.pzhub');
-  check((await page.$$('.pzhub .pz-thumb')).length === 16, tag + ': 6 shapes + 5 pictures + 5 mystery dot-to-dots on the album page');
+  check((await page.$$('.pzhub .pz-thumb')).length === 48, tag + ': 16 mystery pictures, 12 shapes, 10 pictures of shapes and 10 mystery dot-to-dots on the album page');
   await snap('01-album');
 
   // ⭐ a star in 6 pieces: two misses on the first problem (hint, then the answer glows), then all right
@@ -129,16 +129,93 @@ async function play(grade, tag, viewport) {
   await page.waitForSelector('.pz-ans');
   check(await page.evaluate((f) => MQ.shapesUI.playing().item.id !== f, first), tag + ': the next surprise is a different picture');
 
+  // 🧲 Snap!: a picture of a creature, every answer right
+  const playAll = async () => {
+    for (let k = 0; k < 20; k++) {
+      await idle();
+      const x = await G();
+      if (x.done) return;
+      await page.click(`.pz-ans[data-arg="${x.answer}"]`);
+    }
+  };
+  await page.click('[data-act=go][data-arg=shapes]');
+  await page.click('[data-act=pzPlay][data-arg=snap]');
+  await page.waitForSelector('.pz-ans');
+  const snapPic = await page.evaluate(() => MQ.shapesUI.playing().item.id);
+  await playAll();
+  await page.waitForSelector('.pz-win');
+  check(/You made the /.test(await page.textContent('.pz-win b')), tag + ': Snap! names the creature');
+  await snap('10-snap-done');
+
+  // ✋ Find the piece: one wrong piece dragged into the hole (it bounces back, faded), then the right ones tapped
+  await page.click('[data-act=pzNext]');
+  await page.waitForSelector('.pz-ans');
+  check(await page.evaluate((s) => MQ.shapesUI.playing().item.id !== s, snapPic), tag + ': the next picture is a new one');
+  await page.click('[data-act=go][data-arg=shapes]');
+  await page.click('[data-act=pzPlay][data-arg=find]');
+  await page.waitForSelector('.pz-tp');
+  await snap('11-find');
+  g = await G();
+  const wrongPiece = await (await page.$(`.pz-tp:not([data-v="${g.answer}"])`)).boundingBox();
+  const holeBox = await (await page.$('.pz-holet')).boundingBox();
+  await page.mouse.move(wrongPiece.x + wrongPiece.width / 2, wrongPiece.y + wrongPiece.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(holeBox.x + holeBox.width / 2, holeBox.y + holeBox.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await page.waitForSelector('.pz-tp.out');
+  await page.waitForSelector('.pz-hint');
+  check((await G()).left === g.left, tag + ': a wrong piece does not go in');
+  for (let k = 0; k < 20; k++) {
+    await idle();
+    const x = await G();
+    if (x.done) break;
+    await page.click(`.pz-tp[data-v="${x.answer}"]`);
+    await page.waitForFunction((n) => MQ.shapesUI.playing().left.length < n || MQ.shapesUI.playing().done, x.left);
+  }
+  await page.waitForSelector('.pz-win');
+  await snap('12-find-done');
+
+  // ☁️ Who's hiding?: one cloud, a wrong guess (locked until the next cloud), another cloud, the right guess (+ a cloud bonus)
+  await page.click('[data-act=go][data-arg=shapes]');
+  await page.click('[data-act=pzPlay][data-arg=hide]');
+  await page.waitForSelector('.pz-ans');
+  check(await page.isDisabled('.pz-guess'), tag + ': no guessing before a cloud is gone');
+  g = await G();
+  await page.click(`.pz-ans[data-arg="${g.answer}"]`);
+  await idle();
+  await page.click('.pz-guess');
+  const who = await page.evaluate(() => MQ.shapesUI.playing().item.id);
+  await page.click(`.pz-choice:not([data-arg="${who}"])`);
+  await page.waitForSelector('.pz-ans');
+  check(await page.isDisabled('.pz-guess'), tag + ': one guess per cloud');
+  g = await G();
+  await page.click(`.pz-ans[data-arg="${g.answer}"]`);
+  await idle();
+  await snap('13-hide');
+  const before = (await state()).gems, cloudsLeft = (await G()).left;
+  await page.click('.pz-guess');
+  await page.click(`.pz-choice[data-arg="${who}"]`);
+  await page.waitForSelector('.pz-win');
+  const after = (await state()).gems;
+  check(after - before === cloudsLeft + 3 + 5, `${tag}: early guess ${after - before} 💎, expected ${cloudsLeft} for the clouds + 8`);
+  check(await page.evaluate(() => !document.querySelector('.pz-cloud')), tag + ': all the clouds blow away');
+  await snap('14-hide-done');
+
   // the album page and the home tile count what was made; the badge for the first puzzle
   await page.click('[data-act=go][data-arg=shapes]');
   await page.waitForSelector('.pzhub');
   s1 = await state();
-  check(s1.album === 3, `${tag}: album ${s1.album} of 16`);
-  check((await page.$$('.pzhub .pz-thumb.got')).length === 3, tag + ': three ✓ on the album page');
+  check(s1.album === 6, `${tag}: album ${s1.album} of 48`);
+  const gotN = (await page.$$('.pzhub .pz-thumb.got')).length; check(gotN === 6, tag + ': six ✓ on the album page, not ' + gotN + ' ' + JSON.stringify(await page.evaluate(() => MQ.state.puzzles.done)));
+  await page.click(`[data-act=pzPlay][data-arg="snap:${snapPic}"]`);
+  await page.waitForSelector('.pz-ans');
+  check(await page.evaluate((s) => MQ.shapesUI.playing().item.id === s && MQ.shapesUI.playing().mode === 'snap', snapPic), tag + ': a picture in the album plays again');
+  await page.click('[data-act=go][data-arg=shapes]');
+  await page.waitForSelector('.pzhub');
   check(s1.badges.includes('puzzle1'), tag + ': Shape Maker badge');
   await snap('09-album-after');
   await page.click('[data-act=go][data-arg=home]');
-  check(/Album: 3 of 16/.test(await page.textContent('.t-shapes')), tag + ': home tile shows the album');
+  check(/Album: 6 of 48/.test(await page.textContent('.t-shapes')), tag + ': home tile shows the album');
   // back gesture from a puzzle goes to the album page
   await page.click('.t-shapes');
   await page.click('[data-act=pzPlay][data-arg="shape:circle"]');
@@ -152,4 +229,4 @@ await play('k', 'k', { width: 1024, height: 768 });
 await play('g2', 'g2', { width: 390, height: 844 });
 await browser.close();
 if (errors.length) { console.error('FAILED:\n' + errors.join('\n')); process.exit(1); }
-console.log('OK — Shape Puzzles played by a kindergartner and a 2nd grader');
+console.log('OK — Puzzle Time played by a kindergartner and a 2nd grader');

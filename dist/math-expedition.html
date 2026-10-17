@@ -1489,7 +1489,7 @@ button.du-st:active { transform: translateY(2px); }
 @media (prefers-reduced-motion: reduce) { .du-vs .du-card.flip, .du-vs .du-card.won, .du-rival { animation: none; } }
 @media (min-width: 700px) { .du-arena { max-width: 640px; margin-left: auto; margin-right: auto; } .du-hand .du-pic, .du-vs .du-pic { width: 60px; height: 60px; font-size: 2.8rem; } }
 
-/* ---------- Shape Puzzles (js/shapes-ui.js): an album page, then a board and a math card side by side on an iPad ---------- */
+/* ---------- Puzzle Time (js/shapes-ui.js): an album page, then a board and a math card side by side on an iPad ---------- */
 .tile.t-shapes { background: #f6efff; box-shadow: inset 0 0 0 3px #9b7be0, 0 4px 0 #7a5cd6; }
 .pzhub { display: flex; flex-direction: column; gap: 14px; }
 .pz-intro { margin: 0; color: var(--ink-soft); }
@@ -1550,6 +1550,33 @@ button.du-st:active { transform: translateY(2px); }
 .pz-win p { margin: 0; font-weight: 700; color: var(--ink-soft); }
 .pz-win .pz-gems { color: var(--ink); font-weight: 800; }
 .pz-win .row { margin-top: 6px; }
+/* the album page: picture puzzles */
+.pz-top { display: flex; flex-direction: column; gap: 10px; }
+.pz-group { font-size: 1.3rem; margin-top: 6px; }
+.pz-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.pz-mode .pzc-h { flex-direction: column; align-items: flex-start; gap: 4px; }
+.pz-mode .btn { align-self: flex-start; margin-top: auto; }
+.pz-sub { font-size: 1.05rem; }
+.pz-tip.left { text-align: left; }
+.pz-guess { border: 0; border-radius: 16px; padding: 12px; background: #7a5cd6; color: #ffffff; font: 600 1.1rem var(--display); box-shadow: 0 4px 0 #5a3fb3; }
+.pz-guess:disabled { background: #d9d3ee; box-shadow: 0 4px 0 #c4bbe2; cursor: default; }
+.pz-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.pz-choice { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px 10px; border: 3px solid var(--line); border-radius: 18px; background: #f6f8fd; font: 600 0.95rem/1.15 var(--display); }
+.pz-choice svg { width: 100%; max-width: 96px; height: auto; aspect-ratio: 1; }
+.pz-choice.right { background: var(--good-soft); border-color: #8fd3ac; }
+.pz-choice.nope { background: var(--bad-soft); border-color: #f3b4a8; animation: shake 0.4s; }
+.pz-back { align-self: center; }
+/* the board: who's hiding */
+.pz-cloud { transform-box: view-box; }
+.pz-qm { font-family: var(--display); font-weight: 600; fill: #b7c3e6; text-anchor: middle; dominant-baseline: central; }
+/* the board: find the piece */
+.pz-holet { fill: #fff8e6; stroke: var(--sun); stroke-width: 1.3; stroke-dasharray: 3 2; animation: pzmarch 1s linear infinite; }
+.pz-hole.bad .pz-holet { fill: var(--bad-soft); stroke: var(--bad); }
+.pz-heq, .pz-tnum { font-family: var(--display); font-weight: 600; fill: var(--ink); text-anchor: middle; dominant-baseline: central; }
+.pz-tray { gap: 14px; flex-wrap: wrap; }
+.pz-tp.out { opacity: 0.35; pointer-events: none; }
+.pz-tp.show { animation: pzglowp 1s infinite; }
+@keyframes pzglowp { 50% { filter: drop-shadow(0 0 10px #ffb547); } }
 /* the board: shape puzzle */
 .pz-bg { fill: #f3f6fd; }
 .pz-slot { fill: none; stroke: #c3cde6; stroke-width: 0.55; stroke-dasharray: 2 1.5; }
@@ -1559,6 +1586,7 @@ button.du-st:active { transform: translateY(2px); }
 .pz-seam { fill: none; stroke: #ffffff; stroke-width: 0.7; stroke-opacity: 0.9; transition: stroke-opacity 0.9s; }
 .pz-full { opacity: 0; transition: opacity 0.9s; pointer-events: none; }
 .done .pz-seam { stroke-opacity: 0; }
+.done .pz-slot, .done .pz-edge { opacity: 0; transition: opacity 0.9s; }
 .done .pz-full { opacity: 1; }
 .pz-pc { transition: opacity 0.9s; }
 .done .pz-pc { opacity: 0; } /* the whole picture fades in over the pieces */
@@ -1580,7 +1608,7 @@ button.du-st:active { transform: translateY(2px); }
 @keyframes pzdraw { to { stroke-dashoffset: 0; } }
 @keyframes pzpulse { 50% { transform: scale(1.6); } }
 @media (prefers-reduced-motion: reduce) {
-  .pz-dot.cur circle, .pz-part.hint .pz-pslot, .pz-ans.show, .pz-winart { animation: none; }
+  .pz-dot.cur circle, .pz-part.hint .pz-pslot, .pz-ans.show, .pz-winart, .pz-holet, .pz-tp.show { animation: none; }
   .pz-seg { animation-duration: 0.01ms; }
 }
 </style>
@@ -5449,8 +5477,8 @@ button.du-st:active { transform: translateY(2px); }
     { id: 'charm', icon: '🍀', name: 'Smart Shopper', desc: 'Buy a week charm from the traveling merchant that pays for itself', test: (s) => !!s.farm && (s.farm.stats.charmWins || 0) >= 1 },
     { id: 'deposit', icon: '🔐', name: 'Patient Saver', desc: 'Collect a locked deposit from the farm bank', test: (s) => !!s.farm && (s.farm.stats.depBonus || 0) > 0 },
     { id: 'castle', icon: '🏰', name: 'Castle Builder', desc: 'Build the Castle on the Hill', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 4 },
-    { id: 'puzzle1', icon: '🔷', name: 'Shape Maker', desc: 'Finish your first Shape Puzzle', test: (s) => !!MQ.shapes && MQ.shapes.count(s) >= 1 },
-    { id: 'puzzleall', icon: '🖼️', name: 'Shape Master', desc: 'Finish every shape, picture and dot-to-dot in Shape Puzzles', test: (s) => !!MQ.shapes && MQ.shapes.count(s) >= MQ.shapes.total() },
+    { id: 'puzzle1', icon: '🔷', name: 'Shape Maker', desc: 'Finish your first puzzle in Puzzle Time', test: (s) => !!MQ.shapes && MQ.shapes.count(s) >= 1 },
+    { id: 'puzzleall', icon: '🖼️', name: 'Shape Master', desc: 'Finish every puzzle in Puzzle Time', test: (s) => !!MQ.shapes && MQ.shapes.count(s) >= MQ.shapes.total() },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];
 
@@ -8041,7 +8069,7 @@ button.du-st:active { transform: translateY(2px); }
     tests: { checks: [], contests: [] }, // Placement Check and mock contest results (newest last)
     seen: {}, // test-prep topic: recently shown question keys (oldest first), so retakes bring new questions
     nnatDays: {}, // 'YYYY-MM-DD': NNAT-3 practice puzzles answered that day (the GATE plan counts practice days)
-    puzzles: { n: 6, done: {} }, // Shape Puzzles: pieces in a shape puzzle, and how many times each puzzle was finished (js/shapes.js)
+    puzzles: { n: 6, done: {} }, // Puzzle Time: pieces in a jigsaw puzzle, and how many times each puzzle was finished (js/shapes.js)
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
     settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true },
   });
@@ -8284,7 +8312,7 @@ button.du-st:active { transform: translateY(2px); }
     out.tips = Object.assign({}, old.tips || {}, nw.tips || {});
     out.nnatDays = Object.assign({}, old.nnatDays || {});
     for (const [d, n] of Object.entries(nw.nnatDays || {})) out.nnatDays[d] = max(n, (old.nnatDays || {})[d]);
-    // Shape Puzzles: every puzzle finished on either device stays in the album
+    // Puzzle Time: every puzzle finished on either device stays in the album
     out.puzzles = Object.assign({}, nw.puzzles || {}, { done: Object.assign({}, (old.puzzles || {}).done) });
     for (const [k, n] of Object.entries((nw.puzzles || {}).done || {})) out.puzzles.done[k] = max(n, out.puzzles.done[k]);
     // Sunny Farm: the copy changed last wins as a whole (money is spent, animals move), by the farm's own clock,
@@ -10819,7 +10847,8 @@ button.du-st:active { transform: translateY(2px); }
 })();
 </script>
   <script>
-// Shape Puzzles: the shapes and pictures (drawn from code), the jigsaw cut, the album, and the short problems that build them.
+// Puzzle Time: the shapes and pictures (drawn from code), the jigsaw cut, the album, and the short problems that build them.
+//   SH.PICS     creatures from the Hatchery in little scenes, for the picture puzzles (🧲 Snap!, ✋ Find the piece, ☁️ Who's hiding?)
 //   SH.SHAPES   smiling shapes cut into jigsaw pieces: every right answer brings a piece (⭐ Shape Puzzle)
 //   SH.FIGS     pictures made of shapes: every right answer gives a shape to put in its outline (🏠 Build It)
 //   SH.DOTS     dot-to-dot pictures: every right answer draws the line to the next dot (✏️ Dot to Dot)
@@ -10843,6 +10872,23 @@ button.du-st:active { transform: translateY(2px); }
     return [f1(60 + x * 3.25), f1(56 - y * 3.25)];
   });
   const R4 = (a, b, c, d) => [[a, b], [c, b], [c, d], [a, d]];
+  const turn = (pts, a) => pts.map(([x, y]) => [f1(60 + (x - 60) * Math.cos(a) - (y - 60) * Math.sin(a)), f1(60 + (x - 60) * Math.sin(a) + (y - 60) * Math.cos(a))]);
+  const oval = (cx, cy, rx, ry, n = 48) => U.range(0, n - 1).map((i) => { const a = (i * 2 * Math.PI) / n; return [f1(cx + rx * Math.cos(a)), f1(cy + ry * Math.sin(a))]; });
+  // A crescent moon: the big circle without the part the smaller circle covers.
+  const crescent = () => {
+    const [ax, ay, ar] = [60, 60, 50], [bx, by, br] = [80, 46, 40], N = 120;
+    const inA = (x, y) => Math.hypot(x - ax, y - ay) < ar, inB = (x, y) => Math.hypot(x - bx, y - by) < br;
+    const ringA = U.range(0, N - 1).map((i) => { const a = (i * 2 * Math.PI) / N; return [ax + ar * Math.cos(a), ay + ar * Math.sin(a)]; });
+    const ringB = U.range(0, N - 1).map((i) => { const a = (i * 2 * Math.PI) / N; return [bx + br * Math.cos(a), by + br * Math.sin(a)]; });
+    const run = (ring, keep) => { // the points kept, in one unbroken run around the ring
+      const s = ring.findIndex((p, i) => keep(p) && !keep(ring[(i + N - 1) % N]));
+      const out = [];
+      for (let k = 0; k < N; k++) { const p = ring[(s + k) % N]; if (!keep(p)) break; out.push(p); }
+      return out;
+    };
+    const outer = run(ringA, ([x, y]) => !inB(x, y)), inner = run(ringB, ([x, y]) => inA(x, y)).reverse();
+    return [...outer, ...inner].map(([x, y]) => [f1(x), f1(y)]);
+  };
   SH.polyD = polyD;
 
   // Ray casting: is the point inside the polygon?
@@ -10862,6 +10908,12 @@ button.du-st:active { transform: translateY(2px); }
     { id: 'hexagon', name: 'hexagon', pts: ring(60, 60, 54, 6), c: ['#ffb8d6', '#e0407a'], face: [60, 58, 1.2], fact: 'A hexagon has 6 sides and 6 corners, like a honeycomb.' },
     { id: 'star', name: 'star', pts: starPts(60, 64, 56, 23), c: ['#fff07a', '#ffb547'], face: [60, 68, 0.9], fact: 'This star has 5 points.' },
     { id: 'heart', name: 'heart', pts: heartPts(), c: ['#ffa3bf', '#ff4d6d'], face: [60, 52, 1.1], fact: 'A heart has two bumps on top and a point at the bottom.' },
+    { id: 'rectangle', name: 'rectangle', pts: R4(6, 28, 114, 92), c: ['#ffc59a', '#ff7a3c'], face: [60, 58, 1.2], fact: 'A rectangle has 4 sides and 4 square corners. Two sides are long and two are short.' },
+    { id: 'oval', name: 'oval', pts: oval(60, 60, 54, 38), d: 'M6 60A54 38 0 1 0 114 60A54 38 0 1 0 6 60Z', c: ['#c9f2a8', '#6cc94a'], face: [60, 58, 1.1], fact: 'An oval is like a stretched circle, the shape of an egg. It has no corners.' },
+    { id: 'pentagon', name: 'pentagon', pts: turn(ring(60, 60, 56, 5), -Math.PI / 2).map(([x, y]) => [x, f1(y + 4)]), c: ['#a8e6ff', '#2bb3a3'], face: [60, 66, 1.1], fact: 'A pentagon has 5 sides and 5 corners.' },
+    { id: 'octagon', name: 'octagon', pts: turn(ring(60, 60, 56, 8), Math.PI / 8), c: ['#ff9a8a', '#d9503c'], face: [60, 58, 1.2], fact: 'An octagon has 8 sides and 8 corners, like a stop sign!' },
+    { id: 'rhombus', name: 'rhombus', pts: [[60, 4], [112, 60], [60, 116], [8, 60]], c: ['#d3c2ff', '#7a5cd6'], face: [60, 60, 1], fact: 'A rhombus has 4 sides, all the same length. It looks like a diamond.' },
+    { id: 'crescent', name: 'crescent moon', pts: crescent(), c: ['#fff3a6', '#ffc93c'], face: [28, 70, 0.7], fact: 'A crescent is the shape of a thin moon. It has two sharp points.' },
   ];
   for (const s of SH.SHAPES) if (!s.d) s.d = polyD(s.pts);
 
@@ -10896,7 +10948,7 @@ button.du-st:active { transform: translateY(2px); }
       { kind: 'triangle', pts: [[40, 86], [60, 88], [46, 106]], col: '#ff8a3c' },
       { kind: 'circle', c: [50, 62], r: 28, col: '#ffc24d' },
       { kind: 'circle', c: [38, 55], r: 6.5, col: '#ffffff' },
-      { kind: 'circle', c: [16, 24], r: 6.5, col: '#bfeaff' },
+      { kind: 'circle', c: [16, 24], r: 5, col: '#bfeaff' },
     ] },
     { id: 'boat', name: 'a sailboat', parts: [
       { kind: 'rectangle', pts: R4(56, 22, 64, 84), col: '#5b3524' },
@@ -10906,7 +10958,53 @@ button.du-st:active { transform: translateY(2px); }
       { kind: 'trapezoid', pts: [[16, 84], [104, 84], [90, 106], [30, 106]], col: '#a8673a' },
       { kind: 'circle', c: [20, 20], r: 9, col: '#ffe14d' },
     ] },
+    { id: 'car', name: 'a car', parts: [
+      { kind: 'trapezoid', pts: [[32, 62], [42, 36], [80, 36], [92, 62]], col: '#ff8a7a' },
+      { kind: 'rectangle', pts: R4(46, 42, 76, 58), col: '#bfeaff' },
+      { kind: 'rectangle', pts: R4(12, 60, 108, 88), col: '#ff6b5b' },
+      { kind: 'circle', c: [34, 90], r: 12, col: '#3a4766' },
+      { kind: 'circle', c: [86, 90], r: 12, col: '#3a4766' },
+    ] },
+    { id: 'castle', name: 'a castle', parts: [
+      { kind: 'square', pts: R4(38, 66, 82, 110), col: '#d3c2ff' },
+      { kind: 'rectangle', pts: R4(14, 40, 38, 110), col: '#b79bff' },
+      { kind: 'rectangle', pts: R4(82, 40, 106, 110), col: '#b79bff' },
+      { kind: 'triangle', pts: [[10, 40], [26, 12], [42, 40]], col: '#7a5cd6' },
+      { kind: 'triangle', pts: [[78, 40], [94, 12], [110, 40]], col: '#7a5cd6' },
+      { kind: 'rectangle', pts: R4(52, 84, 68, 110), col: '#a8673a' },
+    ] },
+    { id: 'robot', name: 'a robot', parts: [
+      { kind: 'square', pts: R4(36, 54, 84, 102), col: '#9fc3ff' },
+      { kind: 'rectangle', pts: R4(40, 18, 80, 48), col: '#bfd6ff' },
+      { kind: 'circle', c: [51, 33], r: 6.5, col: '#ffe14d' },
+      { kind: 'circle', c: [69, 33], r: 6.5, col: '#ffe14d' },
+      { kind: 'rectangle', pts: R4(16, 58, 32, 92), col: '#7f9ee0' },
+      { kind: 'rectangle', pts: R4(88, 58, 104, 92), col: '#7f9ee0' },
+    ] },
+    { id: 'flower', name: 'a flower', parts: [
+      { kind: 'rectangle', pts: R4(56, 64, 64, 114), col: '#3fae6a' },
+      { kind: 'circle', c: [60, 22], r: 11, col: '#ff8fb1' },
+      { kind: 'circle', c: [82, 44], r: 11, col: '#ff8fb1' },
+      { kind: 'circle', c: [38, 44], r: 11, col: '#ff8fb1' },
+      { kind: 'circle', c: [60, 66], r: 11, col: '#ff8fb1' },
+      { kind: 'circle', c: [60, 44], r: 9, col: '#ffd23f' },
+    ] },
+    { id: 'train', name: 'a train', parts: [
+      { kind: 'rectangle', pts: R4(30, 34, 42, 58), col: '#3a4766' },
+      { kind: 'rectangle', pts: R4(20, 58, 72, 92), col: '#ffb547' },
+      { kind: 'rectangle', pts: R4(72, 38, 106, 92), col: '#ff6b5b' },
+      { kind: 'square', pts: R4(80, 46, 98, 64), col: '#bfeaff' },
+      { kind: 'circle', c: [36, 96], r: 10, col: '#3a4766' },
+      { kind: 'circle', c: [62, 96], r: 10, col: '#3a4766' },
+      { kind: 'circle', c: [90, 96], r: 10, col: '#3a4766' },
+    ] },
   ];
+  // Parts with the same shape and size fit each other's outlines (two wheels, two towers).
+  SH.sig = (pt) => {
+    if (pt.c) return pt.kind + ':' + pt.r;
+    const [x, y] = SH.partBB(pt);
+    return pt.kind + ':' + pt.pts.map(([a, b]) => f1(a - x) + ',' + f1(b - y)).join(' ');
+  };
 
   // Dot-to-dot: the line goes 1 → 2 → … and back to 1.
   SH.DOTS = [
@@ -10915,7 +11013,50 @@ button.du-st:active { transform: translateY(2px); }
     { id: 'house', name: 'house', pts: [[32, 58], [60, 18], [88, 58], [88, 108], [32, 108]], c: ['#ffd97a', '#ff9f1c'], face: [60, 80, 1], fact: 'A house is a square with a triangle roof!' },
     { id: 'fish', name: 'fish', pts: [[8, 60], [32, 38], [64, 36], [86, 54], [112, 36], [112, 86], [86, 68], [64, 86], [32, 84]], c: ['#8fd8ff', '#3f8fe0'], face: [42, 58, 0.8], fact: 'A fish swims with its tail. This tail is a triangle!' },
     { id: 'diamond', name: 'diamond', pts: [[38, 22], [82, 22], [106, 48], [60, 108], [14, 48]], c: ['#d3c2ff', '#7a5cd6'], face: [60, 50, 1], fact: 'This diamond has 5 corners. Count them: 1, 2, 3, 4, 5!' },
+    { id: 'crown', name: 'crown', pts: [[14, 98], [14, 40], [37, 66], [60, 24], [83, 66], [106, 40], [106, 98]], c: ['#fff07a', '#ffb02e'], face: [60, 80, 0.9], fact: 'A crown has 3 points on top. Who is the king or queen?' },
+    { id: 'rocket', name: 'rocket', pts: [[60, 6], [80, 34], [80, 82], [100, 106], [60, 94], [20, 106], [40, 82], [40, 34]], c: ['#bfd6ff', '#5b7fe0'], face: [60, 56, 0.75], fact: 'A rocket has a triangle nose and fins to fly straight.' },
+    { id: 'tree', name: 'Christmas tree', pts: [[60, 8], [90, 48], [74, 48], [106, 92], [14, 92], [46, 48], [30, 48]], c: ['#a8eb96', '#2f9a5a'], face: [60, 72, 0.9], fact: 'A Christmas tree looks like triangles stacked up.' },
+    { id: 'boat', name: 'sailboat', pts: [[58, 8], [96, 64], [110, 64], [92, 98], [28, 98], [10, 64], [58, 64]], c: ['#8fd8ff', '#3f8fe0'], face: [60, 81, 0.75], fact: 'A sailboat has a triangle sail. The wind pushes it!' },
+    { id: 'cat', name: 'cat', pts: [[18, 104], [18, 42], [32, 10], [50, 34], [70, 34], [88, 10], [102, 42], [102, 104]], c: ['#ffd2a8', '#ff9f4a'], face: [60, 70, 1.1], fact: 'A cat has two pointy ears, like two triangles. Meow!' },
   ];
+
+  // Picture puzzles: a creature from the Hatchery (js/creature-art.js) in a little scene.
+  SH.PICS = [
+    { id: 'dr_ember', stage: 2, scene: 'sunset' }, { id: 'pegasus', scene: 'sky' }, { id: 'mermaid', scene: 'sea' },
+    { id: 'moonrabbit', scene: 'night' }, { id: 'emberfox', scene: 'autumn' }, { id: 'dr_rainbow', stage: 1, scene: 'rainbow' },
+    { id: 'frogprince', scene: 'pond' }, { id: 'griffin', scene: 'mountain' }, { id: 'dr_frost', stage: 2, scene: 'snow' },
+    { id: 'starwhale', scene: 'night' }, { id: 'bubbleturtle', scene: 'sea' }, { id: 'pixie', scene: 'garden' },
+    { id: 'kitsune', scene: 'autumn' }, { id: 'yeti', scene: 'snow' }, { id: 'firebird', scene: 'sunset' }, { id: 'dr_ocean', stage: 2, scene: 'sea' },
+  ];
+  SH.picName = (pic) => ((MQ.EGG_CREATURES || []).find((c) => c.id === pic.id) || { name: pic.id }).name;
+  const sky = (k, a, b) => `<defs><linearGradient id="${k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="120" height="120" fill="url(#${k})"/>`;
+  const cloud = (x, y, s) => `<g fill="#ffffff" opacity=".92"><ellipse cx="${x}" cy="${y}" rx="${12 * s}" ry="${5 * s}"/><ellipse cx="${f1(x - 4 * s)}" cy="${f1(y - 4 * s)}" rx="${6 * s}" ry="${5 * s}"/><ellipse cx="${f1(x + 4 * s)}" cy="${f1(y - 5 * s)}" rx="${7 * s}" ry="${6 * s}"/></g>`;
+  const dots = (list, r, fill) => `<g fill="${fill}">${list.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('')}</g>`;
+  SH.SCENES = {
+    sunset: (k) => sky(k, '#ffd08f', '#ff9f8c') + '<circle cx="94" cy="28" r="14" fill="#fff0b8"/><circle cx="94" cy="28" r="20" fill="#fff0b8" opacity=".3"/>' + cloud(24, 26, 1) +
+      '<path d="M0 90C30 76 62 84 120 72V120H0Z" fill="#9bd27f"/><path d="M0 104C40 94 82 100 120 90V120H0Z" fill="#62ae5f"/>',
+    sky: (k) => sky(k, '#86cfff', '#dff3ff') + cloud(22, 24, 1.1) + cloud(98, 16, 0.9) + cloud(102, 70, 0.8) + cloud(16, 76, 0.7) + '<path d="M0 100C34 90 80 96 120 88V120H0Z" fill="#8fd47a"/>',
+    sea: (k) => sky(k, '#7fdcf0', '#2a86c6') + '<path d="M0 18C20 12 40 24 60 18S100 12 120 18V0H0Z" fill="#ffffff" opacity=".25"/>' +
+      '<g fill="none" stroke="#e8fbff" stroke-width="1.2" opacity=".8"><circle cx="18" cy="40" r="3"/><circle cx="24" cy="30" r="2"/><circle cx="102" cy="48" r="3.5"/><circle cx="96" cy="36" r="2"/></g>' +
+      '<path d="M10 120C6 104 16 98 10 86M18 120C16 108 24 102 20 92M108 120C104 106 114 100 110 88" fill="none" stroke="#3fae6a" stroke-width="3" stroke-linecap="round"/>' +
+      '<path d="M0 108C30 102 70 106 120 100V120H0Z" fill="#f2d59b"/>',
+    night: (k) => sky(k, '#262b66', '#5a5fb0') + '<circle cx="96" cy="24" r="11" fill="#fff3c4"/><circle cx="92" cy="21" r="2.4" fill="#f0dd9e"/>' +
+      dots([[14, 14], [34, 30], [60, 10], [76, 40], [12, 52], [108, 54], [46, 22], [24, 70]], 1, '#ffffff') + '<path d="M0 98C36 86 76 92 120 84V120H0Z" fill="#2f6b58"/>',
+    autumn: (k) => sky(k, '#ffeab8', '#ffd59a') + '<rect x="10" y="62" width="4" height="30" fill="#8a5526"/><circle cx="12" cy="56" r="12" fill="#f08a3c"/><rect x="104" y="58" width="4" height="34" fill="#8a5526"/><circle cx="106" cy="50" r="13" fill="#e2553a"/>' +
+      '<path d="M0 94C36 86 80 92 120 86V120H0Z" fill="#d9894a"/><path d="M0 108C40 102 84 106 120 100V120H0Z" fill="#b8693a"/>',
+    rainbow: (k) => sky(k, '#e3f1ff', '#fdf0ff') + `<g fill="none" stroke-width="5" opacity=".85">${['#ff6b6b', '#ffb84d', '#ffe66d', '#7ed957', '#5ec8ff', '#a77bff'].map((c, i) => `<path d="M${-6 + i * 5} 100A${66 - i * 5} ${66 - i * 5} 0 0 1 ${126 - i * 5} 100" stroke="${c}"/>`).join('')}</g>` +
+      cloud(14, 96, 1) + cloud(108, 96, 1) + '<path d="M0 104C40 96 80 102 120 96V120H0Z" fill="#a4e58f"/>',
+    pond: (k) => sky(k, '#c4ecff', '#eaf8ff') + '<path d="M0 74C30 70 90 70 120 74V120H0Z" fill="#9bd27f"/><ellipse cx="60" cy="100" rx="58" ry="17" fill="#59b8de"/>' +
+      '<path d="M8 76V52M112 76V50" stroke="#3f8f4a" stroke-width="2" stroke-linecap="round"/><ellipse cx="8" cy="52" rx="2" ry="5" fill="#8a5526"/><ellipse cx="112" cy="50" rx="2" ry="5" fill="#8a5526"/>',
+    mountain: (k) => sky(k, '#a6d6ff', '#e6f4ff') + cloud(26, 20, 0.9) + '<path d="M-10 92L28 40L66 92Z" fill="#9aa8c4"/><path d="M28 40L18 54L24 52L28 58L33 52L38 54Z" fill="#ffffff"/><path d="M50 92L94 30L134 92Z" fill="#8494b5"/><path d="M94 30L82 47L89 45L94 51L99 45L106 47Z" fill="#ffffff"/>' +
+      '<path d="M0 96C36 88 80 94 120 88V120H0Z" fill="#8fcf7a"/>',
+    snow: (k) => sky(k, '#bfe3ff', '#eef8ff') + dots([[12, 14], [30, 34], [52, 12], [78, 26], [100, 12], [110, 40], [20, 60], [96, 64], [64, 44]], 1.6, '#ffffff') +
+      '<path d="M0 92C32 80 70 88 120 78V120H0Z" fill="#ffffff"/><path d="M0 106C40 98 84 104 120 96V120H0Z" fill="#e3effb"/>',
+    garden: (k) => sky(k, '#d8f3ff', '#f3fbff') + cloud(96, 20, 0.9) + '<path d="M0 92C36 84 80 90 120 84V120H0Z" fill="#8fd47a"/>' +
+      [[14, 100, '#ff8fb1'], [32, 108, '#ffd23f'], [96, 102, '#b79bff'], [110, 112, '#ff8fb1']].map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="4" fill="${c}"/><circle cx="${x}" cy="${y}" r="1.5" fill="#fff3a6"/>`).join(''),
+  };
+  // The picture: its scene with the creature on it (the inside of an SVG with viewBox 0 0 120 120).
+  SH.picArt = (pic) => SH.SCENES[pic.scene]('sp' + (++uid).toString(36)) + MQ.art(pic.id, { stage: pic.stage }).replace('<svg class="art"', '<svg x="8" y="10" width="104" height="104"');
 
   // ---------------------------------------------------------------- pictures
   const face = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><ellipse cx="-10" cy="0" rx="4.2" ry="5.4" fill="#22304f"/><ellipse cx="10" cy="0" rx="4.2" ry="5.4" fill="#22304f"/>` +
@@ -10966,11 +11107,11 @@ button.du-st:active { transform: translateY(2px); }
     return out;
   };
   SH.MIN_COVER = 0.04; // a cell with less of the shape than this is not a piece (it would be a crumb)
-  // Pieces of the shape. Only cells that hold some of the shape are pieces, and a knob on the shape's border
+  // Pieces of a picture (shape = null) or of a shape. Only cells that hold some of the shape are pieces, and a knob on the shape's border
   // always belongs to the piece inside, so no piece has a bite missing.
   SH.cut = (n, shape) => {
     const [cols, rows] = SH.GRID[n], W = 120 / cols, H = 120 / rows, T = Math.min(W, H);
-    const cov = SH.coverage(n, shape);
+    const cov = shape ? SH.coverage(n, shape) : U.range(1, cols * rows).map(() => 1); // a picture fills the board
     const inc = (r, c) => r >= 0 && c >= 0 && r < rows && c < cols && cov[r * cols + c] >= SH.MIN_COVER;
     const dir = (r1, c1, r2, c2) => (inc(r1, c1) && !inc(r2, c2) ? 1 : !inc(r1, c1) && inc(r2, c2) ? -1 : U.pick([1, -1]));
     const hz = U.range(0, rows - 2).map((r) => U.range(0, cols - 1).map((c) => dir(r, c, r + 1, c))); // +1: the knob points down
@@ -10991,7 +11132,8 @@ button.du-st:active { transform: translateY(2px); }
     // A crumb of the shape in a cell that is not a piece goes with the neighbouring piece that has the most of the shape:
     // that piece's picture is cut by its outline plus the crumb's cell (both drawn clockwise, so they add up).
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-      if (inc(r, c) || !cov[r * cols + c]) continue;
+      const tip = shape && shape.pts.some(([x, y]) => x >= c * W && x < (c + 1) * W && y >= r * H && y < (r + 1) * H); // a sharp point too thin to sample
+      if (inc(r, c) || !(cov[r * cols + c] || tip)) continue;
       const host = pieces.filter((p) => Math.abs(p.r - r) + Math.abs(p.c - c) === 1).sort((a, b) => b.cover - a.cover)[0];
       if (!host) continue;
       const x0 = c * W, y0 = r * H;
@@ -11034,7 +11176,8 @@ button.du-st:active { transform: translateY(2px); }
 
   // ---------------------------------------------------------------- the album
   // st.puzzles = { n: pieces for a shape puzzle, done: { 'shape:circle': times finished, 'build:house': …, 'dots:star': … } }
-  SH.ITEMS = [...SH.SHAPES.map((s) => 'shape:' + s.id), ...SH.FIGS.map((f) => 'build:' + f.id), ...SH.DOTS.map((d) => 'dots:' + d.id)];
+  // 'pic:<creature>' is a picture finished in any of the three picture puzzles.
+  SH.ITEMS = [...SH.PICS.map((p) => 'pic:' + p.id), ...SH.SHAPES.map((s) => 'shape:' + s.id), ...SH.FIGS.map((f) => 'build:' + f.id), ...SH.DOTS.map((d) => 'dots:' + d.id)];
   SH.ensure = (st) => {
     st.puzzles = st.puzzles || {};
     if (!SH.GRID[st.puzzles.n]) st.puzzles.n = 6;
@@ -11043,7 +11186,7 @@ button.du-st:active { transform: translateY(2px); }
   };
   SH.count = (st) => SH.ITEMS.filter((k) => ((st.puzzles || {}).done || {})[k]).length;
   SH.total = () => SH.ITEMS.length;
-  SH.REWARD = { right: 1, done: 3, fresh: 5 }; // 💎 for a first-try answer, a finished puzzle, a new one for the album
+  SH.REWARD = { right: 1, done: 3, fresh: 5, guess: 1 }; // 💎 for a first-try answer, a finished puzzle, a new one for the album, each cloud left when Who's hiding? is guessed
   // Mark a puzzle finished; returns true when it is new in the album.
   SH.finish = (st, key) => {
     const done = SH.ensure(st).done, fresh = !done[key];
@@ -11056,9 +11199,15 @@ button.du-st:active { transform: translateY(2px); }
     const notYet = SH.DOTS.filter((d) => !done['dots:' + d.id] && d.id !== last);
     return U.pick(notYet.length ? notYet : SH.DOTS.filter((d) => d.id !== last));
   };
+  // The next picture puzzle: a picture not finished yet, else any but the one just played.
+  SH.nextPic = (st, last) => {
+    const done = SH.ensure(st).done;
+    const notYet = SH.PICS.filter((p) => !done['pic:' + p.id] && p.id !== last);
+    return U.pick(notYet.length ? notYet : SH.PICS.filter((p) => p.id !== last));
+  };
   SH.find = (key) => {
     const [mode, id] = String(key).split(':');
-    const list = { shape: SH.SHAPES, build: SH.FIGS, dots: SH.DOTS }[mode];
+    const list = { shape: SH.SHAPES, build: SH.FIGS, dots: SH.DOTS, snap: SH.PICS, find: SH.PICS, hide: SH.PICS }[mode];
     return list ? { mode, item: list.find((x) => x.id === id) || null } : null;
   };
   // "It has 4 triangles, 1 rectangle and 1 star."
@@ -11073,10 +11222,13 @@ button.du-st:active { transform: translateY(2px); }
 })();
 </script>
   <script>
-// Shape Puzzles screens: the album page with the three kinds of puzzles, and the puzzle in play.
-//   ⭐ Shape Puzzle  every right answer flies a jigsaw piece into a smiling shape
-//   🏠 Build It      every right answer gives a shape; the child drags it into its outline
-//   ✏️ Dot to Dot    every right answer draws the line to the next dot; the last one closes the surprise shape
+// Puzzle Time screens: the album page, and the puzzle in play. Six kinds of puzzles:
+//   🧲 Snap!           every right answer snaps a piece of a creature's picture into place
+//   ✋ Find the piece  the problem is written in the hole; the child drags in the piece with the answer
+//   ☁️ Who's hiding?   every right answer blows a cloud off a picture; guessing early earns crystals
+//   ⭐ Shape Puzzle    every right answer flies a jigsaw piece into a smiling shape
+//   🏠 Build It        every right answer gives a shape; the child drags it into its outline
+//   ✏️ Dot to Dot      every right answer draws the line to the next dot; the last one closes the surprise shape
 // Shapes, pictures, the cut and the problems are in js/shapes.js. The app shell (js/app.js) lends render, toast,
 // rewards and answer recording via MQ.app.kit, like Sunny Farm.
 (function () {
@@ -11088,12 +11240,16 @@ button.du-st:active { transform: translateY(2px); }
   const f1 = (x) => +(+x).toFixed(2);
   const reduced = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const MODES = {
+    snap: { icon: '🧲', title: 'Snap!', blurb: 'Every right answer snaps a piece of the picture into place.' },
+    find: { icon: '✋', title: 'Find the piece', blurb: 'The problem is in the hole. Drag in the piece with the answer!' },
+    hide: { icon: '☁️', title: 'Who’s hiding?', blurb: 'Every right answer blows a cloud away. Guess who is under them!' },
     shape: { icon: '⭐', title: 'Shape Puzzle', blurb: 'Every right answer brings a puzzle piece. Make a shape!' },
     build: { icon: '🏠', title: 'Build It', blurb: 'Every right answer gives you a shape. Put it in its place!' },
     dots: { icon: '✏️', title: 'Dot to Dot', blurb: 'Every right answer draws a line to the next dot. What will it be?' },
   };
+  const PIC = ['snap', 'find', 'hide']; // the picture puzzles
   let G = null; // the puzzle in play
-  let lastDots = '';
+  const last = { dots: '', pic: '' };
   let boards = 0; // makes the board's ids unique
 
   // Timers of a puzzle only fire while that puzzle is still on screen.
@@ -11105,34 +11261,51 @@ button.du-st:active { transform: translateY(2px); }
     return `<header class="bar"><button class="iconbtn" data-act="go" data-arg="${back}" aria-label="Back">←</button><h1>${title}</h1>${gemPill()}</header>`;
   }
   const svgBox = (inner, cls = '') => `<svg class="${cls}" viewBox="0 0 120 120" aria-hidden="true" focusable="false">${inner}</svg>`;
+  const creature = (pic) => (MQ.EGG_CREATURES || []).find((c) => c.id === pic.id) || {};
 
   // ---------------------------------------------------------------- the album page
   function hub() {
     G = null;
     const s = st(), pz = SH.ensure(s), done = pz.done;
-    const thumb = (key, art, label) => `<button class="pz-thumb ${done[key] ? 'got' : ''}" data-act="pzPlay" data-arg="${key}" aria-label="${esc(label)}${done[key] ? ' (done)' : ''}">${svgBox(art)}${done[key] ? '<i aria-hidden="true">✓</i>' : ''}</button>`;
-    const card = (mode, body) => `<section class="pzcard pz-${mode}"><div class="pzc-h"><span class="pzc-i" aria-hidden="true">${MODES[mode].icon}</span><div><h2>${MODES[mode].title}</h2><p>${MODES[mode].blurb}</p></div></div>${body}</section>`;
-    const found = SH.DOTS.map((d) => (done['dots:' + d.id] ? `<span class="pz-thumb got" role="img" aria-label="${d.name}">${svgBox(SH.dotArt(d))}<i aria-hidden="true">✓</i></span>` : '<span class="pz-thumb mystery" role="img" aria-label="not found yet">?</span>')).join('');
-    K().render(header('🧩 Shape Puzzles', 'home') + `<main class="pzhub">
-      <p class="pz-intro">Solve short problems to build shapes. Your album: <b>${SH.count(s)} of ${SH.total()}</b></p>
-      ${card('shape', `<div class="pz-thumbs">${SH.SHAPES.map((x) => thumb('shape:' + x.id, SH.shapeArt(x), x.name)).join('')}</div>
-        <div class="pz-size"><span>Pieces</span><div class="chips">${Object.keys(SH.GRID).map((n) => `<button class="chip ${+n === pz.n ? 'sel' : ''}" data-act="pzSize" data-arg="${n}" aria-pressed="${+n === pz.n}">${n}</button>`).join('')}</div></div>`)}
+    const tick = (key) => (done[key] ? '<i aria-hidden="true">✓</i>' : '');
+    // key: the puzzle to play; got: its album entry (a picture made in any picture puzzle is 'pic:<id>')
+    const thumb = (key, art, label, got = key) => `<button class="pz-thumb ${done[got] ? 'got' : ''}" data-act="pzPlay" data-arg="${key}" aria-label="${esc(label)}${done[got] ? ' (done)' : ''}">${svgBox(art)}${tick(got)}</button>`;
+    const mystery = '<span class="pz-thumb mystery" role="img" aria-label="not found yet">?</span>';
+    const head = (mode) => `<div class="pzc-h"><span class="pzc-i" aria-hidden="true">${MODES[mode].icon}</span><div><h2>${MODES[mode].title}</h2><p>${MODES[mode].blurb}</p></div></div>`;
+    const card = (mode, body) => `<section class="pzcard pz-${mode}">${head(mode)}${body}</section>`;
+    const picsFound = SH.PICS.filter((p) => done['pic:' + p.id]).length;
+    const pics = SH.PICS.map((p) => (done['pic:' + p.id] ? thumb('snap:' + p.id, SH.picArt(p), SH.picName(p), 'pic:' + p.id) : mystery)).join('');
+    const dots = SH.DOTS.map((d) => (done['dots:' + d.id] ? `<span class="pz-thumb got" role="img" aria-label="${d.name}">${svgBox(SH.dotArt(d))}${tick('dots:' + d.id)}</span>` : mystery)).join('');
+    K().render(header('🧩 Puzzle Time', 'home') + `<main class="pzhub">
+      <div class="pz-top"><p class="pz-intro">Solve short problems to make pictures and shapes. Your album: <b>${SH.count(s)} of ${SH.total()}</b></p>
+        <div class="pz-size"><span>Pieces</span><div class="chips">${Object.keys(SH.GRID).map((n) => `<button class="chip ${+n === pz.n ? 'sel' : ''}" data-act="pzSize" data-arg="${n}" aria-pressed="${+n === pz.n}">${n}</button>`).join('')}</div></div></div>
+      <h2 class="pz-group">Picture puzzles</h2>
+      <div class="pz-modes">${PIC.map((m) => `<section class="pzcard pz-mode pz-${m}">${head(m)}<button class="btn" data-act="pzPlay" data-arg="${m}">Play ▶</button></section>`).join('')}</div>
+      <section class="pzcard"><h3 class="pz-sub">Pictures you made: ${picsFound} of ${SH.PICS.length}</h3><div class="pz-thumbs">${pics}</div>
+        ${picsFound ? '<p class="pz-tip left">Tap a picture to make it again.</p>' : ''}</section>
+      <h2 class="pz-group">Shape puzzles</h2>
+      ${card('shape', `<div class="pz-thumbs">${SH.SHAPES.map((x) => thumb('shape:' + x.id, SH.shapeArt(x), x.name)).join('')}</div>`)}
       ${card('build', `<div class="pz-thumbs">${SH.FIGS.map((f) => thumb('build:' + f.id, SH.figArt(f), f.name)).join('')}</div>`)}
-      ${card('dots', `<div class="pz-thumbs">${found}</div><button class="btn" data-act="pzPlay" data-arg="dots">Start a surprise ✏️</button>`)}
+      ${card('dots', `<div class="pz-thumbs">${dots}</div><button class="btn" data-act="pzPlay" data-arg="dots">Start a surprise ✏️</button>`)}
     </main>`);
     K().setCur('shapes');
   }
 
   // ---------------------------------------------------------------- a puzzle
   function start(key) {
-    const s = st();
-    let mode = String(key).split(':')[0], item = null;
-    if (mode === 'dots' && !String(key).includes(':')) item = SH.nextDots(s, lastDots);
-    else { const f = SH.find(key); if (!f || !f.item) return hub(); mode = f.mode; item = f.item; }
-    G = { mode, item, key: mode + ':' + item.id, prob: null, tries: 0, given: undefined, busy: false, done: false, earn: -1, miss: 0 };
-    if (mode === 'shape') { G.pz = SH.cut(SH.ensure(s).n, item); G.left = G.pz.pieces.map((p) => p.i); }
+    const s = st(), k = String(key), mode = k.split(':')[0];
+    let item = null;
+    if (mode === 'dots' && !k.includes(':')) item = SH.nextDots(s, last.dots);
+    else if (PIC.includes(mode) && (!k.includes(':') || mode === 'hide')) item = SH.nextPic(s, last.pic); // who is hiding is always a surprise
+    else { const f = SH.find(k); item = f && f.item; }
+    if (!MODES[mode] || !item) return hub();
+    const pic = PIC.includes(mode);
+    G = { mode, item, pic, key: (pic ? 'pic' : mode) + ':' + item.id, prob: null, tries: 0, given: undefined, busy: false, done: false, earn: -1, miss: 0, target: -1, locked: true };
+    if (pic || mode === 'shape') { G.pz = SH.cut(SH.ensure(s).n, pic ? null : item); G.left = G.pz.pieces.map((p) => p.i); }
     else if (mode === 'build') G.left = item.parts.map((_, i) => i);
-    else { G.left = item.pts.map((_, i) => i); lastDots = item.id; }
+    else G.left = item.pts.map((_, i) => i);
+    if (mode === 'dots') last.dots = item.id;
+    if (pic) last.pic = item.id;
     G.total = G.left.length;
     const M = MODES[mode];
     K().render(header(`${M.icon} ${M.title}`, 'shapes') + `<main class="pzplay pz-${mode}">
@@ -11142,16 +11315,20 @@ button.du-st:active { transform: translateY(2px); }
   }
 
   function drawBoard() {
-    const el = $('#pzboard');
+    const el = $('#pzboard'), k = 'pzb' + ++boards;
     let svg;
-    if (G.mode === 'shape') {
-      const k = 'pzb' + ++boards, sh = G.item, ps = G.pz.pieces;
-      const clipped = (s) => `<g clip-path="url(#${k}sh)">${s}</g>`;
-      svg = `<defs><g id="${k}p">${SH.shapeArt(sh)}</g><clipPath id="${k}sh"><path d="${sh.d}"/></clipPath>${ps.map((p) => `<clipPath id="${k}c${p.i}"><path d="${p.clip}"/></clipPath>`).join('')}</defs>` +
-        clipped('<rect width="120" height="120" class="pz-bg"/>' + ps.map((p) => `<path class="pz-slot" d="${p.d}"/>`).join('')) +
-        `<path class="pz-edge" d="${sh.d}"/>` +
-        ps.map((p) => `<g class="pz-pc off" data-i="${p.i}" style="transform-origin:${f1(p.cx)}px ${f1(p.cy)}px">` + clipped(`<g clip-path="url(#${k}c${p.i})"><use href="#${k}p"/></g><path class="pz-seam" d="${p.d}"/>`) + '</g>').join('') +
-        `<use class="pz-full" href="#${k}p"/>`;
+    if (G.pz) { // a jigsaw: a picture (Snap, Find the piece, Who's hiding) or a shape
+      const sh = G.mode === 'shape' ? G.item : null, ps = G.pz.pieces;
+      const clipped = (s) => (sh ? `<g clip-path="url(#${k}sh)">${s}</g>` : s);
+      const defs = `<defs><g id="${k}p">${sh ? SH.shapeArt(sh) : SH.picArt(G.item)}</g><clipPath id="${k}all"><rect width="120" height="120" rx="4"/></clipPath>` +
+        (sh ? `<clipPath id="${k}sh"><path d="${sh.d}"/></clipPath>` : '') + ps.map((p) => `<clipPath id="${k}c${p.i}"><path d="${p.clip}"/></clipPath>`).join('') + '</defs>';
+      if (G.mode === 'hide') svg = defs + `<g clip-path="url(#${k}all)"><use href="#${k}p"/>${ps.map(cloud).join('')}</g>`;
+      else {
+        svg = defs + clipped(`<rect width="120" height="120" rx="4" class="pz-bg"/>` + ps.map((p) => `<path class="pz-slot" d="${p.d}"/>`).join('')) +
+          (sh ? `<path class="pz-edge" d="${sh.d}"/>` : '') +
+          ps.map((p) => `<g class="pz-pc off" data-i="${p.i}" style="transform-origin:${f1(p.cx)}px ${f1(p.cy)}px">` + clipped(`<g clip-path="url(#${k}c${p.i})"><use href="#${k}p"/></g><path class="pz-seam" d="${p.d}"/>`) + '</g>').join('') +
+          (sh ? `<use class="pz-full" href="#${k}p"/>` : `<g clip-path="url(#${k}all)"><use class="pz-full" href="#${k}p"/></g>`) + '<g class="pz-hole"></g>';
+      }
     } else if (G.mode === 'build') {
       svg = G.item.parts.map((pt, i) => { const [x, y, w, h] = SH.partBB(pt);
         return `<g class="pz-part" data-i="${i}" style="transform-origin:${f1(x + w / 2)}px ${f1(y + h / 2)}px">${SH.partShape(pt, 'class="pz-pslot"')}</g>`; }).join('');
@@ -11167,17 +11344,29 @@ button.du-st:active { transform: translateY(2px); }
     el.innerHTML = `<svg class="pz-svg" viewBox="0 0 120 120" role="img" aria-label="${esc(MODES[G.mode].title)}">${svg}</svg>`;
     G.svg = el.firstElementChild;
   }
+  // ☁️ a puffy cloud over one cell; its puffs reach over the edges so no gap shows between clouds
+  function cloud(p) {
+    const { x0, y0, W, H, cx, cy } = p, R = Math.min(W, H);
+    const puffs = [[x0, y0], [cx, y0], [x0 + W, y0], [x0, cy], [x0 + W, cy], [x0, y0 + H], [cx, y0 + H], [x0 + W, y0 + H]].map(([x, y]) => `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(R * 0.2)}"/>`).join('');
+    return `<g class="pz-cloud" data-i="${p.i}" style="transform-origin:${f1(cx)}px ${f1(cy)}px"><g fill="#f1f5ff"><rect x="${f1(x0 - 0.5)}" y="${f1(y0 - 0.5)}" width="${f1(W + 1)}" height="${f1(H + 1)}"/>${puffs}</g>` +
+      `<circle cx="${f1(cx + R * 0.16)}" cy="${f1(cy + R * 0.1)}" r="${f1(R * 0.2)}" fill="#e2e9fb"/><circle cx="${f1(cx - R * 0.1)}" cy="${f1(cy - R * 0.08)}" r="${f1(R * 0.24)}" fill="#ffffff"/>` +
+      `<text class="pz-qm" x="${f1(cx)}" y="${f1(cy)}" font-size="${f1(R * 0.3)}">?</text></g>`;
+  }
 
   const placed = () => G.total - G.left.length - (G.earn >= 0 ? 1 : 0);
   const takeRandom = () => G.left.splice(Math.floor(Math.random() * G.left.length), 1)[0];
-  const sayQ = () => (G.mode === 'build' && G.earn >= 0 ? `You got a ${G.item.parts[G.earn].kind}! Where does it go?` : G.prob ? G.prob.say : '');
+  const sayQ = () => {
+    if (G.mode === 'build' && G.earn >= 0) return `You got a ${G.item.parts[G.earn].kind}! Where does it go?`;
+    return G.prob ? G.prob.say + (G.mode === 'find' ? ' Find the piece that fits!' : '') : '';
+  };
 
   function next() {
     G.prob = SH.problem(st().grade, G.prob);
     G.tries = 0;
     G.given = undefined;
+    if (G.mode === 'find') G.target = U.pick(G.left);
     panel();
-    if (st().settings.readAloud) later(() => speak(G.prob.say), 250);
+    if (st().settings.readAloud) later(() => speak(sayQ()), 250);
   }
 
   const progHtml = () => `<div class="pz-prog" role="img" aria-label="${placed()} of ${G.total} done">${U.range(1, G.total).map((i) => `<i class="${i <= placed() ? 'on' : ''}"></i>`).join('')}</div>`;
@@ -11187,13 +11376,22 @@ button.du-st:active { transform: translateY(2px); }
     for (let i = 0; i < cells.length; i += 10) out.push(`<div class="pz-frame" aria-hidden="true">${cells.slice(i, i + 10).map((c) => `<i class="${c}"></i>`).join('')}</div>`);
     return `<div class="pz-frames">${out.join('')}</div>`;
   };
+  const smallHole = () => G.pz.pieces[G.target].W < 38; // a ten-frame doesn't fit in a narrow hole: it goes on the card
   function panel() {
     if (G.mode === 'build' && G.earn >= 0) return earned();
     const p = G.prob;
+    if (G.mode === 'find') {
+      $('#pzpanel').innerHTML = progHtml() + `<div class="pz-q"><div class="pz-lead">Which piece fits the hole?</div>${sayBtn}</div>` +
+        (p.t === 'count' && smallHole() ? frames(p) : '') + '<div id="pzhint"></div><div class="pz-tray" id="pztray"></div><p class="pz-tip">Drag a piece into the hole, or just tap it.</p>';
+      hole();
+      tray();
+      return;
+    }
     $('#pzpanel').innerHTML = progHtml() +
       `<div class="pz-q">${p.t === 'count' ? '<div class="pz-lead">How many dots?</div>' : `<div class="pz-eq">${p.eq} = ?</div>`}${sayBtn}</div>` +
       (p.t === 'count' ? frames(p) : '') + '<div id="pzhint"></div>' +
-      `<div class="pz-answers">${p.opts.map((v) => `<button class="pz-ans" data-act="pzAns" data-arg="${v}">${v}</button>`).join('')}</div>`;
+      `<div class="pz-answers">${p.opts.map((v) => `<button class="pz-ans" data-act="pzAns" data-arg="${v}">${v}</button>`).join('')}</div>` +
+      (G.mode === 'hide' ? `<button class="pz-guess" data-act="pzGuess"${G.locked ? ' disabled' : ''}>🙋 I know who it is!</button>` : '');
   }
   function hint() {
     const p = G.prob, h = $('#pzhint');
@@ -11210,23 +11408,28 @@ button.du-st:active { transform: translateY(2px); }
     if (first) K().addGems(SH.REWARD.right);
     MQ.store.save();
   }
+  function missed(v) {
+    G.tries++;
+    if (G.given === undefined) G.given = v;
+    MQ.sfx('wrong');
+    if (G.tries === 1) { hint(); speak(G.mode === 'find' ? 'Oops! That one does not fit. Try again.' : 'Oops! Try again.'); return false; }
+    speak(G.mode === 'find' ? `Look for ${G.prob.answer}.` : `It's ${G.prob.answer}. Tap ${G.prob.answer}.`);
+    return true; // second miss: show the answer
+  }
+  const moveOn = (ms = 1000) => later(() => { G.busy = false; if (!G.left.length) finish(0); else next(); }, ms);
 
   function answer(arg, btn) {
     if (!G || G.busy || G.done) return;
     const v = +arg, p = G.prob;
     if (v !== p.answer) {
-      G.tries++;
-      if (G.given === undefined) G.given = v;
       btn.disabled = true;
       btn.classList.add('nope');
-      MQ.sfx('wrong');
-      if (G.tries === 1) { hint(); speak('Oops! Try again.'); }
-      else { const c = $(`.pz-ans[data-arg="${p.answer}"]`); if (c) c.classList.add('show'); speak(`It's ${p.answer}. Tap ${p.answer}.`); }
+      if (missed(v)) { const c = $(`.pz-ans[data-arg="${p.answer}"]`); if (c) c.classList.add('show'); }
       return;
     }
     G.busy = true;
     btn.classList.add('right');
-    document.querySelectorAll('.pz-ans').forEach((b) => { b.disabled = true; });
+    document.querySelectorAll('.pz-ans, .pz-guess').forEach((b) => { b.disabled = true; });
     MQ.sfx('correct');
     solved();
     if (G.mode === 'build') {
@@ -11234,10 +11437,11 @@ button.du-st:active { transform: translateY(2px); }
       later(() => { G.busy = false; earned(); }, 650);
       return;
     }
-    if (G.mode === 'shape') flyIn(takeRandom(), btn);
-    else drawSeg(G.left.shift());
+    if (G.mode === 'dots') drawSeg(G.left.shift());
+    else if (G.mode === 'hide') blow(takeRandom());
+    else flyIn(takeRandom(), btn);
     speak(U.pick(['Great job!', 'Yes!', 'You got it!', 'Awesome!', 'Super!']));
-    later(() => { G.busy = false; if (!G.left.length) finish(); else next(); }, 1000);
+    moveOn();
   }
 
   function updateProg() {
@@ -11245,8 +11449,9 @@ button.du-st:active { transform: translateY(2px); }
   }
   const toUser = (x, y) => new DOMPoint(x, y).matrixTransform(G.svg.getScreenCTM().inverse());
   const toScreen = (x, y) => new DOMPoint(x, y).matrixTransform(G.svg.getScreenCTM());
+  const screenBox = ([x, y, w, h]) => { const a = toScreen(x, y), b = toScreen(x + w, y + h); return { l: a.x, t: a.y, r: b.x, b: b.y }; };
 
-  // ⭐ a piece flies from the answer button into its place
+  // 🧲 ⭐ a piece flies from the answer button into its place
   function flyIn(i, from) {
     const p = G.pz.pieces[i], g = $(`.pz-pc[data-i="${i}"]`, G.svg);
     g.classList.remove('off');
@@ -11261,6 +11466,100 @@ button.du-st:active { transform: translateY(2px); }
     later(() => { MQ.sfx('tap'); updateProg(); }, 620);
   }
 
+  // ☁️ a cloud blows away; after the first one the child may guess
+  function blow(i) {
+    const c = $(`.pz-cloud[data-i="${i}"]`, G.svg);
+    G.locked = false;
+    MQ.sfx('chime');
+    updateProg();
+    if (!c) return;
+    if (reduced()) return c.remove();
+    c.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${U.pick([-8, 8])}px, -10px) scale(1.5)`, opacity: 0 }], { duration: 650, easing: 'ease-out', fill: 'forwards' }).onfinish = () => c.remove();
+  }
+  function chooser() {
+    if (!G || G.busy || G.done || G.locked) return;
+    const others = U.shuffle(SH.PICS.filter((p) => p.id !== G.item.id)).slice(0, 2);
+    $('#pzpanel').innerHTML = progHtml() + '<div class="pz-q"><div class="pz-lead">Who is hiding?</div></div>' +
+      `<div class="pz-choices">${U.shuffle([G.item, ...others]).map((p) => `<button class="pz-choice" data-act="pzWho" data-arg="${p.id}">${MQ.art(p.id, { stage: p.stage })}<span>${esc(SH.picName(p))}</span></button>`).join('')}</div>` +
+      '<button class="linkbtn pz-back" data-act="pzBack">← Back to the problem</button>';
+    speak('Who is hiding?');
+  }
+  function guess(id, btn) {
+    if (!G || G.busy || G.done) return;
+    G.busy = true;
+    if (id === G.item.id) {
+      btn.classList.add('right');
+      MQ.sfx('correct');
+      const bonus = G.left.length * SH.REWARD.guess;
+      G.left.splice(0).forEach((i, n) => setTimeout(() => blow(i), reduced() ? 0 : n * 90));
+      later(() => { G.busy = false; finish(bonus); }, 500 + bonus * 90);
+    } else {
+      btn.classList.add('nope');
+      MQ.sfx('wrong');
+      G.locked = true; // one guess per cloud
+      speak('Not this one! Solve more to see more.');
+      later(() => { G.busy = false; panel(); }, 1300);
+    }
+  }
+
+  // ✋ the problem in the hole, three pieces in the tray
+  function hole() {
+    const p = G.pz.pieces[G.target], pr = G.prob;
+    let inner;
+    if (pr.t === 'count' && !smallHole()) {
+      const s = Math.min((p.W * 0.8) / 5, (p.H * 0.7) / 2);
+      inner = `<rect x="${f1(p.cx - 2.6 * s)}" y="${f1(p.cy - 1.1 * s)}" width="${f1(5.2 * s)}" height="${f1(2.2 * s)}" rx="${f1(s * 0.3)}" fill="#ffffff" stroke="#22304f" stroke-width=".8"/>` +
+        U.range(0, 9).map((i) => `<circle cx="${f1(p.cx - 2 * s + (i % 5) * s)}" cy="${f1(p.cy - s / 2 + Math.floor(i / 5) * s)}" r="${f1(s * 0.36)}" ${i < pr.n ? 'fill="#ff6b5b"' : 'fill="none" stroke="#c7d1e8" stroke-width=".5"'}/>`).join('');
+    } else {
+      const text = pr.t === 'count' ? '?' : pr.eq, fs = pr.t === 'count' ? p.T * 0.45 : Math.min((p.W * 0.8) / (text.length * 0.55), p.H * 0.38);
+      inner = `<text class="pz-heq" x="${f1(p.cx)}" y="${f1(p.cy)}" font-size="${f1(fs)}">${text}</text>`;
+    }
+    const h = $('.pz-hole', G.svg);
+    h.classList.remove('bad');
+    h.innerHTML = `<path class="pz-holet" d="${p.d}"/>` + inner;
+  }
+  const TRAY = [['#ffd27a', '#c98f1f'], ['#8fe0d4', '#1f8f80'], ['#ffb9ae', '#d0604f']];
+  function tray() {
+    const p = G.pz.pieces[G.target], [, , bw, bh] = p.bb, box = $('#pztray');
+    const avail = Math.max(240, box.clientWidth);
+    const sc = Math.min(G.svg.getBoundingClientRect().width / 120, (avail - 40) / (3 * bw), 150 / bh);
+    box.innerHTML = G.prob.opts.map((v, j) => `<div class="pz-tp" data-v="${v}" tabindex="0" role="button" aria-label="Piece ${v}" style="width:${f1(bw * sc)}px;height:${f1(bh * sc)}px">` +
+      `<svg viewBox="${p.bb.join(' ')}" width="100%" height="100%" aria-hidden="true"><path d="${p.d}" fill="${TRAY[j][0]}" stroke="${TRAY[j][1]}" stroke-width="${f1(2.4 / sc)}" stroke-linejoin="round"/>` +
+      `<text class="pz-tnum" x="${f1(p.cx)}" y="${f1(p.cy)}" font-size="${f1(p.T * 0.5)}">${v}</text></svg></div>`).join('');
+    box.querySelectorAll('.pz-tp').forEach((el) => bindDrag(el, (el2, dx, dy, at) => (!at || near(at, screenBox(p.bb), 30) ? tryPiece(el2, dx, dy) : bounce(el2))));
+  }
+  function tryPiece(el, dx, dy) {
+    if (G.busy || G.done) return;
+    G.busy = true;
+    const v = +el.dataset.v, p = G.pz.pieces[G.target];
+    flyTo(el, dx, dy, p.bb, (nx, ny, sc) => {
+      if (v !== G.prob.answer) {
+        const h = $('.pz-hole', G.svg);
+        h.classList.add('bad');
+        bounce(el);
+        el.classList.add('out');
+        later(() => { h.classList.remove('bad'); G.busy = false; }, 500);
+        if (missed(v)) { const c = $(`.pz-tp[data-v="${G.prob.answer}"]`); if (c) c.classList.add('show'); }
+        return;
+      }
+      el.style.transition = 'transform .16s ease-in'; // the piece turns over and shows its picture
+      el.style.transform = `translate(${nx}px, ${ny}px) scale(.02, ${sc})`;
+      later(() => {
+        el.style.visibility = 'hidden';
+        $('.pz-hole', G.svg).innerHTML = '';
+        const g = $(`.pz-pc[data-i="${p.i}"]`, G.svg);
+        g.classList.remove('off');
+        if (!reduced()) g.animate([{ transform: 'scaleX(0)' }, { transform: 'scale(1.08)', offset: 0.7 }, { transform: 'none' }], { duration: 380, easing: 'ease-out' });
+        MQ.sfx('correct');
+        solved();
+        G.left.splice(G.left.indexOf(p.i), 1);
+        updateProg();
+        speak(U.pick(['Great job!', 'It fits!', 'You got it!', 'Awesome!']));
+        moveOn();
+      }, 170);
+    });
+  }
+
   // ✏️ the line to the next dot
   function drawSeg(i) {
     const pts = G.item.pts, n = pts.length, a = pts[i], b = pts[(i + 1) % n];
@@ -11273,7 +11572,9 @@ button.du-st:active { transform: translateY(2px); }
     updateProg();
   }
 
-  // 🏠 the shape just won waits in the tray: drag it into its outline (a tap puts it there)
+  // 🏠 the shape just won waits in the tray: drag it into its outline (a tap puts it there).
+  // A shape fits every empty outline of the same shape and size (either wheel, either tower).
+  const twins = () => { const sig = SH.sig(G.item.parts[G.earn]); return [G.earn, ...G.left.filter((j) => SH.sig(G.item.parts[j]) === sig)]; };
   function earned() {
     const pt = G.item.parts[G.earn], bb = SH.partBB(pt, 2), big = Math.max(bb[2], bb[3]);
     $('#pzpanel').innerHTML = progHtml() + `<div class="pz-q"><div class="pz-lead">You got a ${pt.kind}!</div>${sayBtn}</div>` +
@@ -11282,21 +11583,26 @@ button.du-st:active { transform: translateY(2px); }
     $('#pztray').innerHTML = `<div class="pz-tp" tabindex="0" role="button" aria-label="${pt.kind}: put it in its place" style="width:${f1(bb[2] * sc)}px;height:${f1(bb[3] * sc)}px">` +
       `<svg viewBox="${bb.join(' ')}" width="100%" height="100%" aria-hidden="true">${SH.partShape(pt, `fill="${pt.col}" stroke="rgba(34,48,79,.55)" stroke-width="${f1(2 / sc)}" stroke-linejoin="round"`)}</svg></div>`;
     G.miss = 0;
-    bindDrag($('#pztray .pz-tp'), partBox, (el, dx, dy, hit) => (hit ? placePart(el, dx, dy) : missPart(el)));
+    bindDrag($('#pztray .pz-tp'), (el, dx, dy, at) => {
+      if (!at) return placePart(el, dx, dy);
+      const hits = twins().map((j) => [j, screenBox(SH.partBB(G.item.parts[j]))]).filter(([, b]) => near(at, b, 30))
+        .sort((a, b) => dist(at, a[1]) - dist(at, b[1]));
+      if (!hits.length) return missPart(el);
+      const j = hits[0][0];
+      if (j !== G.earn) { G.left[G.left.indexOf(j)] = G.earn; G.earn = j; } // dropped on its twin's outline: it goes there
+      placePart(el, dx, dy);
+    });
     speak(`Yes! You got a ${pt.kind}! Where does it go?`);
   }
-  function partBox() {
-    const [x, y, w, h] = SH.partBB(G.item.parts[G.earn]), a = toScreen(x, y), b = toScreen(x + w, y + h);
-    return { l: a.x, t: a.y, r: b.x, b: b.y };
-  }
-  const near = (x, y, h, m) => x > h.l - m && x < h.r + m && y > h.t - m && y < h.b + m;
-  // Drag with a finger or the mouse. onDrop(el, dx, dy, hit): hit is a tap, or a drop near the target box.
-  function bindDrag(el, box, onDrop) {
+  const near = (at, h, m) => at.x > h.l - m && at.x < h.r + m && at.y > h.t - m && at.y < h.b + m;
+  const dist = (at, h) => Math.hypot(at.x - (h.l + h.r) / 2, at.y - (h.t + h.b) / 2);
+  // Drag with a finger or the mouse. onDrop(el, dx, dy, at): at is where it was dropped, or null for a tap (or Enter).
+  function bindDrag(el, onDrop) {
     el.addEventListener('pointerdown', (e) => {
       if (!G || G.busy || G.done || e.button > 0) return;
       e.preventDefault();
       try { el.setPointerCapture(e.pointerId); } catch (err) { /* fine without */ }
-      const sx = e.clientX, sy = e.clientY, target = box();
+      const sx = e.clientX, sy = e.clientY;
       let dx = 0, dy = 0, moved = false;
       el.classList.add('drag');
       const mv = (ev) => {
@@ -11308,68 +11614,77 @@ button.du-st:active { transform: translateY(2px); }
         el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
         el.classList.remove('drag');
         if (ev.type === 'pointercancel') { el.style.transform = ''; return; }
-        onDrop(el, dx, dy, !moved || near(ev.clientX, ev.clientY, target, 30));
+        onDrop(el, dx, dy, moved ? { x: ev.clientX, y: ev.clientY } : null);
       };
       el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
     });
-    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onDrop(el, 0, 0, true); } });
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onDrop(el, 0, 0, null); } });
+  }
+  function bounce(el) {
+    el.style.transition = 'transform .45s cubic-bezier(.3,1.4,.5,1)';
+    el.style.transform = '';
+  }
+  // Fly a tray piece onto the board so its box lands on bb (board units) at the board's size; then done(nx, ny, scale).
+  function flyTo(el, dx, dy, bb, done) {
+    const r = el.getBoundingClientRect(), b = screenBox(bb);
+    const nx = f1(dx + (b.l + b.r) / 2 - (r.left + r.width / 2)), ny = f1(dy + (b.t + b.b) / 2 - (r.top + r.height / 2)), sc = f1((b.r - b.l) / el.offsetWidth);
+    el.style.transition = 'transform .32s cubic-bezier(.3,.9,.4,1)';
+    el.style.transform = `translate(${nx}px, ${ny}px) scale(${sc})`;
+    later(() => { el.style.transition = ''; done(nx, ny, sc); }, 330);
   }
   function placePart(el, dx, dy) {
     if (G.busy || G.done) return;
     G.busy = true;
-    const i = G.earn, pt = G.item.parts[i], [bx, by, bw, bh] = SH.partBB(pt, 2);
-    // fly onto the outline at the outline's size
-    const r = el.getBoundingClientRect(), a = toScreen(bx, by), b = toScreen(bx + bw, by + bh);
-    const nx = f1(dx + (a.x + b.x) / 2 - (r.left + r.width / 2)), ny = f1(dy + (a.y + b.y) / 2 - (r.top + r.height / 2));
-    el.style.transition = 'transform .32s cubic-bezier(.3,.9,.4,1)';
-    el.style.transform = `translate(${nx}px, ${ny}px) scale(${f1((b.x - a.x) / el.offsetWidth)})`;
-    later(() => {
+    const i = G.earn, pt = G.item.parts[i];
+    flyTo(el, dx, dy, SH.partBB(pt, 2), () => {
       el.style.visibility = 'hidden';
+      G.svg.querySelectorAll('.pz-part.hint').forEach((g) => g.classList.remove('hint'));
       const g = $(`.pz-part[data-i="${i}"]`, G.svg);
-      g.classList.remove('hint');
       g.innerHTML = SH.partShape(pt, `class="pz-pfill" fill="${pt.col}"`);
       if (!reduced()) g.animate([{ transform: 'scale(1.25)' }, { transform: 'none' }], { duration: 300, easing: 'ease-out' });
       MQ.sfx('tap');
       G.earn = -1;
       updateProg();
       speak(U.pick(['It fits!', 'Great job!', 'Perfect!']));
-      later(() => { G.busy = false; if (!G.left.length) finish(); else next(); }, 900);
-    }, 340);
+      moveOn(900);
+    });
   }
   function missPart(el) {
     MQ.sfx('wrong');
-    el.style.transition = 'transform .45s cubic-bezier(.3,1.4,.5,1)';
-    el.style.transform = '';
+    bounce(el);
     if (++G.miss >= 2) {
-      const g = $(`.pz-part[data-i="${G.earn}"]`, G.svg);
-      if (g) g.classList.add('hint');
+      twins().forEach((j) => { const g = $(`.pz-part[data-i="${j}"]`, G.svg); if (g) g.classList.add('hint'); });
       speak('It goes here. Look for the glowing outline!');
     } else speak(`Not there. Find the ${G.item.parts[G.earn].kind} outline!`);
   }
 
   // ---------------------------------------------------------------- finished
-  function finish() {
+  function finish(bonus) {
     G.done = true;
     G.svg.classList.add('done');
-    const s = st(), fresh = SH.finish(s, G.key), gems = SH.REWARD.done + (fresh ? SH.REWARD.fresh : 0);
+    const s = st(), fresh = SH.finish(s, G.key), gems = SH.REWARD.done + (fresh ? SH.REWARD.fresh : 0) + bonus;
     K().addGems(gems);
     MQ.store.save();
     let art, title, fact;
-    if (G.mode === 'shape') { art = SH.shapeArt(G.item); title = `You made a ${G.item.name}!`; fact = G.item.fact; }
+    if (G.pic) {
+      const name = SH.picName(G.item);
+      art = SH.picArt(G.item);
+      title = G.mode === 'hide' ? `It's the ${name}!` : `You made the ${name}!`;
+      fact = creature(G.item).fact || '';
+    } else if (G.mode === 'shape') { art = SH.shapeArt(G.item); title = `You made a ${G.item.name}!`; fact = G.item.fact; }
     else if (G.mode === 'build') { art = SH.figArt(G.item); title = `You built ${G.item.name}!`; fact = SH.shapeCount(G.item); }
     else { art = SH.dotArt(G.item); title = `It's a ${G.item.name}!`; fact = G.item.fact; }
-    $('#pzpanel').innerHTML = `<div class="pz-win">${svgBox(art, 'pz-winart')}<b>${esc(title)}</b><p>${esc(fact)}</p>
-      <p class="pz-gems">+${gems} 💎${fresh ? ' · new in your album!' : ''}</p>
+    $('#pzpanel').innerHTML = `<div class="pz-win">${svgBox(art, 'pz-winart')}<b>${esc(title)}</b>${fact ? `<p>${esc(fact)}</p>` : ''}
+      ${bonus ? `<p class="pz-gems">You guessed early: +${bonus} 💎</p>` : ''}<p class="pz-gems">+${gems} 💎${fresh ? ' · new in your album!' : ''}</p>
       <div class="row"><button class="btn ghost" data-act="go" data-arg="shapes">All puzzles</button><button class="btn" data-act="pzNext">Next puzzle →</button></div></div>`;
     MQ.sfx('reward');
     MQ.confetti(120);
-    later(() => speak(`Hooray! ${title} ${fact}`), 300);
+    later(() => speak(`Hooray! ${title}`), 300);
     setTimeout(() => { if (st() === s) K().checkBadges(); }, 1600); // even if the child has already left the puzzle
   }
   function nextKey() {
-    const list = G.mode === 'shape' ? SH.SHAPES : G.mode === 'build' ? SH.FIGS : null;
-    if (!list) return 'dots';
-    const k = list.findIndex((x) => x.id === G.item.id);
+    if (G.pic || G.mode === 'dots') return G.mode; // the next one not made yet
+    const list = G.mode === 'shape' ? SH.SHAPES : SH.FIGS, k = list.findIndex((x) => x.id === G.item.id);
     return G.mode + ':' + list[(k + 1) % list.length].id;
   }
 
@@ -11379,8 +11694,11 @@ button.du-st:active { transform: translateY(2px); }
     pzSize: (a) => { if (SH.GRID[a]) { SH.ensure(st()).n = +a; MQ.store.save(); } hub(); },
     pzAns: (a, el) => answer(a, el),
     pzSay: () => { if (G) MQ.speak(sayQ()); },
+    pzGuess: () => chooser(),
+    pzWho: (a, el) => guess(a, el),
+    pzBack: () => { if (G && !G.done) panel(); },
   };
-  // show(): the album page; show('shape:star') starts that puzzle (used by links and the browser test)
+  // show(): the album page; show('shape:star') or show('snap') starts a puzzle (used by links and the browser test)
   const show = (arg) => (arg ? start(arg) : hub());
   MQ.shapesUI = { show, actions: A, playing: () => G };
 })();
@@ -11841,10 +12159,10 @@ button.du-st:active { transform: translateY(2px); }
       <p class="muted">Creature cards battle with their stats. Every round ends with a question about the two numbers: ${st.grade === 'k' ? 'which number is bigger (numbers up to 100, ahead of kindergarten, with bars to help)' : 'how much more (subtraction within 100, and within 1,000 in the Power round)'}. First-try right answers earn crystals; the answers count in the daily totals above.</p></section>`;
   }
 
-  // Shape Puzzles (js/shapes-ui.js): how full the album is.
+  // Puzzle Time (js/shapes-ui.js): how full the album is.
   function shapesTile() {
     const n = MQ.shapes.count(st);
-    return `<button class="tile t-shapes wide" data-act="go" data-arg="shapes"><span class="ti">🧩</span><span><b>Shape Puzzles</b><small>${n ? `Album: ${n} of ${MQ.shapes.total()} · ` : 'New! '}Make shapes, build pictures, connect the dots</small></span></button>`;
+    return `<button class="tile t-shapes wide" data-act="go" data-arg="shapes"><span class="ti">🧩</span><span><b>Puzzle Time</b><small>${n ? `Album: ${n} of ${MQ.shapes.total()} · ` : 'New! '}Picture puzzles, shapes, building and dot to dot</small></span></button>`;
   }
 
   // For grown-ups: how Sunny Farm is going (its money problems also count in the daily totals above).
@@ -12015,7 +12333,7 @@ button.du-st:active { transform: translateY(2px); }
     if (r === 'fixed' && !S.preview) sess.fixedNow++;
     return r;
   }
-  // Statistics, mistakes to practice and the rewards that go with them, for games and for Shape Puzzles.
+  // Statistics, mistakes to practice and the rewards that go with them, for games and for Puzzle Time.
   function record(p, first, given) {
     const r = S.record(p, first, given);
     if (r === 'fixed' && !S.preview) {
@@ -13728,7 +14046,7 @@ button.du-st:active { transform: translateY(2px); }
     if (ACTIONS[name]) return ACTIONS[name](arg, el);
     if (st && MQ.farmUI && MQ.farmUI.actions[name]) return MQ.farmUI.actions[name](arg, el); // Sunny Farm (js/farm-ui.js)
     if (st && MQ.duelUI && MQ.duelUI.actions[name]) return MQ.duelUI.actions[name](arg, el); // Card Duels (js/duel.js)
-    if (st && MQ.shapesUI && MQ.shapesUI.actions[name]) MQ.shapesUI.actions[name](arg, el); // Shape Puzzles (js/shapes-ui.js)
+    if (st && MQ.shapesUI && MQ.shapesUI.actions[name]) MQ.shapesUI.actions[name](arg, el); // Puzzle Time (js/shapes-ui.js)
   }
 
   function init() {
@@ -13780,7 +14098,7 @@ button.du-st:active { transform: translateY(2px); }
     startScreen();
   }
 
-  // kit: what the Sunny Farm, Card Duels and Shape Puzzles screens (js/farm-ui.js, js/duel.js, js/shapes-ui.js) borrow from the app
+  // kit: what the Sunny Farm, Card Duels and Puzzle Time screens (js/farm-ui.js, js/duel.js, js/shapes-ui.js) borrow from the app
   const kit = { render, toast, modal, closeModal, go, checkBadges, header, addGems, addXp, record, state: () => st, setCur: (c) => { cur = c; } };
   MQ.app = { init, go, kit, session: () => sess, contest: () => ct }; // session() and contest() are used by the browser tests
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

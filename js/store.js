@@ -41,7 +41,7 @@
     tests: { checks: [], contests: [] }, // Placement Check and mock contest results (newest last)
     seen: {}, // test-prep topic: recently shown question keys (oldest first), so retakes bring new questions
     nnatDays: {}, // 'YYYY-MM-DD': NNAT-3 practice puzzles answered that day (the GATE plan counts practice days)
-    puzzles: { n: 6, done: {} }, // Shape Puzzles: pieces in a shape puzzle, and how many times each puzzle was finished (js/shapes.js)
+    puzzles: { n: 6, done: {} }, // Puzzle Time: pieces in a jigsaw puzzle, and how many times each puzzle was finished (js/shapes.js)
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
     settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true },
   });
@@ -284,7 +284,7 @@
     out.tips = Object.assign({}, old.tips || {}, nw.tips || {});
     out.nnatDays = Object.assign({}, old.nnatDays || {});
     for (const [d, n] of Object.entries(nw.nnatDays || {})) out.nnatDays[d] = max(n, (old.nnatDays || {})[d]);
-    // Shape Puzzles: every puzzle finished on either device stays in the album
+    // Puzzle Time: every puzzle finished on either device stays in the album
     out.puzzles = Object.assign({}, nw.puzzles || {}, { done: Object.assign({}, (old.puzzles || {}).done) });
     for (const [k, n] of Object.entries((nw.puzzles || {}).done || {})) out.puzzles.done[k] = max(n, out.puzzles.done[k]);
     // Sunny Farm: the copy changed last wins as a whole (money is spent, animals move), by the farm's own clock,

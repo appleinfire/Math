@@ -1475,7 +1475,7 @@ button.du-st:active { transform: translateY(2px); }
 @media (prefers-reduced-motion: reduce) { .du-vs .du-card.flip, .du-vs .du-card.won, .du-rival { animation: none; } }
 @media (min-width: 700px) { .du-arena { max-width: 640px; margin-left: auto; margin-right: auto; } .du-hand .du-pic, .du-vs .du-pic { width: 60px; height: 60px; font-size: 2.8rem; } }
 
-/* ---------- Shape Puzzles (js/shapes-ui.js): an album page, then a board and a math card side by side on an iPad ---------- */
+/* ---------- Puzzle Time (js/shapes-ui.js): an album page, then a board and a math card side by side on an iPad ---------- */
 .tile.t-shapes { background: #f6efff; box-shadow: inset 0 0 0 3px #9b7be0, 0 4px 0 #7a5cd6; }
 .pzhub { display: flex; flex-direction: column; gap: 14px; }
 .pz-intro { margin: 0; color: var(--ink-soft); }
@@ -1536,6 +1536,33 @@ button.du-st:active { transform: translateY(2px); }
 .pz-win p { margin: 0; font-weight: 700; color: var(--ink-soft); }
 .pz-win .pz-gems { color: var(--ink); font-weight: 800; }
 .pz-win .row { margin-top: 6px; }
+/* the album page: picture puzzles */
+.pz-top { display: flex; flex-direction: column; gap: 10px; }
+.pz-group { font-size: 1.3rem; margin-top: 6px; }
+.pz-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.pz-mode .pzc-h { flex-direction: column; align-items: flex-start; gap: 4px; }
+.pz-mode .btn { align-self: flex-start; margin-top: auto; }
+.pz-sub { font-size: 1.05rem; }
+.pz-tip.left { text-align: left; }
+.pz-guess { border: 0; border-radius: 16px; padding: 12px; background: #7a5cd6; color: #ffffff; font: 600 1.1rem var(--display); box-shadow: 0 4px 0 #5a3fb3; }
+.pz-guess:disabled { background: #d9d3ee; box-shadow: 0 4px 0 #c4bbe2; cursor: default; }
+.pz-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.pz-choice { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px 10px; border: 3px solid var(--line); border-radius: 18px; background: #f6f8fd; font: 600 0.95rem/1.15 var(--display); }
+.pz-choice svg { width: 100%; max-width: 96px; height: auto; aspect-ratio: 1; }
+.pz-choice.right { background: var(--good-soft); border-color: #8fd3ac; }
+.pz-choice.nope { background: var(--bad-soft); border-color: #f3b4a8; animation: shake 0.4s; }
+.pz-back { align-self: center; }
+/* the board: who's hiding */
+.pz-cloud { transform-box: view-box; }
+.pz-qm { font-family: var(--display); font-weight: 600; fill: #b7c3e6; text-anchor: middle; dominant-baseline: central; }
+/* the board: find the piece */
+.pz-holet { fill: #fff8e6; stroke: var(--sun); stroke-width: 1.3; stroke-dasharray: 3 2; animation: pzmarch 1s linear infinite; }
+.pz-hole.bad .pz-holet { fill: var(--bad-soft); stroke: var(--bad); }
+.pz-heq, .pz-tnum { font-family: var(--display); font-weight: 600; fill: var(--ink); text-anchor: middle; dominant-baseline: central; }
+.pz-tray { gap: 14px; flex-wrap: wrap; }
+.pz-tp.out { opacity: 0.35; pointer-events: none; }
+.pz-tp.show { animation: pzglowp 1s infinite; }
+@keyframes pzglowp { 50% { filter: drop-shadow(0 0 10px #ffb547); } }
 /* the board: shape puzzle */
 .pz-bg { fill: #f3f6fd; }
 .pz-slot { fill: none; stroke: #c3cde6; stroke-width: 0.55; stroke-dasharray: 2 1.5; }
@@ -1545,6 +1572,7 @@ button.du-st:active { transform: translateY(2px); }
 .pz-seam { fill: none; stroke: #ffffff; stroke-width: 0.7; stroke-opacity: 0.9; transition: stroke-opacity 0.9s; }
 .pz-full { opacity: 0; transition: opacity 0.9s; pointer-events: none; }
 .done .pz-seam { stroke-opacity: 0; }
+.done .pz-slot, .done .pz-edge { opacity: 0; transition: opacity 0.9s; }
 .done .pz-full { opacity: 1; }
 .pz-pc { transition: opacity 0.9s; }
 .done .pz-pc { opacity: 0; } /* the whole picture fades in over the pieces */
@@ -1566,6 +1594,6 @@ button.du-st:active { transform: translateY(2px); }
 @keyframes pzdraw { to { stroke-dashoffset: 0; } }
 @keyframes pzpulse { 50% { transform: scale(1.6); } }
 @media (prefers-reduced-motion: reduce) {
-  .pz-dot.cur circle, .pz-part.hint .pz-pslot, .pz-ans.show, .pz-winart { animation: none; }
+  .pz-dot.cur circle, .pz-part.hint .pz-pslot, .pz-ans.show, .pz-winart, .pz-holet, .pz-tp.show { animation: none; }
   .pz-seg { animation-duration: 0.01ms; }
 }
