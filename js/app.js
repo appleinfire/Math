@@ -453,10 +453,10 @@
       <p class="muted">Creature cards battle with their stats. Every round ends with a question about the two numbers: ${st.grade === 'k' ? 'which number is bigger (numbers up to 100, ahead of kindergarten, with bars to help)' : 'how much more (subtraction within 100, and within 1,000 in the Power round)'}. First-try right answers earn crystals; the answers count in the daily totals above.</p></section>`;
   }
 
-  // Shape Puzzles (js/shapes-ui.js): how full the album is.
+  // Puzzle Time (js/shapes-ui.js): how full the album is.
   function shapesTile() {
     const n = MQ.shapes.count(st);
-    return `<button class="tile t-shapes wide" data-act="go" data-arg="shapes"><span class="ti">🧩</span><span><b>Shape Puzzles</b><small>${n ? `Album: ${n} of ${MQ.shapes.total()} · ` : 'New! '}Make shapes, build pictures, connect the dots</small></span></button>`;
+    return `<button class="tile t-shapes wide" data-act="go" data-arg="shapes"><span class="ti">🧩</span><span><b>Puzzle Time</b><small>${n ? `Album: ${n} of ${MQ.shapes.total()} · ` : 'New! '}Picture puzzles, shapes, building and dot to dot</small></span></button>`;
   }
 
   // For grown-ups: how Sunny Farm is going (its money problems also count in the daily totals above).
@@ -627,7 +627,7 @@
     if (r === 'fixed' && !S.preview) sess.fixedNow++;
     return r;
   }
-  // Statistics, mistakes to practice and the rewards that go with them, for games and for Shape Puzzles.
+  // Statistics, mistakes to practice and the rewards that go with them, for games and for Puzzle Time.
   function record(p, first, given) {
     const r = S.record(p, first, given);
     if (r === 'fixed' && !S.preview) {
@@ -2340,7 +2340,7 @@
     if (ACTIONS[name]) return ACTIONS[name](arg, el);
     if (st && MQ.farmUI && MQ.farmUI.actions[name]) return MQ.farmUI.actions[name](arg, el); // Sunny Farm (js/farm-ui.js)
     if (st && MQ.duelUI && MQ.duelUI.actions[name]) return MQ.duelUI.actions[name](arg, el); // Card Duels (js/duel.js)
-    if (st && MQ.shapesUI && MQ.shapesUI.actions[name]) MQ.shapesUI.actions[name](arg, el); // Shape Puzzles (js/shapes-ui.js)
+    if (st && MQ.shapesUI && MQ.shapesUI.actions[name]) MQ.shapesUI.actions[name](arg, el); // Puzzle Time (js/shapes-ui.js)
   }
 
   function init() {
@@ -2392,7 +2392,7 @@
     startScreen();
   }
 
-  // kit: what the Sunny Farm, Card Duels and Shape Puzzles screens (js/farm-ui.js, js/duel.js, js/shapes-ui.js) borrow from the app
+  // kit: what the Sunny Farm, Card Duels and Puzzle Time screens (js/farm-ui.js, js/duel.js, js/shapes-ui.js) borrow from the app
   const kit = { render, toast, modal, closeModal, go, checkBadges, header, addGems, addXp, record, state: () => st, setCur: (c) => { cur = c; } };
   MQ.app = { init, go, kit, session: () => sess, contest: () => ct }; // session() and contest() are used by the browser tests
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

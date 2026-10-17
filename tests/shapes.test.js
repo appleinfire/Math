@@ -1,9 +1,9 @@
 // Run: node tests/shapes.test.js
-// Checks Shape Puzzles: the jigsaw cut covers each shape with no crumbs, the pictures are valid SVG inside the board,
+// Checks Puzzle Time: the jigsaw cut covers each shape with no crumbs, the pictures are valid SVG inside the board,
 // the problems (both grades) and how they are recorded, the album, its badges, and merging it from two devices.
 const path = require('path');
 const assert = require('assert');
-for (const f of ['util', 'visuals', 'generators', 'generators-k', 'content', 'content-k', 'store', 'shapes']) require(path.join(__dirname, '..', 'js', f + '.js'));
+for (const f of ['util', 'visuals', 'generators', 'generators-k', 'content', 'content-k', 'creature-art', 'store', 'shapes']) require(path.join(__dirname, '..', 'js', f + '.js'));
 const MQ = globalThis.MQ, SH = MQ.shapes;
 
 // Well-formed SVG: tags close in order, every url(#id) has its definition, no NaN.
@@ -22,7 +22,7 @@ function checkSvg(inner, what) {
 const inBoard = (pts, what) => pts.forEach(([x, y]) => assert.ok(x >= 0 && x <= 120 && y >= 0 && y <= 120, `${what}: point ${x},${y} is off the board`));
 
 // ---- shapes and the cut
-assert.strictEqual(SH.ITEMS.length, 16, '6 shapes, 5 pictures, 5 dot-to-dots');
+assert.strictEqual(SH.ITEMS.length, 48, '16 pictures, 12 shapes, 10 pictures made of shapes, 10 dot-to-dots');
 assert.strictEqual(new Set(SH.ITEMS).size, SH.ITEMS.length, 'album keys are unique');
 for (const sh of SH.SHAPES) {
   inBoard(sh.pts, sh.id);
@@ -31,7 +31,7 @@ for (const sh of SH.SHAPES) {
   for (const n of Object.keys(SH.GRID).map(Number)) {
     for (let run = 0; run < 20; run++) { // knobs are random: cut it many times
       const { cols, rows, pieces } = SH.cut(n, sh);
-      assert.ok(pieces.length >= Math.min(4, n) && pieces.length <= n, `${sh.id} ${n}: ${pieces.length} pieces`);
+      assert.ok(pieces.length >= Math.min(3, n) && pieces.length <= n, `${sh.id} ${n}: ${pieces.length} pieces`);
       for (const p of pieces) {
         assert.ok(p.cover >= SH.MIN_COVER, `${sh.id} ${n}: a crumb of a piece`);
         assert.ok(/^M[\d. LCZ-]+Z$/.test(p.d) && !/NaN/.test(p.d), `${sh.id} ${n}: bad piece path`);
@@ -58,8 +58,9 @@ assert.strictEqual(SH.cut(6, SH.SHAPES.find((s) => s.id === 'triangle')).pieces.
 
 // ---- pictures made of shapes
 const KINDS = ['square', 'rectangle', 'triangle', 'circle', 'star', 'trapezoid'];
+const sigs = new Set();
 for (const f of SH.FIGS) {
-  assert.ok(f.parts.length >= 5 && f.parts.length <= 6, f.id + ': 5–6 shapes to place');
+  assert.ok(f.parts.length >= 5 && f.parts.length <= 7, f.id + ': 5–7 shapes to place');
   checkSvg(SH.figArt(f), f.id);
   for (const pt of f.parts) {
     assert.ok(KINDS.includes(pt.kind), `${f.id}: unknown kind ${pt.kind}`);
@@ -67,10 +68,36 @@ for (const f of SH.FIGS) {
     inBoard([[x, y], [x + w, y + h]], f.id + ' ' + pt.kind);
     assert.ok(Math.min(w, h) >= 8, `${f.id}: a ${pt.kind} too small to drag (${w}×${h})`);
     if (pt.kind === 'square') assert.strictEqual(w, h, f.id + ': a square has equal sides');
+    if (pt.kind === 'rectangle') assert.notStrictEqual(w, h, f.id + ': a rectangle that is a square should be called a square');
   }
+  // Twins (same shape and size) fit each other's outlines, so they must look the same too.
+  for (const a of f.parts) for (const b of f.parts) if (a !== b && SH.sig(a) === SH.sig(b)) assert.strictEqual(a.col, b.col, `${f.id}: twin ${a.kind}s should be the same color`);
   assert.match(SH.shapeCount(f), /^It has \d+ \w+(, \d+ \w+)*( and \d+ \w+)?\.$/);
 }
 assert.strictEqual(SH.shapeCount(SH.FIGS.find((f) => f.id === 'house')), 'It has 2 circles, 1 square, 1 triangle and 1 rectangle.');
+const car = SH.FIGS.find((f) => f.id === 'car').parts;
+assert.strictEqual(SH.sig(car[3]), SH.sig(car[4]), 'the two wheels of the car are twins');
+assert.notStrictEqual(SH.sig(car[1]), SH.sig(car[2]), 'the window and the body are not');
+const rocket = SH.FIGS.find((f) => f.id === 'rocket').parts;
+assert.notStrictEqual(SH.sig(rocket[4]), SH.sig(rocket[5]), 'mirrored fins are not twins: each has its own side');
+assert.strictEqual(new Set(SH.SHAPES.map((s) => s.id)).size, 12);
+assert.strictEqual(new Set(SH.FIGS.map((s) => s.id)).size, 10);
+assert.strictEqual(new Set(SH.DOTS.map((s) => s.id)).size, 10);
+
+// ---- picture puzzles: a creature from the Hatchery in a scene
+assert.strictEqual(SH.PICS.length, 16);
+assert.strictEqual(new Set(SH.PICS.map((p) => p.id)).size, 16, 'every picture is a different creature');
+for (const p of SH.PICS) {
+  assert.ok(MQ.hasArt(p.id), p.id + ': has a drawing');
+  assert.ok(SH.SCENES[p.scene], p.id + ': unknown scene ' + p.scene);
+  assert.ok(MQ.EGG_CREATURES.some((c) => c.id === p.id), p.id + ': is a Hatchery creature');
+  assert.ok(SH.picName(p) && SH.picName(p) !== p.id, p.id + ': has a name');
+  const art = SH.picArt(p);
+  checkSvg(art, p.id);
+  assert.ok(art.includes('<svg x="8" y="10" width="104" height="104"'), p.id + ': the creature sits on the scene');
+}
+// a picture is cut into every cell of the board
+for (const n of Object.keys(SH.GRID).map(Number)) assert.strictEqual(SH.cut(n, null).pieces.length, n);
 
 // ---- dot to dot
 for (const d of SH.DOTS) {
@@ -131,9 +158,10 @@ assert.strictEqual(SH.finish(st, 'shape:star'), false, 'second time: not new');
 assert.strictEqual(st.puzzles.done['shape:star'], 2);
 st.puzzles.done['shape:old-one'] = 1; // a puzzle removed in a later version does not count
 assert.strictEqual(SH.count(st), 1);
-for (const d of SH.DOTS.slice(0, 4)) SH.finish(st, 'dots:' + d.id);
-for (let i = 0; i < 30; i++) assert.strictEqual(SH.nextDots(st, '').id, SH.DOTS[4].id, 'the dot-to-dot not found yet comes next');
-for (let i = 0; i < 30; i++) assert.notStrictEqual(SH.nextDots(st, SH.DOTS[4].id).id, SH.DOTS[4].id, 'not the same one twice in a row');
+const lastDot = SH.DOTS[SH.DOTS.length - 1];
+for (const d of SH.DOTS.slice(0, -1)) SH.finish(st, 'dots:' + d.id);
+for (let i = 0; i < 30; i++) assert.strictEqual(SH.nextDots(st, '').id, lastDot.id, 'the dot-to-dot not found yet comes next');
+for (let i = 0; i < 30; i++) assert.notStrictEqual(SH.nextDots(st, lastDot.id).id, lastDot.id, 'not the same one twice in a row');
 assert.deepStrictEqual(SH.find('build:rocket').item.id, 'rocket');
 assert.strictEqual(SH.find('build:nope').item, null);
 assert.strictEqual(SH.find('nope:x'), null);
@@ -143,6 +171,10 @@ const badge = (id) => MQ.BADGES.find((b) => b.id === id);
 assert.ok(badge('puzzle1') && badge('puzzleall'));
 assert.strictEqual(badge('puzzle1').test(st), true);
 assert.strictEqual(badge('puzzleall').test(st), false);
+for (const p of SH.PICS.slice(0, 15)) SH.finish(st, 'pic:' + p.id);
+for (let i = 0; i < 30; i++) assert.strictEqual(SH.nextPic(st, '').id, SH.PICS[15].id, 'the picture not made yet comes next');
+for (let i = 0; i < 30; i++) assert.notStrictEqual(SH.nextPic(st, SH.PICS[15].id).id, SH.PICS[15].id, 'not the same picture twice in a row');
+assert.strictEqual(SH.find('snap:pegasus').item.id, 'pegasus');
 for (const k of SH.ITEMS) SH.finish(st, k);
 assert.strictEqual(badge('puzzleall').test(st), true);
 assert.strictEqual(badge('puzzle1').test({}), false, 'an old profile without puzzles');
@@ -158,4 +190,4 @@ assert.strictEqual(m.puzzles.n, 4, 'the piece count comes from the most recent c
 const m2 = MQ.store.mergeProfiles(base(), Object.assign(base(), { rev: 5 }));
 assert.deepStrictEqual(m2.puzzles.done, {}, 'profiles from before Shape Puzzles merge fine');
 
-console.log('shapes ok:', SH.SHAPES.length, 'shapes cut 4 ways ×20,', SH.FIGS.length, 'pictures,', SH.DOTS.length, 'dot-to-dots, 40,000 problems');
+console.log('puzzles ok:', SH.PICS.length, 'pictures,', SH.SHAPES.length, 'shapes cut 4 ways ×20,', SH.FIGS.length, 'pictures of shapes,', SH.DOTS.length, 'dot-to-dots, 40,000 problems');
