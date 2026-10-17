@@ -39,26 +39,61 @@
   const svgBox = (inner, cls = '') => `<svg class="${cls}" viewBox="0 0 120 120" aria-hidden="true" focusable="false">${inner}</svg>`;
   const creature = (pic) => (MQ.EGG_CREATURES || []).find((c) => c.id === pic.id) || {};
 
-  // ---------------------------------------------------------------- the album page
+  // ---------------------------------------------------------------- the album page, packs, the gallery
+  const MONTHS = 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ');
+  const mmdd = (s) => MONTHS[+s.slice(0, 2) - 1] + ' ' + +s.slice(3);
+  const starStr = (n) => (n ? `<span class="pz-stars" role="img" aria-label="${n} of 3 stars">${'★'.repeat(n)}<s>${'★'.repeat(3 - n)}</s></span>` : '');
+  const tick = (on) => (on ? '<i aria-hidden="true">✓</i>' : '');
+  // A picture to tap and play (in Snap! or Find the piece); a locked one is dimmed with a lock.
+  function picThumb(p, o = {}) {
+    const pz = SH.ensure(st()), key = 'pic:' + p.id, got = !!pz.done[key];
+    const cls = `pz-thumb ${got ? 'got' : ''} ${pz.gold[key] ? 'gold' : ''} ${p.kind === 'legend' ? 'legend' : ''} ${o.locked ? 'locked' : ''}`;
+    const inner = svgBox(SH.picArt(p)) + tick(got) + starStr(pz.stars[key]) + (o.locked ? '<b class="pz-lock" aria-hidden="true">🔒</b>' : '');
+    return o.locked ? `<span class="${cls}" role="img" aria-label="${esc(SH.picName(p))} (locked)">${inner}</span>`
+      : `<button class="${cls}" data-act="pzPlay" data-arg="${o.as || 'snap'}:${p.id}" aria-label="${esc(SH.picName(p))}${got ? ' (done)' : ''}">${inner}</button>`;
+  }
+  function packStatus(P) {
+    const s = st(), bought = SH.ensure(s).packs[P.id];
+    if (!P.price) return '<span class="pz-tag free">Free</span>';
+    if (bought) return '<span class="pz-tag own">✓ Yours</span>';
+    if (SH.inSeason(P)) return `<span class="pz-tag free">Free until ${mmdd(P.season[1])}</span>`;
+    return `<span class="pz-tag price">${P.price} 💎</span>`;
+  }
+  function packCard(P) {
+    const s = st(), pics = SH.packPics(P.id), made = pics.filter((p) => SH.ensure(s).done['pic:' + p.id]).length;
+    return `<button class="pz-pack ${P.legend ? 'legend' : ''} ${SH.hasPack(s, P) ? '' : 'locked'}" data-act="pzPack" data-arg="${P.id}">
+      ${svgBox(SH.picArt(pics[0]), 'pz-cover')}<span class="pz-pack-t"><b>${P.icon} ${esc(P.name)}</b><small>${made} of ${pics.length} made</small>${packStatus(P)}</span></button>`;
+  }
+  // Packs in the order a child wants them: free, seasonal ones in their season, the rest, Legendary last.
+  const packOrder = () => {
+    const rank = (P) => (!P.price ? 0 : SH.inSeason(P) ? 1 : P.legend ? 3 : 2);
+    return SH.PACKS.slice().sort((a, b) => rank(a) - rank(b));
+  };
   function hub() {
     G = null;
     const s = st(), pz = SH.ensure(s), done = pz.done;
-    const tick = (key) => (done[key] ? '<i aria-hidden="true">✓</i>' : '');
-    // key: the puzzle to play; got: its album entry (a picture made in any picture puzzle is 'pic:<id>')
-    const thumb = (key, art, label, got = key) => `<button class="pz-thumb ${done[got] ? 'got' : ''}" data-act="pzPlay" data-arg="${key}" aria-label="${esc(label)}${done[got] ? ' (done)' : ''}">${svgBox(art)}${tick(got)}</button>`;
+    const thumb = (key, art, label) => `<button class="pz-thumb ${done[key] ? 'got' : ''}" data-act="pzPlay" data-arg="${key}" aria-label="${esc(label)}${done[key] ? ' (done)' : ''}">${svgBox(art)}${tick(done[key])}${starStr(pz.stars[key])}</button>`;
     const mystery = '<span class="pz-thumb mystery" role="img" aria-label="not found yet">?</span>';
     const head = (mode) => `<div class="pzc-h"><span class="pzc-i" aria-hidden="true">${MODES[mode].icon}</span><div><h2>${MODES[mode].title}</h2><p>${MODES[mode].blurb}</p></div></div>`;
     const card = (mode, body) => `<section class="pzcard pz-${mode}">${head(mode)}${body}</section>`;
-    const picsFound = SH.PICS.filter((p) => done['pic:' + p.id]).length;
-    const pics = SH.PICS.map((p) => (done['pic:' + p.id] ? thumb('snap:' + p.id, SH.picArt(p), SH.picName(p), 'pic:' + p.id) : mystery)).join('');
-    const dots = SH.DOTS.map((d) => (done['dots:' + d.id] ? `<span class="pz-thumb got" role="img" aria-label="${d.name}">${svgBox(SH.dotArt(d))}${tick('dots:' + d.id)}</span>` : mystery)).join('');
+    const dots = SH.DOTS.map((d) => (done['dots:' + d.id] ? `<span class="pz-thumb got" role="img" aria-label="${d.name}">${svgBox(SH.dotArt(d))}${tick(true)}</span>` : mystery)).join('');
+    const d = SH.daily(s), dDone = SH.dailyDone(s), streak = pz.daily.streak;
+    const daily = `<section class="pzcard pz-daily ${dDone ? 'done' : ''}"><span class="pzc-i" aria-hidden="true">${dDone ? '✅' : '🌞'}</span>
+      <div class="pz-daily-t"><h2>Puzzle of the day</h2><p>${dDone ? `Done! A new one comes tomorrow.${streak ? ` 🔥 ${streak} ${streak === 1 ? 'day' : 'days'} in a row` : ''}`
+        : `Today: ${MODES[d.mode].icon} ${MODES[d.mode].title} with a surprise picture · +${SH.REWARD.daily} 💎${streak ? ` · 🔥 ${streak}` : ''}`}</p></div>
+      ${dDone ? '' : '<button class="btn" data-act="pzPlay" data-arg="daily">Play ▶</button>'}</section>`;
+    const onWall = SH.ITEMS.filter((k) => done[k]).length;
     K().render(header('🧩 Puzzle Time', 'home') + `<main class="pzhub">
-      <div class="pz-top"><p class="pz-intro">Solve short problems to make pictures and shapes. Your album: <b>${SH.count(s)} of ${SH.total()}</b></p>
-        <div class="pz-size"><span>Pieces</span><div class="chips">${Object.keys(SH.GRID).map((n) => `<button class="chip ${+n === pz.n ? 'sel' : ''}" data-act="pzSize" data-arg="${n}" aria-pressed="${+n === pz.n}">${n}</button>`).join('')}</div></div></div>
+      <div class="pz-top"><p class="pz-intro">Solve short problems to make pictures and shapes. Puzzles made: <b>${SH.count(s)}</b></p>
+        <div class="pz-size"><span>Pieces</span><div class="chips">${Object.keys(SH.GRID).map((n) => `<button class="chip ${+n === pz.n ? 'sel' : ''}" data-act="pzSize" data-arg="${n}" aria-pressed="${+n === pz.n}">${n}</button>`).join('')}</div></div>
+        <p class="pz-tip left">${starStr(1)} 4–6 pieces · ${starStr(2)} 9–12 · ${starStr(3)} 16–20</p></div>
+      ${daily}
+      <button class="pz-wallbtn" data-act="go" data-arg="shapes:gallery">🖼️ <b>My Gallery</b><small>${onWall} ${onWall === 1 ? 'picture' : 'pictures'} on the wall</small></button>
       <h2 class="pz-group">Picture puzzles</h2>
       <div class="pz-modes">${PIC.map((m) => `<section class="pzcard pz-mode pz-${m}">${head(m)}<button class="btn" data-act="pzPlay" data-arg="${m}">Play ▶</button></section>`).join('')}</div>
-      <section class="pzcard"><h3 class="pz-sub">Pictures you made: ${picsFound} of ${SH.PICS.length}</h3><div class="pz-thumbs">${pics}</div>
-        ${picsFound ? '<p class="pz-tip left">Tap a picture to make it again.</p>' : ''}</section>
+      <h2 class="pz-group">Picture collections</h2>
+      <p class="pz-tip left">Get new collections with your crystals. Legendary pictures come alive when you finish them!</p>
+      <div class="pz-packs">${packOrder().map(packCard).join('')}</div>
       <h2 class="pz-group">Shape puzzles</h2>
       ${card('shape', `<div class="pz-thumbs">${SH.SHAPES.map((x) => thumb('shape:' + x.id, SH.shapeArt(x), x.name)).join('')}</div>`)}
       ${card('build', `<div class="pz-thumbs">${SH.FIGS.map((f) => thumb('build:' + f.id, SH.figArt(f), f.name)).join('')}</div>`)}
@@ -67,28 +102,110 @@
     K().setCur('shapes');
   }
 
+  // One collection: its pictures (dimmed until it is yours) and how to get it.
+  let curPack = '';
+  function packPage(id) {
+    G = null;
+    const s = st(), P = SH.PACKS.find((x) => x.id === id);
+    if (!P) return hub();
+    curPack = id;
+    const pz = SH.ensure(s), own = SH.hasPack(s, P), pics = SH.packPics(id), as = pz.as === 'find' ? 'find' : 'snap';
+    const made = pics.filter((p) => pz.done['pic:' + p.id]).length;
+    const buyBtn = (label) => (s.crystals >= P.price ? `<button class="btn" data-act="pzBuy" data-arg="${id}">${label}</button>`
+      : `<p class="pz-need">You need <b>${P.price - s.crystals}</b> more 💎. Solve problems to earn crystals!</p>`);
+    let top = `<p class="pz-intro">${esc(P.about || '')}</p>`;
+    if (own) {
+      top += `<p class="pz-intro"><b>${made} of ${pics.length}</b> made.</p><div class="pz-size"><span>Play as</span><div class="chips">${['snap', 'find'].map((m) => `<button class="chip ${m === as ? 'sel' : ''}" data-act="pzAs" data-arg="${m}" aria-pressed="${m === as}">${MODES[m].icon} ${MODES[m].title}</button>`).join('')}</div></div>`;
+      if (P.legend) top += `<p class="pz-tip left">🌟 Legendary pictures have at least ${SH.LEGEND_MIN} pieces and come alive when you finish them!</p>`;
+      if (P.price && !pz.packs[id]) top += `<div class="pz-buy"><p>${P.icon} Free until ${mmdd(P.season[1])}. Keep it for the whole year for <b>${P.price} 💎</b>.</p>${buyBtn(`Keep it for ${P.price} 💎`)}</div>`;
+    } else {
+      top += `<div class="pz-buy"><p><b>${pics.length} puzzles</b> for <b>${P.price} 💎</b> · you have <b>${s.crystals} 💎</b></p>${buyBtn(`Get it for ${P.price} 💎`)}
+        ${P.season ? `<p class="pz-tip left">${P.icon} Free from ${mmdd(P.season[0])} to ${mmdd(P.season[1])}.</p>` : ''}</div>`;
+    }
+    K().render(header(`${P.icon} ${esc(P.name)}`, 'shapes') + `<main class="pzhub pz-packpage ${P.legend ? 'legend' : ''}"><section class="pzcard">${top}</section>
+      <div class="pz-thumbs big">${pics.map((p) => picThumb(p, { locked: !own, as })).join('')}</div></main>`);
+  }
+  function buy(id) {
+    const s = st(), P = SH.PACKS.find((x) => x.id === id);
+    if (!P) return;
+    K().modal(`<div class="bigemoji">${P.icon}</div><div class="mtitle">${esc(P.name)}</div>
+      <p>Get <b>${SH.packPics(id).length} new puzzles</b> for <b>${P.price} 💎</b>?</p><p class="muted">You have ${s.crystals} 💎.</p>
+      <div class="row"><button class="btn ghost" data-act="closeModal">Not now</button><button class="btn" data-act="pzBuyYes" data-arg="${id}">Yes, get it!</button></div>`);
+  }
+  function bought(id) {
+    const s = st(), P = SH.PACKS.find((x) => x.id === id);
+    K().closeModal();
+    if (!P || !SH.buy(s, id)) return packPage(id);
+    K().addGems(0); // shows the new crystal count
+    MQ.store.save();
+    MQ.sfx('reward');
+    MQ.confetti(140);
+    K().toast(`🎉 <b>${esc(P.name)}</b> is yours! ${SH.packPics(id).length} new puzzles`, 'gold');
+    packPage(id);
+    setTimeout(() => { if (st() === s) K().checkBadges(); }, 1200);
+  }
+
+  // Everything finished hangs on the wall; a tap shows it big (Legendary ones move).
+  const itemArt = (key) => {
+    const [kind, id] = key.split(':');
+    if (kind === 'pic') { const p = SH.picById[id]; return p && { art: SH.picArt(p), name: SH.picName(p), play: 'snap:' + id, legend: p.kind === 'legend' }; }
+    const f = SH.find(key);
+    if (!f || !f.item) return null;
+    const x = f.item, art = kind === 'shape' ? SH.shapeArt(x) : kind === 'build' ? SH.figArt(x) : SH.dotArt(x);
+    return { art, name: x.name, play: key };
+  };
+  function gallery() {
+    G = null;
+    const pz = SH.ensure(st()), done = pz.done;
+    const frame = (key) => { const a = itemArt(key); return a ? `<button class="pz-framed ${pz.gold[key] ? 'gold' : ''} ${a.legend ? 'legend' : ''}" data-act="pzView" data-arg="${key}" aria-label="${esc(a.name)}">${svgBox(a.art)}${starStr(pz.stars[key])}</button>` : ''; };
+    const groups = SH.PACKS.map((P) => [P.icon + ' ' + esc(P.name), SH.packPics(P.id).map((p) => 'pic:' + p.id).filter((k) => done[k])])
+      .concat([['⭐ Shapes, pictures of shapes and dot-to-dots', SH.ITEMS.filter((k) => !k.startsWith('pic:') && done[k])]]).filter(([, l]) => l.length);
+    const total = groups.reduce((n, [, l]) => n + l.length, 0);
+    K().render(header('🖼️ My Gallery', 'shapes') + `<main class="pzhub">
+      <p class="pz-intro">${total ? `<b>${total}</b> ${total === 1 ? 'picture' : 'pictures'} on your wall. Tap one to look closer.` : 'Your wall is empty. Finish a puzzle and it hangs here!'}</p>
+      ${groups.map(([title, l]) => `<h2 class="pz-group">${title}</h2><div class="pz-wall">${l.map(frame).join('')}</div>`).join('')}</main>`);
+  }
+  function view(key) {
+    const a = itemArt(key), pz = SH.ensure(st());
+    if (!a) return;
+    K().modal(`<div class="pz-view">${svgBox(a.art, 'pz-viewart alive' + (pz.gold[key] ? ' gold' : ''))}<div class="mtitle">${esc(a.name)}</div>${starStr(pz.stars[key])}
+      ${pz.gold[key] ? '<p class="pz-gems">✨ Golden</p>' : ''}<div class="row"><button class="btn ghost" data-act="closeModal">Close</button><button class="btn" data-act="pzReplay" data-arg="${a.play}">Play again ▶</button></div></div>`);
+  }
+
   // ---------------------------------------------------------------- a puzzle
   function start(key) {
-    const s = st(), k = String(key), mode = k.split(':')[0];
-    let item = null;
-    if (mode === 'dots' && !k.includes(':')) item = SH.nextDots(s, last.dots);
+    const s = st(), k = String(key);
+    let mode = k.split(':')[0], item = null, daily = false, from = '';
+    if (k === 'daily') {
+      if (SH.dailyDone(s)) return hub();
+      const d = SH.daily(s);
+      mode = d.mode; item = d.pic; daily = true;
+    } else if (mode === 'dots' && !k.includes(':')) item = SH.nextDots(s, last.dots);
     else if (PIC.includes(mode) && (!k.includes(':') || mode === 'hide')) item = SH.nextPic(s, last.pic); // who is hiding is always a surprise
-    else { const f = SH.find(k); item = f && f.item; }
+    else { const f = SH.find(k); item = f && f.item; if (item && PIC.includes(mode)) from = item.pack || 'free'; }
     if (!MODES[mode] || !item) return hub();
     const pic = PIC.includes(mode);
-    G = { mode, item, pic, key: (pic ? 'pic' : mode) + ':' + item.id, prob: null, tries: 0, given: undefined, busy: false, done: false, earn: -1, miss: 0, target: -1, locked: true };
-    if (pic || mode === 'shape') { G.pz = SH.cut(SH.ensure(s).n, pic ? null : item); G.left = G.pz.pieces.map((p) => p.i); }
+    if (pic && !daily && !SH.owns(s, item)) return packPage(item.pack);
+    const legend = pic && item.kind === 'legend', n = legend ? Math.max(SH.ensure(s).n, SH.LEGEND_MIN) : SH.ensure(s).n;
+    G = { mode, item, pic, legend, daily, from, n, gold: pic && !legend && Math.random() < SH.GOLD_CHANCE,
+      key: (pic ? 'pic' : mode) + ':' + item.id, prob: null, tries: 0, given: undefined, busy: false, done: false, earn: -1, miss: 0, target: -1, locked: true };
+    if (pic || mode === 'shape') { G.pz = SH.cut(n, pic ? null : item); G.left = G.pz.pieces.map((p) => p.i); }
     else if (mode === 'build') G.left = item.parts.map((_, i) => i);
     else G.left = item.pts.map((_, i) => i);
     if (mode === 'dots') last.dots = item.id;
     if (pic) last.pic = item.id;
     G.total = G.left.length;
     const M = MODES[mode];
-    K().render(header(`${M.icon} ${M.title}`, 'shapes') + `<main class="pzplay pz-${mode}">
+    K().render(header(daily ? `🌞 Puzzle of the day · ${M.icon} ${M.title}` : `${M.icon} ${M.title}`, from && from !== 'free' ? 'shapes:pack:' + from : 'shapes') +
+      `<main class="pzplay pz-${mode}${G.gold ? ' is-gold' : ''}${legend ? ' is-legend' : ''}">
       <div class="pz-board" id="pzboard"></div><section class="pz-panel" id="pzpanel" aria-live="polite"></section></main>`, 'is-pz');
     drawBoard();
     next();
+    if (G.gold) { MQ.sfx('shimmer'); speak('Wow, a golden puzzle! Double crystals!'); }
   }
+  // ✨ a golden puzzle: the picture shines and its sparkles twinkle
+  const goldLayer = () => '<rect width="120" height="120" fill="#ffd23f" opacity=".16"/>' + [[16, 16], [104, 22], [96, 100], [20, 96], [60, 10]].map(([x, y], i) =>
+    `<path class="lg-twinkle" style="animation-delay:${i * 0.4}s" d="M${x} ${y - 5}Q${x} ${y} ${x + 5} ${y}Q${x} ${y} ${x} ${y + 5}Q${x} ${y} ${x - 5} ${y}Q${x} ${y} ${x} ${y - 5}Z" fill="#fff3a6"/>`).join('');
 
   function drawBoard() {
     const el = $('#pzboard'), k = 'pzb' + ++boards;
@@ -96,7 +213,7 @@
     if (G.pz) { // a jigsaw: a picture (Snap, Find the piece, Who's hiding) or a shape
       const sh = G.mode === 'shape' ? G.item : null, ps = G.pz.pieces;
       const clipped = (s) => (sh ? `<g clip-path="url(#${k}sh)">${s}</g>` : s);
-      const defs = `<defs><g id="${k}p">${sh ? SH.shapeArt(sh) : SH.picArt(G.item)}</g><clipPath id="${k}all"><rect width="120" height="120" rx="4"/></clipPath>` +
+      const defs = `<defs><g id="${k}p">${sh ? SH.shapeArt(sh) : SH.picArt(G.item) + (G.gold ? goldLayer() : '')}</g><clipPath id="${k}all"><rect width="120" height="120" rx="4"/></clipPath>` +
         (sh ? `<clipPath id="${k}sh"><path d="${sh.d}"/></clipPath>` : '') + ps.map((p) => `<clipPath id="${k}c${p.i}"><path d="${p.clip}"/></clipPath>`).join('') + '</defs>';
       if (G.mode === 'hide') svg = defs + `<g clip-path="url(#${k}all)"><use href="#${k}p"/>${ps.map(cloud).join('')}</g>`;
       else {
@@ -117,7 +234,8 @@
         return `<g class="pz-dot${i === 0 ? ' cur' : ''}" data-i="${i}"><circle cx="${p[0]}" cy="${p[1]}" r="2.6"/><text class="pz-dnum" x="${f1(clamp(p[0] + (dx / L) * 8))}" y="${f1(clamp(p[1] + (dy / L) * 8))}">${i + 1}</text></g>`;
       }).join('');
     }
-    el.innerHTML = `<svg class="pz-svg" viewBox="0 0 120 120" role="img" aria-label="${esc(MODES[G.mode].title)}">${svg}</svg>`;
+    el.innerHTML = `<svg class="pz-svg" viewBox="0 0 120 120" role="img" aria-label="${esc(MODES[G.mode].title)}">${svg}</svg>` +
+      (G.gold ? '<p class="pz-goldnote">✨ A golden puzzle! Double crystals</p>' : G.legend ? '<p class="pz-goldnote">🌟 Legendary! It comes alive when you finish it</p>' : '');
     G.svg = el.firstElementChild;
   }
   // ☁️ a puffy cloud over one cell; its puffs reach over the edges so no gap shows between clouds
@@ -254,9 +372,11 @@
   }
   function chooser() {
     if (!G || G.busy || G.done || G.locked) return;
-    const others = U.shuffle(SH.PICS.filter((p) => p.id !== G.item.id)).slice(0, 2);
+    // two other pictures with a different hero (a puppy is not hiding behind a puppy)
+    const pool = G.daily ? SH.PICS.filter((p) => p.kind !== 'legend') : SH.pool(st());
+    const others = U.shuffle(pool.filter((p) => p.id !== G.item.id && (!p.hero || p.hero !== G.item.hero))).slice(0, 2);
     $('#pzpanel').innerHTML = progHtml() + '<div class="pz-q"><div class="pz-lead">Who is hiding?</div></div>' +
-      `<div class="pz-choices">${U.shuffle([G.item, ...others]).map((p) => `<button class="pz-choice" data-act="pzWho" data-arg="${p.id}">${MQ.art(p.id, { stage: p.stage })}<span>${esc(SH.picName(p))}</span></button>`).join('')}</div>` +
+      `<div class="pz-choices">${U.shuffle([G.item, ...others]).map((p) => `<button class="pz-choice" data-act="pzWho" data-arg="${p.id}">${p.kind === 'emoji' ? svgBox(SH.heroArt(p)) : MQ.art(p.id, { stage: p.stage })}<span>${esc(SH.picName(p))}</span></button>`).join('')}</div>` +
       '<button class="linkbtn pz-back" data-act="pzBack">← Back to the problem</button>';
     speak('Who is hiding?');
   }
@@ -438,27 +558,48 @@
   function finish(bonus) {
     G.done = true;
     G.svg.classList.add('done');
-    const s = st(), fresh = SH.finish(s, G.key), gems = SH.REWARD.done + (fresh ? SH.REWARD.fresh : 0) + bonus;
+    if (G.pic) { // the whole picture on top, not a copy: so a Legendary one can come alive
+      G.svg.insertAdjacentHTML('beforeend', `<g class="pz-live">${SH.picArt(G.item)}${G.gold ? goldLayer() : ''}</g>`);
+      G.svg.classList.add('alive');
+    }
+    const s = st(), r = SH.finish(s, G.key, { n: G.pz ? G.n : 0, gold: G.gold });
+    let gems = SH.REWARD.done + (r.fresh ? SH.REWARD.fresh : 0);
+    if (G.gold) gems *= 2;
+    gems += bonus;
+    const daily = G.daily && SH.finishDaily(s);
+    if (daily) gems += SH.REWARD.daily;
     K().addGems(gems);
     MQ.store.save();
     let art, title, fact;
     if (G.pic) {
-      const name = SH.picName(G.item);
+      // "You made Birthday Party!", "You made the Pegasus!", "It's the Royal Dragon!"
+      const name = G.item.kind === 'emoji' ? SH.picName(G.item) : 'the ' + SH.picName(G.item).replace(/^The /, '');
       art = SH.picArt(G.item);
-      title = G.mode === 'hide' ? `It's the ${name}!` : `You made the ${name}!`;
-      fact = creature(G.item).fact || '';
+      title = G.mode === 'hide' ? `It's ${name}!` : `You made ${name}!`;
+      fact = G.item.kind ? '' : creature(G.item).fact || '';
     } else if (G.mode === 'shape') { art = SH.shapeArt(G.item); title = `You made a ${G.item.name}!`; fact = G.item.fact; }
     else if (G.mode === 'build') { art = SH.figArt(G.item); title = `You built ${G.item.name}!`; fact = SH.shapeCount(G.item); }
     else { art = SH.dotArt(G.item); title = `It's a ${G.item.name}!`; fact = G.item.fact; }
-    $('#pzpanel').innerHTML = `<div class="pz-win">${svgBox(art, 'pz-winart')}<b>${esc(title)}</b>${fact ? `<p>${esc(fact)}</p>` : ''}
-      ${bonus ? `<p class="pz-gems">You guessed early: +${bonus} 💎</p>` : ''}<p class="pz-gems">+${gems} 💎${fresh ? ' · new in your album!' : ''}</p>
-      <div class="row"><button class="btn ghost" data-act="go" data-arg="shapes">All puzzles</button><button class="btn" data-act="pzNext">Next puzzle →</button></div></div>`;
-    MQ.sfx('reward');
-    MQ.confetti(120);
+    const more = r.stars && r.stars < 3 ? `<p class="pz-tip">Make it with ${r.stars === 1 ? 9 : 16} pieces or more for ${starStr(r.stars + 1)}</p>` : '';
+    const P = G.pic && SH.pack(G.item.pack), taste = G.daily && P && !SH.owns(s, G.item);
+    $('#pzpanel').innerHTML = `<div class="pz-win">${svgBox(art, 'pz-winart alive')}<b>${esc(title)}</b>${fact ? `<p>${esc(fact)}</p>` : ''}
+      ${r.stars ? `<p class="pz-gems">${starStr(r.stars)}${r.more && !r.fresh ? ' New best!' : ''}</p>${more}` : ''}
+      ${G.gold ? '<p class="pz-gems">✨ Golden puzzle: double crystals!</p>' : ''}
+      ${bonus ? `<p class="pz-gems">You guessed early: +${bonus} 💎</p>` : ''}
+      ${daily ? `<p class="pz-gems">🌞 Puzzle of the day: +${SH.REWARD.daily} 💎 · 🔥 ${SH.ensure(s).daily.streak} ${SH.ensure(s).daily.streak === 1 ? 'day' : 'days'} in a row</p>` : ''}
+      <p class="pz-gems">+${gems} 💎${r.fresh ? ' · new in your gallery!' : ''}</p>
+      ${taste ? `<p class="pz-tip">This picture is from ${P.icon} <b>${esc(P.name)}</b>: ${SH.packPics(P.id).length - 1} more like it for ${P.price} 💎.</p>` : ''}
+      <div class="row"><button class="btn ghost" data-act="go" data-arg="shapes">All puzzles</button>${taste ? `<button class="btn ghost" data-act="pzPack" data-arg="${P.id}">See the pack</button>` : ''}${G.daily ? '' : '<button class="btn" data-act="pzNext">Next puzzle →</button>'}</div></div>`;
+    MQ.sfx(G.legend ? 'fanfare' : 'reward');
+    MQ.confetti(G.legend || G.gold ? 220 : 120, G.gold || G.legend ? { colors: ['#ffd23f', '#ffb547', '#fff3a6', '#ff8fe0'] } : {});
     later(() => speak(`Hooray! ${title}`), 300);
     setTimeout(() => { if (st() === s) K().checkBadges(); }, 1600); // even if the child has already left the puzzle
   }
   function nextKey() {
+    if (G.from) { // made from a collection: the next picture of that collection
+      const list = SH.packPics(G.from), k = list.findIndex((x) => x.id === G.item.id);
+      return G.mode + ':' + list[(k + 1) % list.length].id;
+    }
     if (G.pic || G.mode === 'dots') return G.mode; // the next one not made yet
     const list = G.mode === 'shape' ? SH.SHAPES : SH.FIGS, k = list.findIndex((x) => x.id === G.item.id);
     return G.mode + ':' + list[(k + 1) % list.length].id;
@@ -473,8 +614,19 @@
     pzGuess: () => chooser(),
     pzWho: (a, el) => guess(a, el),
     pzBack: () => { if (G && !G.done) panel(); },
+    pzPack: (a) => K().go('shapes:pack:' + a),
+    pzAs: (a) => { SH.ensure(st()).as = a === 'find' ? 'find' : 'snap'; MQ.store.save(); packPage(curPack); },
+    pzBuy: (a) => buy(a),
+    pzBuyYes: (a) => bought(a),
+    pzView: (a) => view(a),
+    pzReplay: (a) => { K().closeModal(); K().go('shapes:' + a); },
   };
-  // show(): the album page; show('shape:star') or show('snap') starts a puzzle (used by links and the browser test)
-  const show = (arg) => (arg ? start(arg) : hub());
+  // show(): the album page; show('pack:ocean'), show('gallery'); show('shape:star'), show('snap'), show('daily') start a puzzle
+  const show = (arg) => {
+    if (!arg) return hub();
+    if (arg === 'gallery') return gallery();
+    if (arg.startsWith('pack:')) return packPage(arg.slice(5));
+    return start(arg);
+  };
   MQ.shapesUI = { show, actions: A, playing: () => G };
 })();

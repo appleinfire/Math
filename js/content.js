@@ -316,7 +316,10 @@
     { id: 'deposit', icon: '🔐', name: 'Patient Saver', desc: 'Collect a locked deposit from the farm bank', test: (s) => !!s.farm && (s.farm.stats.depBonus || 0) > 0 },
     { id: 'castle', icon: '🏰', name: 'Castle Builder', desc: 'Build the Castle on the Hill', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 4 },
     { id: 'puzzle1', icon: '🔷', name: 'Shape Maker', desc: 'Finish your first puzzle in Puzzle Time', test: (s) => !!MQ.shapes && MQ.shapes.count(s) >= 1 },
-    { id: 'puzzleall', icon: '🖼️', name: 'Shape Master', desc: 'Finish every puzzle in Puzzle Time', test: (s) => !!MQ.shapes && MQ.shapes.count(s) >= MQ.shapes.total() },
+    { id: 'puzzleall', icon: '🖼️', name: 'Shape Master', desc: 'Finish every free puzzle in Puzzle Time', test: (s) => !!MQ.shapes && MQ.shapes.countFree(s) >= MQ.shapes.FREE.length },
+    { id: 'puzzlepack', icon: '🛍️', name: 'Collector', desc: 'Get a new picture collection in Puzzle Time', test: (s) => !!s.puzzles && Object.keys(s.puzzles.packs || {}).length >= 1 },
+    { id: 'puzzlelegend', icon: '🌟', name: 'Legend Maker', desc: 'Finish a Legendary puzzle and watch it come alive', test: (s) => !!s.puzzles && Object.keys(s.puzzles.done || {}).some((k) => k.startsWith('pic:lg-')) },
+    { id: 'puzzleday7', icon: '🌞', name: 'Puzzle Week', desc: 'Make the puzzle of the day 7 days in a row', test: (s) => !!s.puzzles && !!s.puzzles.daily && s.puzzles.daily.best >= 7 },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];
 

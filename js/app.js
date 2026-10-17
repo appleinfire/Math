@@ -456,7 +456,7 @@
   // Puzzle Time (js/shapes-ui.js): how full the album is.
   function shapesTile() {
     const n = MQ.shapes.count(st);
-    return `<button class="tile t-shapes wide" data-act="go" data-arg="shapes"><span class="ti">🧩</span><span><b>Puzzle Time</b><small>${n ? `Album: ${n} of ${MQ.shapes.total()} · ` : 'New! '}Picture puzzles, shapes, building and dot to dot</small></span></button>`;
+    return `<button class="tile t-shapes wide ${MQ.shapes.dailyDone(st) ? '' : 'hot'}" data-act="go" data-arg="shapes"><span class="ti">🧩</span><span><b>Puzzle Time</b><small>${MQ.shapes.dailyDone(st) ? '' : '🌞 New puzzle of the day! · '}${n ? `${n} puzzles made · ` : ''}Pictures, collections, shapes and dot to dot</small></span></button>`;
   }
 
   // For grown-ups: how Sunny Farm is going (its money problems also count in the daily totals above).

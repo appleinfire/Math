@@ -32,10 +32,10 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 | **📈 My Progress** | Accuracy (right on the first try) with a dot for every day practiced (by week when the practice spans over 2 months, by month over 200 days; a single topic too), over 1, 3 or 6 months or all time, with a trend line and a plain verdict ("Getting better: +8 points over 3 months"). Problems per week, right / not yet counts, days practiced. A **skill map** shows every topic as 🌱 started → 🌿 practicing → ⭐ solid → 🏆 mastered (80% right on 5+ tries at that difficulty); tap a skill to practice it. Charts of every practice test over time. Daily totals are kept for two years, per-topic daily totals for 200 practice days and per-topic monthly totals for three years. |
 | **Strategy tips** | After two misses of the same kind of problem in one session, the next question of that kind starts with a short tip ("Make a ten: 8 + 5 → 8 + 2 + 3"). Every topic has tips, at most one a day per topic. |
 | **Daily goal** | A grown-up can set problems per day (10–50) and goal days per week. The home screen shows a ring for today and the days of the week; a badge for a week that reaches the goal. |
-| **🧩 Puzzle Time** | Short problems that build something: a creature's picture from jigsaw pieces (snap it, find the piece, or guess who hides under the clouds), a smiling shape, a picture from shapes the child puts in place, or a dot-to-dot surprise (see below). Fills an album of 48. |
+| **🧩 Puzzle Time** | Short problems that build something: a creature's picture from jigsaw pieces (snap it, find the piece, or guess who hides under the clouds), a smiling shape, a picture from shapes the child puts in place, or a dot-to-dot surprise (see below). 252 puzzles (98 free), picture collections for crystals with Legendary pictures that come alive, a puzzle of the day, stars and a gallery. |
 | **Hatchery** | A ladder of eggs to save crystals for (see below): Meadow 30 💎 → Crystal 80 💎 → Legendary 200 💎 → Dragon 500 💎 → a secret Royal Dragon Egg for 1,000 💎. 59 creatures in all; a bought egg always holds a new one. |
 | **Card Duels** | The collected creatures battle with their stats against a rival in three leagues; every round ends with a question about the two numbers (see below). |
-| **Badges & ranks** | 45 badges (streaks, collections, the Hatchery, Card Duels, daily habit, lightning rounds, challenge problems, Sunny Farm, its Big Dreams and the merchant, Puzzle Time). Explorer level grows with XP. |
+| **Badges & ranks** | 48 badges (streaks, collections, the Hatchery, Card Duels, daily habit, lightning rounds, challenge problems, Sunny Farm, its Big Dreams and the merchant, Puzzle Time). Explorer level grows with XP. |
 | **Hints** | A wrong answer gets a strategy hint and one more try ("make a ten", "count up", "break a ten"). A second miss shows the answer with an explanation. |
 | **Voice** | After each answer a voice says "Great job!" or a gentle "Oops! Try again." The next problem waits until the voice has finished; the **Next →** button skips the wait. Questions can be read aloud with 🔊 (automatic for kindergarten). Both can be turned off per child in *For grown-ups*. |
 | **Navigation** | Every screen has a back button; result screens have Home. **👥 Switch** on the home screen (or the small avatar in the top bar) changes the child without reloading. The browser's back gesture moves between screens and asks before leaving a game. |
@@ -129,9 +129,27 @@ A mini-game about real money (pretend money, no real purchases). The child runs 
 
 ## 🧩 Puzzle Time
 
-Made with a kindergartner who wanted puzzles that come together as you solve problems and end up as a picture or a shape. A tile on the home screen opens the album page with six kinds of puzzles and 48 puzzles to make. The rules, pictures and problems are in `js/shapes.js`, the screens in `js/shapes-ui.js`; every picture is drawn in code.
+Made with a kindergartner who wanted puzzles that come together as you solve problems and end up as a picture or a shape. A tile on the home screen opens the album page with six kinds of puzzles, the puzzle of the day, picture collections to get with crystals and the gallery: 252 puzzles, 98 of them free. The rules and problems are in `js/shapes.js`, the emoji and Legendary pictures and the packs in `js/puzzle-art.js`, the screens in `js/shapes-ui.js`; every picture is drawn in code.
 
-**Picture puzzles.** 16 creatures from the Hatchery (Ember Dragon, Pegasus, Mermaid, Moon Rabbit, Yeti, Star Whale…), each in a little scene (sunset, sea, night sky, snow, garden…). The picture is cut into 4, 6, 9 or 12 jigsaw pieces (the same setting as Shape Puzzle). *Play* picks a picture not made yet; a picture already in the album can be tapped to make it again in Snap!.
+**Picture collections.** 220 pictures in 12 collections. A picture is cut into 4, 6, 9, 12, 16 or 20 jigsaw pieces (the same setting as Shape Puzzle). *Play* picks a picture the child owns and has not made yet; in a collection the child taps a picture and plays it as Snap! or Find the piece, and *Next puzzle* goes on through that collection.
+
+| Collection | Pictures | Price |
+|---|---|---|
+| 🐉 Hatchery Pictures | 16 creatures from the Hatchery (Ember Dragon, Pegasus, Mermaid, Yeti, Star Whale…), each in a little painted scene | free |
+| 🎈 Fun Pictures | 50 emoji pictures: pets, a birthday party, farm, fire truck, pizza night, rainy day, camping… | free |
+| 🌊 Ocean · 🚀 Space · 🍭 Candy Land · 🌴 Jungle Safari | 20 emoji pictures each | 30 💎 |
+| 🦕 Dinosaurs · 🦄 Unicorn Kingdom | 20 each (rainbow, pink and golden dinosaurs and unicorns: the hero emoji's colours are turned) | 50 💎 |
+| 🎃 Halloween (Oct 1 – Nov 7) · 🎄 Winter Holidays (Dec 1 – Jan 15) | 12 each | free in their season, 30 💎 to keep for the whole year |
+| 🐉 Dragon Legends | 5 Legendary pictures: the Royal, Cosmic, Storm, Crystal and Sun Dragons as elders in painted kingdoms | 100 💎 |
+| 🌟 Mythic Wonders | 5 Legendary pictures: the Genie, Merlin, the Kraken, the World Turtle, the Moon Wolf | 150 💎 |
+
+- **Emoji pictures** are one line each in `js/puzzle-art.js` (a name, a scene, a big emoji and a few small ones), on 33 scenes drawn in code (space, deep sea, candy hills, jungle, castle, kitchen, party, stage, Halloween night…). On an iPad they use Apple's colour emoji. A new pack is about 20 lines.
+- **Legendary pictures** have at least 9 pieces and a gold frame. When the last piece is in, the picture comes alive: the dragon bobs, fireworks burst, lightning flashes, rain falls, crystals glow, the sun's rays turn, waves roll, an aurora shimmers.
+- **Getting a collection.** A collection's page shows its pictures dimmed with a lock, the price and the child's crystals; *Get it* asks once more, then the pictures open (with confetti). Not enough crystals: it says how many more. Bought collections sync with the family.
+- **🌞 Puzzle of the day.** One picture puzzle a day (the same all day, different for each child), from any collection, bought or not: a taste of the collections. +5 💎 and a day streak; after a picture from a collection not bought yet, the card says how many more are in it.
+- **★ Stars.** A jigsaw (a picture or a shape) earns ★ with 4–6 pieces, ★★ with 9–12 and ★★★ with 16–20; the best stars show on the picture. The end card says how many pieces earn the next star, so the same picture is worth making again.
+- **✨ Golden puzzles.** One picture puzzle in 8 comes up golden (a shine, sparkles, a gold frame): it pays double crystals for finishing and gets a gold frame in the gallery.
+- **🖼️ My Gallery.** Everything finished hangs on the wall in wooden frames (gold for golden and Legendary ones), by collection, with its stars. A tap shows it big (Legendary pictures move) with *Play again*.
 
 | Puzzle | How it goes | At the end |
 |---|---|---|
@@ -148,7 +166,7 @@ Made with a kindergartner who wanted puzzles that come together as you solve pro
 | ✏️ **Dot to Dot** | Numbered dots, 5 to 10. Every right answer draws the line to the next dot; the last one closes it back to 1. The picture is a surprise (one not found yet comes first): star, heart, house, fish, diamond, crown, rocket, Christmas tree, sailboat, cat. | The shape fills in with a face and a fact about it. |
 
 - **Problems.** Kindergarten: adding and taking away within 10 and *How many dots?* in a ten-frame (K.OA, K.CC.5). 2nd grade: facts to 20 that cross ten (2.OA.2). Three big answers to tap (three pieces in Find the piece), read aloud in kindergarten. A wrong answer shows the problem as dots in ten-frames and gives another try; a second miss makes the right answer glow.
-- **With the rest of the app.** Each problem counts in the daily totals, the daily goal and My Progress under the matching topic (Adding, Taking Away, Counting; Facts to 20), and a miss goes to the Fix-it Lab like any other. +1 💎 for a first-try answer, +3 💎 for a finished puzzle and +5 💎 more the first time a puzzle goes into the album. Badges: Shape Maker (the first puzzle) and Shape Master (all 48). The album syncs with the family; a puzzle finished on any device stays in it.
+- **With the rest of the app.** Each problem counts in the daily totals, the daily goal and My Progress under the matching topic (Adding, Taking Away, Counting; Facts to 20), and a miss goes to the Fix-it Lab like any other. +1 💎 for a first-try answer, +3 💎 for a finished puzzle and +5 💎 more the first time a puzzle goes into the album. Badges: Shape Maker (the first puzzle), Shape Master (every free puzzle), Collector (a collection bought), Legend Maker (a Legendary puzzle) and Puzzle Week (the puzzle of the day 7 days in a row). The album syncs with the family; a puzzle finished on any device stays in it.
 
 ## Test Prep
 
@@ -240,7 +258,8 @@ js/farm-ui.js         Sunny Farm screens: farm, shop, stand, odd jobs, paying wi
 js/farm-scene.js      Sunny Farm pictures and animations: farm scene, market stall, flying coins, night
 js/farm-art.js        Sunny Farm pictures drawn in code: the Big Dreams stage by stage, the merchant's wagon, treasures, week charms and mythic animals, the bank's safe
 js/shapes.js          Puzzle Time rules: pictures and shapes drawn in code, the jigsaw cut, problems, the album
-js/shapes-ui.js       Puzzle Time screens: the album page, the six puzzles, dragging pieces and shapes into place
+js/puzzle-art.js      Puzzle Time emoji pictures and their scenes, the Legendary pictures, the collections and their prices
+js/shapes-ui.js       Puzzle Time screens: the album page, collections, the gallery, the six puzzles, dragging pieces and shapes into place
 js/fx.js              sounds (Web Audio), read-aloud (Web Speech), confetti
 js/app.js             screens and game logic
 tools/build.py        bundles everything into dist/math-expedition.html (local-only copy)
@@ -259,11 +278,11 @@ node tests/hatchery.test.js        # eggs, creature pictures (valid SVG), dragon
 node tests/duel.test.js            # creature stats by rarity, Card Duel rules and questions, league balance in simulated duels
 node tests/testprep.test.js        # Placement Check accuracy on simulated children, mock tests with review questions
 node tests/farm.test.js            # Sunny Farm economy, days, shop, Big Dreams, the merchant and his week charms, the locked deposit, and thousands of customer problems for both grades
-node tests/shapes.test.js          # Puzzle Time: the jigsaw cut covers every shape, valid pictures, twins in Build It, 40,000 problems, the album and its merging
+node tests/shapes.test.js          # Puzzle Time: the jigsaw cut covers every shape, every picture draws, packs and seasons, stars, the puzzle of the day, 40,000 problems, merging
 node tests/nnat.test.js            # NNAT-3 style puzzles: 4 kinds × 6 levels, the 48-question practice test and its scoring
 node tests/smoke.mjs               # two children, both grades, played in Chromium (needs Playwright)
 node tests/farm-smoke.mjs          # Sunny Farm played by a 2nd grader and a kindergartner in Chromium
-node tests/shapes-smoke.mjs        # Puzzle Time: all six puzzles (dragging, wrong pieces, an early guess) for both grades in Chromium
+node tests/shapes-smoke.mjs        # Puzzle Time: all six puzzles, the puzzle of the day, buying collections, a Legendary and a golden puzzle, stars, the gallery, for both grades
 node tests/nnat-smoke.mjs          # GATE plan card, NNAT warm-ups, practice by type and the timed practice test in Chromium
 node tests/cloud-e2e.mjs           # two devices syncing through the real Firebase project
 python3 tools/build.py             # refresh the single-file version in dist/
