@@ -295,6 +295,23 @@ svg.blocks { max-height: 120px; }
 .cemoji { font-size: 5.2rem; line-height: 1.15; margin-top: 6px; }
 .cname { font-family: var(--display); font-weight: 600; font-size: 1.5rem; }
 .cfact { font-size: 0.98rem; color: var(--ink); text-align: left; }
+/* creature stats (js/stats.js): four bars, Power and a special power */
+.cstats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; margin: 8px 0 2px; text-align: left; }
+.cst { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1px 6px; font-size: 0.78rem; font-weight: 800; }
+.cst span { white-space: nowrap; }
+.cst i { grid-column: 1 / -1; grid-row: 2; height: 8px; border-radius: 999px; background: rgba(120, 130, 160, 0.22); overflow: hidden; }
+.cst i b { display: block; height: 100%; border-radius: inherit; background: var(--sc); }
+.cst em { font-style: normal; font-weight: 900; font-variant-numeric: tabular-nums; }
+.s-speed { --sc: linear-gradient(90deg, #ffd23f, #ff9a2e); }
+.s-strength { --sc: linear-gradient(90deg, #ff8a7a, #e8453c); }
+.s-smarts { --sc: linear-gradient(90deg, #7fd0ff, #3a8be0); }
+.s-magic { --sc: linear-gradient(90deg, #d9a6ff, #9d4dff); }
+.cpow { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; padding: 4px 10px; border-radius: 12px; background: rgba(255, 210, 63, 0.22); }
+.cpow span { font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.75rem; }
+.cpow b { font-family: var(--display); font-weight: 600; font-size: 1.35rem; }
+.cpow small { flex-basis: 100%; text-align: center; font-size: 0.72rem; font-weight: 800; opacity: 0.8; }
+.cspec { grid-column: 1 / -1; font-size: 0.85rem; font-weight: 800; text-align: center; }
+.r-dragon .cst i, .r-royal .cst i { background: rgba(255, 255, 255, 0.18); }
 .cwhere { font-size: 0.82rem; font-weight: 800; color: var(--ink-soft); margin-top: 6px; }
 
 /* ---------- trainer ---------- */
@@ -1383,6 +1400,89 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
 .blog b.lock { color: #8a5a08; }
 .blog b.unlock { color: var(--good); }
 @media (prefers-reduced-motion: reduce) { .fdep.ready { animation: none; } }
+
+/* ================= Card Duels (js/duel.js) ================= */
+.tile.t-duel { background: linear-gradient(135deg, #fff2e8, #f3eeff); box-shadow: inset 0 0 0 3px #ff8a5a, 0 4px 0 #c85a2a; }
+.htap { margin: -4px 0 8px; font-size: 0.85rem; }
+.duelnudge { background: linear-gradient(90deg, #fff2e8, #f3eeff); box-shadow: inset 0 0 0 2px #ff8a5a; margin: 14px auto; }
+.duels .lead { margin-top: 4px; }
+.du-note { padding: 10px 12px; border-radius: 14px; background: #fff8e6; box-shadow: inset 0 0 0 2px #f0c35a; font-weight: 700; }
+.du-top { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.leagues { display: grid; gap: 12px; margin-top: 16px; }
+.league { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 12px; border-radius: var(--r); background: var(--card); box-shadow: inset 0 0 0 3px var(--lc), 0 4px 0 var(--lc); }
+.league.locked { opacity: 0.6; box-shadow: inset 0 0 0 2px var(--line), 0 3px 0 var(--line); }
+.league.l-crystal:not(.locked) { background: linear-gradient(150deg, #f6f2ff, #e6f6ff); }
+.league.l-dragon:not(.locked) { background: radial-gradient(circle at 15% 30%, #fff1e6, #ffe0d6 60%, #ffd0c2); }
+.lg-rival { font-size: 2.6rem; line-height: 1; }
+.lg-t { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.lg-t > b { font-family: var(--display); font-weight: 600; font-size: 1.15rem; }
+.lg-t small { color: var(--ink-soft); font-weight: 700; }
+.lg-goal { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; }
+.lg-goal i { font-style: normal; filter: grayscale(1) opacity(0.35); }
+.lg-goal i.on { filter: none; }
+.lg-goal small { margin-left: 6px; }
+@media (max-width: 460px) { .league { grid-template-columns: auto 1fr; } .league .btn { grid-column: 1 / -1; } }
+/* a duel card */
+.du-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; min-width: 0; padding: 8px 6px 7px; border: 0; border-radius: 16px; color: var(--ink); text-align: center;
+  background: var(--card); box-shadow: inset 0 0 0 2px var(--line), 0 4px 0 var(--line); }
+button.du-card:active { transform: translateY(3px); }
+.du-card.r-rare { box-shadow: inset 0 0 0 3px #7f8fe0, 0 4px 0 #5a68c0; }
+.du-card.r-legendary { box-shadow: inset 0 0 0 3px #e3a21a, 0 4px 0 #b8780a; background: #fffbea; }
+.du-card.r-mythic { box-shadow: inset 0 0 0 3px #d66fc0, 0 4px 0 #a8459a; background: #fff4fb; }
+.du-card.r-crystal { background: linear-gradient(160deg, #f6f2ff, #e3f5ff); box-shadow: inset 0 0 0 3px #8b6fe0, 0 4px 0 #6f55c4; }
+.du-card.r-legend { background: radial-gradient(circle at 50% 25%, #fffbe6, #ffd970); box-shadow: inset 0 0 0 3px #e3a21a, 0 4px 0 #b8780a, 0 0 12px rgba(255, 196, 40, 0.6); }
+.du-card.r-dragon, .du-card.r-royal { color: #ffffff; background: radial-gradient(circle at 50% 25%, #3a2470, #1a1036); box-shadow: inset 0 0 0 3px var(--el), 0 4px 0 #0d0820, 0 0 12px var(--el); }
+.du-pic { display: grid; place-items: center; width: 72px; height: 72px; font-size: 3.2rem; line-height: 1; }
+.du-pic .art { width: 100%; height: 100%; }
+.du-name { font-size: 0.86rem; line-height: 1.15; min-height: 2.3em; display: flex; align-items: center; }
+.du-stats { display: grid; gap: 3px; width: 100%; }
+.du-st { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0 4px; width: 100%; padding: 2px 5px; border: 0; border-radius: 8px; background: none; color: inherit; font-size: 0.74rem; font-weight: 800; text-align: left; }
+.du-st span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.du-st i { grid-column: 1 / -1; grid-row: 2; height: 6px; border-radius: 999px; background: rgba(120, 130, 160, 0.22); overflow: hidden; }
+.du-st i b { display: block; height: 100%; border-radius: inherit; background: var(--sc); }
+.du-st em { font-style: normal; font-weight: 900; font-variant-numeric: tabular-nums; }
+.du-st.hi, .du-pow.hi { background: rgba(255, 210, 63, 0.45); box-shadow: inset 0 0 0 2px #e0a21b; }
+button.du-st { padding: 6px 8px; font-size: 0.95rem; background: rgba(255, 255, 255, 0.55); box-shadow: inset 0 0 0 2px var(--line), 0 3px 0 var(--line); cursor: pointer; }
+button.du-st i { height: 9px; }
+button.du-st:active { transform: translateY(2px); }
+.du-card.r-dragon .du-st i, .du-card.r-royal .du-st i { background: rgba(255, 255, 255, 0.2); }
+.du-card.r-dragon button.du-st, .du-card.r-royal button.du-st { background: rgba(255, 255, 255, 0.12); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35); }
+.du-pow { width: 100%; margin-top: 2px; padding: 2px 6px; border-radius: 8px; font-size: 0.78rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; }
+.du-pow b { font-family: var(--display); font-weight: 600; font-size: 1.05rem; letter-spacing: 0; }
+/* playing */
+.duel-play { --wc: var(--lc); }
+.du-score { margin-left: auto; display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); font-weight: 900; }
+.du-score span { display: flex; align-items: center; gap: 4px; }
+.du-score .art { width: 26px; height: 26px; }
+.du-score b { font-family: var(--display); font-size: 1.2rem; }
+.du-arena { margin-top: 10px; }
+.du-prompt { text-align: center; font-weight: 800; font-size: 1.05rem; margin: 6px 0 10px; }
+.du-hand { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.du-big { width: min(260px, 100%); margin: 0 auto 10px; }
+.du-big .du-card { padding: 12px 12px 10px; }
+.du-big .du-pic { width: 110px; height: 110px; font-size: 4.6rem; }
+.du-big .du-name { font-size: 1.1rem; min-height: 0; margin: 2px 0 6px; }
+.du-big .du-stats { gap: 7px; }
+.du-rival { display: flex; align-items: center; gap: 10px; margin: 0 auto 4px; padding: 8px 12px; width: fit-content; max-width: 100%; border-radius: 14px; background: var(--card); box-shadow: inset 0 0 0 3px var(--lc); font-weight: 800; animation: pop 0.35s; }
+.du-rcard { font-size: 2rem; }
+.du-rival b[class^='s-'] { padding: 0 6px; border-radius: 6px; background: rgba(255, 210, 63, 0.45); }
+.du-vs { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; margin-bottom: 10px; }
+.du-vs .vs { font-family: var(--display); font-weight: 600; font-size: 1.3rem; color: var(--lc); }
+.du-vs .du-card.flip { animation: cardflip 0.6s ease-out; }
+@keyframes cardflip { from { transform: perspective(600px) rotateY(90deg); } to { transform: none; } }
+.du-vs .du-card.won { animation: cardwin 0.6s ease-out; box-shadow: inset 0 0 0 3px #2fb36b, 0 4px 0 #1f8a4f, 0 0 16px rgba(47, 179, 107, 0.7); }
+.du-vs .du-card.lost { opacity: 0.7; filter: saturate(0.6); }
+@keyframes cardwin { 40% { transform: scale(1.06); } }
+.du-q { border-top-color: var(--lc); position: relative; }
+.du-q .speak { position: absolute; top: 10px; right: 10px; }
+.du-q .ptext { padding-right: 40px; }
+.duel-result .du-log { list-style: none; padding: 0; margin: 4px 0; display: grid; gap: 4px; width: min(340px, 100%); }
+.du-log li { display: flex; align-items: center; gap: 8px; padding: 5px 10px; border-radius: 10px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); font-weight: 800; }
+.du-log li small { color: var(--ink-soft); flex: 1; text-align: center; }
+.du-log li.me { box-shadow: inset 0 0 0 2px #2fb36b; }
+.du-log li.rival { box-shadow: inset 0 0 0 2px #e8453c; }
+@media (prefers-reduced-motion: reduce) { .du-vs .du-card.flip, .du-vs .du-card.won, .du-rival { animation: none; } }
+@media (min-width: 700px) { .du-arena { max-width: 640px; margin-left: auto; margin-right: auto; } .du-hand .du-pic, .du-vs .du-pic { width: 60px; height: 60px; font-size: 2.8rem; } }
 
 /* ---------- Shape Puzzles (js/shapes-ui.js): an album page, then a board and a math card side by side on an iPad ---------- */
 .tile.t-shapes { background: #f6efff; box-shadow: inset 0 0 0 3px #9b7be0, 0 4px 0 #7a5cd6; }
@@ -5336,6 +5436,8 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     { id: 'vip10', icon: '⭐', name: 'Challenge Champ', desc: 'Help 10 ⭐ challenge customers right on the first try', test: (s) => !!s.farm && s.farm.stats.vip >= 10 },
     { id: 'dream1', icon: '🏗️', name: 'Dreamer', desc: 'Build the first part of a Big Dream on your farm', test: (s) => !!s.farm && !!s.farm.dream && (s.farm.dream.p > 0 || s.farm.dream.s > 0) },
     { id: 'investor', icon: '🍎', name: 'Investor', desc: 'Finish the Fruit Orchard: it earns money every bank day', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 1 },
+    { id: 'duel1', icon: '⚔️', name: 'Card Duelist', desc: 'Win a Card Duel', test: (s) => !!s.duels && Object.values(s.duels.wins || {}).some((n) => n >= 1) },
+    { id: 'duelchamp', icon: '🐲', name: 'Dragon League Champion', desc: 'Win a Card Duel in the Dragon League', test: (s) => !!s.duels && ((s.duels.wins || {}).dragon || 0) >= 1 },
     { id: 'treasure', icon: '🧳', name: 'Treasure Hunter', desc: 'Buy a rare treasure from the traveling merchant', test: (s) => !!s.farm && Object.keys(s.farm.treasure || {}).length >= 1 },
     { id: 'charm', icon: '🍀', name: 'Smart Shopper', desc: 'Buy a week charm from the traveling merchant that pays for itself', test: (s) => !!s.farm && (s.farm.stats.charmWins || 0) >= 1 },
     { id: 'deposit', icon: '🔐', name: 'Patient Saver', desc: 'Collect a locked deposit from the farm bank', test: (s) => !!s.farm && (s.farm.stats.depBonus || 0) > 0 },
@@ -5548,6 +5650,204 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     school: 'Problems follow the California Common Core standards for kindergarten: counting and number order to 100, comparing, adding and taking away within 10, making 10, teen numbers, shapes, measuring and sorting. Difficulty: 🌱 Sprout and 🧭 Explorer = core kindergarten, 🏕️ Ranger = strong kindergarten, 🏔️ Expert = end of K / start of 1st grade, 🐉 Legend = 1st-grade material (adding and subtracting to 20, tens and ones to 100, measuring with units). The Star Bridge world is all 1st-grade challenge. Every problem can be read aloud with the 🔊 button.',
   };
   MQ.linkCreatures();
+})();
+</script>
+  <script>
+// Creature stats, like a game character's: ⚡ Speed, 💪 Strength, 🧠 Smarts and ✨ Magic (0 to 100 each), their sum
+// (Power) and a special power. Real animals get stats from real life (the cheetah-fast, the elephant-strong, the
+// octopus-smart), and their Magic is a real "superpower" of nature (glowing, echoes, color change). Magical creatures
+// from the Hatchery are stronger, and rarer ones stronger still; a dragon's stats grow with its stage (MQ.stats).
+// Card Duels (js/duel.js) battle with these numbers.
+(function () {
+  const MQ = (globalThis.MQ = globalThis.MQ || {});
+  // id: [speed, strength, smarts, magic, special power]
+  MQ.STATS = {
+    // ---- Tide Pools
+    hermit: [15, 30, 35, 25, 'Moves into a bigger shell as it grows'],
+    puffer: [30, 15, 25, 45, 'Puffs up into a spiky ball'],
+    mantis: [55, 70, 30, 45, 'Punches faster than you can blink'],
+    nautilus: [20, 20, 30, 50, 'Floats up and down with gas in its shell'],
+    lobster: [35, 65, 30, 50, 'Grows back a lost claw'],
+    otter: [60, 45, 85, 55, 'Opens shells with a rock as a tool'],
+    // ---- Rainforest
+    dartfrog: [30, 10, 25, 60, 'Bright colors warn: I am poisonous!'],
+    sloth: [3, 40, 35, 35, 'Algae grows in its fur like a green coat'],
+    macaw: [70, 35, 75, 30, 'Cracks hard nuts and copies words'],
+    chameleon: [20, 15, 35, 80, 'Changes color and moves each eye on its own'],
+    jaguar: [80, 85, 55, 25, 'Bites right through a turtle shell'],
+    orangutan: [30, 85, 90, 30, 'Uses big leaves as umbrellas'],
+    // ---- Savanna
+    zebra: [75, 55, 35, 20, 'No two zebras have the same stripes'],
+    giraffe: [70, 70, 35, 20, 'The tallest animal on Earth'],
+    rhino: [55, 92, 25, 10, 'Its horn is made of the same stuff as your nails'],
+    hippo: [40, 90, 25, 15, 'Holds its breath underwater for 5 minutes'],
+    elephant: [40, 99, 80, 25, 'Its trunk has about 40,000 muscles'],
+    lion: [80, 90, 60, 40, 'Its roar can be heard 5 miles away'],
+    // ---- Night Forest
+    owl: [55, 35, 60, 55, 'Flies without making a sound'],
+    bat: [65, 10, 55, 65, 'Sees in the dark with echoes'],
+    raccoon: [35, 30, 75, 25, 'Opens latches and jars with its paws'],
+    fox: [70, 35, 70, 30, 'Hears mice moving under the snow'],
+    hedgehog: [30, 35, 45, 70, 'Rolls into a ball of 5,000 spines'],
+    wolf: [80, 75, 80, 35, 'Hunts as a team and howls to its pack'],
+    // ---- Desert
+    scorpion: [30, 35, 20, 65, 'Glows blue-green under UV light'],
+    camel: [55, 75, 35, 30, 'Goes a week without drinking water'],
+    sidewinder: [45, 25, 30, 50, 'Slides sideways across hot sand'],
+    kangaroo: [75, 70, 30, 20, 'Jumps 25 feet in one hop'],
+    brachio: [20, 99, 25, 40, 'As tall as a 4-story building'],
+    trex: [55, 99, 45, 35, 'The strongest bite of any land animal ever'],
+    // ---- Arctic
+    penguin: [30, 45, 40, 40, 'Dives deeper than 1,500 feet'],
+    seal: [45, 50, 55, 25, 'Sleeps underwater and pops up to breathe'],
+    reindeer: [65, 60, 40, 45, 'Its eyes turn blue in winter'],
+    hare: [80, 20, 35, 40, 'Its fur turns white in winter'],
+    mammoth: [40, 95, 55, 30, 'Tusks as long as a car'],
+    polarbear: [55, 95, 65, 35, 'Smells a seal from a mile away'],
+    // ---- Deep Ocean
+    octopus: [45, 30, 85, 55, 'Three hearts and blue blood'],
+    dolphin: [75, 35, 85, 25, 'Sleeps with half of its brain at a time'],
+    turtle: [35, 40, 35, 55, 'Finds its way across oceans with Earth’s magnetism'],
+    squid: [50, 60, 45, 50, 'Eyes as big as dinner plates'],
+    shark: [80, 85, 40, 45, 'Grows new teeth all its life'],
+    bluewhale: [45, 99, 60, 40, 'The biggest animal that ever lived'],
+    // ---- Sky Kingdom
+    bee: [55, 25, 50, 55, 'Dances to tell friends where flowers are'],
+    monarch: [45, 10, 30, 75, 'Flies 3,000 miles to Mexico'],
+    flamingo: [55, 30, 30, 40, 'Turns pink from the food it eats'],
+    peacock: [50, 35, 35, 60, 'Spreads a giant fan of shimmering feathers'],
+    eagle: [95, 60, 50, 35, 'Dives at 150 miles per hour'],
+    dragon: [75, 80, 65, 95, 'Breathes fire and rides the wind'],
+    // ---- Kindergarten: Sunny Meadow
+    k_chick: [25, 15, 30, 35, 'Peeps to its mom from inside the egg'],
+    k_bunny: [60, 15, 30, 25, 'Turns its ears to catch every sound'],
+    k_duckling: [35, 15, 30, 35, 'Swims on the day it hatches'],
+    k_lamb: [40, 25, 30, 25, 'Knows its mom’s voice in a big flock'],
+    k_foal: [70, 45, 40, 25, 'Walks an hour after it is born'],
+    k_bearcub: [45, 65, 60, 40, 'Climbs trees to stay safe'],
+    // ---- Kindergarten: Lily Pond
+    k_tadpole: [35, 10, 20, 55, 'Grows legs and turns into a frog'],
+    k_fry: [45, 10, 20, 35, 'Swims in a big school with its brothers and sisters'],
+    k_turtle: [15, 30, 25, 40, 'Digs out of its sandy nest at night'],
+    k_flamingo: [35, 20, 25, 35, 'Born gray, turns pink later'],
+    k_hippo: [30, 75, 30, 30, 'Drinks its mom’s milk underwater'],
+    k_otter: [50, 35, 65, 50, 'Naps floating on its mom’s belly'],
+    // ---- Kindergarten: Apple Orchard
+    k_piglet: [35, 30, 60, 20, 'Learns its own name in about two weeks'],
+    k_calf: [35, 45, 30, 20, 'Walks soon after it is born'],
+    k_kid: [45, 30, 40, 30, 'Climbs rocks right away'],
+    k_hoglet: [20, 15, 25, 50, 'Born with soft spines that harden later'],
+    k_kitten: [65, 25, 55, 45, 'Purrs when it is happy'],
+    k_puppy: [60, 45, 70, 35, 'Smells 10,000 times better than you'],
+    // ---- Kindergarten: Whispering Woods
+    k_fawn: [60, 20, 30, 50, 'Its spots help it hide in the forest'],
+    k_foxkit: [50, 25, 55, 30, 'Plays games to learn how to hunt'],
+    k_owlet: [25, 15, 45, 50, 'Turns its head almost all the way around'],
+    k_raccoon: [30, 20, 55, 25, 'Feels its food in the water with clever paws'],
+    k_boar: [45, 60, 40, 25, 'Its stripes help it hide in the leaves'],
+    k_wolfpup: [55, 50, 65, 40, 'Howls to find its family'],
+    // ---- Kindergarten: Shell Beach
+    k_seal: [35, 30, 35, 35, 'Its mom finds it by its voice'],
+    k_crab: [35, 25, 20, 35, 'Walks sideways'],
+    k_penguin: [20, 20, 30, 40, 'Snuggles on its dad’s feet to stay warm'],
+    k_octopus: [30, 20, 55, 50, 'Squirts ink to hide'],
+    k_dolphin: [70, 30, 60, 30, 'Has its own whistle, like a name'],
+    k_whale: [40, 85, 45, 40, 'Grows about 200 pounds a day'],
+    // ---- Kindergarten: Crystal Caves
+    k_bat: [50, 10, 40, 55, 'Finds bugs in the dark with echoes'],
+    k_spider: [25, 10, 30, 60, 'Floats away on a silk thread like a balloon'],
+    k_snake: [35, 20, 25, 50, 'Smells with its tongue'],
+    k_gecko: [40, 15, 25, 60, 'Walks up walls and across ceilings'],
+    k_caterpillar: [10, 20, 35, 95, 'Turns into a butterfly'],
+    k_dragon: [55, 55, 55, 90, 'Puffs tiny flames'],
+    // ---- Kindergarten: Star Bridge
+    k_lioncub: [55, 50, 45, 30, 'Learns to roar at about one year old'],
+    k_tigercub: [55, 55, 45, 30, 'Every tiger has its own stripes'],
+    k_elephant: [30, 75, 60, 25, 'Sucks its trunk like a thumb'],
+    k_giraffe: [60, 55, 35, 20, 'Born six feet tall'],
+    k_joey: [45, 25, 30, 70, 'Born as small as a jelly bean'],
+    k_polarcub: [40, 70, 55, 40, 'Born as small as a guinea pig'],
+    // ---- Meadow Egg
+    unicorn: [75, 60, 60, 99, 'Its horn makes water clean and pure'],
+    dodo: [25, 45, 40, 80, 'Lived only on one island, Mauritius'],
+    beaver: [35, 55, 70, 25, 'Builds dams that change rivers'],
+    skunk: [35, 20, 40, 70, 'Does a handstand before it sprays'],
+    squirrel: [60, 20, 55, 30, 'Plants trees by forgetting its buried nuts'],
+    panda: [25, 70, 45, 30, 'Eats bamboo up to 12 hours a day'],
+    koala: [15, 30, 25, 40, 'Sleeps up to 20 hours a day'],
+    badger: [45, 65, 55, 40, 'Fearless: it stands up to lions'],
+    snail: [3, 20, 15, 65, 'Carries its house on its back'],
+    ladybug: [40, 10, 20, 60, 'Its spots warn birds: I taste bad!'],
+    croc: [45, 90, 35, 20, 'The strongest bite of any animal today'],
+    llama: [50, 50, 40, 30, 'Hums to talk to its friends'],
+    swan: [65, 50, 45, 50, 'Guards its family with its big wings'],
+    crowned: [50, 35, 40, 90, 'Its snow-white fan looks like lace'],
+    tiger: [75, 85, 40, 15, 'Loves to swim, unlike most cats'],
+    gorilla: [40, 95, 70, 10, 'Laughs when it is tickled'],
+    bison: [65, 90, 30, 20, 'Runs 35 miles per hour'],
+    snowmonkey: [45, 35, 65, 50, 'Warms up in hot springs in the snow'],
+    humpback: [45, 95, 70, 55, 'Sings songs that last 20 minutes'],
+    mandarin: [65, 25, 40, 60, 'The most colorful duck in the world'],
+    // ---- Crystal Egg
+    emberfox: [75, 45, 65, 85, 'Its tail glows like a warm campfire'],
+    frostowl: [65, 40, 80, 85, 'Freezes the air with one hoot'],
+    moonrabbit: [80, 30, 65, 90, 'Makes magic potions on the Moon'],
+    moonwolf: [80, 65, 65, 85, 'Howls up the full moon'],
+    stardust: [60, 25, 70, 95, 'Leaves a trail of stardust'],
+    wishfish: [65, 20, 75, 99, 'Grants wishes to kind fishermen'],
+    humpbackhorse: [90, 60, 75, 85, 'Gallops across the sky'],
+    silverhoof: [70, 45, 50, 95, 'Stamps, and silver coins fly out'],
+    frogprince: [40, 40, 80, 90, 'Turns into a prince'],
+    pixie: [85, 15, 70, 99, 'Sprinkles fairy dust to fly'],
+    gnome: [25, 55, 75, 85, 'Guards treasure under tree roots'],
+    rainbowsnail: [15, 40, 55, 99, 'Leaves a rainbow trail'],
+    thistlehog: [40, 45, 55, 90, 'Its spines bloom into flowers'],
+    bubbleturtle: [35, 60, 60, 90, 'Blows a bubble that floats it to the sky'],
+    glimmerwing: [80, 15, 55, 99, 'Its wings shine with every color'],
+    acornsprite: [60, 30, 65, 90, 'Wakes up seeds and plants forests'],
+    // ---- Legendary Egg
+    firebird: [90, 55, 70, 99, 'Its feathers glow like fire, even at night'],
+    griffin: [92, 95, 70, 85, 'Eagle eyes and a lion’s strength'],
+    pegasus: [99, 70, 70, 95, 'Flies faster than the wind'],
+    mermaid: [85, 50, 85, 95, 'Sings songs that calm the sea'],
+    genie: [60, 80, 90, 99, 'Lives in a lamp and grants three wishes'],
+    merlin: [45, 50, 99, 99, 'Knows every spell in the book'],
+    kraken: [70, 99, 65, 85, 'Pulls whole ships under the sea'],
+    yeti: [65, 95, 60, 80, 'Leaves giant footprints in the snow'],
+    kitsune: [85, 50, 95, 99, 'Grows a new tail every 100 years'],
+    featherserpent: [85, 75, 85, 95, 'Brings the wind and the rain'],
+    starwhale: [70, 99, 80, 99, 'Swims through the stars'],
+    worldturtle: [10, 99, 99, 99, 'Carries the whole world on its back'],
+    // ---- Dragon Egg (fully grown: an elder dragon; younger dragons have less)
+    dr_ember: [85, 99, 75, 99, 'Breathes fire hot enough to melt rock'],
+    dr_frost: [80, 90, 85, 99, 'Freezes a lake with one breath'],
+    dr_storm: [99, 90, 80, 99, 'Throws lightning bolts'],
+    dr_forest: [70, 99, 90, 95, 'Makes trees grow overnight'],
+    dr_ocean: [90, 95, 85, 95, 'Calls up giant waves'],
+    dr_crystal: [75, 95, 95, 99, 'Its scales are made of crystal'],
+    dr_moon: [90, 85, 99, 99, 'Glows bright on the darkest night'],
+    dr_sun: [95, 99, 90, 99, 'Shines as bright as the Sun'],
+    dr_rainbow: [99, 90, 95, 99, 'Paints rainbows across the sky'],
+    dr_cosmic: [99, 99, 99, 99, 'Flies between the stars'],
+    // ---- Royal Egg
+    dr_royal: [100, 100, 100, 100, 'The king of all dragons'],
+  };
+  // [key, icon, name, comparative ("faster")]
+  MQ.STAT_KEYS = [['speed', '⚡', 'Speed', 'faster'], ['strength', '💪', 'Strength', 'stronger'], ['smarts', '🧠', 'Smarts', 'smarter'], ['magic', '✨', 'Magic', 'more magical']];
+  // A dragon has this share of its full stats at each stage: baby, young, grown-up, elder.
+  MQ.DRAGON_GROWTH = [0.55, 0.7, 0.85, 1];
+  // A creature's stats: { speed, strength, smarts, magic, list: [4 numbers], power, special, stage }.
+  // stage: a dragon's growth stage (default: this child's dragon, or a grown-up one).
+  MQ.stats = (c, st, stage) => {
+    const s = MQ.STATS[c.id];
+    if (!s) return null;
+    if (c.dragon && stage === undefined) stage = st && st.dragons && st.dragons[c.id] && MQ.dragonStage ? MQ.dragonStage(st, c.id) : 2;
+    const k = c.dragon ? MQ.DRAGON_GROWTH[stage] : 1;
+    const list = s.slice(0, 4).map((x) => Math.round(x * k));
+    const out = { list, power: list.reduce((a, b) => a + b, 0), special: s[4], stage: c.dragon ? stage : undefined };
+    MQ.STAT_KEYS.forEach(([key], i) => (out[key] = list[i]));
+    return out;
+  };
 })();
 </script>
   <script>
@@ -7721,6 +8021,7 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     eggsHatched: 0,
     dragons: {}, // id: { name, at, seen } — a hatched dragon's name, right answers when it hatched, growth stage already celebrated
     buddy: '', // a creature chosen as the expedition buddy ('' = the companion picked at the start)
+    duels: { wins: {}, played: 0 }, // Card Duels (js/duel.js): duels won in each league, duels played
     stats: { attempts: 0, correct: 0, bestStreak: 0, topics: {}, d5: 0, lightning60: 0, lightning120: 0, endlessBest: 0, fixed: 0 },
     daily: { last: '', streak: 0, best: 0 },
     days: {}, // 'YYYY-MM-DD': { a, c } — answers and first-try right answers, kept for two years
@@ -7933,6 +8234,10 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
       out.dragons[id] = o ? Object.assign({}, v, { at: Math.min(v.at || 0, o.at || 0), seen: max(v.seen, o.seen) }) : v;
     }
     for (const k of ['attempts', 'correct', 'bestStreak', 'd5', 'lightning60', 'lightning120', 'endlessBest', 'fixed']) out.stats[k] = max(nw.stats[k], old.stats[k]);
+    // card duels: the higher count of each
+    const dn = nw.duels || {}, dold = old.duels || {};
+    out.duels = { played: max(dn.played, dold.played), wins: {} };
+    for (const k of new Set([...Object.keys(dn.wins || {}), ...Object.keys(dold.wins || {})])) out.duels.wins[k] = max((dn.wins || {})[k], (dold.wins || {})[k]);
     for (const [t, v] of Object.entries(old.stats.topics || {})) if (!out.stats.topics[t] || out.stats.topics[t].a < v.a) out.stats.topics[t] = v;
     out.days = Object.assign({}, old.days);
     for (const [d, v] of Object.entries(nw.days || {})) out.days[d] = { a: max(v.a, (old.days[d] || {}).a), c: max(v.c, (old.days[d] || {}).c) };
@@ -10184,6 +10489,329 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
 })();
 </script>
   <script>
+// Card Duels: the creatures a child collected battle with their stats (js/stats.js), Top Trumps style, against a
+// rival in three leagues. A duel has 5 rounds, and the child holds three cards from their collection each round.
+// Rounds 1 and 3: the child picks a card and one of its stats. Rounds 2 and 4: the rival plays a card and picks the
+// stat, and the child picks the card with the most of it. Round 5 is the Power round: the sum of the stats. Then the
+// cards are turned over, and the child answers a question about the two numbers (kindergarten: which is bigger;
+// 2nd grade: how much more). The numbers decide who wins the round, so reading the stats well is the strategy; the
+// math earns crystals and XP (and counts in the day's answers), and winning the duel earns the league's prize.
+// Balance (checked by simulations in tests/duel.test.js): the Meadow League rival plays animals from the child's own
+// map and picks stats at random, so a beginner with a few animals wins most duels; the Crystal and Dragon League
+// rivals play magical creatures and pick their best stat, so winning there takes Crystal, Legendary and Dragon cards.
+// MQ.duel holds the rules (no screens, so it runs in the tests); MQ.duelUI draws them with the app's kit.
+(function () {
+  const MQ = (globalThis.MQ = globalThis.MQ || {});
+  const D = {};
+  D.ROUNDS = 5;
+  D.HAND = 3;
+  D.MIN_CARDS = 3;
+  D.RIGHT_GEMS = 1; // a first-try right answer
+  // Each league's rival plays with creatures of these rarities from the child's map (map: only map animals) and the
+  // Hatchery (dragons as grown-ups); a smart rival picks its card's best stat. A league opens after `need` wins in the
+  // one before. prize: crystals for a won duel (a draw: 1).
+  D.LEAGUES = [
+    { id: 'meadow', icon: '🌿', name: 'Meadow League', rival: ['🦝', 'Rocky'], rar: ['common', 'rare'], map: true, smart: false, prize: 3, need: 0, color: '#4caf50' },
+    { id: 'crystal', icon: '💎', name: 'Crystal League', rival: ['🦉', 'Professor Hoot'], rar: ['legendary', 'mythic', 'crystal'], smart: true, prize: 5, need: 3, color: '#8b6fe0' },
+    { id: 'dragon', icon: '🐉', name: 'Dragon League', rival: ['🧙‍♀️', 'Queen Aurora'], rar: ['legend', 'dragon'], smart: true, prize: 8, need: 3, color: '#e0453c' },
+  ];
+  D.ensure = (st) => (st.duels = st.duels || { wins: {}, played: 0 });
+  D.wins = (st, li) => D.ensure(st).wins[D.LEAGUES[li].id] || 0;
+  D.open = (st, li) => li === 0 || D.wins(st, li - 1) >= D.LEAGUES[li].need;
+  // The child's cards: every creature in the collection that has stats, strongest first.
+  D.cards = (st) => Object.keys(st.creatures || {}).map((id) => MQ.creatureById(id)).filter((c) => c && MQ.STATS[c.id]).map((c) => [c, MQ.stats(c, st).power]).sort((a, b) => b[1] - a[1]).map((x) => x[0]);
+  D.canPlay = (st) => D.cards(st).length >= D.MIN_CARDS;
+  // the rival's cards in league li for a child in this grade
+  const pools = {};
+  D.pool = (li, grade) => {
+    const key = li + grade, L = D.LEAGUES[li], worlds = new Set(MQ.track(grade).worlds.map((w) => w.id));
+    return pools[key] || (pools[key] = MQ.ALL_CREATURES.filter((c) => L.rar.includes(c.rarity) && MQ.STATS[c.id] && (worlds.has(c.world) || (!L.map && !!c.egg))));
+  };
+  // stats in a duel: the child's own (a dragon at its stage), the rival's (dragons grown-up)
+  D.mine = (st, c) => MQ.stats(c, st);
+  D.theirs = (c) => MQ.stats(c, null, c.dragon ? 2 : undefined);
+  D.value = (s, stat) => (stat < 0 ? s.power : s.list[stat]);
+  D.powerRound = (round) => round === D.ROUNDS;
+  D.rivalTurn = (round) => round % 2 === 0 && !D.powerRound(round); // the rival picks the stat
+  // the Power range of a league's rival cards, for the lobby (rounded to tens)
+  D.range = (li, grade) => { const p = D.pool(li, grade).map((c) => D.theirs(c).power); return [Math.floor(Math.min(...p) / 10) * 10, Math.ceil(Math.max(...p) / 10) * 10]; };
+
+  const pickOne = (list, rnd) => list[Math.floor(rnd() * list.length)];
+  const sample = (list, n, rnd) => { const a = list.slice(), out = []; while (a.length && out.length < n) out.push(a.splice(Math.floor(rnd() * a.length), 1)[0]); return out; };
+  // A new duel in league li.
+  D.start = (st, li) => ({ league: li, grade: st.grade, cards: D.cards(st).map((c) => c.id), round: 1, me: 0, rival: 0, used: [], rused: [], log: [], gems: 0, xp: 0, right: 0 });
+  // Three cards for this round, from the cards not played yet in this duel (all of them again when fewer are left).
+  D.deal = (st, du, rnd = Math.random) => {
+    const fresh = du.cards.filter((id) => !du.used.includes(id));
+    return sample(fresh.length >= D.HAND ? fresh : du.cards, D.HAND, rnd);
+  };
+  D.rivalCard = (du, rnd = Math.random) => {
+    const pool = D.pool(du.league, du.grade).map((c) => c.id), fresh = pool.filter((id) => !du.rused.includes(id));
+    return pickOne(fresh.length ? fresh : pool, rnd);
+  };
+  // On the rival's turn: its card and the stat it picks ({ id, stat }): its best stat, or (Meadow League) any stat.
+  D.rivalChoose = (du, rnd = Math.random) => {
+    const id = D.rivalCard(du, rnd), s = D.theirs(MQ.creatureById(id)).list;
+    return { id, stat: D.LEAGUES[du.league].smart ? s.indexOf(Math.max(...s)) : Math.floor(rnd() * 4) };
+  };
+  // Play a round: the child's card and stat (-1: Power) against the rival's card. Returns { a, b, win: 'me' | 'rival' | 'tie' }.
+  D.play = (st, du, mineId, stat, rivalId) => {
+    const a = D.value(D.mine(st, MQ.creatureById(mineId)), stat), b = D.value(D.theirs(MQ.creatureById(rivalId)), stat);
+    const win = a > b ? 'me' : a < b ? 'rival' : 'tie';
+    if (win === 'me') du.me++;
+    if (win === 'rival') du.rival++;
+    du.used.push(mineId);
+    du.rused.push(rivalId);
+    du.log.push({ mine: mineId, rival: rivalId, stat, a, b, win });
+    du.round++;
+    return { a, b, win };
+  };
+  D.over = (du) => du.round > D.ROUNDS;
+  D.outcome = (du) => (du.me > du.rival ? 'win' : du.me < du.rival ? 'lose' : 'draw');
+  // The duel is over: count it, and the prize (crystals) for a win or a draw.
+  D.finish = (st, du) => {
+    const d = D.ensure(st), out = D.outcome(du), L = D.LEAGUES[du.league];
+    d.played = (d.played || 0) + 1;
+    if (out === 'win') d.wins[L.id] = (d.wins[L.id] || 0) + 1;
+    return { out, prize: out === 'win' ? L.prize : out === 'draw' ? 1 : 0 };
+  };
+  // The question about the two numbers (null for a tie). me / them: { name, e, v }.
+  // Kindergarten: which number is bigger (tap it). 2nd grade: how much more (subtract, within 100; the Power round within 1000).
+  D.question = (grade, me, them, stat) => {
+    if (me.v === them.v) return null;
+    const [big, small] = me.v > them.v ? [me, them] : [them, me];
+    const name = stat < 0 ? 'Power' : MQ.STAT_KEYS[stat][2];
+    if (grade === 'k') {
+      const choices = [`${me.e} ${me.v}`, `${them.e} ${them.v}`];
+      return { kind: 'choice', answer: `${big.e} ${big.v}`, choices, text: `Who has more <b>${name}</b>? Tap the bigger number.`, hint: `Look at the first digit: ${Math.floor(me.v / 10)} tens or ${Math.floor(them.v / 10)} tens?`, explain: `${big.v} is bigger than ${small.v}` };
+    }
+    const d = big.v - small.v;
+    return { kind: 'num', answer: d, text: `<b>${big.name}</b> has ${name} <b>${big.v}</b>. <b>${small.name}</b> has <b>${small.v}</b>. How much more ${name} does ${big.name} have?`,
+      hint: `Count up from ${small.v} to ${big.v}, or take away: ${big.v} − ${small.v}.`, explain: `${big.v} − ${small.v} = ${d}` };
+  };
+  D.isRight = (q, given) => String(given) === String(q.answer);
+  MQ.duel = D;
+
+  // ---------------------------------------------------------------- screens
+  if (typeof document === 'undefined') return;
+  const U = MQ.U, esc = U.esc;
+  const K = () => MQ.app.kit;
+  const st = () => K().state();
+  const $ = (sel) => document.querySelector(sel);
+  let du = null; // the duel being played: D.start(...) plus stage, hand, pick, stat, rcard, q, tries, input, done, res
+  let autoNext = null;
+
+  const pic = (c, mine) => (mine ? MQ.look(st(), c) : MQ.look(st(), c, { stage: c.dragon ? 2 : undefined }));
+  const dragonStyle = (c) => (c.dragon ? ` style="--el:${MQ.DRAGON_LOOK[c.id].el}"` : '');
+  const shown = (c, mine) => (mine && c.dragon && st().dragons[c.id] ? st().dragons[c.id].name : c.name);
+  // A duel card: picture, name, the four stats and Power. opts: { mine, tap (action for the whole card), stats (stat
+  // buttons), hi (the stat in play: 0–3, -1 Power), cls }
+  function card(c, o = {}) {
+    const s = o.mine ? D.mine(st(), c) : D.theirs(c);
+    const rows = MQ.STAT_KEYS.map(([k, e, name], i) => {
+      const inner = `<span>${e} ${name}</span><i><b style="width:${s.list[i]}%"></b></i><em>${s.list[i]}</em>`;
+      return o.stats ? `<button class="du-st s-${k}" data-act="duelStat" data-arg="${i}">${inner}</button>` : `<div class="du-st s-${k} ${o.hi === i ? 'hi' : ''}">${inner}</div>`;
+    }).join('');
+    const body = `<span class="du-pic">${pic(c, o.mine)}</span><b class="du-name">${esc(shown(c, o.mine))}</b><div class="du-stats">${rows}</div><div class="du-pow ${o.hi === -1 ? 'hi' : ''}">Power <b>${s.power}</b></div>`;
+    return o.tap ? `<button class="du-card r-${c.rarity} ${o.cls || ''}"${dragonStyle(c)} data-act="${o.tap}" data-arg="${c.id}">${body}</button>` : `<div class="du-card r-${c.rarity} ${o.cls || ''}"${dragonStyle(c)}>${body}</div>`;
+  }
+
+  // ---- the lobby: the leagues and the strongest cards
+  function lobby() {
+    du = null;
+    const s = st(), cards = D.cards(s), d = D.ensure(s);
+    const leagues = D.LEAGUES.map((L, i) => {
+      const open = D.open(s, i), w = D.wins(s, i), [lo, hi] = D.range(i, s.grade), next = D.LEAGUES[i + 1];
+      const goal = next ? `<span class="lg-goal">${Array.from({ length: next.need }, (_, k) => `<i class="${k < w ? 'on' : ''}">⭐</i>`).join('')}<small>${w >= next.need ? `${next.icon} ${next.name} is open!` : `Win ${next.need - w} more to open the ${next.name}`}</small></span>` : '';
+      return `<section class="league l-${L.id} ${open ? '' : 'locked'}" style="--lc:${L.color}">
+        <span class="lg-rival">${open ? L.rival[0] : '🔒'}</span>
+        <div class="lg-t"><b>${L.icon} ${L.name}</b><small>Rival: ${L.rival[0]} ${esc(L.rival[1])} · cards with Power ${lo}–${hi}</small>
+          <small>${open ? `Win a duel: <b>+${L.prize} 💎</b> · wins: ${w}` : `Win ${L.need} duels in the ${D.LEAGUES[i - 1].name} to open it (${D.wins(s, i - 1)} / ${L.need})`}</small>${open ? goal : ''}</div>
+        ${open ? `<button class="btn" data-act="duelStart" data-arg="${i}" ${cards.length >= D.MIN_CARDS ? '' : 'disabled'}>Duel!</button>` : ''}</section>`;
+    }).join('');
+    K().render(K().header('⚔️ Card Duels') + `<main class="duels">
+      <p class="lead">Your creatures battle with their stats! You and the rival take turns picking the stat, and the bigger number wins the round. Then do the math. ${D.ROUNDS} rounds: whoever wins more rounds wins the duel.</p>
+      ${cards.length < D.MIN_CARDS ? `<p class="du-note">Collect ${D.MIN_CARDS} creatures to play: finish levels on the map, or hatch eggs in the Hatchery. You have ${cards.length}.</p>` : `<h2>Your strongest cards</h2><div class="du-top">${cards.slice(0, 3).map((c) => card(c, { mine: true })).join('')}</div>`}
+      <div class="leagues">${leagues}</div>
+      <p class="muted center">Every first-try right answer: +${D.RIGHT_GEMS} 💎. Duels played: ${d.played || 0}.</p>
+    </main>`);
+    K().setCur('duel');
+  }
+
+  // ---- a duel
+  function start(li) {
+    const s = st();
+    if (!D.canPlay(s) || !D.open(s, li)) return lobby();
+    du = D.start(s, li);
+    round();
+    MQ.sfx('whoosh');
+    view();
+  }
+  // A new round: three cards in hand; on the rival's turn its card and stat are chosen now.
+  function round() {
+    Object.assign(du, { stage: 'pick', pick: null, stat: null, rcard: null, q: null, res: null, done: false });
+    du.hand = D.deal(st(), du);
+    if (D.rivalTurn(du.round)) { const r = D.rivalChoose(du); du.rcard = r.id; du.stat = r.stat; }
+  }
+  const L = () => D.LEAGUES[du.league];
+  function view() {
+    clearTimeout(autoNext);
+    const s = st(), power = D.powerRound(du.round), rv = L().rival;
+    let arena = '';
+    if (du.stage === 'pick') {
+      const rturn = D.rivalTurn(du.round), sk = rturn && MQ.STAT_KEYS[du.stat];
+      arena = `${rturn ? `<div class="du-rival"><span class="du-rcard">${rv[0]}</span><span><b>${esc(rv[1])}</b> plays a card and picks <b class="s-${sk[0]}">${sk[1]} ${sk[2]}</b>!</span></div>` : ''}
+        <p class="du-prompt">${power ? '⚡ <b>Power round!</b> Pick the card with the most Power.' : rturn ? `Pick your card with the most <b>${sk[2]}</b>.` : 'Your turn: pick a card, then a stat.'}</p>
+        <div class="du-hand">${du.hand.map((id) => card(MQ.creatureById(id), { mine: true, tap: 'duelPick', hi: power ? -1 : rturn ? du.stat : undefined })).join('')}</div>`;
+    } else if (du.stage === 'stat') {
+      arena = `<p class="du-prompt">Pick a stat to battle with</p><div class="du-big">${card(MQ.creatureById(du.pick), { mine: true, stats: true })}</div>
+        <div class="row"><button class="btn ghost" data-act="duelBack">← Another card</button></div>`;
+    } else {
+      const hi = du.stat;
+      arena = `<div class="du-vs">${card(MQ.creatureById(du.pick), { mine: true, hi, cls: du.res && du.res.win === 'me' ? 'won' : du.res && du.res.win === 'rival' ? 'lost' : '' })}<span class="vs">VS</span>${card(MQ.creatureById(du.rcard), { hi, cls: 'flip ' + (du.res && du.res.win === 'rival' ? 'won' : du.res && du.res.win === 'me' ? 'lost' : '') })}</div>
+        <section class="pcard du-q" id="pcard">${du.q ? `<div class="ptext wordy">${du.q.text}</div>${MQ.canSpeak() ? '<button class="speak" data-act="duelSpeak" aria-label="Read the question aloud">🔊</button>' : ''}` : '<div class="ptext">It’s a tie! Both have the same number.</div>'}
+          <div id="dstep"></div><div class="feedback" id="feedback" aria-live="polite"></div></section>
+        <div class="answer" id="danswer"></div>`;
+    }
+    K().render(`<div class="play duel-play" style="--lc:${L().color}">
+      <header class="playbar"><button class="iconbtn" data-act="duelQuit" aria-label="Stop">✕</button>
+        <div class="pstatus">${L().icon} Round ${Math.min(du.round, D.ROUNDS)} of ${D.ROUNDS}${power ? ' ⚡' : ''}</div>
+        <div class="du-score" aria-label="Score: you ${du.me}, ${esc(rv[1])} ${du.rival}"><span class="du-me">${MQ.face(s)} <b>${du.me}</b></span><i>:</i><span class="du-rv"><b>${du.rival}</b> ${rv[0]}</span></div></header>
+      <main class="du-arena">${arena}</main></div>`, 'is-play');
+    if (du.stage === 'battle') { drawAnswer(); if (du.q && !du.done && s.settings.readAloud) speak(); }
+  }
+  function pick(id) {
+    if (!du || du.stage !== 'pick' || !du.hand.includes(id)) return;
+    MQ.sfx('tap');
+    du.pick = id;
+    if (D.powerRound(du.round)) return battle(-1);
+    if (D.rivalTurn(du.round)) return battle(du.stat);
+    du.stage = 'stat';
+    view();
+  }
+  // The rival's card is turned over, and the question comes.
+  function battle(stat) {
+    const s = st();
+    du.stat = stat;
+    if (!du.rcard) du.rcard = D.rivalCard(du);
+    const mine = MQ.creatureById(du.pick), theirs = MQ.creatureById(du.rcard);
+    const a = D.value(D.mine(s, mine), stat), b = D.value(D.theirs(theirs), stat);
+    du.q = D.question(s.grade, { name: shown(mine, true), e: mine.emoji, v: a }, { name: theirs.name, e: theirs.emoji, v: b }, stat);
+    Object.assign(du, { stage: 'battle', tries: 0, input: '', done: false, res: null });
+    MQ.sfx('whoosh');
+    if (!du.q) return settle(true, false); // a tie: nothing to work out
+    view();
+  }
+  function drawAnswer() {
+    const box = $('#danswer'), q = du.q;
+    if (!box) return;
+    if (du.done) {
+      box.innerHTML = `<div class="row"><button class="btn big" data-act="duelNext">${D.over(du) ? 'See who won! 🏆' : 'Next round →'}</button></div>`;
+      return;
+    }
+    if (q.kind === 'num') {
+      $('#dstep').innerHTML = `<div class="display"><span class="dval ${du.input ? 'filled' : ''}" id="dval">${du.input || '?'}</span></div>`;
+      box.innerHTML = `<div class="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((k) => `<button class="key" data-act="duelKey" data-arg="${k}">${k}</button>`).join('')}<button class="key alt" data-act="duelKey" data-arg="back" aria-label="Delete">⌫</button><button class="key" data-act="duelKey" data-arg="0">0</button><button class="key go" data-act="duelCheck">Check</button></div>`;
+    } else box.innerHTML = `<div class="choices n2">${q.choices.map((c, i) => `<button class="choice" data-act="duelChoose" data-arg="${i}">${esc(c)}</button>`).join('')}</div>`;
+  }
+  const feedback = (html, cls) => { const el = $('#feedback'); if (el) el.innerHTML = `<div class="fb ${cls}">${html}</div>`; };
+  function key(k) {
+    if (!du || du.done || !du.q || du.q.kind !== 'num') return;
+    if (k === 'back') du.input = du.input.slice(0, -1);
+    else if (du.input.length < 4) du.input = (du.input + k).replace(/^0+(?=\d)/, '');
+    MQ.sfx('tap');
+    const d = $('#dval');
+    if (d) { d.textContent = du.input || '?'; d.classList.toggle('filled', !!du.input); }
+  }
+  function check(given) {
+    if (!du || du.done || !du.q) return;
+    if (D.isRight(du.q, given)) return settle(du.tries === 0, true);
+    du.tries++;
+    MQ.sfx('wrong');
+    const c = $('#pcard');
+    if (c) { c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); }
+    if (du.tries < 2) { feedback(`💡 ${du.q.hint}`, 'hint'); du.input = ''; return drawAnswer(); }
+    settle(false, false);
+  }
+  // The round is decided by the numbers; a first-try right answer earns a crystal.
+  function settle(first, solved) {
+    const s = st(), q = du.q;
+    du.res = D.play(s, du, du.pick, du.stat, du.rcard);
+    du.done = true;
+    if (q) {
+      MQ.farm.record(s, first); // counts in the day's answers, like every problem
+      if (first) { K().addGems(D.RIGHT_GEMS); du.gems += D.RIGHT_GEMS; du.right++; }
+      const x = first ? 10 : solved ? 5 : 0;
+      if (x) { K().addXp(x); du.xp += x; }
+    }
+    MQ.store.save();
+    const rv = L().rival[1], mine = shown(MQ.creatureById(du.pick), true);
+    const verdict = du.res.win === 'me' ? `🎉 <b>${esc(mine)}</b> wins this round!` : du.res.win === 'rival' ? `${esc(rv)}’s <b>${esc(MQ.creatureById(du.rcard).name)}</b> wins this round.` : '🤝 A tie: nobody gets a point.';
+    const said = !q ? '' : first ? `✓ Right! +${D.RIGHT_GEMS} 💎 ` : solved ? '✓ Got it! ' : `The answer is <b>${esc(String(q.answer))}</b>. <span class="explain">${esc(q.explain)}</span><br>`;
+    view();
+    feedback(`<span>${said}${verdict}</span>`, !q || solved ? 'ok' : 'reveal');
+    MQ.sfx(du.res.win === 'me' ? 'correct' : du.res.win === 'rival' ? 'tick' : 'tap');
+    if (du.res.win === 'me') MQ.confetti(40);
+    K().checkBadges();
+  }
+  function next() {
+    if (!du || !du.done) return;
+    if (D.over(du)) return finish();
+    round();
+    view();
+  }
+  function finish() {
+    const s = st(), { out, prize } = D.finish(s, du), Lg = L(), rv = Lg.rival;
+    if (prize) { K().addGems(prize); du.gems += prize; }
+    MQ.store.save();
+    K().checkBadges();
+    const nextL = D.LEAGUES[du.league + 1], opened = out === 'win' && nextL && D.wins(s, du.league) === nextL.need;
+    const title = out === 'win' ? `You won the duel ${du.me} : ${du.rival}!` : out === 'lose' ? `${esc(rv[1])} won ${du.rival} : ${du.me}` : `A draw, ${du.me} : ${du.rival}`;
+    const li = du.league;
+    K().render(`<main class="result duel-result" style="--lc:${Lg.color}">
+      <div class="bigemoji">${out === 'win' ? '🏆' : out === 'draw' ? '🤝' : rv[0]}</div>
+      <h1 class="title">${title}</h1>
+      <p class="lead">${out === 'win' ? `Prize: <b>+${prize} 💎</b>` : out === 'draw' ? `A draw prize: <b>+1 💎</b>` : 'So close! Pick your strongest stats and try again.'}</p>
+      <p>Right answers: <b>${du.right}</b> · crystals: <b>+${du.gems} 💎</b> · <b>+${du.xp} XP</b></p>
+      ${opened ? `<p class="du-note">🎉 New: the <b>${nextL.icon} ${nextL.name}</b> is open!</p>` : ''}
+      <ul class="du-log">${du.log.map((r, k) => { const m = MQ.creatureById(r.mine), t = MQ.creatureById(r.rival), n = r.stat < 0 ? '⚡ Power' : MQ.STAT_KEYS[r.stat][1] + ' ' + MQ.STAT_KEYS[r.stat][2]; return `<li class="${r.win}"><span>${k + 1}.</span> ${m.emoji} ${r.a} <small>${n}</small> ${r.b} ${t.emoji} <b>${r.win === 'me' ? '✓' : r.win === 'rival' ? '✗' : '='}</b></li>`; }).join('')}</ul>
+      <div class="row"><button class="btn ghost" data-act="go" data-arg="duel">Leagues</button><button class="btn" data-act="duelStart" data-arg="${li}">⚔️ Duel again</button></div>
+    </main>`);
+    MQ.sfx(out === 'win' ? 'fanfare' : 'reward');
+    if (out === 'win') MQ.confetti(160, { colors: ['#ffd23f', Lg.color, '#ffffff'], shape: 'star' });
+    du = null;
+  }
+  function speak() { if (du && du.q) MQ.speak(MQ.toSpeech(du.q.text)); }
+  function quit() {
+    if (du && du.round > 1 && !$('#modal')) return K().modal(`<div class="mtitle">Stop the duel?</div><p>The rounds played so far won’t count.</p><div class="row"><button class="btn ghost" data-act="closeModal">Keep playing</button><button class="btn" data-act="duelLeave">Stop</button></div>`);
+    du = null;
+    K().go('duel');
+  }
+  const A = {
+    duelStart: (a) => start(+a),
+    duelPick: (a) => pick(a),
+    duelStat: (a) => { if (du && du.stage === 'stat') { MQ.sfx('tap'); battle(+a); } },
+    duelBack: () => { if (du && du.stage === 'stat') { du.stage = 'pick'; du.pick = null; view(); } },
+    duelKey: (a) => key(a),
+    duelCheck: () => { if (du && du.input) check(du.input); },
+    duelChoose: (a) => { if (du && du.q && !du.done) check(du.q.choices[+a]); },
+    duelNext: () => next(),
+    duelQuit: () => quit(),
+    duelLeave: () => { K().closeModal(); du = null; K().go('duel'); },
+    duelSpeak: () => speak(),
+  };
+  document.addEventListener('keydown', (e) => {
+    if (!du || du.stage !== 'battle' || du.done || !du.q || $('#modal')) return;
+    if (du.q.kind === 'num') {
+      if (/^[0-9]$/.test(e.key)) key(e.key);
+      else if (e.key === 'Backspace') { e.preventDefault(); key('back'); }
+      else if (e.key === 'Enter') A.duelCheck();
+    } else if (/^[12]$/.test(e.key)) check(du.q.choices[+e.key - 1]);
+  });
+  MQ.duelUI = { show: () => lobby(), actions: A, playing: () => du };
+})();
+</script>
+  <script>
 // Shape Puzzles: the shapes and pictures (drawn from code), the jigsaw cut, the album, and the short problems that build them.
 //   SH.SHAPES   smiling shapes cut into jigsaw pieces: every right answer brings a piece (⭐ Shape Puzzle)
 //   SH.FIGS     pictures made of shapes: every right answer gives a shape to put in its outline (🏠 Build It)
@@ -10918,6 +11546,15 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
       ? `<span class="dbar"><i style="width:${Math.round(((fed - from) / (next.at - from)) * 100)}%"></i></span><small>${next.at - fed} more right ${next.at - fed === 1 ? 'answer' : 'answers'} to grow</small>`
       : '<small>Fully grown ✨</small>'}</div>`;
   }
+  // ⚡ Speed, 💪 Strength, 🧠 Smarts, ✨ Magic and their sum, Power (js/stats.js). A dragon's grow as it grows up.
+  function statsBlock(c) {
+    const s = MQ.stats(c, st);
+    if (!s) return '';
+    const full = c.dragon && s.stage < 3 ? MQ.stats(c, st, 3).power : 0;
+    return `<div class="cstats">${MQ.STAT_KEYS.map(([k, e, name], i) => `<div class="cst s-${k}"><span>${e} ${name}</span><i><b style="width:${s.list[i]}%"></b></i><em>${s.list[i]}</em></div>`).join('')}
+      <div class="cpow"><span>Power</span><b>${s.power}</b>${full ? `<small>up to ${full} when it is an elder</small>` : ''}</div>
+      <div class="cspec">🌟 ${esc(s.special)}</div></div>`;
+  }
   function creatureCard(c, reveal = false) {
     const w = MQ.worldById(c.world), egg = c.egg && MQ.eggById(c.egg), d = c.dragon && st.dragons[c.id];
     return `<div class="creature ${reveal ? 'reveal' : ''} r-${c.rarity}"${elStyle(c)}>
@@ -10928,6 +11565,7 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
           ${picture(c)}
           <div class="cname">${d ? esc(d.name) : c.name}</div>
           ${d ? `<div class="ckind">${c.name}</div>${dragonGrowth(c)}` : ''}
+          ${statsBlock(c)}
           <p class="cfact">${c.fact}</p>
           <div class="cwhere">${w ? w.emoji + ' ' + w.name : egg ? egg.icon + ' ' + egg.name : '🥚 Hatchery'}</div>
         </div>
@@ -11069,7 +11707,7 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
-    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg), shapes: () => MQ.shapesUI.show() }[scr];
+    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg), duel: () => MQ.duelUI.show(), shapes: () => MQ.shapesUI.show() }[scr];
     if (redraw) redraw();
   }
   function newExplorer() {
@@ -11163,6 +11801,7 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
         ${farmTile()}
         ${shapesTile()}
         ${hatchTile()}
+        ${duelTile()}
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
         <button class="tile t-progress" data-act="go" data-arg="progress"><span class="ti">📈</span><b>My Progress</b><small>${weekAcc}</small></button>
         <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>${PAUSE_KINDS.some((k) => S.paused(k)) ? '⏸️ You have an unfinished test: tap to continue' : (st.grade === 'k' ? 'Placement Check in the style of i-Ready' : 'GATE (NNAT-3), i-Ready, CogAT, Kangaroo') + (myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : '')}</small></span></button>
@@ -11185,6 +11824,14 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     const trader = F.merchantHas(fm), unlocked = F.depositReady(fm);
     const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
     return `<button class="tile t-farm wide ${waiting || made || bankDay || build || trader || unlocked || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
+  }
+
+  // For grown-ups: Card Duels played (each round ends with a comparing or subtracting question).
+  function duelReport() {
+    const D = MQ.duel, d = D.ensure(st);
+    if (!d.played) return '';
+    return `<section><h2>⚔️ Card Duels</h2><p>${d.played} ${d.played === 1 ? 'duel' : 'duels'} played · won: ${D.LEAGUES.map((L, i) => `${L.icon} ${L.name} ${D.wins(st, i)}`).join(', ')}.</p>
+      <p class="muted">Creature cards battle with their stats. Every round ends with a question about the two numbers: ${st.grade === 'k' ? 'which number is bigger (numbers up to 100, ahead of kindergarten, with bars to help)' : 'how much more (subtraction within 100, and within 1,000 in the Power round)'}. First-try right answers earn crystals; the answers count in the daily totals above.</p></section>`;
   }
 
   // Shape Puzzles (js/shapes-ui.js): how full the album is.
@@ -12374,6 +13021,12 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     const sub = !g ? '🐉 Every egg hatched!' : ready ? `${g.icon} Enough for a ${g.name}!` : `${g.icon} ${g.name} · ${st.crystals} / ${g.price} 💎`;
     return `<button class="tile t-hatch ${ready ? 'hot' : ''}" data-act="go" data-arg="hatch"><span class="ti">🥚</span><b>Hatchery</b><small>${sub}</small>${g && !ready ? `<span class="tbar"><i style="width:${Math.round((st.crystals / g.price) * 100)}%"></i></span>` : ''}</button>`;
   }
+  // Card Duels (js/duel.js): the collection battles with its stats.
+  function duelTile() {
+    const D = MQ.duel, n = D.cards(st).length, d = D.ensure(st), wins = D.LEAGUES.reduce((a, L, i) => a + D.wins(st, i), 0);
+    const sub = n < D.MIN_CARDS ? `Collect ${D.MIN_CARDS} creatures to play` : d.played ? `${wins} ${wins === 1 ? 'duel' : 'duels'} won · ${n} cards` : `Battle with your ${n} creature cards!`;
+    return `<button class="tile t-duel" data-act="go" data-arg="duel"><span class="ti">⚔️</span><b>Card Duels</b><small>${sub}</small></button>`;
+  }
   // One line on result screens: how close the next egg is.
   function eggNudge() {
     const g = goalEgg();
@@ -12424,7 +13077,8 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
         ${h && h.stage === 'egg' ? '' : `<h2>${E.secret && !isOpen ? '👑 ???' : E.icon + ' ' + E.name}</h2>`}
         ${action}
       </section>
-      ${E.secret && !isOpen ? '' : `<h2>${E.name}: ${list.length - left.length} / ${list.length}</h2><div class="hgrid">${list.map(mini).join('')}</div>`}
+      ${E.secret && !isOpen ? '' : `<h2>${E.name}: ${list.length - left.length} / ${list.length}</h2><p class="muted center htap">Tap a creature to see its card and stats.</p><div class="hgrid">${list.map(mini).join('')}</div>`}
+      <button class="nudge duelnudge" data-act="go" data-arg="duel">⚔️ <b>Card Duels:</b> battle with your creatures’ stats and win 💎 →</button>
       ${dragons.length ? `<section class="den"><h2>🐉 Your dragons</h2>
         <p class="muted">Dragons grow from your right answers. Grown-up dragons guard treasure: <b>+${MQ.DRAGON_TREASURE} 💎</b> each on every Daily Quest${treasure ? ` (now +${treasure} 💎)` : ''}.</p>
         <div class="dgrid">${dragons.map((c) => `<button class="dcard r-${c.rarity}"${elStyle(c)} data-act="creature" data-arg="${c.id}"><span class="dpic">${MQ.look(st, c)}</span><b>${esc(st.dragons[c.id].name)}${st.buddy === c.id ? ' ⭐' : ''}</b><small>${c.name}</small>${dragonGrowth(c)}</button>`).join('')}</div></section>` : ''}
@@ -12778,6 +13432,7 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
         <div class="row left"><button class="btn ghost" data-act="exportSave">Show & copy save code</button><button class="btn ghost" data-act="importSave">Load pasted code</button></div>
         <p class="muted" id="save-msg"></p></section>
       ${readinessSection()}
+      ${duelReport()}
       ${farmReport()}
       <section><h2>How levels map to school</h2><p>${track().school}</p></section>
       <section><h2>${CL() && MQ.cloud.family ? 'Explorers in your family' : 'Explorers on this device'}</h2>
@@ -12837,6 +13492,7 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     if (scr === 'parent' && S.preview) { endPreview(); toast('Preview ended'); }
     endContest();
     if (scr === 'farm') return MQ.farmUI.show(arg);
+    if (scr === 'duel') return MQ.duelUI.show(arg);
     if (scr === 'shapes') return MQ.shapesUI.show(arg);
     ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, nntypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
@@ -13064,6 +13720,7 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
   function act(name, arg, el) {
     if (ACTIONS[name]) return ACTIONS[name](arg, el);
     if (st && MQ.farmUI && MQ.farmUI.actions[name]) return MQ.farmUI.actions[name](arg, el); // Sunny Farm (js/farm-ui.js)
+    if (st && MQ.duelUI && MQ.duelUI.actions[name]) return MQ.duelUI.actions[name](arg, el); // Card Duels (js/duel.js)
     if (st && MQ.shapesUI && MQ.shapesUI.actions[name]) MQ.shapesUI.actions[name](arg, el); // Shape Puzzles (js/shapes-ui.js)
   }
 
@@ -13116,8 +13773,8 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
     startScreen();
   }
 
-  // kit: what the Sunny Farm and Shape Puzzles screens (js/farm-ui.js, js/shapes-ui.js) borrow from the app
-  const kit = { render, toast, modal, closeModal, go, checkBadges, addGems, addXp, record, state: () => st, setCur: (c) => { cur = c; } };
+  // kit: what the Sunny Farm, Card Duels and Shape Puzzles screens (js/farm-ui.js, js/duel.js, js/shapes-ui.js) borrow from the app
+  const kit = { render, toast, modal, closeModal, go, checkBadges, header, addGems, addXp, record, state: () => st, setCur: (c) => { cur = c; } };
   MQ.app = { init, go, kit, session: () => sess, contest: () => ct }; // session() and contest() are used by the browser tests
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

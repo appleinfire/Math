@@ -165,6 +165,15 @@
       ? `<span class="dbar"><i style="width:${Math.round(((fed - from) / (next.at - from)) * 100)}%"></i></span><small>${next.at - fed} more right ${next.at - fed === 1 ? 'answer' : 'answers'} to grow</small>`
       : '<small>Fully grown ✨</small>'}</div>`;
   }
+  // ⚡ Speed, 💪 Strength, 🧠 Smarts, ✨ Magic and their sum, Power (js/stats.js). A dragon's grow as it grows up.
+  function statsBlock(c) {
+    const s = MQ.stats(c, st);
+    if (!s) return '';
+    const full = c.dragon && s.stage < 3 ? MQ.stats(c, st, 3).power : 0;
+    return `<div class="cstats">${MQ.STAT_KEYS.map(([k, e, name], i) => `<div class="cst s-${k}"><span>${e} ${name}</span><i><b style="width:${s.list[i]}%"></b></i><em>${s.list[i]}</em></div>`).join('')}
+      <div class="cpow"><span>Power</span><b>${s.power}</b>${full ? `<small>up to ${full} when it is an elder</small>` : ''}</div>
+      <div class="cspec">🌟 ${esc(s.special)}</div></div>`;
+  }
   function creatureCard(c, reveal = false) {
     const w = MQ.worldById(c.world), egg = c.egg && MQ.eggById(c.egg), d = c.dragon && st.dragons[c.id];
     return `<div class="creature ${reveal ? 'reveal' : ''} r-${c.rarity}"${elStyle(c)}>
@@ -175,6 +184,7 @@
           ${picture(c)}
           <div class="cname">${d ? esc(d.name) : c.name}</div>
           ${d ? `<div class="ckind">${c.name}</div>${dragonGrowth(c)}` : ''}
+          ${statsBlock(c)}
           <p class="cfact">${c.fact}</p>
           <div class="cwhere">${w ? w.emoji + ' ' + w.name : egg ? egg.icon + ' ' + egg.name : '🥚 Hatchery'}</div>
         </div>
@@ -316,7 +326,7 @@
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
-    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg), shapes: () => MQ.shapesUI.show() }[scr];
+    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg), duel: () => MQ.duelUI.show(), shapes: () => MQ.shapesUI.show() }[scr];
     if (redraw) redraw();
   }
   function newExplorer() {
@@ -410,6 +420,7 @@
         ${farmTile()}
         ${shapesTile()}
         ${hatchTile()}
+        ${duelTile()}
         <button class="tile t-badges" data-act="go" data-arg="badges"><span class="ti">🏅</span><b>Badges</b><small>${badgeCount} / ${MQ.BADGES.length}</small></button>
         <button class="tile t-progress" data-act="go" data-arg="progress"><span class="ti">📈</span><b>My Progress</b><small>${weekAcc}</small></button>
         <button class="tile t-prep wide" data-act="go" data-arg="prep"><span class="ti">🎯</span><span><b>Test Prep</b><small>${PAUSE_KINDS.some((k) => S.paused(k)) ? '⏸️ You have an unfinished test: tap to continue' : (st.grade === 'k' ? 'Placement Check in the style of i-Ready' : 'GATE (NNAT-3), i-Ready, CogAT, Kangaroo') + (myChecks().length ? ' · last: ' + P().label(myChecks().slice(-1)[0].overall) : '')}</small></span></button>
@@ -432,6 +443,14 @@
     const trader = F.merchantHas(fm), unlocked = F.depositReady(fm);
     const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
     return `<button class="tile t-farm wide ${waiting || made || bankDay || build || trader || unlocked || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
+  }
+
+  // For grown-ups: Card Duels played (each round ends with a comparing or subtracting question).
+  function duelReport() {
+    const D = MQ.duel, d = D.ensure(st);
+    if (!d.played) return '';
+    return `<section><h2>⚔️ Card Duels</h2><p>${d.played} ${d.played === 1 ? 'duel' : 'duels'} played · won: ${D.LEAGUES.map((L, i) => `${L.icon} ${L.name} ${D.wins(st, i)}`).join(', ')}.</p>
+      <p class="muted">Creature cards battle with their stats. Every round ends with a question about the two numbers: ${st.grade === 'k' ? 'which number is bigger (numbers up to 100, ahead of kindergarten, with bars to help)' : 'how much more (subtraction within 100, and within 1,000 in the Power round)'}. First-try right answers earn crystals; the answers count in the daily totals above.</p></section>`;
   }
 
   // Shape Puzzles (js/shapes-ui.js): how full the album is.
@@ -1621,6 +1640,12 @@
     const sub = !g ? '🐉 Every egg hatched!' : ready ? `${g.icon} Enough for a ${g.name}!` : `${g.icon} ${g.name} · ${st.crystals} / ${g.price} 💎`;
     return `<button class="tile t-hatch ${ready ? 'hot' : ''}" data-act="go" data-arg="hatch"><span class="ti">🥚</span><b>Hatchery</b><small>${sub}</small>${g && !ready ? `<span class="tbar"><i style="width:${Math.round((st.crystals / g.price) * 100)}%"></i></span>` : ''}</button>`;
   }
+  // Card Duels (js/duel.js): the collection battles with its stats.
+  function duelTile() {
+    const D = MQ.duel, n = D.cards(st).length, d = D.ensure(st), wins = D.LEAGUES.reduce((a, L, i) => a + D.wins(st, i), 0);
+    const sub = n < D.MIN_CARDS ? `Collect ${D.MIN_CARDS} creatures to play` : d.played ? `${wins} ${wins === 1 ? 'duel' : 'duels'} won · ${n} cards` : `Battle with your ${n} creature cards!`;
+    return `<button class="tile t-duel" data-act="go" data-arg="duel"><span class="ti">⚔️</span><b>Card Duels</b><small>${sub}</small></button>`;
+  }
   // One line on result screens: how close the next egg is.
   function eggNudge() {
     const g = goalEgg();
@@ -1671,7 +1696,8 @@
         ${h && h.stage === 'egg' ? '' : `<h2>${E.secret && !isOpen ? '👑 ???' : E.icon + ' ' + E.name}</h2>`}
         ${action}
       </section>
-      ${E.secret && !isOpen ? '' : `<h2>${E.name}: ${list.length - left.length} / ${list.length}</h2><div class="hgrid">${list.map(mini).join('')}</div>`}
+      ${E.secret && !isOpen ? '' : `<h2>${E.name}: ${list.length - left.length} / ${list.length}</h2><p class="muted center htap">Tap a creature to see its card and stats.</p><div class="hgrid">${list.map(mini).join('')}</div>`}
+      <button class="nudge duelnudge" data-act="go" data-arg="duel">⚔️ <b>Card Duels:</b> battle with your creatures’ stats and win 💎 →</button>
       ${dragons.length ? `<section class="den"><h2>🐉 Your dragons</h2>
         <p class="muted">Dragons grow from your right answers. Grown-up dragons guard treasure: <b>+${MQ.DRAGON_TREASURE} 💎</b> each on every Daily Quest${treasure ? ` (now +${treasure} 💎)` : ''}.</p>
         <div class="dgrid">${dragons.map((c) => `<button class="dcard r-${c.rarity}"${elStyle(c)} data-act="creature" data-arg="${c.id}"><span class="dpic">${MQ.look(st, c)}</span><b>${esc(st.dragons[c.id].name)}${st.buddy === c.id ? ' ⭐' : ''}</b><small>${c.name}</small>${dragonGrowth(c)}</button>`).join('')}</div></section>` : ''}
@@ -2025,6 +2051,7 @@
         <div class="row left"><button class="btn ghost" data-act="exportSave">Show & copy save code</button><button class="btn ghost" data-act="importSave">Load pasted code</button></div>
         <p class="muted" id="save-msg"></p></section>
       ${readinessSection()}
+      ${duelReport()}
       ${farmReport()}
       <section><h2>How levels map to school</h2><p>${track().school}</p></section>
       <section><h2>${CL() && MQ.cloud.family ? 'Explorers in your family' : 'Explorers on this device'}</h2>
@@ -2084,6 +2111,7 @@
     if (scr === 'parent' && S.preview) { endPreview(); toast('Preview ended'); }
     endContest();
     if (scr === 'farm') return MQ.farmUI.show(arg);
+    if (scr === 'duel') return MQ.duelUI.show(arg);
     if (scr === 'shapes') return MQ.shapesUI.show(arg);
     ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, nntypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
@@ -2311,6 +2339,7 @@
   function act(name, arg, el) {
     if (ACTIONS[name]) return ACTIONS[name](arg, el);
     if (st && MQ.farmUI && MQ.farmUI.actions[name]) return MQ.farmUI.actions[name](arg, el); // Sunny Farm (js/farm-ui.js)
+    if (st && MQ.duelUI && MQ.duelUI.actions[name]) return MQ.duelUI.actions[name](arg, el); // Card Duels (js/duel.js)
     if (st && MQ.shapesUI && MQ.shapesUI.actions[name]) MQ.shapesUI.actions[name](arg, el); // Shape Puzzles (js/shapes-ui.js)
   }
 
@@ -2363,8 +2392,8 @@
     startScreen();
   }
 
-  // kit: what the Sunny Farm and Shape Puzzles screens (js/farm-ui.js, js/shapes-ui.js) borrow from the app
-  const kit = { render, toast, modal, closeModal, go, checkBadges, addGems, addXp, record, state: () => st, setCur: (c) => { cur = c; } };
+  // kit: what the Sunny Farm, Card Duels and Shape Puzzles screens (js/farm-ui.js, js/duel.js, js/shapes-ui.js) borrow from the app
+  const kit = { render, toast, modal, closeModal, go, checkBadges, header, addGems, addXp, record, state: () => st, setCur: (c) => { cur = c; } };
   MQ.app = { init, go, kit, session: () => sess, contest: () => ct }; // session() and contest() are used by the browser tests
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
