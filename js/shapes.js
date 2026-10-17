@@ -179,7 +179,7 @@
     { id: 'starwhale', scene: 'night' }, { id: 'bubbleturtle', scene: 'sea' }, { id: 'pixie', scene: 'garden' },
     { id: 'kitsune', scene: 'autumn' }, { id: 'yeti', scene: 'snow' }, { id: 'firebird', scene: 'sunset' }, { id: 'dr_ocean', stage: 2, scene: 'sea' },
   ];
-  SH.picName = (pic) => ((MQ.EGG_CREATURES || []).find((c) => c.id === pic.id) || { name: pic.id }).name;
+  SH.picName = (pic) => pic.name || ((MQ.EGG_CREATURES || []).find((c) => c.id === pic.id) || { name: pic.id }).name;
   const sky = (k, a, b) => `<defs><linearGradient id="${k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="120" height="120" fill="url(#${k})"/>`;
   const cloud = (x, y, s) => `<g fill="#ffffff" opacity=".92"><ellipse cx="${x}" cy="${y}" rx="${12 * s}" ry="${5 * s}"/><ellipse cx="${f1(x - 4 * s)}" cy="${f1(y - 4 * s)}" rx="${6 * s}" ry="${5 * s}"/><ellipse cx="${f1(x + 4 * s)}" cy="${f1(y - 5 * s)}" rx="${7 * s}" ry="${6 * s}"/></g>`;
   const dots = (list, r, fill) => `<g fill="${fill}">${list.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('')}</g>`;
@@ -206,8 +206,10 @@
     garden: (k) => sky(k, '#d8f3ff', '#f3fbff') + cloud(96, 20, 0.9) + '<path d="M0 92C36 84 80 90 120 84V120H0Z" fill="#8fd47a"/>' +
       [[14, 100, '#ff8fb1'], [32, 108, '#ffd23f'], [96, 102, '#b79bff'], [110, 112, '#ff8fb1']].map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="4" fill="${c}"/><circle cx="${x}" cy="${y}" r="1.5" fill="#fff3a6"/>`).join(''),
   };
-  // The picture: its scene with the creature on it (the inside of an SVG with viewBox 0 0 120 120).
-  SH.picArt = (pic) => SH.SCENES[pic.scene]('sp' + (++uid).toString(36)) + MQ.art(pic.id, { stage: pic.stage }).replace('<svg class="art"', '<svg x="8" y="10" width="104" height="104"');
+  // The picture (the inside of an SVG with viewBox 0 0 120 120): a Hatchery creature on its scene, an emoji picture,
+  // or a Legendary one (the last two are drawn in js/puzzle-art.js).
+  SH.picArt = (pic) => (pic.kind === 'emoji' ? SH.emojiArt(pic) : pic.kind === 'legend' ? SH.legendArt(pic)
+    : SH.SCENES[pic.scene]('sp' + (++uid).toString(36)) + MQ.art(pic.id, { stage: pic.stage }).replace('<svg class="art"', '<svg x="8" y="10" width="104" height="104"'));
 
   // ---------------------------------------------------------------- pictures
   const face = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><ellipse cx="-10" cy="0" rx="4.2" ry="5.4" fill="#22304f"/><ellipse cx="10" cy="0" rx="4.2" ry="5.4" fill="#22304f"/>` +
@@ -239,7 +241,7 @@
   // ---------------------------------------------------------------- the jigsaw cut
   // Every inside edge gets a knob to one side. The knob is symmetric, so the two pieces that share an edge draw
   // it the same way whichever direction they walk it.
-  SH.GRID = { 4: [2, 2], 6: [3, 2], 9: [3, 3], 12: [4, 3] };
+  SH.GRID = { 4: [2, 2], 6: [3, 2], 9: [3, 3], 12: [4, 3], 16: [4, 4], 20: [5, 4] };
   function edge(P, Q, n, T) {
     if (!n) return `L${f1(Q[0])} ${f1(Q[1])}`;
     const dx = Q[0] - P[0], dy = Q[1] - P[1];
@@ -325,24 +327,68 @@
   SH.cells = (p, grade) => U.range(0, (grade === 'k' ? 10 : 20) - 1).map((i) =>
     p.t === 'count' ? (i < p.n ? 'a' : '') : p.t === 'add' ? (i < p.a ? 'a' : i < p.a + p.b ? 'b' : '') : i < p.a - p.b ? 'a' : i < p.a ? 'x' : '');
 
-  // ---------------------------------------------------------------- the album
-  // st.puzzles = { n: pieces for a shape puzzle, done: { 'shape:circle': times finished, 'build:house': …, 'dots:star': … } }
-  // 'pic:<creature>' is a picture finished in any of the three picture puzzles.
-  SH.ITEMS = [...SH.PICS.map((p) => 'pic:' + p.id), ...SH.SHAPES.map((s) => 'shape:' + s.id), ...SH.FIGS.map((f) => 'build:' + f.id), ...SH.DOTS.map((d) => 'dots:' + d.id)];
-  SH.ensure = (st) => {
-    st.puzzles = st.puzzles || {};
-    if (!SH.GRID[st.puzzles.n]) st.puzzles.n = 6;
-    st.puzzles.done = st.puzzles.done || {};
-    return st.puzzles;
+  // ---------------------------------------------------------------- the album, the packs, stars, the puzzle of the day
+  // st.puzzles = {
+  //   n: pieces in a jigsaw (4 … 20),
+  //   done:  { 'pic:<id>' | 'shape:<id>' | 'build:<id>' | 'dots:<id>': times finished },
+  //   stars: { key: best stars } — a jigsaw in 4–6 pieces ★, 9–12 ★★, 16–20 ★★★ (Build It and Dot to Dot have none),
+  //   packs: { packId: date bought }, gold: { key: true } — finished as a golden puzzle,
+  //   daily: { last: date, streak, best } — the puzzle of the day
+  // }
+  // 'pic:<id>' is a picture finished in any of the three picture puzzles.
+  SH.PACKS = [{ id: 'free', icon: '🐉', name: 'Hatchery Pictures', price: 0 }]; // js/puzzle-art.js adds the rest
+  SH.reindex = () => {
+    SH.picById = {};
+    for (const p of SH.PICS) SH.picById[p.id] = p;
+    SH.ITEMS = [...SH.PICS.map((p) => 'pic:' + p.id), ...SH.SHAPES.map((s) => 'shape:' + s.id), ...SH.FIGS.map((f) => 'build:' + f.id), ...SH.DOTS.map((d) => 'dots:' + d.id)];
+    SH.FREE = SH.ITEMS.filter((k) => !k.startsWith('pic:') || !SH.pack(SH.picById[k.slice(4)].pack).price);
   };
-  SH.count = (st) => SH.ITEMS.filter((k) => ((st.puzzles || {}).done || {})[k]).length;
+  SH.pack = (id) => SH.PACKS.find((P) => P.id === (id || 'free')) || SH.PACKS[0];
+  SH.ensure = (st) => {
+    const pz = (st.puzzles = st.puzzles || {});
+    if (!SH.GRID[pz.n]) pz.n = 6;
+    for (const k of ['done', 'stars', 'packs', 'gold']) pz[k] = pz[k] || {};
+    pz.daily = Object.assign({ last: '', streak: 0, best: 0 }, pz.daily);
+    return pz;
+  };
+  const doneOf = (st) => (st.puzzles || {}).done || {};
+  SH.count = (st) => SH.ITEMS.filter((k) => doneOf(st)[k]).length;
   SH.total = () => SH.ITEMS.length;
-  SH.REWARD = { right: 1, done: 3, fresh: 5, guess: 1 }; // 💎 for a first-try answer, a finished puzzle, a new one for the album, each cloud left when Who's hiding? is guessed
-  // Mark a puzzle finished; returns true when it is new in the album.
-  SH.finish = (st, key) => {
-    const done = SH.ensure(st).done, fresh = !done[key];
-    done[key] = (done[key] || 0) + 1;
-    return fresh;
+  SH.countFree = (st) => SH.FREE.filter((k) => doneOf(st)[k]).length;
+  SH.REWARD = { right: 1, done: 3, fresh: 5, guess: 1, daily: 5 }; // 💎 for a first-try answer, a finished puzzle, a new one for the album, each cloud left when Who's hiding? is guessed, the puzzle of the day
+  SH.GOLD_CHANCE = 1 / 8; // a picture puzzle comes up golden: double crystals
+  SH.LEGEND_MIN = 9; // a Legendary picture has at least this many pieces
+  SH.starsFor = (n) => (n >= 16 ? 3 : n >= 9 ? 2 : 1);
+
+  // Packs: free ones, ones bought with crystals, and seasonal ones that are free in their season (MM-DD to MM-DD).
+  SH.inSeason = (P, day = U.dateKey()) => {
+    if (!P.season) return false;
+    const md = day.slice(5), [a, b] = P.season;
+    return a <= b ? md >= a && md <= b : md >= a || md <= b;
+  };
+  SH.hasPack = (st, P, day) => !P.price || !!SH.ensure(st).packs[P.id] || SH.inSeason(P, day);
+  SH.owns = (st, pic, day) => SH.hasPack(st, SH.pack(pic.pack), day);
+  // Buy a pack; false when it is already owned for good or there aren't enough crystals.
+  SH.buy = (st, id, day = U.dateKey()) => {
+    const P = SH.PACKS.find((x) => x.id === id), pz = SH.ensure(st);
+    if (!P || !P.price || pz.packs[id] || st.crystals < P.price) return false;
+    st.crystals -= P.price;
+    pz.packs[id] = day;
+    return true;
+  };
+  SH.packPics = (id) => SH.PICS.filter((p) => (p.pack || 'free') === id);
+  // Pictures the picture puzzles pick from: everything owned except the Legendary ones (they are played from their pack).
+  SH.pool = (st, day) => SH.PICS.filter((p) => p.kind !== 'legend' && SH.owns(st, p, day));
+
+  // Mark a puzzle finished. o.n: pieces (stars), o.gold: a golden puzzle. Returns what is new: { fresh, stars, more, gold }.
+  SH.finish = (st, key, o = {}) => {
+    const pz = SH.ensure(st), fresh = !pz.done[key];
+    pz.done[key] = (pz.done[key] || 0) + 1;
+    const stars = o.n ? SH.starsFor(o.n) : 0, more = stars > (pz.stars[key] || 0);
+    if (more) pz.stars[key] = stars;
+    const gold = !!o.gold && !pz.gold[key];
+    if (o.gold) pz.gold[key] = true;
+    return { fresh, stars, more, gold };
   };
   // The next dot-to-dot surprise: one not found yet, else any but the one just played.
   SH.nextDots = (st, last) => {
@@ -350,15 +396,33 @@
     const notYet = SH.DOTS.filter((d) => !done['dots:' + d.id] && d.id !== last);
     return U.pick(notYet.length ? notYet : SH.DOTS.filter((d) => d.id !== last));
   };
-  // The next picture puzzle: a picture not finished yet, else any but the one just played.
-  SH.nextPic = (st, last) => {
-    const done = SH.ensure(st).done;
-    const notYet = SH.PICS.filter((p) => !done['pic:' + p.id] && p.id !== last);
-    return U.pick(notYet.length ? notYet : SH.PICS.filter((p) => p.id !== last));
+  // The next picture puzzle: an owned picture not finished yet, else any owned one but the one just played.
+  SH.nextPic = (st, last, day) => {
+    const done = SH.ensure(st).done, pool = SH.pool(st, day);
+    const notYet = pool.filter((p) => !done['pic:' + p.id] && p.id !== last);
+    return U.pick(notYet.length ? notYet : pool.filter((p) => p.id !== last));
+  };
+  // The puzzle of the day: the same for the whole day (it depends on the date and the explorer), from every pack —
+  // a taste of the packs not bought yet — and a different picture puzzle each day.
+  const hash = (s) => { let h = 2166136261; for (const ch of s) h = Math.imul(h ^ ch.codePointAt(0), 16777619) >>> 0; return h; };
+  SH.daily = (st, day = U.dateKey()) => {
+    const list = SH.PICS.filter((p) => p.kind !== 'legend'), h = hash(day + '|' + (st.id || ''));
+    return { pic: list[h % list.length], mode: ['snap', 'find', 'hide'][(h >>> 8) % 3], day };
+  };
+  SH.dailyDone = (st, day = U.dateKey()) => SH.ensure(st).daily.last === day;
+  // The puzzle of the day finished: a day streak like the Daily Quest (a missed day starts it over).
+  SH.finishDaily = (st, day = U.dateKey()) => {
+    const d = SH.ensure(st).daily;
+    if (d.last === day) return false;
+    d.streak = d.last && U.daysBetween(d.last, day) === 1 ? d.streak + 1 : 1;
+    d.best = Math.max(d.best, d.streak);
+    d.last = day;
+    return true;
   };
   SH.find = (key) => {
     const [mode, id] = String(key).split(':');
-    const list = { shape: SH.SHAPES, build: SH.FIGS, dots: SH.DOTS, snap: SH.PICS, find: SH.PICS, hide: SH.PICS }[mode];
+    if (['snap', 'find', 'hide'].includes(mode)) return { mode, item: SH.picById[id] || null };
+    const list = { shape: SH.SHAPES, build: SH.FIGS, dots: SH.DOTS }[mode];
     return list ? { mode, item: list.find((x) => x.id === id) || null } : null;
   };
   // "It has 4 triangles, 1 rectangle and 1 star."
@@ -369,5 +433,6 @@
     return 'It has ' + (list.length > 1 ? list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1] : list[0]) + '.';
   };
 
+  SH.reindex();
   MQ.shapes = SH;
 })();

@@ -41,7 +41,7 @@
     tests: { checks: [], contests: [] }, // Placement Check and mock contest results (newest last)
     seen: {}, // test-prep topic: recently shown question keys (oldest first), so retakes bring new questions
     nnatDays: {}, // 'YYYY-MM-DD': NNAT-3 practice puzzles answered that day (the GATE plan counts practice days)
-    puzzles: { n: 6, done: {} }, // Puzzle Time: pieces in a jigsaw puzzle, and how many times each puzzle was finished (js/shapes.js)
+    puzzles: { n: 6, done: {}, stars: {}, packs: {}, gold: {}, daily: { last: '', streak: 0, best: 0 } }, // Puzzle Time (js/shapes.js): pieces in a jigsaw, puzzles finished, best stars, packs bought, golden ones, the puzzle of the day
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
     settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true },
   });
@@ -284,9 +284,13 @@
     out.tips = Object.assign({}, old.tips || {}, nw.tips || {});
     out.nnatDays = Object.assign({}, old.nnatDays || {});
     for (const [d, n] of Object.entries(nw.nnatDays || {})) out.nnatDays[d] = max(n, (old.nnatDays || {})[d]);
-    // Puzzle Time: every puzzle finished on either device stays in the album
-    out.puzzles = Object.assign({}, nw.puzzles || {}, { done: Object.assign({}, (old.puzzles || {}).done) });
-    for (const [k, n] of Object.entries((nw.puzzles || {}).done || {})) out.puzzles.done[k] = max(n, out.puzzles.done[k]);
+    // Puzzle Time: every puzzle finished, star earned, golden puzzle and pack bought on either device is kept
+    const po = old.puzzles || {}, pn = nw.puzzles || {};
+    out.puzzles = Object.assign({}, pn, { done: Object.assign({}, po.done), stars: Object.assign({}, po.stars), packs: Object.assign({}, po.packs, pn.packs), gold: Object.assign({}, po.gold, pn.gold) });
+    for (const [k, n] of Object.entries(pn.done || {})) out.puzzles.done[k] = max(n, out.puzzles.done[k]);
+    for (const [k, n] of Object.entries(pn.stars || {})) out.puzzles.stars[k] = max(n, out.puzzles.stars[k]);
+    const dOld = po.daily || {}, dNew = pn.daily || {};
+    out.puzzles.daily = Object.assign({}, (dOld.last || '') > (dNew.last || '') ? dOld : dNew, { best: max(dOld.best, dNew.best) });
     // Sunny Farm: the copy changed last wins as a whole (money is spent, animals move), by the farm's own clock,
     // so a device that only opened the farm can't replace a farm played on another device.
     if (old.farm && (!nw.farm || (old.farm.t || 0) > (nw.farm.t || 0))) out.farm = JSON.parse(JSON.stringify(old.farm));
