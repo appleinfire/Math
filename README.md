@@ -32,9 +32,10 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 | **📈 My Progress** | Accuracy (right on the first try) with a dot for every day practiced (by week when the practice spans over 2 months, by month over 200 days; a single topic too), over 1, 3 or 6 months or all time, with a trend line and a plain verdict ("Getting better: +8 points over 3 months"). Problems per week, right / not yet counts, days practiced. A **skill map** shows every topic as 🌱 started → 🌿 practicing → ⭐ solid → 🏆 mastered (80% right on 5+ tries at that difficulty); tap a skill to practice it. Charts of every practice test over time. Daily totals are kept for two years, per-topic daily totals for 200 practice days and per-topic monthly totals for three years. |
 | **Strategy tips** | After two misses of the same kind of problem in one session, the next question of that kind starts with a short tip ("Make a ten: 8 + 5 → 8 + 2 + 3"). Every topic has tips, at most one a day per topic. |
 | **Daily goal** | A grown-up can set problems per day (10–50) and goal days per week. The home screen shows a ring for today and the days of the week; a badge for a week that reaches the goal. |
+| **🧩 Shape Puzzles** | Short problems that build something: a smiling shape from jigsaw pieces, a picture from shapes the child puts in place, or a dot-to-dot surprise (see below). Fills an album of 16. |
 | **Hatchery** | A ladder of eggs to save crystals for (see below): Meadow 30 💎 → Crystal 80 💎 → Legendary 200 💎 → Dragon 500 💎 → a secret Royal Dragon Egg for 1,000 💎. 59 creatures in all; a bought egg always holds a new one. |
 | **Card Duels** | The collected creatures battle with their stats against a rival in three leagues; every round ends with a question about the two numbers (see below). |
-| **Badges & ranks** | 43 badges (streaks, collections, the Hatchery, Card Duels, daily habit, lightning rounds, challenge problems, Sunny Farm, its Big Dreams and the merchant). Explorer level grows with XP. |
+| **Badges & ranks** | 45 badges (streaks, collections, the Hatchery, Card Duels, daily habit, lightning rounds, challenge problems, Sunny Farm, its Big Dreams and the merchant, Shape Puzzles). Explorer level grows with XP. |
 | **Hints** | A wrong answer gets a strategy hint and one more try ("make a ten", "count up", "break a ten"). A second miss shows the answer with an explanation. |
 | **Voice** | After each answer a voice says "Great job!" or a gentle "Oops! Try again." The next problem waits until the voice has finished; the **Next →** button skips the wait. Questions can be read aloud with 🔊 (automatic for kindergarten). Both can be turned off per child in *For grown-ups*. |
 | **Navigation** | Every screen has a back button; result screens have Home. **👥 Switch** on the home screen (or the small avatar in the top bar) changes the child without reloading. The browser's back gesture moves between screens and asks before leaving a game. |
@@ -126,6 +127,19 @@ A mini-game about real money (pretend money, no real purchases). The child runs 
 - **Grown-up preview.** *For grown-ups* (behind the multiplication lock) → *👀 Look at every level* also opens Sunny Farm as a level-60 farm on a copy of the profile: every animal, workshop, upgrade and decoration, $1,000 to spend (5,000¢ in kindergarten), a full basket, the farmhand, and a bank day waiting. A row of chips picks the level of money problems customers bring (it stays put while you answer). Nothing is saved; *Exit* brings back the child's real farm.
 - **With the rest of the app.** Farm problems count in the daily totals (daily goal, My Progress). The Daily Quest also brings 5 bags of feed. 8 farm badges. *For grown-ups* shows the farm level, money, accuracy and the tier being practiced. The farm syncs with the family; when two devices changed it, the one changed last wins.
 
+## 🧩 Shape Puzzles
+
+Made with a kindergartner who wanted puzzles that come together as you solve problems and end up as a shape. A tile on the home screen opens the album page with three kinds of puzzles. The rules, shapes and problems are in `js/shapes.js`, the screens in `js/shapes-ui.js`; every picture is drawn in code.
+
+| Puzzle | How it goes | At the end |
+|---|---|---|
+| ⭐ **Shape Puzzle** | A dashed outline of a circle, square, triangle, hexagon, star or heart. Every right answer flies a jigsaw piece from the answer button into its place. 4, 6, 9 or 12 pieces (cells with almost none of the shape are left out, and their crumbs go with a neighbouring piece). | The shape smiles and says what it is: *A triangle has 3 sides and 3 corners.* |
+| 🏠 **Build It** | Dashed outlines of a house, rocket, Christmas tree, fish or sailboat made of squares, rectangles, triangles, circles, a trapezoid and a star. Every right answer gives one shape (*You got a triangle!*); the child drags it into its outline. A wrong place bounces it back; after two misses its outline glows; a tap puts it in place. | *You built a house! It has 2 circles, 1 square, 1 triangle and 1 rectangle.* |
+| ✏️ **Dot to Dot** | Numbered dots, 5 to 10. Every right answer draws the line to the next dot; the last one closes it back to 1. The picture is a surprise: one not found yet comes first. | The shape fills in with a face: a star, heart, house, fish or diamond. |
+
+- **Problems.** Kindergarten: adding and taking away within 10 and *How many dots?* in a ten-frame (K.OA, K.CC.5). 2nd grade: facts to 20 that cross ten (2.OA.2). Three big answers to tap, read aloud in kindergarten. A wrong answer shows the problem as dots in ten-frames and gives another try; a second miss makes the right answer glow.
+- **With the rest of the app.** Each problem counts in the daily totals, the daily goal and My Progress under the matching topic (Adding, Taking Away, Counting; Facts to 20), and a miss goes to the Fix-it Lab like any other. +1 💎 for a first-try answer, +3 💎 for a finished puzzle and +5 💎 more the first time a puzzle goes into the album. Badges: Shape Maker (the first puzzle) and Shape Master (all 16). The album syncs with the family; a puzzle finished on any device stays in it.
+
 ## Test Prep
 
 Practice for the tests used in California schools. The app is not affiliated with these tests; all questions are original, written in the same formats and for the same standards.
@@ -215,6 +229,8 @@ js/farm.js            Sunny Farm rules: prices, crops, animals, shop, levels, mo
 js/farm-ui.js         Sunny Farm screens: farm, shop, stand, odd jobs, paying with coins
 js/farm-scene.js      Sunny Farm pictures and animations: farm scene, market stall, flying coins, night
 js/farm-art.js        Sunny Farm pictures drawn in code: the Big Dreams stage by stage, the merchant's wagon, treasures, week charms and mythic animals, the bank's safe
+js/shapes.js          Shape Puzzles rules: shapes and pictures drawn in code, the jigsaw cut, problems, the album
+js/shapes-ui.js       Shape Puzzles screens: the album page, the puzzle board, dragging shapes into place
 js/fx.js              sounds (Web Audio), read-aloud (Web Speech), confetti
 js/app.js             screens and game logic
 tools/build.py        bundles everything into dist/math-expedition.html (local-only copy)
@@ -233,9 +249,11 @@ node tests/hatchery.test.js        # eggs, creature pictures (valid SVG), dragon
 node tests/duel.test.js            # creature stats by rarity, Card Duel rules and questions, league balance in simulated duels
 node tests/testprep.test.js        # Placement Check accuracy on simulated children, mock tests with review questions
 node tests/farm.test.js            # Sunny Farm economy, days, shop, Big Dreams, the merchant and his week charms, the locked deposit, and thousands of customer problems for both grades
+node tests/shapes.test.js          # Shape Puzzles: the jigsaw cut covers every shape, valid pictures, 40,000 problems, the album and its merging
 node tests/nnat.test.js            # NNAT-3 style puzzles: 4 kinds × 6 levels, the 48-question practice test and its scoring
 node tests/smoke.mjs               # two children, both grades, played in Chromium (needs Playwright)
 node tests/farm-smoke.mjs          # Sunny Farm played by a 2nd grader and a kindergartner in Chromium
+node tests/shapes-smoke.mjs        # Shape Puzzles: a shape, a picture (with dragging) and a dot-to-dot for both grades in Chromium
 node tests/nnat-smoke.mjs          # GATE plan card, NNAT warm-ups, practice by type and the timed practice test in Chromium
 node tests/cloud-e2e.mjs           # two devices syncing through the real Firebase project
 python3 tools/build.py             # refresh the single-file version in dist/
