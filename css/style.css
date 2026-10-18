@@ -1416,6 +1416,14 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
 .fwarn { padding: 8px 10px; border-radius: 12px; background: var(--sun-soft); box-shadow: inset 0 0 0 2px var(--sun); text-align: left; }
 @media (prefers-reduced-motion: reduce) { .fhouse .hwalk { animation: none; } }
 
+/* ================= Sunny Farm: farm supplies (plain green, not magic) and the rented field ================= */
+.mcharm.c-boost, .mcend.c-boost { background: linear-gradient(130deg, #effbe9, #fffbe6); box-shadow: inset 0 0 0 3px #7fbf4d, 0 3px 0 #4e8628; }
+.mc-pic.fc-e { display: grid; place-items: center; font-size: 2.6rem; line-height: 1; animation: none; }
+.fcharm.c-boost { background: linear-gradient(120deg, #effbe9, #fffbe6); box-shadow: inset 0 0 0 2px #7fbf4d, 0 3px 0 #4e8628; }
+.fc-pic.fc-e { display: grid; place-items: center; font-size: 1.6rem; line-height: 1; }
+.fbed.rented { box-shadow: inset 0 0 0 3px #e0a21b, 0 4px 0 #8a5a08; }
+.brent { position: absolute; right: 4px; top: 4px; padding: 0 6px; border-radius: 9px; background: #fff1c7; font-size: 0.68rem; font-weight: 900; color: #6b4706; line-height: 18px; }
+
 /* ================= Sunny Farm: the order board (a cork board with paper notes; ready = green, big = gold) ================= */
 .forders { margin-top: 12px; padding: 8px 10px 10px; border-radius: var(--r); background: #e9c99a; box-shadow: inset 0 0 0 3px #b9814a, 0 4px 0 #8a5a31; }
 .fo-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 2px 6px; color: #4a2d12; }

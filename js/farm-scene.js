@@ -36,14 +36,16 @@
   function bedHtml(b, i) {
     const s = F.cropStage(b);
     const stars = F.bedStars(b), ups = `${stars ? `<span class="bstars">${'★'.repeat(stars)}</span>` : ''}${F.bedWater(b) ? '<span class="bwater">💧</span>' : ''}`;
-    const glass = (F.bedGlass(b) ? ' glass' : '') + (fmNow && F.charmOn(fmNow, 'sun') ? ' sunny' : ''); // sunny: the Sunshine Potion doubles harvests
-    if (s === 'empty') return `<button class="fbed soil empty${glass}" data-act="fBed" data-arg="${i}" aria-label="Empty garden bed: plant seeds"><span class="plus">＋</span>${ups}<span class="flabel">Plant</span></button>`;
+    const glass = (F.bedGlass(b) ? ' glass' : '') + (fmNow && F.charmOn(fmNow, 'sun') ? ' sunny' : '') + (b.rent ? ' rented' : ''); // sunny: the Sunshine Potion doubles harvests
+    const fd = b.rent && fmNow && fmNow.boosts && fmNow.boosts.field, back = fd ? fd.until - fmNow.day : 0;
+    const rent = fd ? `<span class="brent" title="Rented field: goes back on farm day ${fd.until}">🚜 ${back === 1 ? 'last day' : back + ' days'}</span>` : '';
+    if (s === 'empty') return `<button class="fbed soil empty${glass}" data-act="fBed" data-arg="${i}" aria-label="Empty garden bed: plant seeds"><span class="plus">＋</span>${ups}${rent}<span class="flabel">Plant</span></button>`;
     const it = F.ITEMS[b.c], left = F.cropDays(b) - b.g, y = F.cropYield(b, fmNow);
     const n = Math.min(y, 4); // the label says how many; four fit on a small bed
     const sprite = s === 'ready' ? it.e : s === 'seed' ? '🌱' : '🌿';
     const plants = Array.from({ length: s === 'ready' ? n : 3 }, (_, k) => `<i style="--k:${k}">${sprite}</i>`).join('');
     const label = s === 'ready' ? `Pick ${y}!` : `${left} ${left === 1 ? 'day' : 'days'}`;
-    return `<button class="fbed soil ${s}${glass}" data-act="fBed" data-arg="${i}" aria-label="${esc(it.many)}: ${s === 'ready' ? 'ripe, tap to pick' : `ready in ${label}`}"><span class="plants">${plants}</span>${ups}${b.again ? '<span class="bagain" title="Second harvest">🔁</span>' : ''}<span class="flabel">${s === 'ready' ? label : it.e + ' ' + label}</span></button>`;
+    return `<button class="fbed soil ${s}${glass}" data-act="fBed" data-arg="${i}" aria-label="${esc(it.many)}: ${s === 'ready' ? 'ripe, tap to pick' : `ready in ${label}`}"><span class="plants">${plants}</span>${ups}${rent}${b.again ? '<span class="bagain" title="Second harvest">🔁</span>' : ''}<span class="flabel">${s === 'ready' ? label : it.e + ' ' + label}</span></button>`;
   }
   function penHtml(p, i) {
     if (!p.a) return `<button class="fpen pasture empty" data-act="go" data-arg="farm:shop" aria-label="Empty pen: buy an animal in the shop"><span class="plus">＋</span><span class="flabel">Buy an animal</span></button>`;

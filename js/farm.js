@@ -353,6 +353,8 @@
     }
     if (L === F.BANK_LV) out.push({ e: '🏦', name: 'The bank: save money and earn interest' });
     for (const [a, h] of Object.entries(F.HOUSES)) if (h.lv === L) out.push({ e: F.ANIMALS[a].e, name: `Barnyard: a ${h.name.toLowerCase()} for ${F.MYTHS[a].of} (no pen needed)` });
+    if (L === F.BOOST_LV) out.push({ e: '🧪', name: 'Farm supplies in the shop: Grow-Fast, Animal treats, Big oven' });
+    if (L === F.FIELD_LV) out.push({ e: '🚜', name: 'Rent a field: 2 more garden beds for a week (with all 6 beds)' });
     if (L === F.ORDERS_LV) out.push({ e: '📋', name: 'The order board: people in town order things from your farm' });
     F.ACCOUNTS.forEach((a, i) => { if (i && a.lv === L) out.push({ e: a.e, name: `Bank: ${a.name} (more savings earn the big interest)` }); });
     for (const u of F.BED_UP) if (u.lv === L) out.push({ e: u.icon, name: 'Garden bed upgrade: ' + u.name });
@@ -396,6 +398,7 @@
     dep: { ok: false, amt: 0, until: 0 }, // the bank's locked deposit (2nd grade): opened once savings pass the limit (ok); amt locked until farm day `until`
     orders: { seen: false, n: 0, list: [] }, // the order board (see below)
     yard: {}, // the barnyard's houses: animal: { a, g, fed, ready, u } (like a pen)
+    boosts: {}, // farm supplies working now: id: { cost, until, gain } (see below)
   });
   F.START_MONEY = [5, 30];
   F.ensure = (st) => {
@@ -422,6 +425,8 @@
     for (const k of ['built', 'dreamIn']) if (!fm.stats[k]) fm.stats[k] = 0;
     if (!fm.orders) fm.orders = { seen: false, n: 0, list: [] }; // and the order board
     if (!fm.yard) fm.yard = {}; // and the barnyard
+    if (!fm.boosts) fm.boosts = {}; // and the farm supplies
+    for (const k of ['boosts', 'boostCost', 'boostGain', 'boostWins']) if (!fm.stats[k]) fm.stats[k] = 0;
     for (const k of ['orders', 'orderPay', 'orderExtra']) if (!fm.stats[k]) fm.stats[k] = 0;
     return fm;
   };
@@ -447,14 +452,18 @@
     const n = F.cropYield(bed, fm);
     fm.basket[bed.c] = (fm.basket[bed.c] || 0) + n;
     if (F.charmOn(fm, 'sun')) { const x = fm.charms.sun; x.extra = x.extra || {}; x.extra[bed.c] = (x.extra[bed.c] || 0) + n / 2; } // what the Sunshine Potion added
+    const fd = bed.rent && fm.boosts && fm.boosts.field;
+    if (fd) fd.gain += n * F.price(bed.c, fd.grade) - F.seedPrice(bed.c, fd.grade); // a rented bed's crops, after the seeds
     if (F.bedGlass(bed) && !bed.again) Object.assign(bed, { g: 0, again: true }); // the greenhouse grows a second harvest
     else Object.assign(bed, { c: null, g: 0, again: false });
     return n;
   };
-  F.emptyBeds = (fm) => fm.beds.map((b, i) => (b.c ? -1 : i)).filter((i) => i >= 0);
+  // Empty beds (with a crop: the ones it can be planted in: a rented bed only takes crops ready before it goes back).
+  F.emptyBeds = (fm, crop) => fm.beds.map((b, i) => (b.c || (crop && !F.canPlant(fm, i, crop)) ? -1 : i)).filter((i) => i >= 0);
+  F.canPlant = (fm, i, crop) => { const b = fm.beds[i]; return !!b && !b.c && (!b.rent || F.fieldFits(fm, b, crop)); };
   // Plant the same crop in n empty beds for one payment of n × the seed price.
   F.plantAll = (fm, grade, crop, n) => {
-    const beds = F.emptyBeds(fm).slice(0, n), price = beds.length * F.seedPrice(crop, grade);
+    const beds = F.emptyBeds(fm, crop).slice(0, n), price = beds.length * F.seedPrice(crop, grade);
     if (beds.length < n || fm.money < price || F.CROPS[crop].lv > F.level(fm.xp).level) return false;
     fm.money -= price;
     fm.stats.spent += price;
@@ -529,15 +538,20 @@
       else {
         fm.money -= wage;
         fm.stats.wages = (fm.stats.wages || 0) + wage;
-        news.helper = { wage, fed: 0, short: 0, collected: 0, picked: 0 };
-        F.allPens(fm).forEach((p) => { if (p.a && !p.fed) F.feedPen(fm, p) === 'ok' ? news.helper.fed++ : news.helper.short++; });
+        news.helper = { wage, fed: 0, houses: 0, short: 0, collected: 0, picked: 0 };
+        const houses = new Set(Object.values(fm.yard || {}));
+        F.allPens(fm).forEach((p) => { if (p.a && !p.fed) F.feedPen(fm, p) === 'ok' ? news.helper[houses.has(p) ? 'houses' : 'fed']++ : news.helper.short++; });
       }
     }
     for (const [id, w] of Object.entries(fm.works || {})) {
       if (w.r === null || w.r === undefined) continue;
       const r = F.WORKS[id].recipes[w.r];
       w.g++;
-      if (w.g >= r.days) { w.ready = (w.ready || 0) + 1; w.out = r.out; w.r = null; w.g = 0; news.cooked.push(r.out); }
+      if (w.g >= r.days) {
+        const oven = F.boostOn(fm, 'oven') ? 1 : 0; // the Big oven: one more from every batch
+        if (oven) fm.boosts.oven.gain += F.price(r.out, grade);
+        w.ready = (w.ready || 0) + 1 + oven; w.out = r.out; w.r = null; w.g = 0; news.cooked.push(r.out);
+      }
     }
     const tr = fm.treasure || {};
     if (tr.fairy) { // the Feed Fairy feeds hungry pens, for free
@@ -548,6 +562,10 @@
     fm.beds.forEach((b) => {
       if (!b.c || F.cropStage(b) === 'ready') return;
       b.g++;
+      if (F.boostOn(fm, 'grow') && F.cropStage(b) !== 'ready') { // Grow-Fast: a second day of growing tonight, worth a day of the crop
+        b.g++;
+        fm.boosts.grow.gain += Math.round((F.cropYield(b, fm) * F.price(b.c, grade)) / F.cropDays(b));
+      }
       if (F.cropStage(b) === 'ready') news.ripe.push(b.c);
     });
     F.allPens(fm).forEach((p) => {
@@ -555,7 +573,8 @@
       if (!p.fed) { news.hungry.push(p.a); return; }
       const before = F.animalStage(p);
       if (before === 2) {
-        const a = F.ANIMALS[p.a], k = F.penMakes(p);
+        const treat = F.boostOn(fm, 'treat') ? 1 : 0, a = F.ANIMALS[p.a], k = F.penMakes(p) + treat; // Animal treats: one more
+        if (treat) fm.boosts.treat.gain += F.price(F.mythOn(fm, p.a) ? F.MYTHS[p.a].item : a.item, grade);
         if (F.mythOn(fm, p.a)) { // a Mythic Feed week: the rare thing instead of the usual one
           const it = F.MYTHS[p.a].item;
           p.rare = Math.min(30, (p.rare || 0) + k);
@@ -574,6 +593,7 @@
     news.built = F.buildOvernight(fm);
     fm.day++;
     news.charmEnd = F.charmsMorning(fm, grade);
+    news.boostEnd = F.boostsMorning(fm, grade);
     news.orders = F.ordersMorning(fm, grade);
     if (tr.goose) { const x = F.TREASURES.goose.gold[gi(grade)]; fm.money += x; fm.stats.earned += x; news.gold = x; }
     if (tr.sheep) { fm.basket.rainbow = (fm.basket.rainbow || 0) + 1; news.rainbow = 1; }
@@ -597,10 +617,11 @@
       if (up) out.push({ id: 'houseup:' + a, tab: 'up', e: A.e, name: `${F.HOUSES[a].name}: ${up.name}`, price: A.cost[g], lv: up.lv, note: up.note });
       else out.push({ id: 'houseup:' + a, tab: 'up', e: A.e, name: `${F.HOUSES[a].name}: room for 3`, price: 0, lv: 1, owned: true });
     }
-    const nb = fm.beds.length, np = fm.pens.length;
+    const nb = F.ownBeds(fm).length, np = fm.pens.length;
     if (nb < F.BEDS.length) out.push({ id: 'bed', tab: 'farm', e: '🟫', name: 'Garden bed ' + (nb + 1), price: F.BEDS[nb][1 + g], lv: F.BEDS[nb][0], note: 'Grow more crops' });
     if (np < F.PENS.length) out.push({ id: 'pen', tab: 'farm', e: '🏡', name: 'Animal pen ' + (np + 1), price: F.PENS[np][1 + g], lv: F.PENS[np][0], note: 'Room for one more animal' });
     fm.beds.forEach((b, i) => {
+      if (b.rent) return; // a rented bed isn't ours to upgrade
       const up = F.BED_UP[b.u || 0];
       if (up) out.push({ id: 'bedup:' + i, tab: 'up', e: up.icon, name: `Garden bed ${i + 1}: ${up.name}`, price: up.cost[g], lv: up.lv, note: up.note });
       else out.push({ id: 'bedup:' + i, tab: 'up', e: '🏅', name: `Garden bed ${i + 1}: every upgrade`, price: 0, lv: 1, owned: true });
@@ -649,7 +670,7 @@
   // Seed packets are bought from an empty bed.
   F.buySeed = (fm, grade, i, crop) => {
     const price = F.seedPrice(crop, grade);
-    if (fm.money < price || fm.beds[i].c || F.CROPS[crop].lv > F.level(fm.xp).level) return false;
+    if (fm.money < price || !F.canPlant(fm, i, crop) || F.CROPS[crop].lv > F.level(fm.xp).level) return false;
     fm.money -= price;
     fm.stats.spent += price;
     F.plant(fm, i, crop);
@@ -1085,6 +1106,83 @@
   // How much to put aside each day to buy it before he leaves: today and every day left, in whole dollars (k: cents).
   F.perDayToSave = (need, nights, grade) => { const days = nights + 1, x = Math.ceil(need / days); return grade === 'k' ? x : Math.ceil(x / 100) * 100; };
 
+  // ---------------------------------------------------------------- farm supplies
+  // Small helpers from the Farm Shop (the Supplies tab), always for sale, for a few farm days: Grow-Fast (crops grow
+  // twice as fast), Animal treats (every fed grown-up pen and house makes 1 more), the Big oven (every workshop batch
+  // makes 1 more), and from level 12, with all 6 beds, a rented field (2 more beds for 7 days). Unlike the merchant's
+  // week charms they are small, short and always here; one of each at a time. Each costs about a third of what it
+  // brings this farm when it is used well, and when it is over the morning card asks: did it pay off?
+  // A rented field takes only crops that are ready before it goes back; on its last morning the farmer picks what is
+  // ripe for the child (it all is) and takes the field back, so nothing planted there is lost.
+  F.BOOST_LV = 8;
+  F.FIELD_LV = 12;
+  F.FIELD_BEDS = 2;
+  F.BOOSTS = {
+    grow: { e: '🧪', name: 'Grow-Fast', nights: 3, lv: F.BOOST_LV, what: 'in crops ready sooner', note: 'For 3 nights your crops grow twice as fast.' },
+    treat: { e: '🥕', name: 'Animal treats', nights: 3, lv: F.BOOST_LV, what: 'in things your animals made', note: 'For 3 nights every fed grown-up pen and barnyard house makes 1 more.' },
+    oven: { e: '🔥', name: 'Big oven', nights: 3, lv: F.BOOST_LV, what: 'in workshop goods', note: 'For 3 nights every batch in your workshops makes 1 more.' },
+    field: { e: '🚜', name: 'Rented field', nights: 7, lv: F.FIELD_LV, what: 'in crops (after the seeds)', note: '2 more garden beds for 7 days. Plant crops that are ready in time: on the last morning the farmer picks them for you and takes the field back.' },
+  };
+  F.ownBeds = (fm) => fm.beds.filter((b) => !b.rent);
+  F.boostOn = (fm, id) => { const b = fm.boosts && fm.boosts[id]; return !!b && fm.day < b.until; };
+  // Can this farm use it? (Treats need grown-up animals, the oven a workshop, the field all 6 beds.) Returns the
+  // reason it can't, or ''.
+  F.boostNeeds = (fm, id) => {
+    if (id === 'treat' && !F.allPens(fm).some((p) => p.a && F.animalStage(p) === 2)) return 'Needs grown-up animals';
+    if (id === 'oven' && !Object.keys(fm.works || {}).length) return 'Needs a workshop';
+    if (id === 'field' && F.ownBeds(fm).length < F.BEDS.length) return `Buy all ${F.BEDS.length} garden beds first`;
+    return '';
+  };
+  // What it brings a farm like this one when it is used well (cents): Grow-Fast a day of crops every night (a good
+  // farm at this level), treats one more thing from every grown-up pen a night, the oven one more of the best thing
+  // each workshop makes per batch, the field 2 more beds of a good farm for 7 days.
+  F.boostGain = (id, fm, grade) => {
+    const L = F.level(fm.xp).level, d = F.goodDay(L, grade), N = F.BOOSTS[id].nights;
+    if (id === 'grow') return N * d.crops;
+    if (id === 'treat') return N * U.sum(F.allPens(fm).filter((p) => p.a && F.animalStage(p) === 2).map((p) => F.price(F.ANIMALS[p.a].item, grade)));
+    if (id === 'oven') return N * U.sum(Object.keys(fm.works || {}).map((w) => Math.max(0, ...F.WORKS[w].recipes.filter((r) => r.lv <= L).map((r) => F.price(r.out, grade) / r.days))));
+    return Math.round(N * F.FIELD_BEDS * (d.crops / F.BEDS.filter((b) => b[0] <= L).length));
+  };
+  // about a third of that: 2nd grade in 25¢ steps (at least 25¢), kindergarten in cents (2¢ to 50¢)
+  F.boostCost = (id, fm, grade) => {
+    const x = F.boostGain(id, fm, grade) / 3;
+    return grade === 'k' ? Math.max(2, Math.min(50, Math.round(x))) : Math.max(25, Math.round(x / 25) * 25);
+  };
+  // A rented bed takes a crop that is ready before the field goes back (on the morning of farm day `until`).
+  F.fieldFits = (fm, b, crop) => { const f = fm.boosts && fm.boosts.field; return !!f && fm.day + F.cropDays(Object.assign({}, b, { c: crop })) <= f.until; };
+  F.buyBoost = (fm, grade, id) => {
+    const B = F.BOOSTS[id];
+    if (!B || F.level(fm.xp).level < B.lv || F.boostNeeds(fm, id) || (fm.boosts || {})[id]) return null;
+    const cost = F.boostCost(id, fm, grade);
+    if (fm.money < cost) return null;
+    fm.money -= cost;
+    fm.stats.spent += cost;
+    fm.stats.boosts++;
+    fm.stats.boostCost += cost;
+    fm.boosts[id] = { cost, until: fm.day + B.nights, gain: 0, grade };
+    if (id === 'field') for (let k = 0; k < F.FIELD_BEDS; k++) fm.beds.push({ c: null, g: 0, u: 0, rent: true });
+    return Object.assign({ id, cost }, B);
+  };
+  // The morning a supply's days are over it stops (the field: the farmer picks the ripe crops and takes it back).
+  // Returns [{ id, cost, got, picked }] for the morning card.
+  F.boostsMorning = (fm, grade) => {
+    const out = [];
+    for (const id of Object.keys(fm.boosts || {})) {
+      const b = fm.boosts[id];
+      if (fm.day < b.until) continue;
+      let picked = 0;
+      if (id === 'field') {
+        fm.beds.forEach((x, i) => { if (x.rent) picked += F.harvest(fm, i); });
+        fm.beds = fm.beds.filter((x) => !x.rent);
+      }
+      delete fm.boosts[id];
+      fm.stats.boostGain += b.gain;
+      if (b.gain > b.cost) fm.stats.boostWins++;
+      out.push({ id, cost: b.cost, got: b.gain, picked });
+    }
+    return out;
+  };
+
   // ---------------------------------------------------------------- the order board
   // From farm level 5, people in town order things from the farm: "6 eggs and 2 glasses of milk by farm day 12".
   // The board holds up to 3 orders, and a new one comes each morning when there is room. An order is made only of
@@ -1111,7 +1209,7 @@
   // What this farm can make for an order. per: how many one garden bed (with the farm's poorest soil) or all the pens
   // of a kind make; days: nights for one batch; made things need a workshop, and their inputs must come from this farm.
   F.orderGoods = (fm) => {
-    const L = F.level(fm.xp).level, stars = Math.min(...fm.beds.map(F.bedStars)), out = {};
+    const L = F.level(fm.xp).level, stars = Math.min(...F.ownBeds(fm).map(F.bedStars)), out = {};
     for (const [id, c] of Object.entries(F.CROPS)) if (c.lv <= L) out[id] = { id, kind: 'crop', per: c.yield + stars, days: c.days };
     F.allPens(fm).forEach((p) => {
       if (!p.a || F.animalStage(p) < 2) return;
@@ -1144,7 +1242,7 @@
       const x = goods[id];
       if (x.kind === 'crop') { beds += Math.ceil(n / x.per); days = Math.max(days, x.days); } else animals = Math.max(animals, Math.ceil(n / x.per));
     }
-    return Math.max(beds ? Math.ceil(beds / fm.beds.length) * days : 0, animals) + made;
+    return Math.max(beds ? Math.ceil(beds / F.ownBeds(fm).length) * days : 0, animals) + made; // not counting a rented field
   };
   // A new order (number n): one or two kinds of things (kindergarten: one; a big order: two or three), at most the cap.
   F.makeOrder = (fm, grade, n) => {
@@ -1271,6 +1369,9 @@
     fm.merchant = F.merchantVisit(fm, g, 2, 3);
     fm.charms = { clover: { cost: k ? 30 : 900, until: 18, gain: k ? 12 : 640 }, myth: { a: 'cow', cost: k ? 60 : 2400, until: 17, gain: k ? 33 : 1750 } };
     fm.pens[1].rare = 2;
+    // farm supplies at work: Grow-Fast, and a rented field with carrots in one of its beds
+    fm.boosts = { grow: { cost: k ? 20 : 500, until: 16, gain: k ? 6 : 150, grade: g }, field: { cost: k ? 30 : 900, until: 19, gain: 0, grade: g } };
+    fm.beds.push({ c: 'carrot', g: 0, u: 0, rent: true }, { c: null, g: 0, u: 0, rent: true });
     // the whole barnyard: babies, hungry, fed and with eggs to collect
     Object.keys(F.HOUSES).forEach((a, i) => { fm.yard[a] = { a, g: i === 4 ? 0 : 9, fed: i % 2 === 0, ready: i % 3 === 1 ? 2 : 0, u: i % 3 }; });
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;

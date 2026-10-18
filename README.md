@@ -35,7 +35,7 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 | **🧩 Puzzle Time** | Short problems that build something: a creature's picture from jigsaw pieces (snap it, find the piece, or guess who hides under the clouds), a smiling shape, a picture from shapes the child puts in place, or a dot-to-dot surprise (see below). 252 puzzles (98 free), picture collections for crystals with Legendary pictures that come alive, a puzzle of the day, stars and a gallery. |
 | **Hatchery** | A ladder of eggs to save crystals for (see below): Meadow 30 💎 → Crystal 80 💎 → Legendary 200 💎 → Dragon 500 💎 → a secret Royal Dragon Egg for 1,000 💎. 59 creatures in all; a bought egg always holds a new one. |
 | **Card Duels** | The collected creatures battle with their stats against a rival in three leagues; every round ends with a question about the two numbers (see below). |
-| **Badges & ranks** | 50 badges (streaks, collections, the Hatchery, Card Duels, daily habit, lightning rounds, challenge problems, Sunny Farm, its Big Dreams, the merchant and the order board, Puzzle Time). Explorer level grows with XP. |
+| **Badges & ranks** | 51 badges (streaks, collections, the Hatchery, Card Duels, daily habit, lightning rounds, challenge problems, Sunny Farm, its Big Dreams, the merchant, the order board and the farm supplies, Puzzle Time). Explorer level grows with XP. |
 | **Hints** | A wrong answer gets a strategy hint and one more try ("make a ten", "count up", "break a ten"). A second miss shows the answer with an explanation. |
 | **Voice** | After each answer a voice says "Great job!" or a gentle "Oops! Try again." The next problem waits until the voice has finished; the **Next →** button skips the wait. Questions can be read aloud with 🔊 (automatic for kindergarten). Both can be turned off per child in *For grown-ups*. |
 | **Navigation** | Every screen has a back button; result screens have Home. **👥 Switch** on the home screen (or the small avatar in the top bar) changes the child without reloading. The browser's back gesture moves between screens and asks before leaving a game. |
@@ -123,6 +123,13 @@ A mini-game about real money (pretend money, no real purchases). The child runs 
     - 🐑 **Rainbow Sheep** ($350): a ball of 🌈 rainbow wool every morning, to sell.
   
     If there isn't enough money, the card says what to do: take money out of the bank, put some aside each day, or save up for his next treasure visit (on farm day N). A treasure can be the saving goal (⭐ Save up): he brings that one next, and the goal bar says when. Kindergarten prices stay at 90¢–99¢ and week charms at most 95¢ (paid with coins). Bought treasures live on the farm (the goose and the sheep in the yard, the fairy flying over it). Badge: Treasure Hunter.
+- **🧪 Farm supplies** (from farm level 8, the *🧪 Supplies* tab in the shop). Small helpers for a few farm days, always for sale, one of each at a time. Uncle Marco's week charms stay the rare, strong ones; these are small and short. Rules in `js/farm.js` (`F.BOOSTS`).
+  - 🧪 **Grow-Fast**: for 3 nights crops grow twice as fast (corn in 2 nights instead of 3; a 1-day carrot gains nothing);
+  - 🥕 **Animal treats**: for 3 nights every fed grown-up pen and barnyard house makes 1 more;
+  - 🔥 **Big oven**: for 3 nights every workshop batch makes 1 more;
+  - 🚜 **Rented field** (level 12, with all 6 beds): 2 more garden beds for 7 days. A rented bed takes only crops that are ready before it goes back; on its last morning the farmer picks what is in it for the child and takes it back, so nothing is lost.
+
+  Each costs about a third of what it brings a farm like this one when used well (2nd grade in 25¢ steps, kindergarten 2¢–50¢; checked by the tests), and the shop says how to get the most from it. Paying is a coin-and-bill payment as usual. The ones at work show on the farm next to the week charms with their days left and what they brought; the morning one is over, the card asks *Did it pay off?* (the profit, or whether it brought more than it cost). Badge: Smart Farmer.
 - **📋 The order board** (from farm level 5). People in town order things from the farm: *🐻 Bruno wants 6 🥚 eggs and 2 🥛 glasses of milk for a picnic, by farm day 24*. Rules in `js/farm.js` (`F.makeOrder`, `F.ORDERS_LV`), screens in `js/farm-ui.js`.
   - **Up to 3 orders**, a new one each morning when there is room (two to start with). A one-time card introduces the board.
   - **Only what this farm can make now**: crops open at its level, the things its grown-up animals make, its workshops' goods (when the farm makes what they need). Kindergarten orders one kind of thing; 2nd grade one or two.
@@ -137,7 +144,7 @@ A mini-game about real money (pretend money, no real purchases). The child runs 
   - 2nd grade: coins to 50¢ → quarters to 99¢, change from $1 → dollars → change from $5, budgets → ⭐ big orders (3 × 85¢, change from $10/$20) → ⭐ deals (2 for $1.70) and profit (seeds cost vs. harvest sold) → ⭐ interest and adding value.
   - ⭐ tiers are ahead of the grade's standards: challenges to grow into.
 - **Grown-up preview.** *For grown-ups* (behind the multiplication lock) → *👀 Look at every level* also opens Sunny Farm as a level-60 farm on a copy of the profile: every animal, workshop, upgrade and decoration, $1,000 to spend (5,000¢ in kindergarten), a full basket, the farmhand, and a bank day waiting. A row of chips picks the level of money problems customers bring (it stays put while you answer). Nothing is saved; *Exit* brings back the child's real farm.
-- **With the rest of the app.** Farm problems count in the daily totals (daily goal, My Progress). The Daily Quest also brings 5 bags of feed. 8 farm badges. *For grown-ups* shows the farm level, money, accuracy and the tier being practiced. The farm syncs with the family; when two devices changed it, the one changed last wins.
+- **With the rest of the app.** Farm problems count in the daily totals (daily goal, My Progress). The Daily Quest also brings 5 bags of feed. 17 farm badges. *For grown-ups* shows the farm level, money, accuracy and the tier being practiced. The farm syncs with the family; when two devices changed it, the one changed last wins.
 
 ## 🧩 Puzzle Time
 
@@ -289,7 +296,7 @@ node tests/store.test.js           # merging progress from two devices, mistakes
 node tests/hatchery.test.js        # eggs, creature pictures (valid SVG), dragon growth and treasure, the buddy, the farm merchant's pictures
 node tests/duel.test.js            # creature stats by rarity, Card Duel rules and questions, league balance in simulated duels
 node tests/testprep.test.js        # Placement Check accuracy on simulated children, mock tests with review questions
-node tests/farm.test.js            # Sunny Farm economy, days, shop, the barnyard, Big Dreams, the merchant and his week charms, the locked deposit, the order board (every order played to check it can be made in time), and thousands of customer problems for both grades
+node tests/farm.test.js            # Sunny Farm economy, days, shop, the barnyard, farm supplies and the rented field, Big Dreams, the merchant and his week charms, the locked deposit, the order board (every order played to check it can be made in time), and thousands of customer problems for both grades
 node tests/shapes.test.js          # Puzzle Time: the jigsaw cut covers every shape, every picture draws, packs and seasons, stars, the puzzle of the day, 40,000 problems, merging
 node tests/nnat.test.js            # NNAT-3 style puzzles: 4 kinds × 6 levels, the 48-question practice test and its scoring
 node tests/smoke.mjs               # two children, both grades, played in Chromium (needs Playwright)
