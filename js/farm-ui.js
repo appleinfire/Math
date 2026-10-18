@@ -197,20 +197,20 @@
     }
     if (s !== 'empty') {
       const left = F.cropDays(b) - b.g;
-      return K().modal(`<div class="bigemoji">${s === 'seed' ? '🌱' : '🌿'}</div><div class="mtitle">${esc(cap(F.ITEMS[b.c].many))}</div><p>Ready in ${left} ${left === 1 ? 'day' : 'days'}: ${F.cropYield(b, f)} ${F.ITEMS[b.c].e}${b.again ? ' (the second harvest)' : ''}. Tap 🌙 Sleep to make the night pass.</p>${bedUps(b)}<div class="row"><button class="btn ghost" data-act="fUpgrades">⬆️ Upgrades</button><button class="btn" data-act="closeModal">OK</button></div>`);
+      return K().modal(`<div class="bigemoji">${s === 'seed' ? '🌱' : '🌿'}</div><div class="mtitle">${esc(cap(F.ITEMS[b.c].many))}</div><p>Ready in ${left} ${left === 1 ? 'day' : 'days'}: ${F.cropYield(b, f)} ${F.ITEMS[b.c].e}${b.again ? ' (the second harvest)' : ''}. Tap 🌙 Sleep to make the night pass.</p>${b.rent ? `<p class="muted">🚜 A rented bed: it goes back on farm day ${f.boosts.field.until}.</p>` : bedUps(b)}<div class="row">${b.rent ? '' : '<button class="btn ghost" data-act="fUpgrades">⬆️ Upgrades</button>'}<button class="btn" data-act="closeModal">OK</button></div>`);
     }
     plantPicker(i);
   }
   function plantPicker(i) {
-    const f = fm(), g = grade(), L = F.level(f.xp).level;
+    const f = fm(), g = grade(), L = F.level(f.xp).level, rent = f.beds[i].rent && f.boosts.field;
     const rows = Object.entries(F.CROPS).map(([id, c]) => {
-      const it = F.ITEMS[id], price = F.seedPrice(id, g), locked = c.lv > L, poor = f.money < price;
-      return `<button class="fseed" data-act="fPlant" data-arg="${i}:${id}" ${locked || poor ? 'disabled' : ''}>
+      const it = F.ITEMS[id], price = F.seedPrice(id, g), locked = c.lv > L, poor = f.money < price, late = !locked && !F.canPlant(f, i, id);
+      return `<button class="fseed" data-act="fPlant" data-arg="${i}:${id}" ${locked || poor || late ? 'disabled' : ''}>
         <span class="fe">${locked ? '🔒' : it.e}</span><span class="fseed-t"><b>${esc(it.many)}</b>
-        <small>${locked ? `Opens at farm level ${c.lv}` : `${c.yield} in ${c.days} ${c.days === 1 ? 'day' : 'days'} · sell ${fmt(F.price(id, g))} each`}</small></span>
+        <small>${locked ? `Opens at farm level ${c.lv}` : late ? 'Not ready before the field goes back' : `${c.yield} in ${c.days} ${c.days === 1 ? 'day' : 'days'} · sell ${fmt(F.price(id, g))} each`}</small></span>
         <span class="fprice">${fmt(price)}</span></button>`;
     }).join('');
-    K().modal(`<div class="mtitle">Plant seeds</div><p class="muted">You have ${fmt(f.money)}.</p>${bedUps(f.beds[i])}<div class="fseeds">${rows}</div><div class="row"><button class="btn ghost" data-act="fUpgrades">⬆️ Upgrade beds</button><button class="btn ghost" data-act="closeModal">Not now</button></div>`);
+    K().modal(`<div class="mtitle">Plant seeds</div><p class="muted">You have ${fmt(f.money)}.</p>${rent ? `<p class="fmove">🚜 A rented bed: it goes back on farm day ${rent.until}. Plant a crop that is ready by then, and the farmer picks it for you if you don’t.</p>` : bedUps(f.beds[i])}<div class="fseeds">${rows}</div><div class="row"><button class="btn ghost" data-act="fUpgrades">⬆️ Upgrade beds</button><button class="btn ghost" data-act="closeModal">Not now</button></div>`);
   }
   // What a bed's upgrades do, in a short line (nothing for a bed without upgrades).
   function bedUps(b) {
@@ -224,15 +224,15 @@
   function plantAllPicker() {
     const f = fm(), g = grade(), L = F.level(f.xp).level, n = F.emptyBeds(f).length;
     const rows = Object.entries(F.CROPS).filter(([, c]) => c.lv <= L).map(([id, c]) => {
-      const it = F.ITEMS[id], price = F.seedPrice(id, g), poor = f.money < n * price;
-      return `<button class="fseed" data-act="fPlantAllCrop" data-arg="${id}" ${poor ? 'disabled' : ''}>
-        <span class="fe">${it.e}</span><span class="fseed-t"><b>${esc(it.many)}</b><small>${poor ? 'Not enough money for all the beds' : `${n} packets · ${fmt(price)} each`}</small></span>
+      const it = F.ITEMS[id], price = F.seedPrice(id, g), nc = F.emptyBeds(f, id).length, poor = f.money < nc * price; // a rented bed takes only quick crops
+      return `<button class="fseed" data-act="fPlantAllCrop" data-arg="${id}" ${poor || nc < 1 ? 'disabled' : ''}>
+        <span class="fe">${it.e}</span><span class="fseed-t"><b>${esc(it.many)}</b><small>${poor ? 'Not enough money for all the beds' : `${nc} ${nc === 1 ? 'packet' : 'packets'} · ${fmt(price)} each${nc < n ? ' (too slow for the rented field)' : ''}`}</small></span>
         <span class="fprice">${fmt(price)}</span></button>`;
     }).join('');
     K().modal(`<div class="mtitle">Plant all ${n} empty beds</div><p class="muted">One packet of seeds for each bed. You have ${fmt(f.money)}.</p><div class="fseeds">${rows}</div><div class="row"><button class="btn ghost" data-act="closeModal">Not now</button></div>`);
   }
   function plantAll(crop) {
-    const f = fm(), g = grade(), n = F.emptyBeds(f).length, one = F.seedPrice(crop, g), it = F.ITEMS[crop];
+    const f = fm(), g = grade(), n = F.emptyBeds(f, crop).length, one = F.seedPrice(crop, g), it = F.ITEMS[crop];
     K().closeModal();
     if (n < 1 || f.money < n * one) return K().toast('Not enough money yet');
     startPay(n * one, '', () => {
@@ -361,11 +361,12 @@
     }
     const h = news.helper;
     if (h && h.unpaid) lines.push(`🧑‍🌾 ${F.HELPER.name} didn’t work last night: there wasn’t ${fmt(h.wage)} in your wallet for the wage.`);
-    else if (h) lines.push(`🧑‍🌾 ${F.HELPER.name} was paid ${fmt(h.wage)}, fed ${h.fed} ${h.fed === 1 ? 'pen' : 'pens'}${h.collected ? `, collected ${h.collected}` : ''}${h.picked ? `, picked ${h.picked}` : ''}.${h.short ? ` Not enough feed for ${h.short}!` : ''}`);
+    else if (h) lines.push(`🧑‍🌾 ${F.HELPER.name} was paid ${fmt(h.wage)}, fed ${h.fed} ${h.fed === 1 ? 'pen' : 'pens'}${h.houses ? ` and ${h.houses} barnyard ${h.houses === 1 ? 'house' : 'houses'}` : ''}${h.collected ? `, collected ${h.collected}` : ''}${h.picked ? `, picked ${h.picked}` : ''}.${h.short ? ` Not enough feed for ${h.short}!` : ''}`);
     for (const it of news.cooked) lines.push(`${F.ITEMS[it].e} Your ${esc(F.ITEMS[it].name)} is ready in the workshop!`);
     for (const [a, sg] of news.grew) lines.push(`${F.ANIMALS[a].e} Your ${esc(F.ANIMALS[a].name.toLowerCase())} ${sg === 2 ? 'is all grown up!' : 'got bigger'}`);
     for (const [a, n] of Object.entries(count(news.hungry))) lines.push(`${F.ANIMALS[a].e} ${n > 1 ? n + ' ' : ''}${esc(F.ANIMALS[a].name.toLowerCase())}${n > 1 ? 's were' : ' was'} hungry and didn’t grow. Feed animals before bed!`);
-    const b = news.built, ends = (charmEnds = news.charmEnd || []);
+    for (const x of news.boostEnd || []) if (x.id === 'field') lines.push(`🚜 The rented field went back today${x.picked ? `: the farmer picked your last ${x.picked} crops for you. They are in your basket` : ''}.`);
+    const b = news.built, ends = (charmEnds = (news.charmEnd || []).concat((news.boostEnd || []).map((x) => Object.assign({ boost: true }, x))));
     K().modal(`${b ? builtBlock(b) : '<div class="bigemoji">☀️</div>'}<div class="mtitle">Good morning! Farm day ${f.day}</div>
       ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : b || ends.length ? '' : '<p>A quiet night on the farm.</p>'}
       ${ends.map(charmEndBlock).join('')}
@@ -500,7 +501,9 @@
       return `<button class="fcharm c-${id}" data-act="fCharm" data-arg="${id}"><span class="fc-pic">${id === 'myth' ? MQ.mythArt(c.a, { aura: false }) : MQ.charmArt(id)}</span><span class="fc-t"><b>${esc(id === 'myth' ? F.MYTHS[c.a].many : F.CHARMS[id].name)}</b><small>${left === 1 ? 'Last day!' : `${left} days left`} · +${fmt(F.charmGot(c, g))}</small></span></button>`;
     };
     const piggy = F.piggyWaiting(f) ? `<button class="fcharm c-piggy" data-act="fCharm" data-arg="piggy"><span class="fc-pic">${MQ.charmArt('piggy')}</span><span class="fc-t"><b>Golden Piggy</b><small>Bank day: interest × 2</small></span></button>` : '';
-    return on.length || piggy ? `<div class="fcharms">${on.map(chip).join('')}${piggy}</div>` : '';
+    // the farm supplies working now (plain, not magic: an emoji instead of a picture)
+    const boosts = Object.keys(f.boosts || {}).filter((id) => F.boostOn(f, id)).map((id) => { const b = f.boosts[id], left = b.until - f.day; return `<button class="fcharm c-boost" data-act="fBoost" data-arg="${id}"><span class="fc-pic fc-e">${F.BOOSTS[id].e}</span><span class="fc-t"><b>${esc(F.BOOSTS[id].name)}</b><small>${left === 1 ? 'Last day!' : `${left} days left`} · ${b.gain ? '+' + fmt(b.gain) : 'just started'}</small></span></button>`; }).join('');
+    return on.length || piggy || boosts ? `<div class="fcharms">${on.map(chip).join('')}${piggy}${boosts}</div>` : '';
   }
   function charmInfo(id) {
     const f = fm(), g = grade(), c = (f.charms || {})[id];
@@ -514,21 +517,25 @@
   }
   // The morning a charm's week is over: what it cost and what it brought, and a question: did it pay off?
   let charmEnds = [];
+  const USE_MORE = { myth: 'feed the animals every day', clover: 'sell a lot at the stand', sun: 'plant every bed', grow: 'plant crops that take a few days', treat: 'feed every grown-up animal every day', oven: 'keep every workshop making something', field: 'plant both rented beds right away' };
+  // a week charm or a farm supply (x.boost): its name, its icon, and what it brought more of
+  const endName = (x) => (x.boost ? F.BOOSTS[x.id].name : x.id === 'myth' ? F.charmName('myth', x.a) : F.CHARMS[x.id].name);
+  const endIcon = (x) => (x.boost ? F.BOOSTS[x.id].e : F.CHARMS[x.id].e);
   function charmEndBlock(x, k) {
-    const name = x.id === 'myth' ? F.charmName('myth', x.a) : F.CHARMS[x.id].name;
-    const what = x.id === 'myth' ? `in ${esc(F.ITEMS[F.MYTHS[x.a].item].many)}` : x.id === 'clover' ? 'in tips' : 'in crops';
-    return `<div class="mcend c-${x.id}"><span class="mc-pic">${charmPic(x.id, x.a)}</span><span class="mc-t"><b>${F.CHARMS[x.id].e} ${esc(name)} is over.</b><small>It cost ${fmt(x.cost)} and brought ${fmt(x.got)} more ${what}.</small></span><button class="btn" data-act="fProfit" data-arg="${k}">🧮 Did it pay off?</button></div>`;
+    const what = x.boost ? F.BOOSTS[x.id].what : x.id === 'myth' ? `in ${esc(F.ITEMS[F.MYTHS[x.a].item].many)}` : x.id === 'clover' ? 'in tips' : 'in crops';
+    const pic = x.boost ? `<span class="mc-pic fc-e">${F.BOOSTS[x.id].e}</span>` : `<span class="mc-pic">${charmPic(x.id, x.a)}</span>`;
+    return `<div class="mcend c-${x.boost ? 'boost' : x.id}">${pic}<span class="mc-t"><b>${endIcon(x)} ${esc(endName(x))} is over.</b><small>It cost ${fmt(x.cost)} and brought ${fmt(x.got)} more ${what}.</small></span><button class="btn" data-act="fProfit" data-arg="${k}">🧮 Did it pay off?</button></div>`;
   }
   function startProfit(k) {
     const x = charmEnds[k], g = grade();
     K().closeModal();
     if (!x) return;
-    const name = x.id === 'myth' ? F.charmName('myth', x.a) : F.CHARMS[x.id].name, win = x.got - x.cost;
+    const name = endName(x), win = x.got - x.cost;
     fs = { mode: 'profit', n: 0, earned: 0, tips: 0, xp: 0, back: 'farm',
-      done: () => (win > 0 ? `💰 That is your <b>profit</b>: the ${esc(name)} brought ${fmt(win)} more than it cost.` : `It brought ${fmt(-win)} ${win ? 'less than it cost' : 'just what it cost'}. Next time, use it more: ${x.id === 'myth' ? 'feed the animals every day' : x.id === 'clover' ? 'sell a lot at the stand' : 'plant every bed'}!`) };
+      done: () => (win > 0 ? `💰 That is your <b>profit</b>: the ${esc(name)} brought ${fmt(win)} more than it cost.` : `It brought ${fmt(-win)} ${win ? 'less than it cost' : 'just what it cost'}. Next time, use it more: ${USE_MORE[x.id] || 'plant every bed'}!`) };
     const p = win > 0
-      ? { type: 'profit', text: `The ${F.CHARMS[x.id].e} <b>${esc(name)}</b> cost <b>${fmt(x.cost)}</b>. It brought <b>${fmt(x.got)}</b> more. How much more did it bring than it cost? That is the <b>profit</b>.`, hint: `Take away what it cost: ${fmt(x.got)} − ${fmt(x.cost)}.`, explain: `${fmt(x.got)} − ${fmt(x.cost)} = ${fmt(win)}`, sale: {}, total: 0 }
-      : { type: 'profit', text: `The ${F.CHARMS[x.id].e} <b>${esc(name)}</b> cost <b>${fmt(x.cost)}</b>. It brought <b>${fmt(x.got)}</b> more. <b>Did it pay off?</b>`, hint: `Is ${fmt(x.got)} more than ${fmt(x.cost)}?`, explain: `${fmt(x.got)} is ${win ? 'less than' : 'the same as'} ${fmt(x.cost)}, so it didn’t pay off`, sale: {}, total: 0, kind: 'choice', answer: 'No, it didn’t', choices: ['Yes, it did', 'No, it didn’t'] };
+      ? { type: 'profit', text: `The ${endIcon(x)} <b>${esc(name)}</b> cost <b>${fmt(x.cost)}</b>. It brought <b>${fmt(x.got)}</b> more. How much more did it bring than it cost? That is the <b>profit</b>.`, hint: `Take away what it cost: ${fmt(x.got)} − ${fmt(x.cost)}.`, explain: `${fmt(x.got)} − ${fmt(x.cost)} = ${fmt(win)}`, sale: {}, total: 0 }
+      : { type: 'profit', text: `The ${endIcon(x)} <b>${esc(name)}</b> cost <b>${fmt(x.cost)}</b>. It brought <b>${fmt(x.got)}</b> more. <b>Did it pay off?</b>`, hint: `Is ${fmt(x.got)} more than ${fmt(x.cost)}?`, explain: `${fmt(x.got)} is ${win ? 'less than' : 'the same as'} ${fmt(x.cost)}, so it didn’t pay off`, sale: {}, total: 0, kind: 'choice', answer: 'No, it didn’t', choices: ['Yes, it did', 'No, it didn’t'] };
     if (win > 0) Object.assign(p, win < 100 || g === 'k' ? { kind: 'num', answer: win, unit: '¢' } : { kind: 'choice', answer: fmt(win), choices: F.moneyChoices(win, g, [x.got + x.cost, x.got, x.cost]) });
     show(p);
   }
@@ -690,9 +697,45 @@
   }
 
   // ---------------------------------------------------------------- shop
-  const TABS = [['animals', '🐔 Animals & feed'], ['up', '⬆️ Upgrades'], ['farm', '🏡 Farm'], ['decor', '✨ Decorations']];
+  const TABS = [['animals', '🐔 Animals & feed'], ['up', '⬆️ Upgrades'], ['supply', '🧪 Supplies'], ['farm', '🏡 Farm'], ['decor', '✨ Decorations']];
+  // The Supplies tab: small helpers for a few farm days, always for sale (one of each at a time).
+  function supplies() {
+    const f = fm(), g = grade(), L = F.level(f.xp).level;
+    if (L < F.BOOST_LV) return `<p class="muted">🔒 Farm supplies open at farm level ${F.BOOST_LV}.</p>`;
+    return `<div class="mcharms">${Object.entries(F.BOOSTS).map(([id, B]) => {
+      const on = (f.boosts || {})[id], need = F.boostNeeds(f, id), locked = L < B.lv, cost = F.boostCost(id, f, g);
+      let btn;
+      if (on) btn = `<span class="fown">✓ Working · ${on.until - f.day === 1 ? 'last day' : `${on.until - f.day} days left`}</span>`;
+      else if (locked) btn = `<span class="flock">🔒 Level ${B.lv}</span>`;
+      else if (need) btn = `<span class="flock">${esc(need)}</span>`;
+      else if (f.money >= cost) btn = `<button class="btn" data-act="fBuyBoost" data-arg="${id}">Buy · ${fmt(cost)}</button>`;
+      else btn = `<span class="flock">${fmt(cost)} · ${fmt(cost - f.money)} more</span>`;
+      const help = on || locked || need ? '' : `<p class="mc-help">💡 It can bring about <b>+${fmt(F.boostGain(id, f, g))}</b> if you ${USE_MORE[id]}.</p>`;
+      return `<div class="mcharm c-boost ${on ? 'got' : ''}"><span class="mc-pic fc-e">${B.e}</span><span class="mc-t"><b>${esc(B.name)}</b><small>${esc(B.note)}</small>${help}</span><span class="mc-buy">${btn}</span></div>`;
+    }).join('')}</div>`;
+  }
+  function buyBoost(id) {
+    const f = fm(), B = F.BOOSTS[id], cost = F.boostCost(id, f, grade());
+    if (f.money < cost || F.boostNeeds(f, id) || (f.boosts || {})[id]) return;
+    startPay(cost, `the ${B.e} ${esc(B.name)}`, () => {
+      const x = F.buyBoost(fm(), grade(), id);
+      if (!x) return 'It is already working.';
+      MQ.confetti(70, { colors: ['#7ed957', '#ffd23f', '#9ff0ff'] });
+      return id === 'field' ? `🚜 You rented a field: <b>${F.FIELD_BEDS} more garden beds</b> for ${B.nights} days. Plant them on your farm!` : `${B.e} The <b>${esc(B.name)}</b> works for ${B.nights} nights, starting tonight!`;
+    }, B.e);
+    fs.back = 'farm:shop';
+  }
+  function boostInfo(id) {
+    const f = fm(), b = (f.boosts || {})[id], B = F.BOOSTS[id];
+    if (!b || !F.boostOn(f, id)) return;
+    const left = b.until - f.day;
+    K().modal(`<div class="bigemoji">${B.e}</div><div class="mtitle">${esc(B.name)}</div><p>${esc(B.note)}</p>
+      <p>It works ${left === 1 ? '<b>today only</b> (its last day)' : `<b>${left} more days</b>`}. It cost <b>${fmt(b.cost)}</b>, and so far it brought <b>+${fmt(b.gain)}</b>${b.gain > b.cost ? ': it already paid for itself! 🎉' : '.'}</p>
+      <p class="muted">💡 To get the most from it: ${USE_MORE[id]}.</p>
+      <div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
+  }
   function shop() {
-    const f = fm(), list = F.shop(f, grade()).filter((x) => x.tab === tab);
+    const f = fm(), list = tab === 'supply' ? [] : F.shop(f, grade()).filter((x) => x.tab === tab);
     const row = (x) => {
       // things to save up for: too expensive now, or not open yet (a goal for later levels)
       const goal = f.goal === x.id ? '<span class="fown">⭐ Goal</span>' : `<button class="btn ghost" data-act="fGoal" data-arg="${x.id}">⭐ Save up</button>`;
@@ -713,11 +756,12 @@
     // the barnyard shows a few levels before its first house opens (a goal to save for)
     const yardHtml = yard.length && (F.level(f.xp).level >= F.YARD_LV - 4 || Object.keys(f.yard || {}).length)
       ? `<h2 class="fyard">🐣 Barnyard</h2><p class="muted">Little houses for small animals. They don’t need a pen, so your ${F.PENS.length} pens stay free for big animals. Up to ${1 + F.YARD_ROOM} animals in each house (⬆️ Upgrades).</p><div class="fitems">${yard.map(row).join('')}</div>` : '';
-    const rows = feed.length ? `${feed.map(row).join('')}</div>${myPens()}${yardHtml}<h2>🐾 Animals</h2><div class="fitems">${list.filter((x) => !feed.includes(x) && !yard.includes(x)).map(row).join('')}` : list.map(row).join('');
+    const rows = tab === 'supply' ? '' : feed.length ? `${feed.map(row).join('')}</div>${myPens()}${yardHtml}<h2>🐾 Animals</h2><div class="fitems">${list.filter((x) => !feed.includes(x) && !yard.includes(x)).map(row).join('')}` : list.map(row).join('');
     K().render(header('🛒 Farm Shop', 'farm') + `<main class="farm">
       <div class="ftabs" role="tablist">${TABS.map(([id, n]) => `<button class="chip ${tab === id ? 'sel' : ''}" role="tab" aria-selected="${tab === id}" data-act="fTab" data-arg="${id}">${n}</button>`).join('')}</div>
       ${goalBar()}
-      <p class="muted">${tab === 'up' ? 'Your farm has room for 6 garden beds and 6 pens. Make them better: more crops, faster growth, more animals in each pen and each barnyard house.' : 'You pay with coins and bills, like in a real store. Tap ⭐ Save up to make something your goal.'}</p>
+      ${tab === 'supply' ? `<p class="muted">Small helpers for a few farm days, always here (one of each at a time). Like ${esc(F.MERCHANT.name)}’s charms, but smaller. When one is over, you find out if it paid off.</p>${supplies()}` : ''}
+      <p class="muted" ${tab === 'supply' ? 'hidden' : ''}>${tab === 'up' ? 'Your farm has room for 6 garden beds and 6 pens. Make them better: more crops, faster growth, more animals in each pen and each barnyard house.' : 'You pay with coins and bills, like in a real store. Tap ⭐ Save up to make something your goal.'}</p>
       <div class="fitems">${rows}</div>
     </main>`, 'is-farm');
     K().setCur('farm:shop');
@@ -1365,6 +1409,8 @@
     fBuyTreasure: () => buyTreasure(),
     fBuyCharm: (a) => buyCharm(a),
     fCharm: (a) => charmInfo(a),
+    fBoost: (a) => boostInfo(a),
+    fBuyBoost: (a) => buyBoost(a),
     fProfit: (a) => startProfit(+a),
     fTreasureGoal: (a) => { fm().goal = 'treasure:' + a; save(); MQ.sfx('tap'); K().toast('⭐ Saving goal set'); if ($('#modal')) merchant(); },
     fDreamView: (a) => { dreamView = +a === fm().dream.p ? null : +a; MQ.sfx('tap'); keepY(dreams); },

@@ -543,6 +543,51 @@ async function play(grade, tag, viewport) {
     if ((await page.evaluate(() => MQ.state.farm.orders.list.length)) !== 1) errors.push(`${tag}: one new order a morning`);
   }
 
+  // farm supplies: buy Grow-Fast and rent a field in the shop (paying), plant a rented bed, then both end one
+  // morning: the field goes back, and the card asks whether Grow-Fast paid off
+  {
+    await page.evaluate(() => { const f = MQ.state.farm; f.boosts = {}; f.money += 100000; f.beds = f.beds.filter((b) => !b.rent).map((b) => Object.assign(b, { c: null, g: 0 })); MQ.store.save(); MQ.app.go('farm:shop'); });
+    await page.click('[data-act=fTab][data-arg=supply]');
+    await page.waitForSelector('.mcharm.c-boost [data-act=fBuyBoost][data-arg=grow]');
+    await snap('40a-supplies');
+    for (const id of ['grow', 'field']) {
+      await page.click(`[data-act=fBuyBoost][data-arg=${id}]`);
+      await answer(page, true);
+      await page.waitForSelector('.fb.ok');
+      await page.click('[data-act=fNext]');
+      await page.waitForSelector('.mcharms');
+    }
+    const on = await page.evaluate(() => ({ b: Object.keys(MQ.state.farm.boosts), rented: MQ.state.farm.beds.filter((x) => x.rent).length }));
+    if (on.b.join() !== 'grow,field' || on.rented !== 2) errors.push(`${tag}: buying supplies ${JSON.stringify(on)}`);
+    await page.click('[data-act=go][data-arg=farm]');
+    await page.waitForSelector('.fcharm.c-boost');
+    if ((await page.$$('.fbed.rented')).length !== 2) errors.push(`${tag}: the rented beds are not on the farm`);
+    await page.click('.fbed.rented >> nth=0', { force: true });
+    await page.waitForSelector('#modal .fseeds');
+    await snap('40b-rented-bed');
+    await page.click('#modal [data-act=fPlant][data-arg="6:carrot"]');
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    await page.click('[data-act=fNext]');
+    await page.waitForSelector('.scene');
+    if ((await page.evaluate(() => MQ.state.farm.beds[6].c)) !== 'carrot') errors.push(`${tag}: planting the rented bed`);
+    await page.evaluate(() => document.querySelector('.fbed.rented').scrollIntoView({ block: 'center' }));
+    await snap('40c-rented-field');
+    await page.evaluate(() => { const f = MQ.state.farm; f.boosts.grow.until = f.day + 1; f.boosts.grow.gain = f.boosts.grow.cost * 3; f.boosts.field.until = f.day + 1; MQ.store.save(); MQ.app.go('farm'); });
+    await page.click('[data-act=fSleep]');
+    await page.waitForSelector('#modal .mcend.c-boost [data-act=fProfit]');
+    await snap('40d-supply-over');
+    const end = await page.evaluate(() => ({ t: document.querySelector('#modal').textContent, beds: MQ.state.farm.beds.length, boosts: Object.keys(MQ.state.farm.boosts).length }));
+    if (!/rented field went back/.test(end.t) || end.beds !== 6 || end.boosts) errors.push(`${tag}: the supplies' last morning ${JSON.stringify(end)}`);
+    await page.click('#modal .mcend.c-boost [data-act=fProfit]');
+    await page.waitForSelector('.fplay #fanswer');
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    if ((await page.evaluate(() => MQ.state.farm.stats.boostWins)) < 1) errors.push(`${tag}: Grow-Fast did not count as paid off`);
+    await page.click('[data-act=fNext]');
+    await page.waitForSelector('.scene');
+  }
+
   // the barnyard: build the henhouse (pay in the shop), feed it on the farm, then move a pen's chickens into it
   {
     await page.evaluate(() => { const f = MQ.state.farm; f.yard = {}; f.pens[0] = { a: 'chicken', g: 9, fed: true, ready: 0, u: 1 }; f.money += 100000; f.feed += 50; f.helper.on = false; MQ.store.save(); MQ.app.go('farm'); }); // Sam would collect the eggs himself

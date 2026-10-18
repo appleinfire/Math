@@ -487,7 +487,7 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   h.beds[0] = { c: 'carrot', g: 5 };
   const m0 = h.money;
   let news = F.nextDay(h, 'g2');
-  assert.deepStrictEqual(news.helper, { wage: 25, fed: 1, short: 0, collected: 2, picked: 0 });
+  assert.deepStrictEqual(news.helper, { wage: 25, fed: 1, houses: 0, short: 0, collected: 2, picked: 0 });
   assert.deepStrictEqual([h.money, h.basket.egg, h.feed, h.stats.wages], [m0 - 25, 2, 9, 25]);
   h.xp = lvXp(48);
   news = F.nextDay(h, 'g2');
@@ -979,7 +979,7 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   f.helper = { hired: true, on: true };
   F.allPens(f).forEach((p) => (p.fed = false));
   news = F.nextDay(f, 'g2');
-  assert.strictEqual(news.helper.fed, 3, 'Sam feeds 2 pens and the henhouse');
+  assert.deepStrictEqual([news.helper.fed, news.helper.houses], [2, 1], 'Sam feeds 2 pens and the henhouse');
   f.helper = { hired: false, on: true };
   f.treasure = { fairy: true };
   f.pens = [{ a: null, g: 0, fed: false, ready: 0 }];
@@ -1024,6 +1024,98 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   const old = F.ensure({ grade: 'g2', farm: (() => { const x = Object.assign(F.fresh(), { started: true }); delete x.yard; return x; })() });
   assert.deepStrictEqual(old.yard, {});
   for (const g of ['k', 'g2']) assert.strictEqual(Object.keys(F.showcase({ grade: g, farm: F.fresh() }).yard).length, 6);
+}
+
+// ---------- farm supplies: small helpers for a few farm days, and a rented field
+{
+  const lvXp = (L) => { let x = 0; for (let k = 1; k < L; k++) x += F.need(k); return x; };
+  const farm = (g, L) => {
+    const f = F.ensure({ grade: g, days: {}, stats: { attempts: 0, correct: 0 } });
+    Object.assign(f, { xp: lvXp(L), money: 1e6, feed: 1000, day: 10 });
+    f.beds = F.BEDS.filter((b) => b[0] <= L).map(() => ({ c: null, g: 0, u: 0 }));
+    f.pens = [{ a: 'chicken', g: 9, fed: false, ready: 0, u: 0 }, { a: 'cow', g: 9, fed: false, ready: 0, u: 0 }];
+    return f;
+  };
+  // prices: about a third of what each brings a farm like this one; kindergarten in cents (2¢ to 50¢), 2nd grade in 25¢ steps
+  for (const g of ['k', 'g2']) for (const L of [8, 12, 20, 30, 45, 60]) {
+    const f = farm(g, L);
+    f.works = { jamkitchen: { r: null, g: 0, ready: 0, out: '' } };
+    for (const id of Object.keys(F.BOOSTS)) {
+      const c = F.boostCost(id, f, g), x = F.boostGain(id, f, g);
+      assert.ok(c > 0 && (g === 'k' ? c <= 50 : c % 25 === 0) && x >= 2.5 * c, `${id} ${g} level ${L}: costs ${c}, brings ${x}`);
+    }
+  }
+  const f = farm('g2', 7);
+  assert.strictEqual(F.buyBoost(f, 'g2', 'grow'), null, 'supplies open at level 8');
+  assert.ok(F.unlocksAt(F.BOOST_LV, 'g2').some((x) => /Farm supplies/.test(x.name)) && F.unlocksAt(F.FIELD_LV, 'k').some((x) => /Rent a field/.test(x.name)));
+  f.xp = lvXp(8);
+  assert.deepStrictEqual([F.boostNeeds(f, 'oven'), F.boostNeeds(f, 'treat')], ['Needs a workshop', ''], 'the oven needs a workshop');
+  assert.strictEqual(F.buyBoost(f, 'g2', 'oven'), null);
+  // Grow-Fast: crops grow twice as fast for 3 nights (a carrot is ready after one night anyway)
+  const money = f.money, cost = F.boostCost('grow', f, 'g2');
+  const x = F.buyBoost(f, 'g2', 'grow');
+  assert.ok(x && f.money === money - cost && f.boosts.grow.until === 13 && f.stats.boosts === 1 && f.stats.boostCost === cost);
+  assert.strictEqual(F.buyBoost(f, 'g2', 'grow'), null, 'one at a time');
+  F.plant(f, 0, 'corn'); // 3 days
+  F.plant(f, 1, 'carrot'); // 1 day
+  let news = F.nextDay(f, 'g2');
+  assert.deepStrictEqual([f.beds[0].g, f.beds[1].g, F.cropStage(f.beds[1])], [2, 1, 'ready']);
+  assert.strictEqual(f.boosts.grow.gain, Math.round((F.cropYield(f.beds[0], f) * F.price('corn', 'g2')) / F.cropDays(f.beds[0])), 'a day of corn, not of carrots');
+  news = F.nextDay(f, 'g2');
+  assert.ok(news.ripe.includes('corn'), 'corn in 2 nights, not 3');
+  assert.ok(F.boostOn(f, 'grow') && f.day === 12, 'still on: its last night is tonight');
+  news = F.nextDay(f, 'g2'); // the morning of day 13
+  assert.ok(!f.boosts.grow && news.boostEnd.length === 1 && news.boostEnd[0].id === 'grow' && news.boostEnd[0].cost === cost);
+  assert.strictEqual(f.stats.boostGain, news.boostEnd[0].got);
+  F.plant(f, 2, 'corn'); F.nextDay(f, 'g2');
+  assert.strictEqual(f.beds[2].g, 1, 'back to normal');
+  // Animal treats: every fed grown-up pen and house makes 1 more
+  f.yard = { bees: { a: 'bees', g: 9, fed: false, ready: 0, u: 0 } };
+  assert.ok(F.buyBoost(f, 'g2', 'treat'));
+  F.allPens(f).forEach((p) => F.feedPen(f, p));
+  F.nextDay(f, 'g2');
+  assert.deepStrictEqual([f.pens[0].ready, f.pens[1].ready, f.yard.bees.ready], [3, 3, 2]);
+  assert.strictEqual(f.boosts.treat.gain, F.price('egg', 'g2') + F.price('milk', 'g2') + F.price('honey', 'g2'));
+  // the Big oven: every batch makes 1 more
+  f.works = { jamkitchen: { r: null, g: 0, ready: 0, out: '' } };
+  assert.ok(F.buyBoost(f, 'g2', 'oven'));
+  f.basket.strawberry = 4;
+  F.startMake(f, 'jamkitchen', 0);
+  F.nextDay(f, 'g2');
+  assert.deepStrictEqual([f.works.jamkitchen.ready, f.boosts.oven.gain], [2, F.price('jam', 'g2')]);
+  // the rented field: needs all 6 beds and level 12; 2 more beds for 7 days; only crops ready in time; on its last
+  // morning the farmer picks them and takes the beds back
+  const r = farm('g2', 11);
+  assert.strictEqual(F.buyBoost(r, 'g2', 'field'), null, 'level 12');
+  r.xp = lvXp(12);
+  const sixth = r.beds.pop();
+  assert.ok(/all 6/.test(F.boostNeeds(r, 'field')) && F.buyBoost(r, 'g2', 'field') === null, 'all 6 beds first');
+  r.beds.push(sixth);
+  assert.strictEqual(F.ownBeds(r).length, 6);
+  assert.ok(F.buyBoost(r, 'g2', 'field') && r.beds.length === 8 && r.beds[7].rent && r.boosts.field.until === 17);
+  assert.ok(!F.shop(r, 'g2').some((x) => x.id === 'bedup:6' || x.id === 'bedup:7') && !F.shop(r, 'g2').some((x) => x.id === 'bed'), 'rented beds are not ours to upgrade or count');
+  assert.deepStrictEqual(F.emptyBeds(r, 'pumpkin').length, 8, '4 days: fits');
+  r.day = 14;
+  assert.ok(!F.canPlant(r, 6, 'pumpkin') && F.canPlant(r, 6, 'tomato') && F.canPlant(r, 0, 'pumpkin'), '3 days left: a 4-day pumpkin is too slow for the rented beds');
+  assert.deepStrictEqual(F.emptyBeds(r, 'pumpkin'), [0, 1, 2, 3, 4, 5]);
+  assert.strictEqual(F.buySeed(r, 'g2', 6, 'pumpkin'), false);
+  assert.ok(F.buySeed(r, 'g2', 6, 'tomato') && F.buySeed(r, 'g2', 7, 'carrot'));
+  F.nextDay(r, 'g2');
+  const before = r.basket.carrot || 0;
+  assert.strictEqual(F.harvest(r, 7), 3);
+  assert.strictEqual(r.boosts.field.gain, 3 * F.price('carrot', 'g2') - F.seedPrice('carrot', 'g2'), 'the crops, after the seeds');
+  F.nextDay(r, 'g2');
+  news = F.nextDay(r, 'g2'); // the morning of day 17: the tomatoes are ripe, the farmer picks them
+  const fieldEnd = news.boostEnd.find((y) => y.id === 'field');
+  assert.ok(fieldEnd && fieldEnd.picked === 4 && r.beds.length === 6 && !r.beds.some((b) => b.rent) && r.basket.tomato === 4 && r.basket.carrot === before + 3);
+  assert.strictEqual(fieldEnd.got, 3 * F.price('carrot', 'g2') - F.seedPrice('carrot', 'g2') + 4 * F.price('tomato', 'g2') - F.seedPrice('tomato', 'g2'));
+  // orders don't count a rented field
+  F.buyBoost(r, 'g2', 'field');
+  assert.strictEqual(F.orderNights(r, { corn: 5 * 6 }), F.orderNights(Object.assign({}, r, { beds: F.ownBeds(r) }), { corn: 5 * 6 }));
+  // a farm from before the supplies gets them; the preview shows two at work
+  const old = F.ensure({ grade: 'g2', farm: (() => { const y = Object.assign(F.fresh(), { started: true }); delete y.boosts; return y; })() });
+  assert.deepStrictEqual([old.boosts, old.stats.boosts], [{}, 0]);
+  for (const g of ['k', 'g2']) { const sc = F.showcase({ grade: g, farm: F.fresh() }); assert.ok(F.boostOn(sc, 'grow') && F.boostOn(sc, 'field') && sc.beds.filter((b) => b.rent).length === 2); }
 }
 
 // ---------- the grown-up preview shows a level-60 farm with everything open
