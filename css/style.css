@@ -1392,6 +1392,30 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
 .blog b.unlock { color: var(--good); }
 @media (prefers-reduced-motion: reduce) { .fdep.ready { animation: none; } }
 
+/* ================= Sunny Farm: the barnyard (a little house for each kind of small animal) ================= */
+.byard { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.fhouse { position: relative; height: 84px; border: 0; padding: 0; border-radius: 8px 8px 14px 14px; overflow: hidden; background: linear-gradient(#a6dc80 0 30%, #f3dcb4 30%); box-shadow: inset 0 0 0 3px #b07a46, 0 4px 0 #8a5a31; }
+.fhouse .hroof { position: absolute; left: 0; right: 0; top: 0; height: 26px; background: #c0533a; clip-path: polygon(0 100%, 50% 0, 100% 100%); }
+.fhouse .hwho { position: absolute; left: 4px; right: 4px; bottom: 6px; display: flex; justify-content: center; align-items: flex-end; gap: 2px; line-height: 1; font-size: 1.7rem; }
+.fhouse .hwalk { display: inline-block; animation: wiggle 2.6s ease-in-out infinite; animation-delay: calc(var(--k) * -0.7s); transform-origin: 50% 100%; }
+.fhouse.s0 .hwho { font-size: 1.2rem; }
+.fhouse.s1 .hwho { font-size: 1.45rem; }
+.fhouse .hwho svg { display: block; width: 1.9rem; height: 1.9rem; }
+.fhouse .hbadge { position: absolute; right: 4px; top: 30px; padding: 0 5px; border-radius: 9px; background: rgba(255, 255, 255, 0.92); font-size: 0.72rem; font-weight: 900; color: var(--ink-soft); line-height: 18px; }
+.fhouse.ready { box-shadow: inset 0 0 0 3px #b07a46, 0 4px 0 #8a5a31, 0 0 0 3px #ffe27a; }
+.fhouse.ready .hbadge { background: #fff27a; color: var(--ink); font-size: 0.8rem; }
+.fhouse.hungry .hbadge { color: #8a5a08; }
+.fhouse.myth { box-shadow: inset 0 0 0 3px #b48cf2, 0 4px 0 #7a3fd1, 0 0 12px rgba(255, 143, 224, 0.6); }
+.fhouse.buy, .fhouse.later { background: linear-gradient(#b5e095 0 30%, #f6e9d2 30%); opacity: 0.9; box-shadow: inset 0 0 0 3px #d9b98f, 0 3px 0 #b9814a; }
+.fhouse.buy .hroof, .fhouse.later .hroof { background: #d9a07f; }
+.fhouse.buy .hwho, .fhouse.later .hwho { filter: grayscale(0.6); opacity: 0.6; font-size: 1.4rem; }
+.fhouse.later { opacity: 0.55; }
+.fhouse.buy .hbadge { background: #5d9a31; color: #ffffff; font-size: 0.9rem; }
+.fhouse:active { transform: translateY(3px); }
+.fmove { padding: 8px 10px; border-radius: 12px; background: #f3fbe8; box-shadow: inset 0 0 0 2px #9fd27a; text-align: left; }
+.fwarn { padding: 8px 10px; border-radius: 12px; background: var(--sun-soft); box-shadow: inset 0 0 0 2px var(--sun); text-align: left; }
+@media (prefers-reduced-motion: reduce) { .fhouse .hwalk { animation: none; } }
+
 /* ================= Sunny Farm: the order board (a cork board with paper notes; ready = green, big = gold) ================= */
 .forders { margin-top: 12px; padding: 8px 10px 10px; border-radius: var(--r); background: #e9c99a; box-shadow: inset 0 0 0 3px #b9814a, 0 4px 0 #8a5a31; }
 .fo-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 2px 6px; color: #4a2d12; }

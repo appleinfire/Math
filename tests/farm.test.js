@@ -925,6 +925,107 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   console.log('order nights:', JSON.stringify(seenOrders.nights), 'kinds:', JSON.stringify(seenOrders.kinds));
 }
 
+// ---------- the barnyard: a little house for each kind of small animal, so they don't take a pen
+{
+  const lvXp = (L) => { let x = 0; for (let k = 1; k < L; k++) x += F.need(k); return x; };
+  assert.deepStrictEqual(Object.keys(F.HOUSES), ['chicken', 'bees', 'goat', 'sheep', 'duck', 'turkey']);
+  for (const [a, h] of Object.entries(F.HOUSES)) {
+    assert.ok(h.lv >= F.YARD_LV && h.lv >= F.ANIMALS[a].lv && F.unlocksAt(h.lv, 'g2').some((x) => /Barnyard/.test(x.name) && x.name.includes(h.name.toLowerCase())), a);
+    for (const g of ['k', 'g2']) {
+      // a full house (3 animals) pays for itself and its rooms within two bank weeks
+      const gx = g === 'k' ? 0 : 1, A = F.ANIMALS[a], cost = h.cost[gx] + 2 * A.cost[gx], day = 3 * (A.per * F.price(A.item, g) - A.eat * F.FEED.price[gx]);
+      assert.ok(cost / day <= 14, `${a} (${g}): a full house pays back in ${(cost / day).toFixed(1)} days`);
+    }
+  }
+  for (const g of ['k', 'g2']) {
+    const gx = g === 'k' ? 0 : 1, full = U.sum(Object.keys(F.HOUSES).map((a) => 3 * (F.ANIMALS[a].per * F.price(F.ANIMALS[a].item, g) - F.ANIMALS[a].eat * F.FEED.price[gx])));
+    // the whole barnyard is a helping hand, not the farm: about half of what a good farm makes when the last house
+    // opens, and less and less after that
+    for (const L of [30, 40, 60]) assert.ok(full <= (L === 30 ? 0.55 : 0.5) * F.goodDay(L, g).total, `${g} level ${L}: the full barnyard makes ${full}, a good farm ${F.goodDay(L, g).total}`);
+  }
+  const f = F.ensure({ grade: 'g2', days: {}, stats: { attempts: 0, correct: 0 } });
+  Object.assign(f, { xp: lvXp(15), money: 100000, feed: 100 });
+  f.pens = [{ a: 'alpaca', g: 9, fed: false, ready: 0, u: 0 }, { a: 'chicken', g: 9, fed: false, ready: 0, u: 1 }];
+  assert.ok(!F.yardOpen(f) && F.shopItem(f, 'g2', 'house:chicken').locked && F.buy(f, 'g2', 'house:chicken') === null, 'the barnyard opens at level 16');
+  f.xp = lvXp(16);
+  assert.ok(F.yardOpen(f) && F.shopItem(f, 'g2', 'house:bees').locked, 'the bee yard opens later');
+  assert.ok(!F.shop(f, 'g2').some((x) => x.id.startsWith('houseup:')), 'no house, no house upgrades');
+  let money = f.money;
+  assert.ok(F.buy(f, 'g2', 'house:chicken'));
+  assert.deepStrictEqual([f.yard.chicken, money - f.money], [{ a: 'chicken', g: 0, fed: false, ready: 0, u: 0 }, F.HOUSES.chicken.cost[1]], 'a house comes with its first animal');
+  assert.ok(F.shopItem(f, 'g2', 'house:chicken').owned && F.buy(f, 'g2', 'house:chicken') === null);
+  assert.strictEqual(f.pens.length, 2, 'it takes no pen');
+  // room for 2 and 3, each the price of one more animal; no cozy barn
+  money = f.money;
+  assert.ok(F.buy(f, 'g2', 'houseup:chicken') && F.buy(f, 'g2', 'houseup:chicken'));
+  assert.deepStrictEqual([F.penCount(f.yard.chicken), money - f.money, F.shopItem(f, 'g2', 'houseup:chicken').owned, F.buy(f, 'g2', 'houseup:chicken')], [3, 2 * F.ANIMALS.chicken.cost[1], true, null]);
+  assert.strictEqual(F.penMakes(f.yard.chicken), 6);
+  // nights: fed, they grow up and lay; hungry, nothing happens
+  f.yard.chicken.u = 0;
+  assert.strictEqual(F.feedPen(f, f.yard.chicken), 'ok');
+  assert.strictEqual(f.feed, 99);
+  let news = F.nextDay(f, 'g2');
+  assert.ok(!news.hungry.includes('chicken') || f.pens[1].fed === false, 'the house chickens were fed');
+  F.feedPen(f, f.yard.chicken); F.nextDay(f, 'g2');
+  assert.strictEqual(F.animalStage(f.yard.chicken), 2);
+  F.feedPen(f, f.yard.chicken); news = F.nextDay(f, 'g2');
+  assert.ok(news.made.some(([it, n]) => it === 'egg' && n === 2) && f.yard.chicken.ready === 2);
+  const eggs = f.basket.egg || 0;
+  assert.strictEqual(F.collectPen(f, f.yard.chicken), 2);
+  assert.strictEqual(f.basket.egg, eggs + 2);
+  news = F.nextDay(f, 'g2');
+  assert.ok(news.hungry.filter((a) => a === 'chicken').length === 2, 'hungry in the pen and in the house');
+  // the farmhand and the Feed Fairy look after the houses too
+  f.helper = { hired: true, on: true };
+  F.allPens(f).forEach((p) => (p.fed = false));
+  news = F.nextDay(f, 'g2');
+  assert.strictEqual(news.helper.fed, 3, 'Sam feeds 2 pens and the henhouse');
+  f.helper = { hired: false, on: true };
+  f.treasure = { fairy: true };
+  f.pens = [{ a: null, g: 0, fed: false, ready: 0 }];
+  f.yard.chicken.fed = false;
+  F.nextDay(f, 'g2');
+  assert.ok(f.yard.chicken.ready > 0, 'the fairy fed the henhouse');
+  f.treasure = {};
+  // Mythic Feed turns the house chickens into Firebird Hens too, and its price counts them
+  f.charms = { myth: { a: 'chicken', cost: 100, until: f.day + 7, gain: 0 } };
+  assert.ok(F.charmGain('myth', f, 'g2', 'chicken') > 0);
+  f.yard.chicken.ready = 0;
+  F.feedPen(f, f.yard.chicken); F.nextDay(f, 'g2');
+  assert.ok(f.yard.chicken.rare > 0 && f.charms.myth.gain > 0, 'golden eggs from the henhouse');
+  f.charms = {};
+  // orders ask for the house animals' things
+  f.basket = {};
+  assert.ok(F.orderGoods(f).egg && F.orderGoods(f).egg.per === F.penMakes(f.yard.chicken));
+  // moving chickens from a pen into the henhouse, instead of selling them
+  f.yard.chicken = { a: 'chicken', g: 1, fed: true, ready: 1, u: 0 };
+  f.pens = [{ a: 'chicken', g: 9, fed: false, ready: 2, u: 1 }, { a: 'alpaca', g: 9, fed: false, ready: 0, u: 0 }, { a: 'chicken', g: 9, fed: false, ready: 0, u: 3 }];
+  assert.ok(F.canMove(f, 0) && !F.canMove(f, 1) && !F.canMove(f, 2), 'two fit (1 + 2); an alpaca has no house; three don’t fit');
+  const feed = f.feed, before = F.basketCount(f);
+  money = f.money;
+  const mv = F.moveToHouse(f, 0);
+  assert.deepStrictEqual(mv, { a: 'chicken', n: 2, count: 3 });
+  assert.deepStrictEqual([f.pens[0], f.yard.chicken.u, f.yard.chicken.g, f.yard.chicken.ready, f.yard.chicken.fed, F.basketCount(f) - before, f.feed - feed, f.money - money], [{ a: null, g: 0, fed: false, ready: 0 }, 2, 9, 1, false, 2, F.penEat({ a: 'chicken', u: 0 }), 0], 'their eggs to the basket; the house now has 3, fully grown; the house was fed: its feed back');
+  assert.strictEqual(F.moveToHouse(f, 0), null);
+  // a pen with a cozy barn has 3 animals: they never fit with the house's own (so the barn never has to move)
+  f.yard.chicken = { a: 'chicken', g: 9, fed: false, ready: 0, u: 0 };
+  f.pens[2] = { a: 'chicken', g: 9, fed: false, ready: 0, u: 3 };
+  assert.ok(!F.canMove(f, 2), '3 + 1 is too many');
+  delete f.yard.chicken;
+  f.pens[2].u = 0;
+  assert.ok(!F.canMove(f, 2), 'no henhouse');
+  // both fed today: they stay fed, no feed comes back
+  f.yard.duck = { a: 'duck', g: 0, fed: true, ready: 0, u: 0 };
+  f.pens[2] = { a: 'duck', g: 3, fed: true, ready: 0, u: 1 };
+  const feed2 = f.feed;
+  assert.deepStrictEqual(F.moveToHouse(f, 2), { a: 'duck', n: 2, count: 3 });
+  assert.deepStrictEqual([f.yard.duck.fed, f.yard.duck.g, f.feed], [true, 3, feed2]);
+  // a farm from before the barnyard gets it; the preview has every house
+  const old = F.ensure({ grade: 'g2', farm: (() => { const x = Object.assign(F.fresh(), { started: true }); delete x.yard; return x; })() });
+  assert.deepStrictEqual(old.yard, {});
+  for (const g of ['k', 'g2']) assert.strictEqual(Object.keys(F.showcase({ grade: g, farm: F.fresh() }).yard).length, 6);
+}
+
 // ---------- the grown-up preview shows a level-60 farm with everything open
 for (const g of ['k', 'g2']) {
   const st = { grade: g, farm: F.fresh() };

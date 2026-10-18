@@ -79,6 +79,22 @@
     const left = myth ? fmNow.charms.myth.until - fmNow.day : 0;
     return `<button class="fpen pasture ${state} s${sg} a-${p.a}${myth ? ' myth' : ''}" data-act="fPen" data-arg="${i}" aria-label="${esc(label)}">${who}${sparkle}${loot}${myth ? `<span class="mytag" title="${esc(myth.many)}: ${left} ${left === 1 ? 'night' : 'nights'} left">🌟 ${left}</span>` : ''}<span class="trough ${p.fed ? 'full' : ''}"></span>${(p.u || 0) >= 3 ? '<span class="cozy" title="Cozy barn">🛖</span>' : ''}<span class="pchip">${chip}</span><span class="flabel">${age}${many > 1 ? ' × ' + many : ''}</span></button>`;
   }
+  // The barnyard: a little house for each kind of small animal (built, open to build, or opening at a later level).
+  function houseHtml(a) {
+    const H = F.HOUSES[a], A = F.ANIMALS[a], p = (fmNow.yard || {})[a], L = F.level(fmNow.xp).level;
+    if (!p) {
+      const open = H.lv <= L;
+      return `<button class="fhouse ${open ? 'buy' : 'later'}" data-act="${open ? 'fYardShop' : 'fHouseLater'}" data-arg="${a}" aria-label="${esc(H.name)}: ${open ? 'build it in the shop' : 'opens at level ' + H.lv}"><span class="hroof"></span><span class="hwho">${A.e}</span><span class="hbadge">${open ? '＋' : '🔒 ' + H.lv}</span></button>`;
+    }
+    const sg = F.animalStage(p), ready = F.penReady(p), many = F.penCount(p), got = F.penLoot(p);
+    const myth = F.mythOn(fmNow, a) && MQ.mythArt;
+    const e = myth ? MQ.mythArt(a, { aura: false }) : sg === 0 ? A.baby : WALK[a] || A.e;
+    const who = Array.from({ length: many }, (_, k) => `<span class="hwalk ${SIDE.has(A.e) ? 'side' : ''}" style="--k:${k}"><span class="bob">${e}</span></span>`).join('');
+    const state = ready ? 'ready' : p.fed ? 'fed' : 'hungry';
+    const badge = ready ? got.map(([id, n]) => `${F.ie(id)}${n}`).join(' ') : p.fed ? '❤️' : `🌾${F.penEat(p)}`;
+    const label = `${esc(H.name)}: ${many > 1 ? many + ' ' : ''}${esc(F.MYTHS[a].of)}, ${['baby', 'young', 'grown-up'][sg]}: ${ready ? 'things to collect' : p.fed ? 'fed' : 'hungry'}`;
+    return `<button class="fhouse ${state} s${sg}${myth ? ' myth' : ''}" data-act="fHouse" data-arg="${a}" aria-label="${label}"><span class="hroof"></span><span class="hwho">${who}</span><span class="hbadge">${badge}</span></button>`;
+  }
   function workHtml(id) {
     const W = F.WORKS[id], w = fmWorks[id];
     // a small house: the workshop sign, and a badge with what it is doing
@@ -128,6 +144,7 @@
       <div class="land">
         <div class="beds">${fm.beds.map(bedHtml).join('')}${has('scarecrow') ? '<span class="scarecrow" title="Scarecrow">🧑‍🌾</span>' : ''}</div>
         <div class="pens">${fm.pens.map(penHtml).join('')}</div>
+        ${F.yardOpen(fm) || Object.keys(fm.yard || {}).length ? `<div class="byard" aria-label="Barnyard">${Object.keys(F.HOUSES).map(houseHtml).join('')}</div>` : ''}
         ${works.length ? `<div class="works">${works.map(workHtml).join('')}</div>` : ''}
         <div class="yard">
           <button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>

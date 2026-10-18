@@ -543,6 +543,47 @@ async function play(grade, tag, viewport) {
     if ((await page.evaluate(() => MQ.state.farm.orders.list.length)) !== 1) errors.push(`${tag}: one new order a morning`);
   }
 
+  // the barnyard: build the henhouse (pay in the shop), feed it on the farm, then move a pen's chickens into it
+  {
+    await page.evaluate(() => { const f = MQ.state.farm; f.yard = {}; f.pens[0] = { a: 'chicken', g: 9, fed: true, ready: 0, u: 1 }; f.money += 100000; f.feed += 50; f.helper.on = false; MQ.store.save(); MQ.app.go('farm'); }); // Sam would collect the eggs himself
+    await page.waitForSelector('.byard .fhouse.buy[data-arg=chicken]');
+    if ((await page.$$('.byard .fhouse')).length !== 6) errors.push(`${tag}: the barnyard does not show 6 houses`);
+    await page.evaluate(() => document.querySelector('.byard').scrollIntoView({ block: 'center' }));
+    await snap('40-barnyard-empty');
+    await page.click('.fhouse.buy[data-arg=chicken]');
+    await page.waitForSelector('.fyard');
+    await snap('41-barnyard-shop');
+    await page.click('[data-act=fBuy][data-arg="house:chicken"]');
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    await page.click('[data-act=fNext]');
+    await page.waitForSelector('.fitems');
+    if (!(await page.evaluate(() => !!MQ.state.farm.yard.chicken))) errors.push(`${tag}: the henhouse was not built`);
+    await page.click('[data-act=go][data-arg=farm]');
+    await page.click('.fhouse.hungry[data-arg=chicken]');
+    await page.waitForSelector('.fhouse.fed[data-arg=chicken]');
+    // the pen's chickens: Sell offers to move them into the henhouse
+    await page.click('.fpen[data-arg="0"]', { force: true });
+    await page.click('#modal [data-act=fSellAsk][data-arg="0"]');
+    await page.waitForSelector('#modal [data-act=fMove]');
+    await snap('42-move-or-sell');
+    await page.click('#modal [data-act=fMove]');
+    await page.waitForSelector('#modal .mtitle');
+    const moved = await page.evaluate(() => ({ pen: MQ.state.farm.pens[0].a, n: MQ.farm.penCount(MQ.state.farm.yard.chicken), fed: MQ.state.farm.yard.chicken.fed, t: document.querySelector('#modal').textContent }));
+    if (moved.pen !== null || moved.n !== 3 || !moved.fed || !/Moved/.test(moved.t)) errors.push(`${tag}: moving chickens into the henhouse ${JSON.stringify(moved)}`);
+    await page.click('#modal [data-act=closeModal]');
+    await page.evaluate(() => document.querySelector('.byard').scrollIntoView({ block: 'center' }));
+    await snap('43-barnyard');
+    // a night: the henhouse lays, Collect all takes it
+    await page.click('[data-act=fSleep]');
+    await page.waitForSelector('#modal');
+    await page.click('#modal [data-act=closeModal]');
+    await page.waitForSelector('.fhouse.ready[data-arg=chicken]');
+    const eggs = await page.evaluate(() => MQ.state.farm.basket.egg || 0);
+    await page.click('[data-act=fCollectAll]');
+    if ((await page.evaluate(() => MQ.state.farm.basket.egg || 0)) !== eggs + 6) errors.push(`${tag}: Collect all did not take the henhouse eggs`);
+  }
+
   // reloading keeps the farm; the home tile shows it
   await page.reload();
   await page.waitForSelector('.t-farm');

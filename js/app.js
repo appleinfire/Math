@@ -435,7 +435,7 @@
   function farmTile() {
     const F = MQ.farm, fm = st.farm;
     if (!fm || !fm.started) return `<button class="tile t-farm wide" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>New! Grow, sell at your stand, count real money</small></span></button>`;
-    const waiting = fm.beds.some((b) => F.cropStage(b) === 'ready') || fm.pens.some((p) => F.penReady(p));
+    const waiting = fm.beds.some((b) => F.cropStage(b) === 'ready') || F.allPens(fm).some((p) => F.penReady(p));
     const n = F.saleCount(fm); // what the orders keep is not for sale
     const bankDay = !!(fm.bank && fm.bank.pend && fm.bank.pend.length);
     const made = fm.works && Object.values(fm.works).some((w) => w.ready);
