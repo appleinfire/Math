@@ -179,6 +179,7 @@ async function play(grade, tag, viewport) {
     const b0 = MQ.state.grade === 'k' ? 1234 : 6234; // above the Piggy account limit: interest in two parts
     f.bank = { bal: b0, acct: 0, log: [], pend: [{ day: 7, bal: b0 }, { day: 14, bal: b0 + MQ.farm.interest(b0, MQ.state.grade) }] };
     f.dream.seen = true; // the Big Dreams intro is tested below
+    f.orders = { seen: true, n: 0, list: [] }; // and the order board
     MQ.store.save(); });
   await page.click('[data-act=go][data-arg=farm]');
   await snap('13-bigfarm');
@@ -475,6 +476,71 @@ async function play(grade, tag, viewport) {
     await page.waitForSelector('.fbank');
     const back = await page.evaluate(() => ({ bal: MQ.state.farm.bank.bal, amt: MQ.state.farm.dep.amt }));
     if (back.amt || back.bal !== bal + 24600) errors.push(`${tag}: collecting the deposit ${JSON.stringify(back)} (bank was ${bal})`);
+  }
+
+  // the order board: the intro the first time; what an order needs stays in the basket (the stand sells only the
+  // rest); delivering it is a money question and it pays more than the stand; saying no; a new order in the morning
+  {
+    await page.evaluate(() => { const f = MQ.state.farm; Object.assign(f, { orders: { seen: false, n: 0, list: [] }, basket: {}, charms: {}, merchant: null }); f.dream.b = false; MQ.store.save(); MQ.app.go('farm'); });
+    await page.waitForSelector('#modal [data-act=fOrders]');
+    await snap('34-orders-intro');
+    await page.click('#modal [data-act=fOrders]');
+    await page.waitForSelector('#modal .ocard');
+    const o = await page.evaluate(() => {
+      const f = MQ.state.farm, o = f.orders.list[0], used = new Set(f.orders.list.flatMap((x) => Object.keys(x.items)));
+      const extra = ['carrot', 'egg', 'honey', 'tomato', 'corn', 'potato'].find((id) => !used.has(id));
+      f.basket = Object.assign({ [extra]: 2 }, o.items);
+      MQ.store.save(); MQ.farmUI.redraw();
+      return { n: o.n, pay: o.pay, items: o.items, extra, count: f.orders.list.length };
+    });
+    if (o.count !== 2) errors.push(`${tag}: the board starts with ${o.count} orders`);
+    await page.click('#modal [data-act=closeModal]');
+    await page.waitForSelector('.forders .forder.ready');
+    const strip = await page.evaluate(() => ({ stand: document.querySelector('.fstand').textContent, kept: document.querySelectorAll('.fbasket .fkept').length }));
+    if (!/2 to sell/.test(strip.stand) || strip.kept < 1) errors.push(`${tag}: the basket with an order ${JSON.stringify(strip)}`);
+    await page.evaluate(() => document.querySelector('.forders').scrollIntoView({ block: 'center' }));
+    await snap('35-order-strip');
+    // the stand sells the 2 other things and leaves the order's things in the basket
+    await page.click('[data-act=fMarket]');
+    let guard = 0;
+    while ((await page.$('.fplay')) && guard++ < 6) {
+      await answer(page, true);
+      await page.waitForSelector('.fb.ok');
+      if (await page.$('#modal')) await page.click('#modal [data-act=closeModal]');
+      await page.click('[data-act=fNext]');
+    }
+    await page.waitForSelector('.result');
+    const left = await page.evaluate((x) => ({ extra: MQ.state.farm.basket[x.extra] || 0, kept: Object.entries(x.items).every(([id, n]) => MQ.state.farm.basket[id] === n) }), o);
+    if (left.extra || !left.kept) errors.push(`${tag}: the stand and the order's things ${JSON.stringify(left)}`);
+    // deliver it
+    await page.click('[data-act=go][data-arg=farm]');
+    await page.click('.forder.ready');
+    await page.waitForSelector(`#modal [data-act=fDeliver][data-arg="${o.n}"]`);
+    await snap('36-order-board');
+    await page.click(`#modal [data-act=fDeliver][data-arg="${o.n}"]`);
+    await page.waitForSelector('.fplay #fanswer');
+    await snap('37-order-deliver');
+    const before = await page.evaluate(() => MQ.state.farm.money);
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    const done = await page.evaluate((n) => ({ money: MQ.state.farm.money, orders: MQ.state.farm.stats.orders, on: MQ.state.farm.orders.list.some((x) => x.n === n), basket: MQ.farm.basketCount(MQ.state.farm) }), o.n);
+    if (done.money !== before + o.pay || done.orders !== 1 || done.on || done.basket) errors.push(`${tag}: delivering the order ${JSON.stringify(done)} (pays ${o.pay}, money was ${before})`);
+    await snap('38-order-paid');
+    await page.click('[data-act=fNext]');
+    await page.waitForSelector('.scene');
+    // say no to the other one, then a new order comes in the morning
+    await page.click('.forder');
+    await page.click('#modal [data-act=fOrderNo] >> nth=0');
+    await page.click('#modal [data-act=fOrderDrop]');
+    await page.waitForSelector('#modal .mtitle');
+    if ((await page.evaluate(() => MQ.state.farm.orders.list.length)) !== 0) errors.push(`${tag}: saying no left an order`);
+    await page.click('#modal [data-act=closeModal]');
+    await page.click('[data-act=fSleep]');
+    await page.waitForSelector('#modal');
+    if (!/New order/.test(await page.textContent('#modal'))) errors.push(`${tag}: no new order in the morning card`);
+    await snap('39-order-morning');
+    await page.click('#modal [data-act=closeModal]');
+    if ((await page.evaluate(() => MQ.state.farm.orders.list.length)) !== 1) errors.push(`${tag}: one new order a morning`);
   }
 
   // reloading keeps the farm; the home tile shows it

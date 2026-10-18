@@ -335,6 +335,7 @@
       for (const r of w.recipes) if (r.lv === L && r.lv > w.lv) out.push({ e: F.ITEMS[r.out].e, name: `New recipe: ${F.ITEMS[r.out].many}` });
     }
     if (L === F.BANK_LV) out.push({ e: '🏦', name: 'The bank: save money and earn interest' });
+    if (L === F.ORDERS_LV) out.push({ e: '📋', name: 'The order board: people in town order things from your farm' });
     F.ACCOUNTS.forEach((a, i) => { if (i && a.lv === L) out.push({ e: a.e, name: `Bank: ${a.name} (more savings earn the big interest)` }); });
     for (const u of F.BED_UP) if (u.lv === L) out.push({ e: u.icon, name: 'Garden bed upgrade: ' + u.name });
     for (const u of F.PEN_UP) if (u.lv === L) out.push({ e: '🏡', name: 'Pen upgrade: ' + u.name });
@@ -375,6 +376,7 @@
     merchant: null, // his visit: { week, n, item, charms, a, cost, got } (see the traveling merchant below)
     charms: {}, // the merchant's week charms working now: id: { cost, until, gain, a, extra } (Golden Piggy: { cost }, until bank day)
     dep: { ok: false, amt: 0, until: 0 }, // the bank's locked deposit (2nd grade): opened once savings pass the limit (ok); amt locked until farm day `until`
+    orders: { seen: false, n: 0, list: [] }, // the order board (see below)
   });
   F.START_MONEY = [5, 30];
   F.ensure = (st) => {
@@ -399,6 +401,8 @@
     if (!fm.dep) fm.dep = { ok: false, amt: 0, until: 0 }; // and the locked deposit
     if (!fm.stats.depBonus) fm.stats.depBonus = 0;
     for (const k of ['built', 'dreamIn']) if (!fm.stats[k]) fm.stats[k] = 0;
+    if (!fm.orders) fm.orders = { seen: false, n: 0, list: [] }; // and the order board
+    for (const k of ['orders', 'orderPay', 'orderExtra']) if (!fm.stats[k]) fm.stats[k] = 0;
     return fm;
   };
 
@@ -530,6 +534,7 @@
     news.built = F.buildOvernight(fm);
     fm.day++;
     news.charmEnd = F.charmsMorning(fm, grade);
+    news.orders = F.ordersMorning(fm, grade);
     if (tr.goose) { const x = F.TREASURES.goose.gold[gi(grade)]; fm.money += x; fm.stats.earned += x; news.gold = x; }
     if (tr.sheep) { fm.basket.rainbow = (fm.basket.rainbow || 0) + 1; news.rainbow = 1; }
     news.merchant = F.merchantMorning(fm, grade);
@@ -1032,6 +1037,168 @@
   // How much to put aside each day to buy it before he leaves: today and every day left, in whole dollars (k: cents).
   F.perDayToSave = (need, nights, grade) => { const days = nights + 1, x = Math.ceil(need / days); return grade === 'k' ? x : Math.ceil(x / 100) * 100; };
 
+  // ---------------------------------------------------------------- the order board
+  // From farm level 5, people in town order things from the farm: "6 eggs and 2 glasses of milk by farm day 12".
+  // The board holds up to 3 orders, and a new one comes each morning when there is room. An order is made only of
+  // things this farm can make now (crops open at its level, the grown-up animals in its pens, its workshops, with
+  // what they need), in amounts it can make before the order ends: the nights it takes, plus 2 to spare (kindergarten 3). An order
+  // pays half as much again as the same things bring at the stand; every 4th one is a ⭐ big order from a special
+  // guest that pays double. What the orders need is kept in the basket (customers at the stand don't buy it), so
+  // the child collects for an order on purpose. Nothing is lost when an order ends or is turned down: a new one comes.
+  // orders = { seen, n: orders so far, list: [{ n, who, why, items: { item: count }, stand, pay, end (its last farm day), big }] }
+  F.ORDERS_LV = 5;
+  F.ORDER_SLOTS = 3;
+  F.ORDER_BIG = 4; // every 4th order is a big one
+  F.ORDER_SPARE = [3, 2]; // nights to spare (kindergarten: one more)
+  F.ORDER_MAX = 5; // nights of work at most (a big order: one more)
+  F.ORDER_WHY = ['for a picnic', 'for a birthday party', 'for the school lunch', 'for their café', 'for a family dinner', 'for a camping trip', 'for a bake sale', 'for a pajama party', 'for a soccer team snack'];
+  F.ORDER_WHY_BIG = ['for the town fair', 'for a royal party', 'for the big parade', 'for a wedding feast', 'for the harvest festival'];
+  F.ordersOpen = (fm) => F.level(fm.xp).level >= F.ORDERS_LV;
+  // An order pays the stand price and half as much again (a big order: twice the stand price); 2nd grade in 5¢ steps.
+  F.orderPay = (stand, big, grade) => { const x = stand * (big ? 2 : 1.5); return grade === 'k' ? Math.ceil(x) : Math.ceil(x / 5) * 5; };
+  F.standValue = (items, grade) => U.sum(Object.entries(items).map(([id, n]) => n * F.price(id, grade)));
+  // The most an order pays: the money of the hardest money problems open at this level (so the numbers are ones the
+  // child works with: 20¢ in kindergarten at level 5, $5 in 2nd grade at level 6 …).
+  F.orderCap = (fm, grade) => Math.max(...F.tiers(grade).filter((t) => t.lv <= F.level(fm.xp).level).map((t) => t.max));
+  // What this farm can make for an order. per: how many one garden bed (with the farm's poorest soil) or all the pens
+  // of a kind make; days: nights for one batch; made things need a workshop, and their inputs must come from this farm.
+  F.orderGoods = (fm) => {
+    const L = F.level(fm.xp).level, stars = Math.min(...fm.beds.map(F.bedStars)), out = {};
+    for (const [id, c] of Object.entries(F.CROPS)) if (c.lv <= L) out[id] = { id, kind: 'crop', per: c.yield + stars, days: c.days };
+    fm.pens.forEach((p) => {
+      if (!p.a || F.animalStage(p) < 2) return;
+      const id = F.ANIMALS[p.a].item;
+      out[id] = out[id] ? Object.assign(out[id], { per: out[id].per + F.penMakes(p) }) : { id, kind: 'animal', a: p.a, per: F.penMakes(p), days: 1 };
+    });
+    for (const [w, W] of Object.entries(F.WORKS)) {
+      if (!(fm.works || {})[w]) continue;
+      for (const r of W.recipes) if (r.lv <= L && Object.keys(r.in).every((id) => out[id] && out[id].kind !== 'made')) out[r.out] = { id: r.out, kind: 'made', work: w, r, per: 1, days: r.days };
+    }
+    return out;
+  };
+  // Nights this farm needs to make everything in an order, starting with an empty basket: the crops (and the crops
+  // the workshops need) planted in all the beds at once, round after round; the animals' things day after day; then
+  // each workshop's batches one after another.
+  F.orderNights = (fm, items) => {
+    const goods = F.orderGoods(fm), need = {};
+    let made = 0;
+    const work = {};
+    for (const [id, n] of Object.entries(items)) {
+      const x = goods[id];
+      if (!x) return Infinity;
+      if (x.kind !== 'made') { need[id] = (need[id] || 0) + n; continue; }
+      work[x.work] = (work[x.work] || 0) + n * x.days;
+      for (const [i, k] of Object.entries(x.r.in)) need[i] = (need[i] || 0) + n * k;
+    }
+    made = Math.max(0, ...Object.values(work));
+    let beds = 0, days = 0, animals = 0;
+    for (const [id, n] of Object.entries(need)) {
+      const x = goods[id];
+      if (x.kind === 'crop') { beds += Math.ceil(n / x.per); days = Math.max(days, x.days); } else animals = Math.max(animals, Math.ceil(n / x.per));
+    }
+    return Math.max(beds ? Math.ceil(beds / fm.beds.length) * days : 0, animals) + made;
+  };
+  // A new order (number n): one or two kinds of things (kindergarten: one; a big order: two or three), at most the cap.
+  F.makeOrder = (fm, grade, n) => {
+    const k = grade === 'k', big = n % F.ORDER_BIG === 0, goods = Object.values(F.orderGoods(fm));
+    const busy = new Set(((fm.orders && fm.orders.list) || []).flatMap((o) => Object.keys(o.items))); // a different thing from the other orders
+    const pool = (kind) => { const all = goods.filter((x) => x.kind === kind), free = all.filter((x) => !busy.has(x.id)); return free.length ? free : all; };
+    const kinds = big ? (k ? 2 : U.rnd(2, 3)) : k ? 1 : U.rnd(1, 2);
+    const items = {};
+    for (let i = 0; i < kinds; i++) {
+      // crops, the animals' things and workshop goods, each often enough to show up
+      const roll = Math.random(), kind = roll < 0.4 ? 'crop' : roll < (k ? 0.85 : 0.75) ? 'animal' : 'made';
+      const list = pool(kind).filter((x) => !items[x.id]), x = U.pick(list.length ? list : goods.filter((g) => !items[g.id]));
+      if (!x) break;
+      // a bed's harvest or two (big: two or three); the animals' things of two or three days (big: three or four)
+      items[x.id] = x.kind === 'made' ? (big ? 2 : 1) : x.per * (x.kind === 'crop' ? (big ? U.rnd(2, 3) : U.rnd(1, 2)) : big ? U.rnd(3, 4) : U.rnd(2, 3));
+    }
+    // not more than the cap: take one off the thing worth the most, until it fits
+    const cap = F.orderCap(fm, grade);
+    while (Object.keys(items).length && F.orderPay(F.standValue(items, grade), big, grade) > cap) {
+      const id = Object.keys(items).sort((a, b) => items[b] * F.price(b, grade) - items[a] * F.price(a, grade))[0];
+      if (--items[id] <= 0) delete items[id];
+    }
+    // and not too long to wait for: at most 5 nights of work (a big order 6), taking off the most first
+    const goodsOf = F.orderGoods(fm);
+    while (Object.keys(items).length > 1 && F.orderNights(fm, items) > F.ORDER_MAX + (big ? 1 : 0)) {
+      const id = Object.keys(items).sort((a, b) => F.orderNights(fm, { [b]: items[b] }) - F.orderNights(fm, { [a]: items[a] }) || items[b] - items[a])[0];
+      items[id] -= goodsOf[id].per;
+      if (items[id] <= 0) delete items[id];
+    }
+    if (!Object.keys(items).length) items.carrot = Math.max(1, Math.floor(cap / F.orderPay(F.price('carrot', grade), big, grade)));
+    const stand = F.standValue(items, grade), used = new Set(((fm.orders && fm.orders.list) || []).map((o) => o.who[1]));
+    const who = U.pick((big ? F.VIPS : F.PEOPLE).filter((x) => !used.has(x[1])));
+    return { n, who, why: U.pick(big ? F.ORDER_WHY_BIG : F.ORDER_WHY), items, stand, pay: F.orderPay(stand, big, grade), end: fm.day + Math.max(3, F.orderNights(fm, items) + F.ORDER_SPARE[gi(grade)]), big };
+  };
+  F.addOrder = (fm, grade) => {
+    fm.orders.n++;
+    const o = F.makeOrder(fm, grade, fm.orders.n);
+    fm.orders.list.push(o);
+    return o;
+  };
+  // The first time the board opens: two orders to start with.
+  F.ordersStart = (fm, grade) => {
+    fm.orders.seen = true;
+    while (fm.orders.list.length < 2) F.addOrder(fm, grade);
+  };
+  // What the orders keep in the basket, order by order (the first order first): [{ o, have: { item: count }, ready }].
+  F.orderStatus = (fm) => {
+    const left = Object.assign({}, fm.basket);
+    return ((fm.orders && fm.orders.list) || []).map((o) => {
+      const have = {};
+      for (const [id, n] of Object.entries(o.items)) { have[id] = Math.min(n, left[id] || 0); left[id] = (left[id] || 0) - have[id]; }
+      return { o, have, ready: Object.entries(o.items).every(([id, n]) => have[id] >= n) };
+    });
+  };
+  F.kept = (fm) => { const out = {}; for (const s of F.orderStatus(fm)) for (const [id, n] of Object.entries(s.have)) if (n) out[id] = (out[id] || 0) + n; return out; };
+  // What customers at the stand (and the market truck) may buy: the basket without what the orders keep.
+  F.forSale = (fm) => { const kept = F.kept(fm), out = {}; for (const [id, n] of Object.entries(fm.basket)) if (n - (kept[id] || 0) > 0) out[id] = n - (kept[id] || 0); return out; };
+  F.saleCount = (fm) => U.sum(Object.values(F.forSale(fm)));
+  F.ordersReady = (fm) => F.orderStatus(fm).filter((s) => s.ready).map((s) => s.o);
+  F.orderXp = (o) => 5 + 3 * Object.keys(o.items).length + (o.big ? 5 : 0);
+  // Deliver an order: its things leave the basket, it pays. Returns the order (null when it isn't ready).
+  F.deliver = (fm, n) => {
+    const s = F.orderStatus(fm).find((x) => x.o.n === n);
+    if (!s || !s.ready) return null;
+    const o = s.o;
+    for (const [id, q] of Object.entries(o.items)) { fm.basket[id] -= q; if (!fm.basket[id]) delete fm.basket[id]; fm.stats.sold += q; }
+    fm.money += o.pay;
+    fm.stats.earned += o.pay;
+    fm.stats.orders = (fm.stats.orders || 0) + 1;
+    fm.stats.orderPay = (fm.stats.orderPay || 0) + o.pay;
+    fm.stats.orderExtra = (fm.stats.orderExtra || 0) + o.pay - o.stand;
+    fm.orders.list = fm.orders.list.filter((x) => x !== o);
+    return o;
+  };
+  // "No, thank you": the order is gone; a new one comes in the morning.
+  F.dropOrder = (fm, n) => { const before = fm.orders.list.length; fm.orders.list = fm.orders.list.filter((o) => o.n !== n); return fm.orders.list.length < before; };
+  // Each morning (from F.nextDay): orders whose last day was yesterday end, and a new one comes if there is room.
+  // Returns { gone, added, last (orders on their last day) } for the morning card, or null when the board isn't open.
+  F.ordersMorning = (fm, grade) => {
+    if (!fm.orders || !F.ordersOpen(fm)) return null;
+    const gone = fm.orders.list.filter((o) => o.end < fm.day);
+    fm.orders.list = fm.orders.list.filter((o) => o.end >= fm.day);
+    const added = fm.orders.list.length < F.ORDER_SLOTS ? F.addOrder(fm, grade) : null;
+    return { gone, added, last: fm.orders.list.filter((o) => o.end === fm.day && o !== added) };
+  };
+  // The question when an order is delivered. Kindergarten and the first two tiers count the money it pays with;
+  // from the third tier: how much more does the order pay than the stand?
+  F.orderQuestion = (o, grade, tierNo) => {
+    const fmt = (c) => F.fmt(c, grade), ts = F.tiers(grade);
+    const what = Object.entries(o.items).map(([id, n]) => things(id, n)).join(' and ');
+    const tags = `<div class="ftags">${Object.entries(o.items).map(([id, n]) => `<span class="ftag">${n} × ${F.ie(id)} ${fmt(F.price(id, grade))}</span>`).join('')}</div>`;
+    const base = { type: 'order', who: o.who, sale: {}, total: 0 };
+    if (tierNo < 3) {
+      const t = ts.find((x) => x.max >= o.pay) || ts[ts.length - 1];
+      const coins = F.coinsFor(o.pay, t.coins) || F.fewest(o.pay, t.coins);
+      return ask(Object.assign(base, { text: `takes the order: <b>${what}</b>, and pays with these. How much money is it?`, visual: MQ.V.coins(coins, grade === 'k' || tierNo === 1), hint: 'Start with the money worth the most, then count on.', explain: `${coins.map((k) => fmt(F.COINV[k])).join(' + ')} = ${fmt(o.pay)}` }), o.pay, grade);
+    }
+    const more = o.pay - o.stand;
+    const p = Object.assign(base, { text: `takes the order: <b>${what}</b>, and pays <b>${fmt(o.pay)}</b>. At your stand the same things bring <b>${fmt(o.stand)}</b>. How much <b>more</b> does the order pay?`, visual: tags + `<div class="ftags"><span class="ftag">🏪 ${fmt(o.stand)}</span><b>→</b><span class="ftag">📋 ${fmt(o.pay)}</span></div>`, hint: `Count up from ${fmt(o.stand)} to ${fmt(o.pay)}.`, explain: `${fmt(o.pay)} − ${fmt(o.stand)} = ${fmt(more)}` });
+    return grade === 'k' || more < 100 ? Object.assign(p, { kind: 'num', answer: more, unit: '¢' }) : Object.assign(p, { kind: 'choice', answer: fmt(more), choices: F.moneyChoices(more, grade, [o.pay + o.stand, o.stand, o.pay]) });
+  };
+
   // ---------------------------------------------------------------- grown-up preview
   // The farm of a level-60 farmer, to look around in the grown-up preview (a copy of the profile; nothing is saved):
   // everything open and owned, plenty of money, crops and animals at every stage, a full basket, a bank day waiting.
@@ -1057,6 +1224,15 @@
     fm.charms = { clover: { cost: k ? 30 : 900, until: 18, gain: k ? 12 : 640 }, myth: { a: 'cow', cost: k ? 60 : 2400, until: 17, gain: k ? 33 : 1750 } };
     fm.pens[1].rare = 2;
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
+    // three orders on the board: one ready to deliver, a ⭐ big one, and one more
+    fm.orders = { seen: true, n: 0, list: [] };
+    const o = F.addOrder(fm, g);
+    o.items = { egg: 2, honey: 1 };
+    Object.assign(o, { stand: F.standValue(o.items, g), end: fm.day + 3 });
+    o.pay = F.orderPay(o.stand, o.big, g);
+    fm.orders.n = F.ORDER_BIG - 1;
+    F.addOrder(fm, g);
+    F.addOrder(fm, g);
     for (const id of Object.keys(F.DECOR)) fm.owned[id] = true;
     Object.keys(F.WORKS).forEach((id, i) => { fm.works[id] = i % 2 ? { r: null, g: 0, ready: 1, out: F.WORKS[id].recipes[0].out } : { r: null, g: 0, ready: 0, out: '' }; });
     return fm;

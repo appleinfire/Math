@@ -118,7 +118,7 @@
     const yard = at('yard').map((id) => `<span class="deco d-${id}" style="left:${SPOTS[id][1]}%" title="${esc(F.DECOR[id].name)}">${F.DECOR[id].e}</span>`).join('');
     const park = at('park').map((id) => `<span class="pk d-${id}" title="${esc(F.DECOR[id].name)}">${F.DECOR[id].e}</span>`).join('');
     const works = Object.keys(fmWorks).filter((id) => F.WORKS[id]);
-    const stand = F.STANDS[fm.stand], n = F.basketCount(fm);
+    const stand = F.STANDS[fm.stand], n = F.saleCount(fm); // what the orders keep isn't for sale
     return `<section class="scene${F.charmOn(fm, 'sun') ? ' sun-on' : ''}" aria-label="Your farm">
       <div class="sky">
         <span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>${sky.join('')}
