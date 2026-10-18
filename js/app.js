@@ -435,14 +435,14 @@
   function farmTile() {
     const F = MQ.farm, fm = st.farm;
     if (!fm || !fm.started) return `<button class="tile t-farm wide" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>New! Grow, sell at your stand, count real money</small></span></button>`;
-    const waiting = fm.beds.some((b) => F.cropStage(b) === 'ready') || fm.pens.some((p) => F.penReady(p));
-    const n = F.basketCount(fm);
+    const waiting = fm.beds.some((b) => F.cropStage(b) === 'ready') || F.allPens(fm).some((p) => F.penReady(p));
+    const n = F.saleCount(fm); // what the orders keep is not for sale
     const bankDay = !!(fm.bank && fm.bank.pend && fm.bank.pend.length);
     const made = fm.works && Object.values(fm.works).some((w) => w.ready);
     const build = F.canBuild(F.ensure(st), st.grade);
-    const trader = F.merchantHas(fm), unlocked = F.depositReady(fm);
-    const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
-    return `<button class="tile t-farm wide ${waiting || made || bankDay || build || trader || unlocked || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
+    const trader = F.merchantHas(fm), unlocked = F.depositReady(fm), order = F.ordersReady(fm).length > 0;
+    const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : order ? '📦 An order is ready to deliver!' : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
+    return `<button class="tile t-farm wide ${waiting || made || bankDay || build || trader || unlocked || order || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
   }
 
   // For grown-ups: Card Duels played (each round ends with a comparing or subtracting question).
@@ -471,6 +471,7 @@
       ${fm.dream && (fm.dream.p || fm.dream.s) ? `<p>🏗️ Big Dreams: ${F.DREAMS.map((d, k) => [d, F.dreamBuilt(fm, k)]).filter(([, n]) => n).map(([d, n]) => `${d.e} ${esc(d.name)} ${n >= d.stages.length ? '✓' : n + ' of ' + d.stages.length}`).join(', ')}. Paid to builders from the bank: ${F.fmt(s.built || 0, st.grade)}; the buildings earned ${F.fmt(s.dreamIn || 0, st.grade)} on bank days.</p>` : ''}
       ${fm.dep && (fm.dep.amt || s.depBonus) ? `<p>🔒 Locked deposit: ${fm.dep.amt ? `<b>${F.fmt(fm.dep.amt, st.grade)}</b> locked until farm day ${fm.dep.until}` : 'none now'}; locked deposits have earned ${F.fmt(s.depBonus || 0, st.grade)} so far.</p>` : ''}
       ${Object.keys(fm.treasure || {}).length ? `<p>🧳 Treasures from the traveling merchant: ${Object.keys(fm.treasure).map((id) => F.TREASURES[id].e + ' ' + esc(F.TREASURES[id].name)).join(', ')}.</p>` : ''}
+      ${s.orders ? `<p>📋 Orders delivered from the order board: ${s.orders}, for ${F.fmt(s.orderPay || 0, st.grade)} (${F.fmt(s.orderExtra || 0, st.grade)} more than the stand would pay). Each delivery is a money question: counting the payment, or how much more the order pays than the stand.</p>` : ''}
       ${s.charms ? `<p>✨ Week charms from the merchant: ${s.charms} bought for ${F.fmt(s.charmCost || 0, st.grade)}; they brought ${F.fmt(s.charmGain || 0, st.grade)} (${s.charmWins || 0} paid for themselves). After each one the child works out whether it paid off.</p>` : ''}
       <p>${s.tasks} money problems from customers and odd jobs, <b>${pct(s.right, s.tasks)}%</b> right on the first try · ${s.vip} ⭐ challenge customers. Now practicing: <b>${esc(tier.name)}</b>${tier.ahead ? ' (ahead of grade)' : ''}.</p>
       <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p></section>`;

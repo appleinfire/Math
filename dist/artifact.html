@@ -1401,6 +1401,82 @@ p.small { font-size: 0.85rem; margin: 2px 0 8px; }
 .blog b.unlock { color: var(--good); }
 @media (prefers-reduced-motion: reduce) { .fdep.ready { animation: none; } }
 
+/* ================= Sunny Farm: the barnyard (a little house for each kind of small animal) ================= */
+.byard { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.fhouse { position: relative; height: 84px; border: 0; padding: 0; border-radius: 8px 8px 14px 14px; overflow: hidden; background: linear-gradient(#a6dc80 0 30%, #f3dcb4 30%); box-shadow: inset 0 0 0 3px #b07a46, 0 4px 0 #8a5a31; }
+.fhouse .hroof { position: absolute; left: 0; right: 0; top: 0; height: 26px; background: #c0533a; clip-path: polygon(0 100%, 50% 0, 100% 100%); }
+.fhouse .hwho { position: absolute; left: 4px; right: 4px; bottom: 6px; display: flex; justify-content: center; align-items: flex-end; gap: 2px; line-height: 1; font-size: 1.7rem; }
+.fhouse .hwalk { display: inline-block; animation: wiggle 2.6s ease-in-out infinite; animation-delay: calc(var(--k) * -0.7s); transform-origin: 50% 100%; }
+.fhouse.s0 .hwho { font-size: 1.2rem; }
+.fhouse.s1 .hwho { font-size: 1.45rem; }
+.fhouse .hwho svg { display: block; width: 1.9rem; height: 1.9rem; }
+.fhouse .hbadge { position: absolute; right: 4px; top: 30px; padding: 0 5px; border-radius: 9px; background: rgba(255, 255, 255, 0.92); font-size: 0.72rem; font-weight: 900; color: var(--ink-soft); line-height: 18px; }
+.fhouse.ready { box-shadow: inset 0 0 0 3px #b07a46, 0 4px 0 #8a5a31, 0 0 0 3px #ffe27a; }
+.fhouse.ready .hbadge { background: #fff27a; color: var(--ink); font-size: 0.8rem; }
+.fhouse.hungry .hbadge { color: #8a5a08; }
+.fhouse.myth { box-shadow: inset 0 0 0 3px #b48cf2, 0 4px 0 #7a3fd1, 0 0 12px rgba(255, 143, 224, 0.6); }
+.fhouse.buy, .fhouse.later { background: linear-gradient(#b5e095 0 30%, #f6e9d2 30%); opacity: 0.9; box-shadow: inset 0 0 0 3px #d9b98f, 0 3px 0 #b9814a; }
+.fhouse.buy .hroof, .fhouse.later .hroof { background: #d9a07f; }
+.fhouse.buy .hwho, .fhouse.later .hwho { filter: grayscale(0.6); opacity: 0.6; font-size: 1.4rem; }
+.fhouse.later { opacity: 0.55; }
+.fhouse.buy .hbadge { background: #5d9a31; color: #ffffff; font-size: 0.9rem; }
+.fhouse:active { transform: translateY(3px); }
+.fmove { padding: 8px 10px; border-radius: 12px; background: #f3fbe8; box-shadow: inset 0 0 0 2px #9fd27a; text-align: left; }
+.fwarn { padding: 8px 10px; border-radius: 12px; background: var(--sun-soft); box-shadow: inset 0 0 0 2px var(--sun); text-align: left; }
+@media (prefers-reduced-motion: reduce) { .fhouse .hwalk { animation: none; } }
+
+/* ================= Sunny Farm: the order board (a cork board with paper notes; ready = green, big = gold) ================= */
+.forders { margin-top: 12px; padding: 8px 10px 10px; border-radius: var(--r); background: #e9c99a; box-shadow: inset 0 0 0 3px #b9814a, 0 4px 0 #8a5a31; }
+.fo-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 2px 6px; color: #4a2d12; }
+.fo-head b { font-family: var(--display); font-weight: 600; font-size: 1.05rem; }
+.fo-head small { font-weight: 800; font-size: 0.8rem; }
+.forders > p { margin: 2px 4px; color: #4a2d12; }
+.fo-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.forder { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; border: 0; border-radius: 10px; padding: 12px 8px 7px; text-align: left; color: var(--ink);
+  background: #fffdf6; box-shadow: 0 3px 0 rgba(74, 45, 18, 0.35); transform: rotate(-1deg); }
+.forder:nth-child(2) { transform: rotate(1deg); }
+.forder::before { content: ''; position: absolute; top: 3px; left: 50%; width: 9px; height: 9px; margin-left: -4px; border-radius: 50%; background: #e2463a; box-shadow: 0 1px 0 #8e2b23; }
+.fo-who { position: absolute; right: 6px; top: 6px; font-size: 1.5rem; line-height: 1; }
+.fo-need { display: flex; flex-direction: column; gap: 1px; font-weight: 800; font-size: 0.86rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.fo-need .have { color: var(--good); }
+.fo-foot { display: flex; flex-direction: column; margin-top: auto; line-height: 1.15; }
+.fo-foot b { font-family: var(--display); font-weight: 600; font-size: 1.05rem; color: #2f6b1f; }
+.fo-foot small { font-weight: 800; font-size: 0.74rem; color: var(--ink-soft); }
+.forder.ready { background: #effbe9; box-shadow: inset 0 0 0 3px #5fbf3a, 0 3px 0 #2f7a1f; animation: orderready 1.8s ease-in-out infinite; }
+.forder.ready .fo-foot small { color: var(--good); font-size: 0.82rem; }
+.forder.big { background: #fffbe6; box-shadow: inset 0 0 0 3px #f0c35a, 0 3px 0 #a8650a; }
+.forder.big.ready { box-shadow: inset 0 0 0 3px #5fbf3a, 0 0 0 3px #f0c35a, 0 3px 0 #2f7a1f; }
+@keyframes orderready { 50% { box-shadow: inset 0 0 0 3px #7ed957, 0 3px 0 #2f7a1f, 0 0 16px rgba(126, 217, 87, 0.9); } }
+.fkept { margin-left: 2px; padding: 0 6px; border-radius: 999px; background: #f6e3c7; color: #6b4210 !important; font-weight: 800; }
+.ocards { display: grid; gap: 10px; margin: 6px 0 10px; text-align: left; }
+.ocard { padding: 10px 12px; border-radius: 14px; background: #fffdf6; box-shadow: inset 0 0 0 2px #d9b98f, 0 3px 0 #b9814a; }
+.ocard.ready { background: #effbe9; box-shadow: inset 0 0 0 3px #5fbf3a, 0 3px 0 #2f7a1f; }
+.ocard.big { background: linear-gradient(130deg, #fffbe6, #fff1c7); box-shadow: inset 0 0 0 3px #f0c35a, 0 3px 0 #a8650a; }
+.ocard.big.ready { box-shadow: inset 0 0 0 3px #5fbf3a, 0 0 0 3px #f0c35a, 0 3px 0 #2f7a1f; }
+.oc-head { display: flex; align-items: center; gap: 8px; }
+.oc-who { font-size: 2rem; line-height: 1; flex: none; }
+.oc-t { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.oc-t small { color: var(--ink-soft); font-weight: 700; }
+.oc-left { flex: none; font-size: 0.8rem; font-weight: 900; padding: 2px 8px; border-radius: 999px; background: #eef1f4; color: var(--ink-soft); }
+.oc-left.last { background: var(--bad-soft); color: var(--bad); }
+.oc-big { display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 900; color: #3a0d40; background: linear-gradient(90deg, #ffd23f, #ffe066); }
+.oc-items { list-style: none; margin: 8px 0 6px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.oc-items li { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 10px; background: #f6efe3; font-weight: 700; }
+.oc-items li > span:nth-child(2) { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.oc-items li small { color: var(--ink-soft); font-size: 0.78rem; }
+.oc-items li b { font-family: var(--display); font-weight: 600; color: var(--bad); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.oc-items li.have { background: var(--good-soft); }
+.oc-items li.have b { color: var(--good); }
+.oc-e { font-size: 1.4rem; flex: none; }
+.oc-pay { display: flex; flex-direction: column; font-weight: 800; }
+.oc-pay b { font-family: var(--display); font-weight: 600; font-size: 1.25rem; color: #2f6b1f; }
+.oc-pay small { color: var(--ink-soft); font-weight: 700; }
+.oc-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.oc-acts .flock { flex: 1; min-width: 0; font-size: 0.86rem; }
+.btn.small { padding: 7px 12px; font-size: 0.85rem; margin-left: auto; }
+@media (max-width: 380px) { .fo-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .forder.ready { animation: none; } }
+
 /* ================= Card Duels (js/duel.js) ================= */
 .tile.t-duel { background: linear-gradient(135deg, #fff2e8, #f3eeff); box-shadow: inset 0 0 0 3px #ff8a5a, 0 4px 0 #c85a2a; }
 .htap { margin: -4px 0 8px; font-size: 0.85rem; }
@@ -5537,6 +5613,8 @@ button.du-st:active { transform: translateY(2px); }
     { id: 'duelchamp', icon: '🐲', name: 'Dragon League Champion', desc: 'Win a Card Duel in the Dragon League', test: (s) => !!s.duels && ((s.duels.wins || {}).dragon || 0) >= 1 },
     { id: 'treasure', icon: '🧳', name: 'Treasure Hunter', desc: 'Buy a rare treasure from the traveling merchant', test: (s) => !!s.farm && Object.keys(s.farm.treasure || {}).length >= 1 },
     { id: 'charm', icon: '🍀', name: 'Smart Shopper', desc: 'Buy a week charm from the traveling merchant that pays for itself', test: (s) => !!s.farm && (s.farm.stats.charmWins || 0) >= 1 },
+    { id: 'order1', icon: '📦', name: 'Special Delivery', desc: 'Deliver an order from the Sunny Farm order board', test: (s) => !!s.farm && (s.farm.stats.orders || 0) >= 1 },
+    { id: 'order25', icon: '🏘️', name: 'Town Favorite', desc: 'Deliver 25 orders from the order board', test: (s) => !!s.farm && (s.farm.stats.orders || 0) >= 25 },
     { id: 'deposit', icon: '🔐', name: 'Patient Saver', desc: 'Collect a locked deposit from the farm bank', test: (s) => !!s.farm && (s.farm.stats.depBonus || 0) > 0 },
     { id: 'castle', icon: '🏰', name: 'Castle Builder', desc: 'Build the Castle on the Hill', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 4 },
     { id: 'puzzle1', icon: '🔷', name: 'Shape Maker', desc: 'Finish your first puzzle in Puzzle Time', test: (s) => !!MQ.shapes && MQ.shapes.count(s) >= 1 },
@@ -6897,6 +6975,23 @@ button.du-st:active { transform: translateY(2px); }
     { name: 'Room for 3', lv: 15, note: 'a 3rd animal: three times the things to sell and the feed' },
     { name: 'Cozy barn', lv: 23, note: 'grown-ups give 1 more every day', half: true },
   ];
+  // The barnyard: from level 16, a row of six little houses, one for each kind of small animal, so the cheap
+  // animals don't take a pen from the big ones (a farm grows into alpacas and unicorns, and the bakery, the dairy
+  // and the orders still want eggs, milk and honey). A house comes with its first animal; Room for 2 and Room for 3
+  // work as in a pen and cost one more animal; there is no cozy barn. fm.yard = { animal: a pen of that kind }.
+  F.YARD_LV = 16;
+  F.YARD_ROOM = 2; // room upgrades in a house (up to 3 animals)
+  F.HOUSES = {
+    chicken: { name: 'Henhouse', lv: 16, cost: [15, 300] },
+    bees: { name: 'Bee yard', lv: 18, cost: [20, 400] },
+    goat: { name: 'Goat shed', lv: 20, cost: [25, 500] },
+    sheep: { name: 'Sheep barn', lv: 22, cost: [30, 600] },
+    duck: { name: 'Duck house', lv: 24, cost: [35, 800] },
+    turkey: { name: 'Turkey roost', lv: 30, cost: [50, 2000] },
+  };
+  F.yardOpen = (fm) => F.level(fm.xp).level >= F.YARD_LV;
+  // every pen and every house with animals: what is fed, grows and makes things each night
+  F.allPens = (fm) => fm.pens.concat(Object.values(fm.yard || {}));
   F.bedStars = (b) => Math.min(b.u || 0, 2) + ((b.u || 0) >= 4 ? 1 : 0) + ((b.u || 0) >= 6 ? 1 : 0);
   F.bedWater = (b) => (b.u || 0) >= 3;
   F.bedGlass = (b) => (b.u || 0) >= 5;
@@ -7049,6 +7144,8 @@ button.du-st:active { transform: translateY(2px); }
       for (const r of w.recipes) if (r.lv === L && r.lv > w.lv) out.push({ e: F.ITEMS[r.out].e, name: `New recipe: ${F.ITEMS[r.out].many}` });
     }
     if (L === F.BANK_LV) out.push({ e: '🏦', name: 'The bank: save money and earn interest' });
+    for (const [a, h] of Object.entries(F.HOUSES)) if (h.lv === L) out.push({ e: F.ANIMALS[a].e, name: `Barnyard: a ${h.name.toLowerCase()} for ${F.MYTHS[a].of} (no pen needed)` });
+    if (L === F.ORDERS_LV) out.push({ e: '📋', name: 'The order board: people in town order things from your farm' });
     F.ACCOUNTS.forEach((a, i) => { if (i && a.lv === L) out.push({ e: a.e, name: `Bank: ${a.name} (more savings earn the big interest)` }); });
     for (const u of F.BED_UP) if (u.lv === L) out.push({ e: u.icon, name: 'Garden bed upgrade: ' + u.name });
     for (const u of F.PEN_UP) if (u.lv === L) out.push({ e: '🏡', name: 'Pen upgrade: ' + u.name });
@@ -7089,6 +7186,8 @@ button.du-st:active { transform: translateY(2px); }
     merchant: null, // his visit: { week, n, item, charms, a, cost, got } (see the traveling merchant below)
     charms: {}, // the merchant's week charms working now: id: { cost, until, gain, a, extra } (Golden Piggy: { cost }, until bank day)
     dep: { ok: false, amt: 0, until: 0 }, // the bank's locked deposit (2nd grade): opened once savings pass the limit (ok); amt locked until farm day `until`
+    orders: { seen: false, n: 0, list: [] }, // the order board (see below)
+    yard: {}, // the barnyard's houses: animal: { a, g, fed, ready, u } (like a pen)
   });
   F.START_MONEY = [5, 30];
   F.ensure = (st) => {
@@ -7113,6 +7212,9 @@ button.du-st:active { transform: translateY(2px); }
     if (!fm.dep) fm.dep = { ok: false, amt: 0, until: 0 }; // and the locked deposit
     if (!fm.stats.depBonus) fm.stats.depBonus = 0;
     for (const k of ['built', 'dreamIn']) if (!fm.stats[k]) fm.stats[k] = 0;
+    if (!fm.orders) fm.orders = { seen: false, n: 0, list: [] }; // and the order board
+    if (!fm.yard) fm.yard = {}; // and the barnyard
+    for (const k of ['orders', 'orderPay', 'orderExtra']) if (!fm.stats[k]) fm.stats[k] = 0;
     return fm;
   };
 
@@ -7153,16 +7255,18 @@ button.du-st:active { transform: translateY(2px); }
   };
   // What a pen has to collect, thing by thing: [[item, count], …] (the mythic things first).
   F.penLoot = (p) => [[F.MYTHS[p.a] && F.MYTHS[p.a].item, p.rare || 0], [F.ANIMALS[p.a].item, p.ready || 0]].filter(([id, n]) => id && n > 0);
-  F.collect = (fm, i) => {
-    const pen = fm.pens[i], loot = pen.a ? F.penLoot(pen) : [];
+  F.collect = (fm, i) => F.collectPen(fm, fm.pens[i]);
+  F.collectPen = (fm, pen) => {
+    const loot = pen && pen.a ? F.penLoot(pen) : [];
     if (!loot.length) return 0;
     for (const [item, n] of loot) fm.basket[item] = (fm.basket[item] || 0) + n;
     pen.ready = 0;
     pen.rare = 0;
     return U.sum(loot.map((x) => x[1]));
   };
-  F.feed = (fm, i) => {
-    const pen = fm.pens[i], eat = F.penEat(pen);
+  F.feed = (fm, i) => F.feedPen(fm, fm.pens[i]);
+  F.feedPen = (fm, pen) => {
+    const eat = F.penEat(pen);
     if (pen.fed) return 'fed';
     if (fm.feed < eat) return 'nofeed';
     fm.feed -= eat;
@@ -7189,6 +7293,24 @@ button.du-st:active { transform: translateY(2px); }
     fm.pens[i] = { a: null, g: 0, fed: false, ready: 0 };
     return total;
   };
+  // Moving a pen's small animals into their house in the barnyard, instead of selling them: when the house is built
+  // and there is room for all of them (3 at most). Things they made go to the basket first; they keep growing from
+  // where the further-grown group is; the house gets the room they need. Feed for today: if only one group was fed,
+  // its feed comes back and the house is hungry (feed them once more). The pen is empty and new again. (A pen with
+  // a cozy barn has 3 animals, which never fit with the house's own, so a barn never has to move.)
+  F.canMove = (fm, i) => {
+    const p = fm.pens[i], h = p && p.a && (fm.yard || {})[p.a];
+    return !!h && F.penCount(h) + F.penCount(p) <= 1 + F.YARD_ROOM;
+  };
+  F.moveToHouse = (fm, i) => {
+    if (!F.canMove(fm, i)) return null;
+    const p = fm.pens[i], h = fm.yard[p.a], n = F.penCount(p);
+    F.collectPen(fm, p);
+    if (p.fed !== h.fed) fm.feed += F.penEat(p.fed ? p : h); // one group was fed today: its feed back
+    Object.assign(h, { u: F.penCount(h) + n - 1, g: Math.max(h.g, p.g), fed: p.fed && h.fed });
+    fm.pens[i] = { a: null, g: 0, fed: false, ready: 0 };
+    return { a: h.a, n, count: F.penCount(h) };
+  };
   // Night: crops grow a day, fed animals grow and grown-ups make something. Returns what happened for the morning card.
   F.nextDay = (fm, grade = 'g2') => {
     const news = { ripe: [], made: [], grew: [], hungry: [], cooked: [], helper: null };
@@ -7200,7 +7322,7 @@ button.du-st:active { transform: translateY(2px); }
         fm.money -= wage;
         fm.stats.wages = (fm.stats.wages || 0) + wage;
         news.helper = { wage, fed: 0, short: 0, collected: 0, picked: 0 };
-        fm.pens.forEach((p, i) => { if (p.a && !p.fed) F.feed(fm, i) === 'ok' ? news.helper.fed++ : news.helper.short++; });
+        F.allPens(fm).forEach((p) => { if (p.a && !p.fed) F.feedPen(fm, p) === 'ok' ? news.helper.fed++ : news.helper.short++; });
       }
     }
     for (const [id, w] of Object.entries(fm.works || {})) {
@@ -7211,7 +7333,7 @@ button.du-st:active { transform: translateY(2px); }
     }
     const tr = fm.treasure || {};
     if (tr.fairy) { // the Feed Fairy feeds hungry pens, for free
-      const fed = fm.pens.filter((x) => x.a && !x.fed).slice(0, F.TREASURES.fairy.feeds);
+      const fed = F.allPens(fm).filter((x) => x.a && !x.fed).slice(0, F.TREASURES.fairy.feeds);
       fed.forEach((p) => (p.fed = true));
       if (fed.length) news.fairy = fed.map((p) => p.a);
     }
@@ -7220,7 +7342,7 @@ button.du-st:active { transform: translateY(2px); }
       b.g++;
       if (F.cropStage(b) === 'ready') news.ripe.push(b.c);
     });
-    fm.pens.forEach((p) => {
+    F.allPens(fm).forEach((p) => {
       if (!p.a) return;
       if (!p.fed) { news.hungry.push(p.a); return; }
       const before = F.animalStage(p);
@@ -7238,12 +7360,13 @@ button.du-st:active { transform: translateY(2px); }
       p.fed = false;
     });
     if (news.helper && !news.helper.unpaid) { // in the morning: products into the basket, ripe crops too from level 48
-      fm.pens.forEach((p, i) => { news.helper.collected += F.collect(fm, i); });
+      F.allPens(fm).forEach((p) => { news.helper.collected += F.collectPen(fm, p); });
       if (F.level(fm.xp).level >= F.HELPER.picksLv) fm.beds.forEach((b, i) => { news.helper.picked += F.harvest(fm, i); });
     }
     news.built = F.buildOvernight(fm);
     fm.day++;
     news.charmEnd = F.charmsMorning(fm, grade);
+    news.orders = F.ordersMorning(fm, grade);
     if (tr.goose) { const x = F.TREASURES.goose.gold[gi(grade)]; fm.money += x; fm.stats.earned += x; news.gold = x; }
     if (tr.sheep) { fm.basket.rainbow = (fm.basket.rainbow || 0) + 1; news.rainbow = 1; }
     news.merchant = F.merchantMorning(fm, grade);
@@ -7260,6 +7383,12 @@ button.du-st:active { transform: translateY(2px); }
     const freePen = fm.pens.some((p) => !p.a);
     for (const [n, lv] of F.FEED_PACKS) out.push({ id: 'feed:' + n, tab: 'animals', e: F.FEED.e, name: `${n} bags of feed`, price: n * F.FEED.price[g], lv, note: `You have ${fm.feed} 🌾` });
     for (const [id, a] of Object.entries(F.ANIMALS)) out.push({ id: 'animal:' + id, tab: 'animals', e: a.e, name: a.name, price: a.cost[g], lv: a.lv, note: `${F.ITEMS[a.item].e} ${F.fmt(F.price(a.item, grade), grade)} each · eats ${a.eat} 🌾 a day`, blocked: !freePen && 'Sell animals to free a pen' });
+    for (const [a, h] of Object.entries(F.HOUSES)) out.push({ id: 'house:' + a, tab: 'animals', e: F.ANIMALS[a].e, name: h.name, price: h.cost[g], lv: h.lv, owned: !!(fm.yard || {})[a], note: `A little house for ${F.MYTHS[a].of}: no pen needed. Comes with one ${F.ANIMALS[a].name.toLowerCase()}.` });
+    for (const [a, h] of Object.entries(fm.yard || {})) {
+      const up = h.u < F.YARD_ROOM ? F.PEN_UP[h.u || 0] : null, A = F.ANIMALS[a];
+      if (up) out.push({ id: 'houseup:' + a, tab: 'up', e: A.e, name: `${F.HOUSES[a].name}: ${up.name}`, price: A.cost[g], lv: up.lv, note: up.note });
+      else out.push({ id: 'houseup:' + a, tab: 'up', e: A.e, name: `${F.HOUSES[a].name}: room for 3`, price: 0, lv: 1, owned: true });
+    }
     const nb = fm.beds.length, np = fm.pens.length;
     if (nb < F.BEDS.length) out.push({ id: 'bed', tab: 'farm', e: '🟫', name: 'Garden bed ' + (nb + 1), price: F.BEDS[nb][1 + g], lv: F.BEDS[nb][0], note: 'Grow more crops' });
     if (np < F.PENS.length) out.push({ id: 'pen', tab: 'farm', e: '🏡', name: 'Animal pen ' + (np + 1), price: F.PENS[np][1 + g], lv: F.PENS[np][0], note: 'Room for one more animal' });
@@ -7302,6 +7431,8 @@ button.du-st:active { transform: translateY(2px); }
     else if (kind === 'work') fm.works[arg] = { r: null, g: 0, ready: 0, out: '' };
     else if (kind === 'bedup') fm.beds[+arg].u = (fm.beds[+arg].u || 0) + 1;
     else if (kind === 'penup') fm.pens[+arg].u = (fm.pens[+arg].u || 0) + 1;
+    else if (kind === 'house') fm.yard[arg] = { a: arg, g: 0, fed: false, ready: 0, u: 0 };
+    else if (kind === 'houseup') fm.yard[arg].u = (fm.yard[arg].u || 0) + 1;
     else if (kind === 'helper') fm.helper = { hired: true, on: true };
     else if (kind === 'acct') fm.bank.acct = (fm.bank.acct || 0) + 1;
     if (fm.goal === id) fm.goal = '';
@@ -7629,7 +7760,7 @@ button.du-st:active { transform: translateY(2px); }
   // Sunshine Potion on a good farm at this level; the Golden Piggy at most (the big interest on a full account).
   F.charmGain = (id, fm, grade, a) => {
     const N = F.CHARM_NIGHTS, d = F.goodDay(F.level(fm.xp).level, grade);
-    if (id === 'myth') return N * (F.price(F.MYTHS[a].item, grade) - F.price(F.ANIMALS[a].item, grade)) * U.sum(fm.pens.filter((p) => p.a === a).map(F.penMakes));
+    if (id === 'myth') return N * (F.price(F.MYTHS[a].item, grade) - F.price(F.ANIMALS[a].item, grade)) * U.sum(F.allPens(fm).filter((p) => p.a === a).map(F.penMakes));
     if (id === 'clover') return Math.round(N * d.total * F.CHARMS.clover.tip);
     if (id === 'sun') return Math.round(N * d.crops);
     const top = F.bankTop(fm.bank.acct, grade);
@@ -7683,8 +7814,8 @@ button.du-st:active { transform: translateY(2px); }
   // Mythic Feed is for a kind of animal on the farm (grown-ups first), a different kind each time.
   F.merchantVisit = (fm, grade, w, n) => {
     const item = n % F.MERCHANT.rare === 1 ? F.nextTreasure(fm) : null;
-    const has = Object.keys(F.MYTHS).filter((a) => fm.pens.some((p) => p.a === a));
-    const grown = has.filter((a) => fm.pens.some((p) => p.a === a && F.animalStage(p) === 2));
+    const has = Object.keys(F.MYTHS).filter((a) => F.allPens(fm).some((p) => p.a === a));
+    const grown = has.filter((a) => F.allPens(fm).some((p) => p.a === a && F.animalStage(p) === 2));
     const kinds = (grown.length ? grown : has).sort((x, y) => F.charmGain('myth', fm, grade, y) - F.charmGain('myth', fm, grade, x));
     const a = kinds.length ? kinds[Math.floor(n / 2) % kinds.length] : null;
     let charms = F.CHARM_PAIRS[(n - 1) % F.CHARM_PAIRS.length];
@@ -7746,6 +7877,168 @@ button.du-st:active { transform: translateY(2px); }
   // How much to put aside each day to buy it before he leaves: today and every day left, in whole dollars (k: cents).
   F.perDayToSave = (need, nights, grade) => { const days = nights + 1, x = Math.ceil(need / days); return grade === 'k' ? x : Math.ceil(x / 100) * 100; };
 
+  // ---------------------------------------------------------------- the order board
+  // From farm level 5, people in town order things from the farm: "6 eggs and 2 glasses of milk by farm day 12".
+  // The board holds up to 3 orders, and a new one comes each morning when there is room. An order is made only of
+  // things this farm can make now (crops open at its level, the grown-up animals in its pens, its workshops, with
+  // what they need), in amounts it can make before the order ends: the nights it takes, plus 2 to spare (kindergarten 3). An order
+  // pays half as much again as the same things bring at the stand; every 4th one is a ⭐ big order from a special
+  // guest that pays double. What the orders need is kept in the basket (customers at the stand don't buy it), so
+  // the child collects for an order on purpose. Nothing is lost when an order ends or is turned down: a new one comes.
+  // orders = { seen, n: orders so far, list: [{ n, who, why, items: { item: count }, stand, pay, end (its last farm day), big }] }
+  F.ORDERS_LV = 5;
+  F.ORDER_SLOTS = 3;
+  F.ORDER_BIG = 4; // every 4th order is a big one
+  F.ORDER_SPARE = [3, 2]; // nights to spare (kindergarten: one more)
+  F.ORDER_MAX = 5; // nights of work at most (a big order: one more)
+  F.ORDER_WHY = ['for a picnic', 'for a birthday party', 'for the school lunch', 'for their café', 'for a family dinner', 'for a camping trip', 'for a bake sale', 'for a pajama party', 'for a soccer team snack'];
+  F.ORDER_WHY_BIG = ['for the town fair', 'for a royal party', 'for the big parade', 'for a wedding feast', 'for the harvest festival'];
+  F.ordersOpen = (fm) => F.level(fm.xp).level >= F.ORDERS_LV;
+  // An order pays the stand price and half as much again (a big order: twice the stand price); 2nd grade in 5¢ steps.
+  F.orderPay = (stand, big, grade) => { const x = stand * (big ? 2 : 1.5); return grade === 'k' ? Math.ceil(x) : Math.ceil(x / 5) * 5; };
+  F.standValue = (items, grade) => U.sum(Object.entries(items).map(([id, n]) => n * F.price(id, grade)));
+  // The most an order pays: the money of the hardest money problems open at this level (so the numbers are ones the
+  // child works with: 20¢ in kindergarten at level 5, $5 in 2nd grade at level 6 …).
+  F.orderCap = (fm, grade) => Math.max(...F.tiers(grade).filter((t) => t.lv <= F.level(fm.xp).level).map((t) => t.max));
+  // What this farm can make for an order. per: how many one garden bed (with the farm's poorest soil) or all the pens
+  // of a kind make; days: nights for one batch; made things need a workshop, and their inputs must come from this farm.
+  F.orderGoods = (fm) => {
+    const L = F.level(fm.xp).level, stars = Math.min(...fm.beds.map(F.bedStars)), out = {};
+    for (const [id, c] of Object.entries(F.CROPS)) if (c.lv <= L) out[id] = { id, kind: 'crop', per: c.yield + stars, days: c.days };
+    F.allPens(fm).forEach((p) => {
+      if (!p.a || F.animalStage(p) < 2) return;
+      const id = F.ANIMALS[p.a].item;
+      out[id] = out[id] ? Object.assign(out[id], { per: out[id].per + F.penMakes(p) }) : { id, kind: 'animal', a: p.a, per: F.penMakes(p), days: 1 };
+    });
+    for (const [w, W] of Object.entries(F.WORKS)) {
+      if (!(fm.works || {})[w]) continue;
+      for (const r of W.recipes) if (r.lv <= L && Object.keys(r.in).every((id) => out[id] && out[id].kind !== 'made')) out[r.out] = { id: r.out, kind: 'made', work: w, r, per: 1, days: r.days };
+    }
+    return out;
+  };
+  // Nights this farm needs to make everything in an order, starting with an empty basket: the crops (and the crops
+  // the workshops need) planted in all the beds at once, round after round; the animals' things day after day; then
+  // each workshop's batches one after another.
+  F.orderNights = (fm, items) => {
+    const goods = F.orderGoods(fm), need = {};
+    let made = 0;
+    const work = {};
+    for (const [id, n] of Object.entries(items)) {
+      const x = goods[id];
+      if (!x) return Infinity;
+      if (x.kind !== 'made') { need[id] = (need[id] || 0) + n; continue; }
+      work[x.work] = (work[x.work] || 0) + n * x.days;
+      for (const [i, k] of Object.entries(x.r.in)) need[i] = (need[i] || 0) + n * k;
+    }
+    made = Math.max(0, ...Object.values(work));
+    let beds = 0, days = 0, animals = 0;
+    for (const [id, n] of Object.entries(need)) {
+      const x = goods[id];
+      if (x.kind === 'crop') { beds += Math.ceil(n / x.per); days = Math.max(days, x.days); } else animals = Math.max(animals, Math.ceil(n / x.per));
+    }
+    return Math.max(beds ? Math.ceil(beds / fm.beds.length) * days : 0, animals) + made;
+  };
+  // A new order (number n): one or two kinds of things (kindergarten: one; a big order: two or three), at most the cap.
+  F.makeOrder = (fm, grade, n) => {
+    const k = grade === 'k', big = n % F.ORDER_BIG === 0, goods = Object.values(F.orderGoods(fm));
+    const busy = new Set(((fm.orders && fm.orders.list) || []).flatMap((o) => Object.keys(o.items))); // a different thing from the other orders
+    const pool = (kind) => { const all = goods.filter((x) => x.kind === kind), free = all.filter((x) => !busy.has(x.id)); return free.length ? free : all; };
+    const kinds = big ? (k ? 2 : U.rnd(2, 3)) : k ? 1 : U.rnd(1, 2);
+    const items = {};
+    for (let i = 0; i < kinds; i++) {
+      // crops, the animals' things and workshop goods, each often enough to show up
+      const roll = Math.random(), kind = roll < 0.4 ? 'crop' : roll < (k ? 0.85 : 0.75) ? 'animal' : 'made';
+      const list = pool(kind).filter((x) => !items[x.id]), x = U.pick(list.length ? list : goods.filter((g) => !items[g.id]));
+      if (!x) break;
+      // a bed's harvest or two (big: two or three); the animals' things of two or three days (big: three or four)
+      items[x.id] = x.kind === 'made' ? (big ? 2 : 1) : x.per * (x.kind === 'crop' ? (big ? U.rnd(2, 3) : U.rnd(1, 2)) : big ? U.rnd(3, 4) : U.rnd(2, 3));
+    }
+    // not more than the cap: take one off the thing worth the most, until it fits
+    const cap = F.orderCap(fm, grade);
+    while (Object.keys(items).length && F.orderPay(F.standValue(items, grade), big, grade) > cap) {
+      const id = Object.keys(items).sort((a, b) => items[b] * F.price(b, grade) - items[a] * F.price(a, grade))[0];
+      if (--items[id] <= 0) delete items[id];
+    }
+    // and not too long to wait for: at most 5 nights of work (a big order 6), taking off the most first
+    const goodsOf = F.orderGoods(fm);
+    while (Object.keys(items).length > 1 && F.orderNights(fm, items) > F.ORDER_MAX + (big ? 1 : 0)) {
+      const id = Object.keys(items).sort((a, b) => F.orderNights(fm, { [b]: items[b] }) - F.orderNights(fm, { [a]: items[a] }) || items[b] - items[a])[0];
+      items[id] -= goodsOf[id].per;
+      if (items[id] <= 0) delete items[id];
+    }
+    if (!Object.keys(items).length) items.carrot = Math.max(1, Math.floor(cap / F.orderPay(F.price('carrot', grade), big, grade)));
+    const stand = F.standValue(items, grade), used = new Set(((fm.orders && fm.orders.list) || []).map((o) => o.who[1]));
+    const who = U.pick((big ? F.VIPS : F.PEOPLE).filter((x) => !used.has(x[1])));
+    return { n, who, why: U.pick(big ? F.ORDER_WHY_BIG : F.ORDER_WHY), items, stand, pay: F.orderPay(stand, big, grade), end: fm.day + Math.max(3, F.orderNights(fm, items) + F.ORDER_SPARE[gi(grade)]), big };
+  };
+  F.addOrder = (fm, grade) => {
+    fm.orders.n++;
+    const o = F.makeOrder(fm, grade, fm.orders.n);
+    fm.orders.list.push(o);
+    return o;
+  };
+  // The first time the board opens: two orders to start with.
+  F.ordersStart = (fm, grade) => {
+    fm.orders.seen = true;
+    while (fm.orders.list.length < 2) F.addOrder(fm, grade);
+  };
+  // What the orders keep in the basket, order by order (the first order first): [{ o, have: { item: count }, ready }].
+  F.orderStatus = (fm) => {
+    const left = Object.assign({}, fm.basket);
+    return ((fm.orders && fm.orders.list) || []).map((o) => {
+      const have = {};
+      for (const [id, n] of Object.entries(o.items)) { have[id] = Math.min(n, left[id] || 0); left[id] = (left[id] || 0) - have[id]; }
+      return { o, have, ready: Object.entries(o.items).every(([id, n]) => have[id] >= n) };
+    });
+  };
+  F.kept = (fm) => { const out = {}; for (const s of F.orderStatus(fm)) for (const [id, n] of Object.entries(s.have)) if (n) out[id] = (out[id] || 0) + n; return out; };
+  // What customers at the stand (and the market truck) may buy: the basket without what the orders keep.
+  F.forSale = (fm) => { const kept = F.kept(fm), out = {}; for (const [id, n] of Object.entries(fm.basket)) if (n - (kept[id] || 0) > 0) out[id] = n - (kept[id] || 0); return out; };
+  F.saleCount = (fm) => U.sum(Object.values(F.forSale(fm)));
+  F.ordersReady = (fm) => F.orderStatus(fm).filter((s) => s.ready).map((s) => s.o);
+  F.orderXp = (o) => 5 + 3 * Object.keys(o.items).length + (o.big ? 5 : 0);
+  // Deliver an order: its things leave the basket, it pays. Returns the order (null when it isn't ready).
+  F.deliver = (fm, n) => {
+    const s = F.orderStatus(fm).find((x) => x.o.n === n);
+    if (!s || !s.ready) return null;
+    const o = s.o;
+    for (const [id, q] of Object.entries(o.items)) { fm.basket[id] -= q; if (!fm.basket[id]) delete fm.basket[id]; fm.stats.sold += q; }
+    fm.money += o.pay;
+    fm.stats.earned += o.pay;
+    fm.stats.orders = (fm.stats.orders || 0) + 1;
+    fm.stats.orderPay = (fm.stats.orderPay || 0) + o.pay;
+    fm.stats.orderExtra = (fm.stats.orderExtra || 0) + o.pay - o.stand;
+    fm.orders.list = fm.orders.list.filter((x) => x !== o);
+    return o;
+  };
+  // "No, thank you": the order is gone; a new one comes in the morning.
+  F.dropOrder = (fm, n) => { const before = fm.orders.list.length; fm.orders.list = fm.orders.list.filter((o) => o.n !== n); return fm.orders.list.length < before; };
+  // Each morning (from F.nextDay): orders whose last day was yesterday end, and a new one comes if there is room.
+  // Returns { gone, added, last (orders on their last day) } for the morning card, or null when the board isn't open.
+  F.ordersMorning = (fm, grade) => {
+    if (!fm.orders || !F.ordersOpen(fm)) return null;
+    const gone = fm.orders.list.filter((o) => o.end < fm.day);
+    fm.orders.list = fm.orders.list.filter((o) => o.end >= fm.day);
+    const added = fm.orders.list.length < F.ORDER_SLOTS ? F.addOrder(fm, grade) : null;
+    return { gone, added, last: fm.orders.list.filter((o) => o.end === fm.day && o !== added) };
+  };
+  // The question when an order is delivered. Kindergarten and the first two tiers count the money it pays with;
+  // from the third tier: how much more does the order pay than the stand?
+  F.orderQuestion = (o, grade, tierNo) => {
+    const fmt = (c) => F.fmt(c, grade), ts = F.tiers(grade);
+    const what = Object.entries(o.items).map(([id, n]) => things(id, n)).join(' and ');
+    const tags = `<div class="ftags">${Object.entries(o.items).map(([id, n]) => `<span class="ftag">${n} × ${F.ie(id)} ${fmt(F.price(id, grade))}</span>`).join('')}</div>`;
+    const base = { type: 'order', who: o.who, sale: {}, total: 0 };
+    if (tierNo < 3) {
+      const t = ts.find((x) => x.max >= o.pay) || ts[ts.length - 1];
+      const coins = F.coinsFor(o.pay, t.coins) || F.fewest(o.pay, t.coins);
+      return ask(Object.assign(base, { text: `takes the order: <b>${what}</b>, and pays with these. How much money is it?`, visual: MQ.V.coins(coins, grade === 'k' || tierNo === 1), hint: 'Start with the money worth the most, then count on.', explain: `${coins.map((k) => fmt(F.COINV[k])).join(' + ')} = ${fmt(o.pay)}` }), o.pay, grade);
+    }
+    const more = o.pay - o.stand;
+    const p = Object.assign(base, { text: `takes the order: <b>${what}</b>, and pays <b>${fmt(o.pay)}</b>. At your stand the same things bring <b>${fmt(o.stand)}</b>. How much <b>more</b> does the order pay?`, visual: tags + `<div class="ftags"><span class="ftag">🏪 ${fmt(o.stand)}</span><b>→</b><span class="ftag">📋 ${fmt(o.pay)}</span></div>`, hint: `Count up from ${fmt(o.stand)} to ${fmt(o.pay)}.`, explain: `${fmt(o.pay)} − ${fmt(o.stand)} = ${fmt(more)}` });
+    return grade === 'k' || more < 100 ? Object.assign(p, { kind: 'num', answer: more, unit: '¢' }) : Object.assign(p, { kind: 'choice', answer: fmt(more), choices: F.moneyChoices(more, grade, [o.pay + o.stand, o.stand, o.pay]) });
+  };
+
   // ---------------------------------------------------------------- grown-up preview
   // The farm of a level-60 farmer, to look around in the grown-up preview (a copy of the profile; nothing is saved):
   // everything open and owned, plenty of money, crops and animals at every stage, a full basket, a bank day waiting.
@@ -7757,7 +8050,7 @@ button.du-st:active { transform: translateY(2px); }
       xp, money: k ? 5000 : 100000, feed: 200, stand: F.STANDS.length - 1, tier: F.tiers(g).length, goal: '',
       beds: ['carrot', 'tomato', 'corn', 'pumpkin', 'strawberry', 'pineapple'].map((c, i) => ({ c, u: [0, 1, 2, 3, 5, 6][i], g: i % 2 ? 0 : 9 })),
       pens: ['chicken', 'cow', 'bees', 'fishpond', 'sheep', 'unicorn'].map((a, i) => ({ a, g: i === 5 ? 0 : 9, fed: i % 3 === 0, ready: i % 2 ? 3 : 0, u: i % 4 })),
-      basket: {}, owned: {}, works: {},
+      basket: {}, owned: {}, works: {}, yard: {},
       helper: { hired: true, on: false },
       day: 14,
       bank: { bal: k ? 1234 : 12345, acct: 1, log: [], pend: [{ day: 14, bal: k ? 1234 : 12345 }] }, // above the Silver limit: both rates
@@ -7770,7 +8063,18 @@ button.du-st:active { transform: translateY(2px); }
     fm.merchant = F.merchantVisit(fm, g, 2, 3);
     fm.charms = { clover: { cost: k ? 30 : 900, until: 18, gain: k ? 12 : 640 }, myth: { a: 'cow', cost: k ? 60 : 2400, until: 17, gain: k ? 33 : 1750 } };
     fm.pens[1].rare = 2;
+    // the whole barnyard: babies, hungry, fed and with eggs to collect
+    Object.keys(F.HOUSES).forEach((a, i) => { fm.yard[a] = { a, g: i === 4 ? 0 : 9, fed: i % 2 === 0, ready: i % 3 === 1 ? 2 : 0, u: i % 3 }; });
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
+    // three orders on the board: one ready to deliver, a ⭐ big one, and one more
+    fm.orders = { seen: true, n: 0, list: [] };
+    const o = F.addOrder(fm, g);
+    o.items = { egg: 2, honey: 1 };
+    Object.assign(o, { stand: F.standValue(o.items, g), end: fm.day + 3 });
+    o.pay = F.orderPay(o.stand, o.big, g);
+    fm.orders.n = F.ORDER_BIG - 1;
+    F.addOrder(fm, g);
+    F.addOrder(fm, g);
     for (const id of Object.keys(F.DECOR)) fm.owned[id] = true;
     Object.keys(F.WORKS).forEach((id, i) => { fm.works[id] = i % 2 ? { r: null, g: 0, ready: 1, out: F.WORKS[id].recipes[0].out } : { r: null, g: 0, ready: 0, out: '' }; });
     return fm;
@@ -9160,6 +9464,22 @@ button.du-st:active { transform: translateY(2px); }
     const left = myth ? fmNow.charms.myth.until - fmNow.day : 0;
     return `<button class="fpen pasture ${state} s${sg} a-${p.a}${myth ? ' myth' : ''}" data-act="fPen" data-arg="${i}" aria-label="${esc(label)}">${who}${sparkle}${loot}${myth ? `<span class="mytag" title="${esc(myth.many)}: ${left} ${left === 1 ? 'night' : 'nights'} left">🌟 ${left}</span>` : ''}<span class="trough ${p.fed ? 'full' : ''}"></span>${(p.u || 0) >= 3 ? '<span class="cozy" title="Cozy barn">🛖</span>' : ''}<span class="pchip">${chip}</span><span class="flabel">${age}${many > 1 ? ' × ' + many : ''}</span></button>`;
   }
+  // The barnyard: a little house for each kind of small animal (built, open to build, or opening at a later level).
+  function houseHtml(a) {
+    const H = F.HOUSES[a], A = F.ANIMALS[a], p = (fmNow.yard || {})[a], L = F.level(fmNow.xp).level;
+    if (!p) {
+      const open = H.lv <= L;
+      return `<button class="fhouse ${open ? 'buy' : 'later'}" data-act="${open ? 'fYardShop' : 'fHouseLater'}" data-arg="${a}" aria-label="${esc(H.name)}: ${open ? 'build it in the shop' : 'opens at level ' + H.lv}"><span class="hroof"></span><span class="hwho">${A.e}</span><span class="hbadge">${open ? '＋' : '🔒 ' + H.lv}</span></button>`;
+    }
+    const sg = F.animalStage(p), ready = F.penReady(p), many = F.penCount(p), got = F.penLoot(p);
+    const myth = F.mythOn(fmNow, a) && MQ.mythArt;
+    const e = myth ? MQ.mythArt(a, { aura: false }) : sg === 0 ? A.baby : WALK[a] || A.e;
+    const who = Array.from({ length: many }, (_, k) => `<span class="hwalk ${SIDE.has(A.e) ? 'side' : ''}" style="--k:${k}"><span class="bob">${e}</span></span>`).join('');
+    const state = ready ? 'ready' : p.fed ? 'fed' : 'hungry';
+    const badge = ready ? got.map(([id, n]) => `${F.ie(id)}${n}`).join(' ') : p.fed ? '❤️' : `🌾${F.penEat(p)}`;
+    const label = `${esc(H.name)}: ${many > 1 ? many + ' ' : ''}${esc(F.MYTHS[a].of)}, ${['baby', 'young', 'grown-up'][sg]}: ${ready ? 'things to collect' : p.fed ? 'fed' : 'hungry'}`;
+    return `<button class="fhouse ${state} s${sg}${myth ? ' myth' : ''}" data-act="fHouse" data-arg="${a}" aria-label="${label}"><span class="hroof"></span><span class="hwho">${who}</span><span class="hbadge">${badge}</span></button>`;
+  }
   function workHtml(id) {
     const W = F.WORKS[id], w = fmWorks[id];
     // a small house: the workshop sign, and a badge with what it is doing
@@ -9199,7 +9519,7 @@ button.du-st:active { transform: translateY(2px); }
     const yard = at('yard').map((id) => `<span class="deco d-${id}" style="left:${SPOTS[id][1]}%" title="${esc(F.DECOR[id].name)}">${F.DECOR[id].e}</span>`).join('');
     const park = at('park').map((id) => `<span class="pk d-${id}" title="${esc(F.DECOR[id].name)}">${F.DECOR[id].e}</span>`).join('');
     const works = Object.keys(fmWorks).filter((id) => F.WORKS[id]);
-    const stand = F.STANDS[fm.stand], n = F.basketCount(fm);
+    const stand = F.STANDS[fm.stand], n = F.saleCount(fm); // what the orders keep isn't for sale
     return `<section class="scene${F.charmOn(fm, 'sun') ? ' sun-on' : ''}" aria-label="Your farm">
       <div class="sky">
         <span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>${sky.join('')}
@@ -9209,6 +9529,7 @@ button.du-st:active { transform: translateY(2px); }
       <div class="land">
         <div class="beds">${fm.beds.map(bedHtml).join('')}${has('scarecrow') ? '<span class="scarecrow" title="Scarecrow">🧑‍🌾</span>' : ''}</div>
         <div class="pens">${fm.pens.map(penHtml).join('')}</div>
+        ${F.yardOpen(fm) || Object.keys(fm.yard || {}).length ? `<div class="byard" aria-label="Barnyard">${Object.keys(F.HOUSES).map(houseHtml).join('')}</div>` : ''}
         ${works.length ? `<div class="works">${works.map(workHtml).join('')}</div>` : ''}
         <div class="yard">
           <button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
@@ -9365,21 +9686,25 @@ button.du-st:active { transform: translateY(2px); }
   function tipText() {
     const f = fm();
     const cheapest = Math.min(...Object.entries(F.CROPS).filter(([, c]) => c.lv <= F.level(f.xp).level).map(([id]) => F.seedPrice(id, grade())));
-    const hungry = f.pens.filter((p) => p.a && !p.fed);
+    const all = F.allPens(f), hungry = all.filter((p) => p.a && !p.fed);
+    // a crop an order still needs that isn't growing anywhere: [order, crop]
+    const needCrop = F.orderStatus(f).flatMap(({ o, have }) => Object.keys(o.items).filter((id) => F.CROPS[id] && have[id] < o.items[id] && !f.beds.some((b) => b.c === id)).map((id) => [o, id]))[0];
     let t;
     if (F.bankDue(f) > 0) t = 'It’s bank day! Your savings grew. Go to the bank to collect the interest.';
     else if (F.depositReady(f)) t = 'Your locked deposit unlocked! Go to the bank to collect it. 🔓';
     else if (F.canBuild(f, grade())) t = 'You saved enough in the bank for your Big Dream! Pay the builders 🏗️';
     else if (F.merchantHas(f) && F.merchantNights(f.day) <= 1) t = `${F.MERCHANT.name} the traveling merchant leaves ${F.merchantNights(f.day) ? 'tomorrow night' : 'tonight'}! Tap his wagon.`;
+    else if (F.ordersReady(f).length) t = `${F.ordersReady(f)[0].who[1]}’s order is ready! Tap it in 📋 Orders to deliver it.`;
     else if (Object.values(f.works).some((w) => w.ready)) t = 'Something is ready in your workshop! Tap it to take it.';
     else if (f.beds.some((b) => F.cropStage(b) === 'ready')) t = 'Your crops are ripe! Tap them to pick them.';
-    else if (f.pens.some((p) => F.penReady(p))) t = f.pens.some((p) => p.rare) ? 'Your mythic animals made something rare! Tap them to collect it. 🌟' : 'Your animals made something! Tap them to collect it.';
+    else if (all.some((p) => F.penReady(p))) t = all.some((p) => p.rare) ? 'Your mythic animals made something rare! Tap them to collect it. 🌟' : 'Your animals made something! Tap them to collect it.';
     else if (hungry.length && f.feed >= F.penEat(hungry[0])) t = 'Feed your animals before bed, so they grow and make things to sell.';
     else if (hungry.length) t = 'Out of feed! Buy feed 🌾 in the shop.';
     else if (Object.entries(f.works).some(([id, w]) => w.r === null && F.WORKS[id].recipes.some((r, i) => F.canMake(f, id, i)))) t = 'You have what a workshop needs. Make something worth more!';
-    else if (F.basketCount(f)) t = 'Your basket is full of good things. Open the stand and sell them!';
+    else if (needCrop && f.beds.some((b) => !b.c) && f.money >= F.seedPrice(needCrop[1], grade())) t = `${needCrop[0].who[1]}’s order needs ${F.ITEMS[needCrop[1]].e} ${F.ITEMS[needCrop[1]].many}. Plant some in an empty bed!`;
+    else if (F.saleCount(f)) t = 'Your basket is full of good things. Open the stand and sell them!';
     else if (f.beds.some((b) => !b.c) && f.money >= cheapest) t = 'An empty garden bed! Tap it to plant seeds.';
-    else if (f.beds.some((b) => b.c) || f.pens.some((p) => p.a && p.fed)) t = 'All done for today. Tap 🌙 Sleep to start a new day.';
+    else if (f.beds.some((b) => b.c) || all.some((p) => p.a && p.fed)) t = 'All done for today. Tap 🌙 Sleep to start a new day.';
     else t = 'Need money? Do odd jobs at the big market.';
     return t;
   }
@@ -9411,9 +9736,9 @@ button.du-st:active { transform: translateY(2px); }
     const f = fm(), g = grade();
     const lv = F.level(f.xp), pctv = Math.round(((f.xp - lv.from) / (lv.to - lv.from)) * 100);
     const tiers = F.tiers(g), tier = tiers[Math.min(f.tier, tiers.length) - 1];
-    const n = F.basketCount(f);
-    const basket = Object.entries(f.basket).filter(([, c]) => c > 0).map(([id, c]) => `<span class="fchip ${F.ITEMS[id].myth ? 'myth' : ''}">${F.ie(id)} ${c} <small>× ${fmt(F.price(id, g))}</small></span>`).join('') || '<span class="muted">Empty. Pick crops and collect from animals.</span>';
-    const hungry = f.pens.some((p) => p.a && !p.fed), ready = f.pens.some((p) => F.penReady(p));
+    const n = F.saleCount(f), all = F.basketCount(f), kept = F.kept(f);
+    const basket = Object.entries(f.basket).filter(([, c]) => c > 0).map(([id, c]) => `<span class="fchip ${F.ITEMS[id].myth ? 'myth' : ''}">${F.ie(id)} ${c} <small>× ${fmt(F.price(id, g))}</small>${kept[id] ? `<small class="fkept" title="${kept[id]} kept for your orders">📋 ${kept[id]}</small>` : ''}</span>`).join('') || '<span class="muted">Empty. Pick crops and collect from animals.</span>';
+    const hungry = F.allPens(f).some((p) => p.a && !p.fed), ready = F.allPens(f).some((p) => F.penReady(p));
     const ripe = f.beds.filter((b) => F.cropStage(b) === 'ready').length, empty = F.emptyBeds(f).length;
     const bankDay = F.bankDue(f) > 0, nights = F.nightsToBankDay(f.day);
     K().render(header('🌻 Sunny Farm') + `<main class="farm">
@@ -9428,8 +9753,9 @@ button.du-st:active { transform: translateY(2px); }
       ${merchantCard()}
       ${charmStrip()}
       ${bankDay ? `<button class="fbankday" data-act="go" data-arg="farm:bank">🏦 <b>Bank day!</b> Your savings earned interest. Tap to collect it.</button>` : ''}
+      ${orderStrip()}
       ${tipLine()}
-      <button class="btn big fstand" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Open the stand ${n ? `· ${n} to sell` : '· basket is empty'}</button>
+      <button class="btn big fstand" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Open the stand ${n ? `· ${n} to sell` : all ? '· all kept for orders' : '· basket is empty'}</button>
       <div class="fbtns">
         <button class="tile" data-act="go" data-arg="farm:shop"><span class="ti">🛒</span><b>Shop</b><small>Animals, feed, more</small></button>
         ${lv.level >= F.BANK_LV ? `<button class="tile ${bankDay ? 'hot' : ''}" data-act="go" data-arg="farm:bank"><span class="ti">🏦</span><b>Bank</b><small>${bankDay ? '🏦 Bank day today!' : F.depositReady(f) ? '🔓 Deposit unlocked!' : f.bank.bal ? `${fmt(f.bank.bal)} · 🏦 in ${nights} ${nights === 1 ? 'night' : 'nights'}` : 'Save and earn'}</small></button>` : `<button class="tile locked" disabled><span class="ti">🏦</span><b>Bank</b><small>🔒 Level ${F.BANK_LV}</small></button>`}
@@ -9440,12 +9766,13 @@ button.du-st:active { transform: translateY(2px); }
       ${f.helper.hired ? `<div class="fhelp">🧑‍🌾 <span>Farmhand ${F.HELPER.name} ${f.helper.on ? `feeds the animals at night and collects in the morning · ${fmt(F.HELPER.wage[g === 'k' ? 0 : 1])} a day` : 'is taking a break'}</span><button class="btn ghost" data-act="fHelper">${f.helper.on ? 'Pause' : 'Back to work'}</button></div>` : ''}
       <h2>🧺 Basket</h2>
       <div class="fbasket" id="fbasket">${basket}</div>
+      ${Object.keys(kept).length ? '<p class="muted small">📋 = kept for your orders: customers at the stand don’t buy it.</p>' : ''}
       <p class="muted center">Sold ${f.stats.sold} things · earned ${fmt(f.stats.earned)} in all</p>
     </main>
     <nav class="fdock" aria-label="Farm resources and quick actions"><div class="fdock-in">
       <div class="fdock-row">
         <span class="fstat" id="fdmoney" title="Money">💰 <b>${fmt(f.money)}</b></span>
-        <span class="fstat" id="fdbasket" title="In the basket">🧺 <b>${n}</b></span>
+        <span class="fstat" id="fdbasket" title="In the basket">🧺 <b>${all}</b></span>
         <span class="fstat" id="ffeed" title="Feed">🌾 <b>${f.feed}</b></span>
         <button class="btn fsell" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Sell</button>
       </div>
@@ -9458,8 +9785,9 @@ button.du-st:active { transform: translateY(2px); }
       </div>` : ''}
     </div></nav>`, 'is-farm');
     K().setCur('farm');
-    dockChanges({ money: f.money, basket: n, feed: f.feed });
+    dockChanges({ money: f.money, basket: all, feed: f.feed });
     if (F.dreamOpen(f) && !f.dream.seen && !MQ.store.preview) setTimeout(() => { if (!$('#modal') && $('.fdream')) dreamIntro(); }, 500);
+    else if (F.ordersOpen(f) && !f.orders.seen && !MQ.store.preview) setTimeout(() => { if (!$('#modal') && $('.scene') && !fs) orderIntro(); }, 500);
   }
   // The dock numbers bump and show "+3" / "−2" when they change (after the things have flown there).
   let lastDock = null;
@@ -9560,11 +9888,22 @@ button.du-st:active { transform: translateY(2px); }
     got.forEach(([r, e, n], k) => { SC.flyMany(e, Math.min(n, 4), r, '#fdbasket', { delay: k * 150 }); SC.floatText(r, `+${n} ${e}`, { delay: k * 150 }); });
   }
   const penEl = (i) => document.querySelector(`.fpen[data-arg="${i}"]`);
+  const houseEl = (a) => document.querySelector(`.fhouse[data-arg="${a}"]`);
+  // Every pen and house with animals, with how to find it on the screen: [{ p, el, i (a pen) or a (a house) }]
+  const animalPlaces = () => { const f = fm(); return f.pens.map((p, i) => ({ p, i, el: () => penEl(i) })).concat(Object.entries(f.yard || {}).map(([a, p]) => ({ p, a, el: () => houseEl(a) }))).filter((x) => x.p && x.p.a); };
   function pen(i, el) {
-    const f = fm(), p = f.pens[i];
-    if (!p || !p.a) return;
+    const p = fm().pens[i];
+    if (p && p.a) animals({ p, i, el: () => penEl(i) }, el);
+  }
+  function house(a, el) {
+    const p = (fm().yard || {})[a];
+    if (p) animals({ p, a, el: () => houseEl(a) }, el);
+  }
+  // A tap on a pen or a house: collect what the animals made, or feed them, or see how they are doing.
+  function animals(w, el) {
+    const f = fm(), p = w.p, where = w.a ? `this ${F.HOUSES[w.a].name.toLowerCase()}` : 'this pen';
     if (F.penReady(p)) {
-      const loot = F.penLoot(p), ic = F.ie(loot[0][0]), n = F.collect(f, i), from = el && el.getBoundingClientRect();
+      const loot = F.penLoot(p), ic = F.ie(loot[0][0]), n = F.collectPen(f, p), from = el && el.getBoundingClientRect();
       MQ.sfx(p.a && loot[0][0] !== F.ANIMALS[p.a].item ? 'shimmer' : 'correct');
       xp(1);
       save();
@@ -9574,30 +9913,31 @@ button.du-st:active { transform: translateY(2px); }
       return;
     }
     const eat = F.penEat(p);
-    const r = F.feed(f, i);
+    const r = F.feedPen(f, p);
     if (r === 'ok') {
       MQ.sfx('tap');
       const from = $('#ffeed') && $('#ffeed').getBoundingClientRect();
       save();
       redraw();
-      const to = penEl(i);
-      SC.fly('🌾', from, to, { land: () => { MQ.sfx('correct'); SC.burst(penEl(i)); hop(i); SC.floatText(penEl(i), `−${eat} 🌾`, { minus: true }); } });
+      SC.fly('🌾', from, w.el(), { land: () => { MQ.sfx('correct'); SC.burst(w.el()); hop(w.el()); SC.floatText(w.el(), `−${eat} 🌾`, { minus: true }); } });
       return;
     }
-    if (r === 'nofeed') return K().modal(`<div class="bigemoji">🌾</div><div class="mtitle">Not enough feed</div><p>${F.penCount(p) > 1 ? F.penCount(p) + ' × ' : ''}${esc(F.ANIMALS[p.a].name)} ${F.penCount(p) > 1 ? 'eat' : 'eats'} ${F.penEat(p)} 🌾 a day. You have ${f.feed}.</p><div class="row"><button class="btn ghost" data-act="closeModal">Later</button><button class="btn ghost" data-act="fSellAsk" data-arg="${i}">💰 Sell</button><button class="btn" data-act="go" data-arg="farm:shop">Buy feed</button></div>`);
+    const sell = w.a ? '' : `<button class="btn ghost" data-act="fSellAsk" data-arg="${w.i}">💰 Sell</button>`;
+    if (r === 'nofeed') return K().modal(`<div class="bigemoji">🌾</div><div class="mtitle">Not enough feed</div><p>${F.penCount(p) > 1 ? F.penCount(p) + ' × ' : ''}${esc(F.ANIMALS[p.a].name)} ${F.penCount(p) > 1 ? 'eat' : 'eats'} ${F.penEat(p)} 🌾 a day. You have ${f.feed}.</p><div class="row"><button class="btn ghost" data-act="closeModal">Later</button>${sell}<button class="btn" data-act="go" data-arg="farm:shop">Buy feed</button></div>`);
     const a = F.ANIMALS[p.a], sg = F.animalStage(p);
     const k = F.penMakes(p), cnt = F.penCount(p);
     if (F.mythOn(f, p.a)) { // a Mythic Feed week
       const M = F.MYTHS[p.a], left = f.charms.myth.until - f.day;
       return K().modal(`<div class="tcard c-myth"><div class="dbuilt-rays"></div><div class="tpic">${MQ.mythArt(p.a)}</div><div class="mtitle">🌟 ${cnt > 1 ? cnt + ' × ' : ''}${esc(cnt > 1 ? M.many : M.name)}</div>
-        <p>${sg < 2 ? `Grows up after ${a.grow[1] - p.g} more fed ${a.grow[1] - p.g === 1 ? 'day' : 'days'}. Then this pen gives ${k} ${F.ITEMS[M.item].e} ${esc(F.ITEMS[M.item].many)} every day it is fed.` : `This pen gives ${k} ${F.ITEMS[M.item].e} ${esc(k === 1 ? F.ITEMS[M.item].name : F.ITEMS[M.item].many)} every morning after a day it was fed: ${fmt(F.price(M.item, grade()))} each!`}</p>
+        <p>${sg < 2 ? `Grows up after ${a.grow[1] - p.g} more fed ${a.grow[1] - p.g === 1 ? 'day' : 'days'}. Then ${where} gives ${k} ${F.ITEMS[M.item].e} ${esc(F.ITEMS[M.item].many)} every day it is fed.` : `${cap(where)} gives ${k} ${F.ITEMS[M.item].e} ${esc(k === 1 ? F.ITEMS[M.item].name : F.ITEMS[M.item].many)} every morning after a day it was fed: ${fmt(F.price(M.item, grade()))} each!`}</p>
         <p class="muted">The Mythic Feed works ${left === 1 ? 'one more night' : `${left} more nights`}. Already fed today: tap 🌙 Sleep.</p></div><div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
     }
-    K().modal(`<div class="bigemoji">${sg ? a.e : a.baby}</div><div class="mtitle">${cnt > 1 ? cnt + ' × ' : ''}${esc(a.name)}</div><p>${sg < 2 ? `Grows up after ${a.grow[1] - p.g} more fed ${a.grow[1] - p.g === 1 ? 'day' : 'days'}. Then this pen gives ${k} ${F.ITEMS[a.item].e} every day it is fed.` : `This pen gives ${k} ${F.ITEMS[a.item].e} every morning after a day it was fed.`}</p><p class="muted">Already fed today. Tap 🌙 Sleep for a new day.</p><div class="row"><button class="btn ghost" data-act="fUpgrades">⬆️ Upgrades</button><button class="btn ghost" data-act="fSellAsk" data-arg="${i}">💰 Sell</button><button class="btn" data-act="closeModal">OK</button></div>`);
+    const room = w.a && cnt < 1 + F.YARD_ROOM ? `<p class="muted">Room for ${cnt + 1}: ⬆️ Upgrades in the shop.</p>` : '';
+    K().modal(`<div class="bigemoji">${sg ? a.e : a.baby}</div><div class="mtitle">${w.a ? `${esc(F.HOUSES[w.a].name)} · ` : ''}${cnt > 1 ? cnt + ' × ' : ''}${esc(a.name)}</div><p>${sg < 2 ? `Grows up after ${a.grow[1] - p.g} more fed ${a.grow[1] - p.g === 1 ? 'day' : 'days'}. Then ${where} gives ${k} ${F.ITEMS[a.item].e} every day it is fed.` : `${cap(where)} gives ${k} ${F.ITEMS[a.item].e} every morning after a day it was fed.`}</p>${room}<p class="muted">Already fed today. Tap 🌙 Sleep for a new day.</p><div class="row"><button class="btn ghost" data-act="fUpgrades">⬆️ Upgrades</button>${sell}<button class="btn" data-act="closeModal">OK</button></div>`);
   }
-  // a quick happy jump of the animal in pen i
-  function hop(i) {
-    const w = penEl(i) && penEl(i).querySelector('.bob, .bee');
+  // a quick happy jump of the animal in a pen or a house
+  function hop(el) {
+    const w = el && el.querySelector('.bob, .bee');
     if (!w) return;
     w.classList.remove('hop');
     void w.offsetWidth;
@@ -9606,16 +9946,16 @@ button.du-st:active { transform: translateY(2px); }
   function feedAll() {
     const f = fm(), from = $('#ffeed') && $('#ffeed').getBoundingClientRect(), fedNow = [];
     let short = 0;
-    f.pens.forEach((p, i) => { if (!p.a || p.fed) return; F.feed(f, i) === 'ok' ? fedNow.push(i) : short++; });
+    animalPlaces().forEach((w) => { if (w.p.fed) return; F.feedPen(f, w.p) === 'ok' ? fedNow.push(w) : short++; });
     if (fedNow.length) MQ.sfx('tap');
     if (short) K().toast(`Not enough feed for ${short} more ${short === 1 ? 'animal' : 'animals'}: buy 🌾 in the shop.`);
     save();
     redraw();
-    fedNow.forEach((i, k) => SC.fly('🌾', from, penEl(i), { delay: k * 140, land: () => { SC.burst(penEl(i), '❤️', 2); hop(i); SC.floatText(penEl(i), `−${F.penEat(f.pens[i])} 🌾`, { minus: true }); } }));
+    fedNow.forEach((w, k) => SC.fly('🌾', from, w.el(), { delay: k * 140, land: () => { SC.burst(w.el(), '❤️', 2); hop(w.el()); SC.floatText(w.el(), `−${F.penEat(w.p)} 🌾`, { minus: true }); } }));
   }
   function collectAll() {
     const f = fm(), got = [];
-    f.pens.forEach((p, i) => { if (F.penReady(p)) { const r = penEl(i).getBoundingClientRect(), e = F.ie(F.penLoot(p)[0][0]); got.push([r, e, F.collect(f, i)]); } });
+    animalPlaces().forEach((w) => { if (F.penReady(w.p)) { const r = w.el().getBoundingClientRect(), e = F.ie(F.penLoot(w.p)[0][0]); got.push([r, e, F.collectPen(f, w.p)]); } });
     const n = U.sum(got.map((x) => x[2]));
     MQ.sfx('correct');
     xp(n);
@@ -9641,6 +9981,7 @@ button.du-st:active { transform: translateY(2px); }
     if (news.bankDay) lines.push('🏦 It’s bank day! Your savings earned interest: go to the bank to collect it.');
     if (news.depReady) lines.push(`🔓 Your locked deposit unlocked: <b>${fmt(news.depReady)}</b> is waiting at the bank!`);
     if (news.depNew) lines.push(`<span class="mline">🏦 New at the bank: a <b>locked deposit</b>. Your savings are above ${fmt(F.bankTop(f.bank.acct, grade()))}: lock some, and every $5 comes back as $6!</span>`);
+    lines.push(...orderLines(news.orders));
     if (news.gold) lines.push(`🪿 The Golden Goose laid a golden egg: <b>+${fmt(news.gold)}</b> in your wallet!`);
     if (news.rainbow) lines.push('🐑 The Rainbow Sheep gave a ball of 🌈 rainbow wool. It is in your basket.');
     if (news.fairy) lines.push(`🧚 The Feed Fairy fed your hungry ${esc(news.fairy.map((a) => F.ANIMALS[a].name.toLowerCase()).join(' and '))}.`);
@@ -9825,6 +10166,88 @@ button.du-st:active { transform: translateY(2px); }
     show(p);
   }
 
+  // ---------------------------------------------------------------- the order board
+  // How long an order stays: days left, counting today (its last farm day: "Last day!").
+  const daysLeft = (o) => o.end - fm().day + 1;
+  const leftText = (o) => { const d = daysLeft(o); return d <= 1 ? 'Last day!' : `${d} days left`; };
+  const itemWord = (id, n) => esc(n === 1 ? F.ITEMS[id].name : F.ITEMS[id].many);
+  // On the farm: the orders, small, with how much of each thing is in the basket (tap: the board opens).
+  function orderStrip() {
+    const f = fm();
+    if (!F.ordersOpen(f) || !f.orders.seen) return '';
+    const all = F.orderStatus(f);
+    const card = ({ o, have, ready }) => `<button class="forder ${ready ? 'ready' : ''} ${o.big ? 'big' : ''}" data-act="fOrders" aria-label="${esc(o.who[1])}'s order${ready ? ': ready to deliver' : ''}">
+      <span class="fo-who">${o.who[0]}</span>
+      <span class="fo-need">${Object.entries(o.items).map(([id, n]) => `<span class="${have[id] >= n ? 'have' : ''}">${F.ie(id)} ${have[id]}/${n}</span>`).join('')}</span>
+      <span class="fo-foot"><b>${fmt(o.pay)}</b><small>${ready ? '📦 Deliver!' : leftText(o)}</small></span></button>`;
+    return `<section class="forders" aria-label="Order board"><div class="fo-head"><b>📋 Orders</b><small>${all.some((x) => x.ready) ? 'Ready to deliver! Tap it.' : 'They pay more than your stand'}</small></div>
+      ${all.length ? `<div class="fo-row">${all.map(card).join('')}</div>` : '<p class="muted">No orders now. A new one comes tomorrow morning.</p>'}</section>`;
+  }
+  // Where a missing thing comes from on this farm.
+  function fromWhere(id) {
+    const x = F.orderGoods(fm())[id];
+    if (!x) return 'your farm doesn’t make this now';
+    if (x.kind === 'crop') return `🌱 plant ${esc(F.ITEMS[id].many)}`;
+    if (x.kind === 'animal') return `from your ${F.ANIMALS[x.a].e} ${esc(F.ANIMALS[x.a].name.toLowerCase())} pen`;
+    return `${F.WORKS[x.work].e} make it in the ${esc(F.WORKS[x.work].name.toLowerCase())}`;
+  }
+  function orders() {
+    const f = fm(), all = F.orderStatus(f);
+    const cards = all.map(({ o, have, ready }) => `<div class="ocard ${ready ? 'ready' : ''} ${o.big ? 'big' : ''}">
+      <div class="oc-head"><span class="oc-who">${o.who[0]}</span><span class="oc-t"><b>${esc(o.who[1])}</b><small>${esc(o.why)}</small></span><span class="oc-left ${daysLeft(o) <= 1 ? 'last' : ''}">📅 ${leftText(o)}</span></div>
+      ${o.big ? '<div class="oc-big">⭐ Big order: pays double!</div>' : ''}
+      <ul class="oc-items">${Object.entries(o.items).map(([id, n]) => `<li class="${have[id] >= n ? 'have' : ''}"><span class="oc-e">${F.ie(id)}</span><span>${n} ${itemWord(id, n)}${have[id] >= n ? '' : `<small>${fromWhere(id)}</small>`}</span><b>${have[id] >= n ? '✓' : `${have[id]} / ${n}`}</b></li>`).join('')}</ul>
+      <div class="oc-pay">Pays <b>${fmt(o.pay)}</b><small>At your stand: ${fmt(o.stand)} · until farm day ${o.end}</small></div>
+      <div class="oc-acts">${ready ? `<button class="btn" data-act="fDeliver" data-arg="${o.n}">📦 Deliver</button>` : `<span class="flock">Collect ${Object.entries(o.items).filter(([id, n]) => have[id] < n).map(([id, n]) => `${n - have[id]} more ${F.ie(id)}`).join(' and ')}</span>`}<button class="btn ghost small" data-act="fOrderNo" data-arg="${o.n}">No, thanks</button></div></div>`).join('');
+    K().modal(`<div class="mhead"><span class="bigemoji">📋</span><span><span class="mtitle">Order board</span><small class="muted">Farm day ${f.day} · orders pay more than your stand</small></span></div>
+      ${cards ? `<div class="ocards">${cards}</div>` : '<p>No orders now. A new one comes tomorrow morning!</p>'}
+      <p class="muted small">📋 Things for your orders stay in your basket: customers at the stand don’t buy them. When there is room on the board (${F.ORDER_SLOTS} orders), a new order comes each morning.</p>
+      <div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
+    MQ.sfx('tap');
+  }
+  function orderNo(n) {
+    const o = fm().orders.list.find((x) => x.n === n);
+    if (!o) return orders();
+    K().modal(`<div class="bigemoji">${o.who[0]}</div><div class="mtitle">No to ${esc(o.who[1])}’s order?</div>
+      <p>That’s OK! ${esc(o.who[1])} will ask another farm. A new order comes tomorrow morning.</p>
+      <div class="row"><button class="btn ghost" data-act="fOrders">Keep it</button><button class="btn" data-act="fOrderDrop" data-arg="${n}">No, thanks</button></div>`);
+  }
+  function orderIntro() {
+    const f = fm();
+    F.ordersStart(f, grade());
+    save();
+    redraw();
+    K().modal(`<div class="bigemoji">📋</div><div class="mtitle">✨ New: the Order board!</div>
+      <p>People in town want things from <b>your</b> farm!</p>
+      <ul class="funlocks"><li>🧺 Collect what an order needs. It stays in your basket: customers at the stand don’t buy it.</li><li>📦 Deliver it, and the order pays <b>more than your stand</b>.</li><li>📅 Each order has a few days. A new one comes every morning.</li></ul>
+      <div class="row"><button class="btn ghost" data-act="closeModal">Later</button><button class="btn" data-act="fOrders">📋 See the orders</button></div>`);
+    MQ.sfx('streak');
+  }
+  function startDeliver(n) {
+    const f = fm(), s = F.orderStatus(f).find((x) => x.o.n === n);
+    K().closeModal();
+    if (!s || !s.ready) return orders();
+    const o = s.o;
+    fs = { mode: 'order', order: o, n: 0, earned: 0, tips: 0, xp: 0, back: 'farm', xpBonus: F.orderXp(o),
+      done: () => {
+        const x = F.deliver(fm(), o.n);
+        if (!x) return 'This order is gone.';
+        MQ.confetti(o.big ? 160 : 90, o.big ? { colors: ['#ffd23f', '#ff8fe0', '#9d7bff', '#ffffff'], shape: 'star' } : {});
+        return `📦 Delivered! ${esc(x.who[1])} paid <b>${fmt(x.pay)}</b>: that is <b>${fmt(x.pay - x.stand)}</b> more than your stand.`;
+      } };
+    show(F.orderQuestion(o, grade(), Math.min(f.tier, F.tiers(grade()).length)));
+  }
+  // The morning card's lines about orders: a new one, the ones that end tonight, the ones that ended.
+  function orderLines(x) {
+    if (!x) return [];
+    const out = [];
+    const list = (o) => Object.entries(o.items).map(([id, n]) => `${n} ${F.ie(id)} ${itemWord(id, n)}`).join(' and ');
+    if (x.added && fm().orders.seen) out.push(`📋 New order${x.added.big ? ' ⭐' : ''}: ${x.added.who[0]} <b>${esc(x.added.who[1])}</b> wants ${list(x.added)} by farm day ${x.added.end}.`);
+    for (const o of x.last) out.push(`📅 ${esc(o.who[1])}’s order ends tonight${F.orderStatus(fm()).some((s) => s.o === o && s.ready) ? ': it is ready, deliver it today!' : '.'}`);
+    for (const o of x.gone) out.push(`📋 ${esc(o.who[1])}’s order ended. That’s OK: new orders keep coming.`);
+    return out;
+  }
+
   function dreamIntro() {
     const f = fm(), d = F.dreamNow(f);
     f.dream.seen = true;
@@ -9919,11 +10342,15 @@ button.du-st:active { transform: translateY(2px); }
     };
     // the animals tab: feed, then your pens (sell to make room), then the animals to buy
     const feed = tab === 'animals' ? list.filter((x) => x.id.startsWith('feed:')) : [];
-    const rows = feed.length ? `${feed.map(row).join('')}</div>${myPens()}<h2>🐾 Animals</h2><div class="fitems">${list.filter((x) => !feed.includes(x)).map(row).join('')}` : list.map(row).join('');
+    const yard = tab === 'animals' ? list.filter((x) => x.id.startsWith('house:')) : [];
+    // the barnyard shows a few levels before its first house opens (a goal to save for)
+    const yardHtml = yard.length && (F.level(f.xp).level >= F.YARD_LV - 4 || Object.keys(f.yard || {}).length)
+      ? `<h2 class="fyard">🐣 Barnyard</h2><p class="muted">Little houses for small animals. They don’t need a pen, so your ${F.PENS.length} pens stay free for big animals. Up to ${1 + F.YARD_ROOM} animals in each house (⬆️ Upgrades).</p><div class="fitems">${yard.map(row).join('')}</div>` : '';
+    const rows = feed.length ? `${feed.map(row).join('')}</div>${myPens()}${yardHtml}<h2>🐾 Animals</h2><div class="fitems">${list.filter((x) => !feed.includes(x) && !yard.includes(x)).map(row).join('')}` : list.map(row).join('');
     K().render(header('🛒 Farm Shop', 'farm') + `<main class="farm">
       <div class="ftabs" role="tablist">${TABS.map(([id, n]) => `<button class="chip ${tab === id ? 'sel' : ''}" role="tab" aria-selected="${tab === id}" data-act="fTab" data-arg="${id}">${n}</button>`).join('')}</div>
       ${goalBar()}
-      <p class="muted">${tab === 'up' ? 'Your farm has room for 6 garden beds and 6 pens. Make them better: more crops, faster growth, more animals in each pen.' : 'You pay with coins and bills, like in a real store. Tap ⭐ Save up to make something your goal.'}</p>
+      <p class="muted">${tab === 'up' ? 'Your farm has room for 6 garden beds and 6 pens. Make them better: more crops, faster growth, more animals in each pen and each barnyard house.' : 'You pay with coins and bills, like in a real store. Tap ⭐ Save up to make something your goal.'}</p>
       <div class="fitems">${rows}</div>
     </main>`, 'is-farm');
     K().setCur('farm:shop');
@@ -9946,11 +10373,36 @@ button.du-st:active { transform: translateY(2px); }
     const f = fm(), p = f.pens[i];
     if (!p || !p.a) return;
     const a = F.ANIMALS[p.a], n = F.penCount(p), ups = (p.u || 0) ? F.PEN_UP.slice(0, p.u).map((u) => u.name) : [];
-    K().modal(`<div class="bigemoji">${F.NEIGHBOR[0]}${a.e}</div><div class="mtitle">Sell ${n > 1 ? n + ' × ' : 'your '}${esc(a.name.toLowerCase())}?</div>
+    K().modal(`<div class="bigemoji">${F.NEIGHBOR[0]}${a.e}</div><div class="mtitle">${F.canMove(f, i) ? 'Move or sell' : 'Sell'} ${n > 1 ? n + ' × ' : 'your '}${esc(a.name.toLowerCase())}?</div>
       <p>${esc(F.NEIGHBOR[1])} next door would love ${n > 1 ? 'them' : 'it'}! She pays half of the shop price. The pen will be empty, ready for any animal.</p>
       ${ups.length ? `<p class="muted">The pen’s upgrades (${esc(ups.join(', '))}) go with the animals.</p>` : ''}
       ${F.penReady(p) ? `<p class="muted">The things they made go to your basket first.</p>` : ''}
-      <div class="row"><button class="btn ghost" data-act="closeModal">Keep ${n > 1 ? 'them' : 'it'}</button><button class="btn" data-act="fSell" data-arg="${i}">💰 Sell</button></div>`);
+      ${sellNotes(i)}
+      <div class="row"><button class="btn ghost" data-act="closeModal">Keep ${n > 1 ? 'them' : 'it'}</button>${F.canMove(f, i) ? `<button class="btn" data-act="fMove" data-arg="${i}">🐣 Move</button><button class="btn ghost" data-act="fSell" data-arg="${i}">💰 Sell</button>` : `<button class="btn" data-act="fSell" data-arg="${i}">💰 Sell</button>`}</div>`);
+  }
+  // Before selling: a house in the barnyard they could move to (or could be built), and an order that needs them.
+  function sellNotes(i) {
+    const f = fm(), p = f.pens[i], H = F.HOUSES[p.a], h = (f.yard || {})[p.a], them = F.penCount(p) > 1 ? 'them' : 'it', out = [];
+    if (F.canMove(f, i)) out.push(`<p class="fmove">🐣 Or <b>move ${them}</b> to your ${esc(H.name.toLowerCase())} in the barnyard: no pen needed, and ${them === 'it' ? 'it keeps' : 'they keep'} making ${F.ITEMS[F.ANIMALS[p.a].item].e}. The pen is free for another animal.</p>`);
+    else if (h) out.push(`<p class="muted">Your ${esc(H.name.toLowerCase())} has room for ${1 + F.YARD_ROOM - F.penCount(h)} more, not for ${F.penCount(p)}.</p>`);
+    else if (H && H.lv <= F.level(f.xp).level) out.push(`<p class="fmove">💡 Build a <b>${esc(H.name.toLowerCase())}</b> in the shop (🐣 Barnyard): ${esc(F.MYTHS[p.a].of)} live there without a pen. Then move ${them} instead of selling.</p>`);
+    const item = F.ANIMALS[p.a].item, others = F.allPens(f).some((x) => x !== p && x.a === p.a);
+    const need = !others && F.orderStatus(f).find(({ o, have }) => o.items[item] && have[item] < o.items[item]);
+    if (need) out.push(`<p class="fwarn">📋 ${esc(need.o.who[1])}’s order needs ${F.ITEMS[item].e} ${esc(F.ITEMS[item].many)}, and ${them === 'it' ? 'this is the only animal' : 'these are the only animals'} on your farm that make${them === 'it' ? 's' : ''} them.</p>`);
+    return out.join('');
+  }
+  function moveToHouse(i) {
+    const f = fm(), p = f.pens[i];
+    K().closeModal();
+    if (!p || !F.canMove(f, i)) return;
+    const h = f.yard[p.a], hungry = p.fed !== h.fed, x = F.moveToHouse(f, i), H = F.HOUSES[x.a], A = F.ANIMALS[x.a];
+    save();
+    if (document.querySelector('.ftabs')) shop(); else redraw();
+    MQ.sfx('reward');
+    K().modal(`<div class="bigemoji">🐣${A.e}</div><div class="mtitle">Moved to the ${esc(H.name.toLowerCase())}!</div>
+      <p>${x.n > 1 ? `${x.n} ${esc(F.MYTHS[x.a].of)} moved` : `Your ${esc(A.name.toLowerCase())} moved`} to the barnyard. Now ${x.count} ${x.count === 1 ? 'lives' : 'live'} in the ${esc(H.name.toLowerCase())}. Pen ${i + 1} is empty: buy any animal for it in the shop.</p>
+      ${hungry ? '<p class="muted">The feed for today came back to you: feed them in the house once more.</p>' : ''}
+      <div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
   }
   function startSell(i) {
     const f = fm(), p = f.pens[i];
@@ -9980,8 +10432,8 @@ button.du-st:active { transform: translateY(2px); }
     show(p);
   }
   function startMarket() {
-    if (!F.basketCount(fm())) return K().toast('The basket is empty');
-    fs = { mode: 'market', n: 0, earned: 0, tips: 0, xp: 0, sold: {}, start: Object.assign({}, fm().basket) };
+    if (!F.saleCount(fm())) return K().toast(F.basketCount(fm()) ? '📋 Everything in the basket is kept for your orders' : 'The basket is empty');
+    fs = { mode: 'market', n: 0, earned: 0, tips: 0, xp: 0, sold: {}, start: F.forSale(fm()) };
     nextCustomer();
   }
   function startJobs() {
@@ -9993,7 +10445,7 @@ button.du-st:active { transform: translateY(2px); }
     const f = fm(), jobs = fs.mode === 'jobs';
     const vip = !jobs && (f.customers + 1) % F.VIP_EVERY === 0;
     const truck = !jobs && !vip && (f.customers + 1) % F.TRUCK_EVERY === 0;
-    const p = F.customer(f, grade(), { stock: jobs ? F.jobStock(f) : f.basket, vip, jobs, truck });
+    const p = F.customer(f, grade(), { stock: jobs ? F.jobStock(f) : F.forSale(f), vip, jobs, truck }); // what the orders keep isn't for sale
     if (!p) return summary(true);
     show(p);
   }
@@ -10001,11 +10453,11 @@ button.du-st:active { transform: translateY(2px); }
   // The things this customer wants are marked.
   function basketBar() {
     if (!fs || fs.mode !== 'market' || !fs.start) return '';
-    const f = fm(), ids = Object.keys(fs.start).filter((id) => fs.start[id] > 0);
+    const f = fm(), ids = Object.keys(fs.start).filter((id) => fs.start[id] > 0), sale = F.forSale(f);
     const want = new Set(fs.locked || !fs.p ? [] : Object.keys(fs.p.sale || {}));
-    const left = U.sum(ids.map((id) => f.basket[id] || 0)), sold = U.sum(ids.map((id) => fs.sold[id] || 0)), all = left + sold;
+    const left = U.sum(ids.map((id) => sale[id] || 0)), sold = U.sum(ids.map((id) => fs.sold[id] || 0)), all = left + sold;
     const chips = ids.map((id) => {
-      const l = f.basket[id] || 0, n = fs.sold[id] || 0;
+      const l = sale[id] || 0, n = fs.sold[id] || 0;
       return `<li class="${l ? '' : 'out'} ${want.has(id) ? 'want' : ''}" title="${esc(F.ITEMS[id].many)}: ${n} sold, ${l} left"><i>${F.ie(id)}</i><b>${l ? l : '✓'}</b>${n ? `<small>${n} sold</small>` : ''}</li>`;
     }).join('');
     return `<section class="fbbar" id="fbbar" aria-label="Basket: ${sold} sold, ${left} left">
@@ -10028,6 +10480,7 @@ button.du-st:active { transform: translateY(2px); }
       : BANKISH.has(fs.mode) ? SC.stall({ mode: 'bank', seller: '🦉', shopper: MQ.face(st()), goods: '<i>🏦</i>' })
       : fs.mode === 'build' ? SC.stall({ mode: 'bank', seller: '👷', shopper: MQ.face(st()), goods: '<i>🏗️</i>' })
       : fs.mode === 'profit' ? SC.stall({ mode: 'pay', seller: F.MERCHANT.e, shopper: MQ.face(st()), goods: '<i>🧮</i>' })
+      : fs.mode === 'order' ? SC.stall({ mode: 'market', stand: f.stand, seller: MQ.face(st()), shopper: p.who[0], goods: SC.goods(fs.order.items), vip: fs.order.big })
       : SC.stall({ mode: fs.mode, stand: fs.mode === 'jobs' ? 9 : f.stand, seller: MQ.face(st()), shopper: p.who[0], goods: SC.goods(p.sale), vip: p.vip });
     K().render(`<div class="play fplay" style="--wc:${p.vip ? '#b0569e' : '#e0a21b'}">
       <header class="playbar"><button class="iconbtn" data-act="fQuit" aria-label="Stop">✕</button><div class="pstatus">${status}</div>${moneyPill()}</header>
@@ -10058,8 +10511,9 @@ button.du-st:active { transform: translateY(2px); }
     lock: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
     unlock: () => `🏦 Bank: ${fmt(fm().bank.bal)}`,
     profit: () => '🧳 A week charm',
+    order: () => '📋 Order board',
   };
-  const LABEL = { pay: '🛒 Farm Shop', make: '🧮 Is it worth making?', sell: '💰 Selling animals', deposit: '🏦 Put money in the bank', withdraw: '🏦 Take money out', interest: '🏦 Bank day: interest', build: '🏗️ Pay the builders', lock: '🔒 Locked deposit', unlock: '🔓 Your deposit is back', profit: '🧮 Did it pay off?' };
+  const LABEL = { pay: '🛒 Farm Shop', make: '🧮 Is it worth making?', sell: '💰 Selling animals', deposit: '🏦 Put money in the bank', withdraw: '🏦 Take money out', interest: '🏦 Bank day: interest', build: '🏗️ Pay the builders', lock: '🔒 Locked deposit', unlock: '🔓 Your deposit is back', profit: '🧮 Did it pay off?', order: '📦 Delivering an order' };
   // the problem being answered now (paying too much asks for the change)
   const cur = () => (fs.step === 'change' ? fs.change : fs.p);
   function drawAnswer() {
@@ -10079,7 +10533,7 @@ button.du-st:active { transform: translateY(2px); }
     }
     step.innerHTML = top;
   }
-  const NEXT = { pay: 'Back to the farm', make: 'Back to the farm', sell: 'Done', deposit: 'Back to the bank', withdraw: 'Back to the bank', build: 'Back to Big Dreams', lock: 'Back to the bank', unlock: 'Back to the bank', profit: 'Back to the farm' };
+  const NEXT = { pay: 'Back to the farm', make: 'Back to the farm', sell: 'Done', deposit: 'Back to the bank', withdraw: 'Back to the bank', build: 'Back to Big Dreams', lock: 'Back to the bank', unlock: 'Back to the bank', profit: 'Back to the farm', order: 'Back to the farm' };
   const lockedHtml = () => `<div class="row"><button class="btn big" data-act="fNext">${fs.mode === 'interest' ? (fs.n < fs.weeks ? 'Next' : 'Back to the bank') : NEXT[fs.mode] || 'Next customer'} →</button></div>`;
   function feedback(html, cls) {
     const el = $('#feedback');
@@ -10197,7 +10651,7 @@ button.du-st:active { transform: translateY(2px); }
     K().checkBadges();
   }
   // A workshop question, a deposit or a bank day is done: fs.done applies it and says what happened.
-  const TASKS = new Set(['make', 'deposit', 'interest', 'sell', 'build', 'lock', 'unlock', 'profit']);
+  const TASKS = new Set(['make', 'deposit', 'interest', 'sell', 'build', 'lock', 'unlock', 'profit', 'order']);
   function doneTask(first, solved, shown) {
     const f = fm(), before = f.money;
     F.record(st(), first);
@@ -10210,9 +10664,14 @@ button.du-st:active { transform: translateY(2px); }
     const sh = $('#shopper');
     if (sh) sh.classList.add('happy');
     if (fs.mode === 'deposit') document.querySelectorAll('.ftray .fcoin').forEach((c, k) => SC.fly(c.innerHTML, c, '#goods', { delay: k * 80, dur: 550, size: '1rem' }));
+    if (fs.mode === 'order' && $('#goods')) { // the things go to the customer, the money to the wallet
+      $('#goods').querySelectorAll(':scope > i').forEach((g, k) => SC.fly(g.innerHTML, g, sh, { delay: k * 90, dur: 500 }));
+      $('#goods').classList.add('gone');
+      SC.flyMany('🪙', 4, sh, '#fmoney', { delay: 350, size: '1.5rem' });
+    }
     feedback(solved ? `${first ? 'Perfect!' : 'Got it!'} ${msg}` : `${shown}<br>${msg}`, solved ? 'ok' : 'reveal');
     drawAnswer();
-    const ups = xp(solved ? (first ? 3 : 1) : 0);
+    const ups = xp((solved ? (first ? 3 : 1) : 0) + (fs.xpBonus || 0)); // an order brings more XP
     save();
     if (!ups.length && solved) autoNext = setTimeout(() => { if (fs && fs.locked && !$('#modal') && $('.fplay')) next(); }, 1700);
     K().checkBadges();
@@ -10234,7 +10693,7 @@ button.du-st:active { transform: translateY(2px); }
     if (!fs) return main();
     if (fs.mode === 'interest' && fs.n < fs.weeks) return interestQuestion();
     if (fs.mode === 'pay' || TASKS.has(fs.mode) || fs.mode === 'withdraw') { const back = fs.back || 'farm'; fs = null; return K().go(back); }
-    if (fs.mode === 'market' && !F.basketCount(fm())) return summary(true);
+    if (fs.mode === 'market' && !F.saleCount(fm())) return summary(true);
     nextCustomer();
   }
   function quit() {
@@ -10255,7 +10714,8 @@ button.du-st:active { transform: translateY(2px); }
       <h1 class="title">${title}</h1>
       <p class="lead">${s.mode === 'jobs' ? `${s.n} ${s.n === 1 ? 'job' : 'jobs'}` : `${s.n} ${s.n === 1 ? 'customer' : 'customers'}`} · earned <b>${fmt(s.earned + s.tips)}</b>${s.tips ? ` (tips ${fmt(s.tips)})` : ''} · +${s.xp} XP</p>
       ${sold ? `<p class="muted">Sold: ${sold}</p>` : ''}
-      ${s.mode === 'market' && F.basketCount(fm()) ? `<p class="muted">Still in the basket: ${Object.entries(fm().basket).filter(([, n]) => n > 0).map(([id, n]) => `${F.ITEMS[id].e} ${n}`).join(' · ')}</p>` : ''}
+      ${s.mode === 'market' && F.saleCount(fm()) ? `<p class="muted">Still in the basket: ${Object.entries(F.forSale(fm())).map(([id, n]) => `${F.ITEMS[id].e} ${n}`).join(' · ')}</p>` : ''}
+      ${s.mode === 'market' && Object.keys(F.kept(fm())).length ? `<p class="muted">📋 Kept for your orders: ${Object.entries(F.kept(fm())).map(([id, n]) => `${F.ITEMS[id].e} ${n}`).join(' · ')}</p>` : ''}
       <p>Money now: <b>${fmt(fm().money)}</b></p>
       <div class="row"><button class="btn ghost" data-act="go" data-arg="farm:shop">🛒 Shop</button><button class="btn" data-act="go" data-arg="farm">Back to the farm</button></div>
     </main>`);
@@ -10505,6 +10965,10 @@ button.du-st:active { transform: translateY(2px); }
   const A = {
     fBed: (a, el) => bed(+a, el),
     fPen: (a, el) => pen(+a, el),
+    fHouse: (a, el) => house(a, el),
+    fYardShop: () => { tab = 'animals'; K().go('farm:shop'); setTimeout(() => { const el = $('.fyard'); if (el) el.scrollIntoView({ block: 'start' }); }, 50); },
+    fHouseLater: (a) => K().toast(`${F.ANIMALS[a].e} The ${F.HOUSES[a].name.toLowerCase()} opens at farm level ${F.HOUSES[a].lv}`),
+    fMove: (a) => moveToHouse(+a),
     fFeedAll: () => feedAll(),
     fCollectAll: () => collectAll(),
     fSleep: () => sleep(),
@@ -10527,6 +10991,10 @@ button.du-st:active { transform: translateY(2px); }
     fDepLock: () => startLock(),
     fDepCollect: () => startUnlock(),
     fMerchant: () => merchant(),
+    fOrders: () => orders(),
+    fDeliver: (a) => startDeliver(+a),
+    fOrderNo: (a) => orderNo(+a),
+    fOrderDrop: (a) => { F.dropOrder(fm(), +a); save(); redraw(); orders(); },
     fBuyTreasure: () => buyTreasure(),
     fBuyCharm: (a) => buyCharm(a),
     fCharm: (a) => charmInfo(a),
@@ -10549,7 +11017,7 @@ button.du-st:active { transform: translateY(2px); }
       const x = F.shopItem(fm(), grade(), a);
       if (!x || fm().money < x.price) return;
       const icon = a.startsWith('decor:') ? SC.icon(a.slice(6), x.e) : x.e;
-      startPay(x.price, `${x.e} ${esc(x.name)}`, () => { F.buy(fm(), grade(), a); return a === 'acct' ? `${x.e} ${esc(x.name.replace('Bank: ', ''))} is yours! More of your savings earn the big interest.` : `${x.e} ${esc(x.name)} is yours!`; }, icon);
+      startPay(x.price, `${x.e} ${esc(x.name)}`, () => { F.buy(fm(), grade(), a); return a === 'acct' ? `${x.e} ${esc(x.name.replace('Bank: ', ''))} is yours! More of your savings earn the big interest.` : a.startsWith('house:') ? `${x.e} The ${esc(x.name.toLowerCase())} is yours, with one ${esc(F.ANIMALS[a.slice(6)].name.toLowerCase())}! Feed it in the barnyard on your farm.` : `${x.e} ${esc(x.name)} is yours!`; }, icon);
       fs.back = a === 'acct' ? 'farm:bank' : 'farm:shop'; // a new account: see it at the bank
     },
     fKey: (a) => key(a),
@@ -12645,14 +13113,14 @@ button.du-st:active { transform: translateY(2px); }
   function farmTile() {
     const F = MQ.farm, fm = st.farm;
     if (!fm || !fm.started) return `<button class="tile t-farm wide" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>New! Grow, sell at your stand, count real money</small></span></button>`;
-    const waiting = fm.beds.some((b) => F.cropStage(b) === 'ready') || fm.pens.some((p) => F.penReady(p));
-    const n = F.basketCount(fm);
+    const waiting = fm.beds.some((b) => F.cropStage(b) === 'ready') || F.allPens(fm).some((p) => F.penReady(p));
+    const n = F.saleCount(fm); // what the orders keep is not for sale
     const bankDay = !!(fm.bank && fm.bank.pend && fm.bank.pend.length);
     const made = fm.works && Object.values(fm.works).some((w) => w.ready);
     const build = F.canBuild(F.ensure(st), st.grade);
-    const trader = F.merchantHas(fm), unlocked = F.depositReady(fm);
-    const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
-    return `<button class="tile t-farm wide ${waiting || made || bankDay || build || trader || unlocked || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
+    const trader = F.merchantHas(fm), unlocked = F.depositReady(fm), order = F.ordersReady(fm).length > 0;
+    const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : order ? '📦 An order is ready to deliver!' : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
+    return `<button class="tile t-farm wide ${waiting || made || bankDay || build || trader || unlocked || order || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
   }
 
   // For grown-ups: Card Duels played (each round ends with a comparing or subtracting question).
@@ -12681,6 +13149,7 @@ button.du-st:active { transform: translateY(2px); }
       ${fm.dream && (fm.dream.p || fm.dream.s) ? `<p>🏗️ Big Dreams: ${F.DREAMS.map((d, k) => [d, F.dreamBuilt(fm, k)]).filter(([, n]) => n).map(([d, n]) => `${d.e} ${esc(d.name)} ${n >= d.stages.length ? '✓' : n + ' of ' + d.stages.length}`).join(', ')}. Paid to builders from the bank: ${F.fmt(s.built || 0, st.grade)}; the buildings earned ${F.fmt(s.dreamIn || 0, st.grade)} on bank days.</p>` : ''}
       ${fm.dep && (fm.dep.amt || s.depBonus) ? `<p>🔒 Locked deposit: ${fm.dep.amt ? `<b>${F.fmt(fm.dep.amt, st.grade)}</b> locked until farm day ${fm.dep.until}` : 'none now'}; locked deposits have earned ${F.fmt(s.depBonus || 0, st.grade)} so far.</p>` : ''}
       ${Object.keys(fm.treasure || {}).length ? `<p>🧳 Treasures from the traveling merchant: ${Object.keys(fm.treasure).map((id) => F.TREASURES[id].e + ' ' + esc(F.TREASURES[id].name)).join(', ')}.</p>` : ''}
+      ${s.orders ? `<p>📋 Orders delivered from the order board: ${s.orders}, for ${F.fmt(s.orderPay || 0, st.grade)} (${F.fmt(s.orderExtra || 0, st.grade)} more than the stand would pay). Each delivery is a money question: counting the payment, or how much more the order pays than the stand.</p>` : ''}
       ${s.charms ? `<p>✨ Week charms from the merchant: ${s.charms} bought for ${F.fmt(s.charmCost || 0, st.grade)}; they brought ${F.fmt(s.charmGain || 0, st.grade)} (${s.charmWins || 0} paid for themselves). After each one the child works out whether it paid off.</p>` : ''}
       <p>${s.tasks} money problems from customers and odd jobs, <b>${pct(s.right, s.tasks)}%</b> right on the first try · ${s.vip} ⭐ challenge customers. Now practicing: <b>${esc(tier.name)}</b>${tier.ahead ? ' (ahead of grade)' : ''}.</p>
       <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p></section>`;
