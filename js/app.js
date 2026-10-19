@@ -441,8 +441,9 @@
     const made = fm.works && Object.values(fm.works).some((w) => w.ready);
     const build = F.canBuild(F.ensure(st), st.grade);
     const trader = F.merchantHas(fm), unlocked = F.depositReady(fm), order = F.ordersReady(fm).length > 0;
-    const note = bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : order ? '📦 An order is ready to deliver!' : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
-    return `<button class="tile t-farm wide ${waiting || made || bankDay || build || trader || unlocked || order || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
+    const mila = !!(fm.mgr && fm.mgr.pend);
+    const note = mila ? `${F.MANAGER.e} ${F.MANAGER.name} brought your money!` : bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : order ? '📦 An order is ready to deliver!' : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
+    return `<button class="tile t-farm wide ${mila || waiting || made || bankDay || build || trader || unlocked || order || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
   }
 
   // For grown-ups: Card Duels played (each round ends with a comparing or subtracting question).
@@ -463,7 +464,8 @@
   function farmReport() {
     const F = MQ.farm, fm = st.farm;
     if (!fm || !fm.started) return '';
-    const s = fm.stats, tiers = F.tiers(st.grade), tier = tiers[Math.min(fm.tier, tiers.length) - 1];
+    F.ensure(st);
+    const s = fm.stats, tiers = F.tiers(st.grade), tier = tiers[F.tierNow(fm, st.grade) - 1], o = fm.opts, M = F.MANAGER;
     return `<section><h2>🌻 Sunny Farm</h2>
       <p>Farm level <b>${F.level(fm.xp).level}</b> · day ${fm.day} · money <b>${F.fmt(fm.money, st.grade)}</b> (earned ${F.fmt(s.earned, st.grade)}, spent ${F.fmt(s.spent, st.grade)})</p>
       ${fm.bank && (fm.bank.bal || s.interest) ? `<p>🏦 Bank: <b>${F.fmt(fm.bank.bal, st.grade)}</b> saved · ${F.fmt(s.interest || 0, st.grade)} interest earned on ${s.bankDays || 0} bank days. ${esc(F.ruleText(st.grade))}</p>` : ''}
@@ -476,7 +478,15 @@
       ${s.boosts ? `<p>🧪 Farm supplies: ${s.boosts} bought for ${F.fmt(s.boostCost || 0, st.grade)}; they brought ${F.fmt(s.boostGain || 0, st.grade)} (${s.boostWins || 0} paid for themselves). After each one the child works out whether it paid off.</p>` : ''}
       ${s.charms ? `<p>✨ Week charms from the merchant: ${s.charms} bought for ${F.fmt(s.charmCost || 0, st.grade)}; they brought ${F.fmt(s.charmGain || 0, st.grade)} (${s.charmWins || 0} paid for themselves). After each one the child works out whether it paid off.</p>` : ''}
       <p>${s.tasks} money problems from customers and odd jobs, <b>${pct(s.right, s.tasks)}%</b> right on the first try · ${s.vip} ⭐ challenge customers. Now practicing: <b>${esc(tier.name)}</b>${tier.ahead ? ' (ahead of grade)' : ''}.</p>
-      <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p></section>`;
+      ${s.shifts || s.mgrNights ? `<p>🏪 Shifts at the stand: ${s.shifts || 0} (${s.star3 || 0} with ⭐⭐⭐)${s.mgrNights ? ` · ${M.e} ${esc(M.name)} sold ${s.mgrSold} things on ${s.mgrNights} ${s.mgrNights === 1 ? 'night' : 'nights'}: ${F.fmt(s.mgrGot, st.grade)} for ${esc(st.name)}, she kept ${F.fmt(s.mgrKept, st.grade)}` : ''}.</p>` : ''}
+      <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p>
+      <div class="settings">
+        <div class="label">Customers in a shift at the stand</div>
+        <p class="muted">A shift has a clear finish line, and its first 2 customers are a bit easier. After it, ${esc(st.name)} can keep selling or stop. ${M.e} ${esc(M.name)}, the market manager (hired in the farm shop from farm level ${M.lv}), sells the rest overnight and keeps a part: half after a shift, a quarter when 60% of it was right on the first try, a tenth at 80%. Selling everything at the stand always brings more.</p>
+        <div class="chips">${F.SHIFTS.map((n) => `<button class="chip ${F.shiftLen(fm) === n ? 'sel' : ''}" data-act="farmOpt" data-arg="shift:${n}" aria-pressed="${F.shiftLen(fm) === n}">${n}</button>`).join('')}</div>
+        <label class="toggle"><input type="checkbox" data-act="farmOpt" data-arg="ahead" ${o.ahead ? 'checked' : ''}> Money problems ahead of the grade for every customer (when off, they stay at the grade’s levels; ⭐ challenge customers still bring one level more)</label>
+        <label class="toggle"><input type="checkbox" data-act="farmOpt" data-arg="mgr" ${o.mgr !== false ? 'checked' : ''}> ${M.e} ${esc(M.name)}, the market manager, can sell what is left after a shift</label>
+      </div></section>`;
   }
 
   // ---- GATE plan (2nd grade): the NNAT-3 test in February, the district's usual timeline, and this week's practice.
@@ -2317,6 +2327,18 @@
       else { $('#gate-msg').textContent = 'Not quite — try again.'; $('#gate-in').value = ''; }
     },
     setting: (a, el) => { st.settings[a] = el.checked; S.save(); },
+    // Sunny Farm's settings for grown-ups: the shift length, problems ahead of the grade, Mila
+    farmOpt: (a, el) => {
+      const F = MQ.farm, fm = F.ensure(st), [k, v] = a.split(':');
+      if (k === 'shift') {
+        fm.opts.shift = +v;
+        el.parentNode.querySelectorAll('.chip').forEach((b) => { b.classList.toggle('sel', b === el); b.setAttribute('aria-pressed', b === el); });
+      } else fm.opts[k] = el.checked;
+      if (k === 'ahead') fm.tier = F.tierNow(fm, st.grade);
+      if (k === 'mgr' && !el.checked) F.mgrStay(fm);
+      fm.t = Date.now();
+      S.save();
+    },
     saveNames: () => { st.name = $('#set-name').value.trim() || st.name; st.buddyName = $('#set-buddy').value.trim() || st.buddyName; MQ.playerName = st.name; S.save(); toast('Saved'); },
     exportSave: () => {
       const code = S.exportCode();
