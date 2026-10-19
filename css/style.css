@@ -1209,6 +1209,26 @@ svg.nn.design { width: 156px; }
 .fbbar li.out { opacity: 0.55; background: #eef7ee; box-shadow: inset 0 0 0 2px #bfe0c4; }
 .fbbar li.out b { color: var(--good); }
 
+/* ================= Sunny Farm: the market shift and Mila, the market manager ================= */
+.fslots { display: inline-flex; flex-wrap: wrap; gap: 3px; vertical-align: middle; margin-left: 4px; }
+.fslots i { width: 11px; height: 11px; border-radius: 50%; background: var(--card); box-shadow: inset 0 0 0 2px #e0c06a; }
+.fslots i.on { background: #e0a21b; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.12); animation: bump 0.35s; }
+.fmgr { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 12px; border: 0; text-align: left; border-radius: var(--r); padding: 10px 12px; background: #f4efff; box-shadow: inset 0 0 0 2px #b9a2e8; color: var(--ink); }
+.fmgr.hot { box-shadow: inset 0 0 0 3px #7a4fc0, 0 4px 0 #5e3a9a; animation: pop 0.4s; }
+.fmgr-e { font-size: 2rem; flex: none; }
+.fmgr-t { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.fmgr-t small { color: var(--ink-soft); font-weight: 700; }
+.fmgr .btn { flex: none; padding: 8px 12px; font-size: 0.9rem; }
+.fmgrbox { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0; padding: 12px 14px; border-radius: var(--r); background: #f4efff; box-shadow: inset 0 0 0 2px #b9a2e8; text-align: left; }
+.fmgrbox p { margin: 0 0 8px; }
+.fmgrbox .row { justify-content: flex-start; flex-wrap: wrap; }
+.stall.m-mgr { --aw: #7a4fc0; }
+.fcmp { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 360px; margin: 0 auto; }
+.fcmp-row { display: flex; align-items: center; gap: 8px; font-size: 1.2rem; }
+.fcmp-bar { flex: 1; height: 16px; border-radius: 999px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); overflow: hidden; }
+.fcmp-bar i { display: block; height: 100%; background: #e0a21b; border-radius: 999px; }
+.fcmp-row b { font-family: var(--display); font-weight: 600; font-size: 1rem; min-width: 4.5em; text-align: right; font-variant-numeric: tabular-nums; }
+
 /* ================= Sunny Farm: Big Dreams ================= */
 svg.dart { display: block; width: 100%; height: auto; }
 .fdream { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; border: 0; text-align: left; border-radius: var(--r); padding: 8px 12px 8px 8px; background: linear-gradient(120deg, #f2fbe9, #e3f4ff); box-shadow: inset 0 0 0 3px #7cbf4a, 0 4px 0 #5d9a31; color: var(--ink); }

@@ -315,6 +315,7 @@
     { id: 'charm', icon: '🍀', name: 'Smart Shopper', desc: 'Buy a week charm from the traveling merchant that pays for itself', test: (s) => !!s.farm && (s.farm.stats.charmWins || 0) >= 1 },
     { id: 'order1', icon: '📦', name: 'Special Delivery', desc: 'Deliver an order from the Sunny Farm order board', test: (s) => !!s.farm && (s.farm.stats.orders || 0) >= 1 },
     { id: 'order25', icon: '🏘️', name: 'Town Favorite', desc: 'Deliver 25 orders from the order board', test: (s) => !!s.farm && (s.farm.stats.orders || 0) >= 25 },
+    { id: 'star3', icon: '🌟', name: 'Star Seller', desc: 'Finish a shift at your farm stand with ⭐⭐⭐', test: (s) => !!s.farm && (s.farm.stats.star3 || 0) >= 1 },
     { id: 'boost', icon: '🧪', name: 'Smart Farmer', desc: 'Buy a farm supply that pays for itself', test: (s) => !!s.farm && (s.farm.stats.boostWins || 0) >= 1 },
     { id: 'deposit', icon: '🔐', name: 'Patient Saver', desc: 'Collect a locked deposit from the farm bank', test: (s) => !!s.farm && (s.farm.stats.depBonus || 0) > 0 },
     { id: 'castle', icon: '🏰', name: 'Castle Builder', desc: 'Build the Castle on the Hill', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 4 },

@@ -629,6 +629,63 @@ async function play(grade, tag, viewport) {
     if ((await page.evaluate(() => MQ.state.farm.basket.egg || 0)) !== eggs + 6) errors.push(`${tag}: Collect all did not take the henhouse eggs`);
   }
 
+  // the market shift and Mila: hire her in the shop, serve a shift of 10, let her sell the rest, her money in the morning
+  {
+    await page.evaluate(() => { const f = MQ.state.farm; f.money += 5000; f.basket = { egg: 90, milk: 30, carrot: 40, tomato: 30 }; f.orders.list = []; f.customers = 0; f.shift = { day: f.day, n: 0, right: 0, earned: 0 }; MQ.store.save(); });
+    await page.click('[data-act=go][data-arg="farm:shop"]');
+    await page.click('[data-act=fTab][data-arg=farm]');
+    await page.click('[data-act=fBuy][data-arg=mgr]');
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    await page.click('[data-act=fNext]');
+    await page.waitForSelector('.fitems');
+    if (!(await page.evaluate(() => MQ.state.farm.mgr.hired))) errors.push(`${tag}: Mila was not hired`);
+    await page.click('[data-act=go][data-arg=farm]');
+    await page.waitForSelector('.fmgr');
+    await snap('44-shift-card');
+    await page.click('.fstand');
+    for (let i = 0; i < 10; i++) {
+      await page.waitForSelector('.fplay #fanswer');
+      const st = await page.evaluate(() => ({ status: document.querySelector('.pstatus').textContent, p: MQ.farmUI.playing().p, now: MQ.farm.tierNow(MQ.state.farm, MQ.state.grade) }));
+      if (!st.status.includes(`customer ${i + 1} of 10`)) errors.push(`${tag}: shift status "${st.status}"`);
+      if (i === 0 && !st.p.vip && st.p.tier !== Math.max(1, st.now - 1)) errors.push(`${tag}: the first customer of the shift brought tier ${st.p.tier}, not one easier than ${st.now}`);
+      if (i === 0) await snap('45-shift');
+      await answer(page, i !== 3); // one miss: 9 of 10 right on the first try
+      if (i === 3) { await page.waitForSelector('.fb.hint'); await answer(page, true); }
+      await page.waitForSelector('.fb.ok');
+      if (await page.$('#modal')) await page.click('#modal [data-act=closeModal]');
+      if (i < 9) await page.click('[data-act=fNext]');
+    }
+    // the shift's last customer: it waits (stop or go on)
+    await page.waitForTimeout(2000);
+    const done = await page.evaluate(() => ({ fb: document.querySelector('.fb.ok').textContent, quit: !!document.querySelector('#fanswer [data-act=fQuit]'), still: !!document.querySelector('.fplay'), stars: MQ.farm.shiftStars(MQ.state.farm) }));
+    if (!/Shift done/.test(done.fb) || !done.quit || !done.still || done.stars !== 3) errors.push(`${tag}: after the shift ${JSON.stringify(done)}`);
+    await snap('46-shift-done');
+    await page.click('#fanswer [data-act=fQuit]');
+    await page.waitForSelector('.result .fmgrbox [data-act=fMgrSell]');
+    await snap('47-mila-choice');
+    const rest = await page.evaluate(() => ({ n: MQ.farm.saleCount(MQ.state.farm), value: MQ.farm.standValue(MQ.farm.forSale(MQ.state.farm), MQ.state.grade) }));
+    await page.click('.result [data-act=fMgrSell]');
+    await page.waitForSelector('.farm .fmgr [data-act=fMgrStay]');
+    if (!(await page.evaluate(() => MQ.farm.mgrTonight(MQ.state.farm)))) errors.push(`${tag}: Mila doesn't sell tonight`);
+    await snap('48-mila-tonight');
+    await page.click('[data-act=fSleep]');
+    await page.waitForSelector('#modal [data-act=fMgrCollect]');
+    await snap('49-mila-morning');
+    const night = await page.evaluate((v) => ({ pend: MQ.state.farm.mgr.pend, money: MQ.state.farm.money, keep: MQ.farm.mgrKeep(v, 10, MQ.state.grade) }), rest.value);
+    if (!night.pend || night.pend.n !== rest.n || night.pend.sold !== rest.value || night.pend.kept !== night.keep) errors.push(`${tag}: Mila's night ${JSON.stringify(night)} (rest ${JSON.stringify(rest)})`);
+    await page.click('#modal [data-act=fMgrCollect]');
+    await page.waitForSelector('.fplay #fanswer');
+    await snap('50-mila-question');
+    await answer(page, true);
+    await page.waitForSelector('.fb.ok');
+    const paidMila = await page.evaluate(() => ({ money: MQ.state.farm.money, pend: MQ.state.farm.mgr.pend }));
+    if (paidMila.pend || paidMila.money !== night.money + night.pend.sold - night.pend.kept) errors.push(`${tag}: Mila's money ${JSON.stringify(paidMila)} (before ${night.money})`);
+    await page.click('[data-act=fNext]');
+    await page.waitForSelector('.farm .fbed');
+    if (await page.$('.fmgr.hot')) errors.push(`${tag}: Mila's card still waits after collecting`);
+  }
+
   // reloading keeps the farm; the home tile shows it
   await page.reload();
   await page.waitForSelector('.t-farm');
@@ -665,6 +722,19 @@ async function play(grade, tag, viewport) {
   await page.waitForSelector('.home');
   const back = await page.evaluate(() => JSON.stringify(MQ.state.farm));
   if (back !== real) errors.push(`${tag}: the preview changed the real farm`);
+  // For grown-ups: the farm's shift length and problems ahead of the grade
+  await page.click('[data-act=go][data-arg=parent]');
+  {
+    const [a, b] = await page.evaluate(() => document.querySelector('.eqline').textContent.match(/\d+/g).map(Number));
+    await page.fill('#gate-in', String(a * b));
+    await page.click('[data-act=gate]');
+  }
+  await page.waitForSelector('[data-act=farmOpt][data-arg="shift:5"]');
+  await page.click('[data-act=farmOpt][data-arg="shift:5"]');
+  await page.check('[data-act=farmOpt][data-arg=ahead]');
+  await snap('51-grownup-farm');
+  const opts = await page.evaluate(() => MQ.state.farm.opts);
+  if (opts.shift !== 5 || !opts.ahead || opts.mgr === false) errors.push(`${tag}: farm settings ${JSON.stringify(opts)}`);
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   if (overflow) errors.push(tag + ': horizontal overflow');

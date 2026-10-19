@@ -196,6 +196,7 @@ for (const grade of ['k', 'g2']) {
       const f = F.ensure({ grade });
       f.tier = ti;
       f.xp = 1e6;
+      f.opts.ahead = true; // every tier, the ones ahead of the grade too
       const ids = U.sample(Object.keys(F.ITEMS), U.rnd(1, 6));
       const stock = {};
       ids.forEach((id) => (stock[id] = U.rnd(1, 9)));
@@ -210,6 +211,7 @@ for (const grade of ['k', 'g2']) {
       const f = F.ensure({ grade });
       f.tier = ti;
       f.xp = 1e6;
+      f.opts.ahead = true; // every tier, the ones ahead of the grade too
       const stock = {};
       U.sample(Object.keys(F.ITEMS), U.rnd(1, 8)).forEach((id) => (stock[id] = U.rnd(1, 60)));
       const p = F.customer(f, grade, { stock, truck: true });
@@ -1116,6 +1118,185 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
   const old = F.ensure({ grade: 'g2', farm: (() => { const y = Object.assign(F.fresh(), { started: true }); delete y.boosts; return y; })() });
   assert.deepStrictEqual([old.boosts, old.stats.boosts], [{}, 0]);
   for (const g of ['k', 'g2']) { const sc = F.showcase({ grade: g, farm: F.fresh() }); assert.ok(F.boostOn(sc, 'grow') && F.boostOn(sc, 'field') && sc.beds.filter((b) => b.rent).length === 2); }
+}
+
+// ---------- the market shift and Mila, the market manager
+{
+  const lvXp = (L) => { let x = 0; for (let k = 1; k < L; k++) x += F.need(k); return x; };
+  const farm = (g, L) => Object.assign(F.ensure({ grade: g }), { xp: lvXp(L), money: 1e6 });
+  const serveN = (f, g, n, right) => { const out = []; for (let i = 0; i < n; i++) { const p = F.customer(f, g, { stock: F.forSale(f) }); out.push(F.serve(f, g, p, right(i), true).shift); } return out; };
+
+  // a shift: the first 10 customers of a farm day; only they count for the stars; a new farm day starts a new one
+  const f = farm('g2', 20);
+  f.basket = { egg: 200, milk: 200 };
+  assert.deepStrictEqual([F.shiftLen(f), F.shiftLeft(f), F.shiftStars(f)], [10, 10, 0]);
+  const marks = serveN(f, 'g2', 10, (i) => i !== 1 && i !== 4); // 8 of 10 right on the first try
+  assert.deepStrictEqual(marks, [null, null, null, null, null, null, null, null, null, 'done'], 'the 10th customer finishes the shift');
+  assert.deepStrictEqual([F.shiftDone(f), F.shiftToday(f).right, F.shiftStars(f), f.stats.shifts, f.stats.star3], [true, 8, 3, 1, 1]);
+  serveN(f, 'g2', 6, () => false); // selling on, tired: the stars stay
+  assert.deepStrictEqual([F.shiftToday(f).n, F.shiftStars(f), f.stats.shifts], [16, 3, 1]);
+  assert.ok(F.shiftToday(f).earned > 0);
+  F.nextDay(f, 'g2');
+  assert.deepStrictEqual([F.shiftToday(f).n, F.shiftStars(f)], [0, 0], 'a new farm day, a new shift');
+  // stars by first-try right answers: 80% ⭐⭐⭐, 60% ⭐⭐, less ⭐; any shift length a grown-up picks
+  for (const [len, right, stars] of [[10, 7, 2], [10, 6, 2], [10, 5, 1], [10, 0, 1], [5, 4, 3], [5, 3, 2], [15, 12, 3], [20, 11, 1]]) {
+    const x = farm('g2', 20);
+    Object.assign(x.opts, { shift: len });
+    x.shift = { day: x.day, n: len, right, earned: 0 };
+    assert.strictEqual(F.shiftStars(x), stars, `${right} of ${len}`);
+  }
+  f.opts.shift = 7;
+  assert.strictEqual(F.shiftLen(f), F.SHIFT, 'only the lengths a grown-up can pick');
+  // odd jobs are not a shift
+  const j = farm('g2', 20);
+  F.serve(j, 'g2', F.customer(j, 'g2', { stock: F.jobStock(j), jobs: true }), true, true);
+  assert.strictEqual(F.shiftToday(j).n, 0);
+
+  // problems ahead of the grade only when a grown-up allows them; a ⭐ challenge customer brings one tier more;
+  // the first customers of a shift (warm) one tier less
+  for (const [g, L, open, all] of [['g2', 30, 4, 6], ['k', 30, 2, 5], ['g2', 2, 1, 1], ['k', 4, 2, 2]]) {
+    const x = farm(g, L);
+    assert.deepStrictEqual([F.tierOpen(x, g), (x.opts.ahead = true, F.tierOpen(x, g))], [open, all], `${g} level ${L}`);
+    x.opts.ahead = false;
+    x.tier = all;
+    assert.strictEqual(F.tierNow(x, g), open);
+    const stock = { carrot: 9, egg: 9, tomato: 9 };
+    for (let i = 0; i < 30; i++) {
+      assert.ok(F.customer(x, g, { stock }).tier <= open && F.customer(x, g, { stock, vip: true }).tier <= Math.min(F.tiers(g).length, open + 1));
+      assert.strictEqual(F.customer(x, g, { stock, warm: true }).tier, Math.max(1, open - 1), 'an easy start');
+    }
+    assert.strictEqual(F.orderCap(x, g), F.tiers(g)[open - 1].max, 'orders pay within the open tiers');
+    for (let i = 0; i < 8; i++) F.adapt(x, g, true);
+    assert.strictEqual(x.tier, open, 'never above the open tiers');
+  }
+
+  // Mila: from level 15, hired once in the shop; she sells the rest only after the day's shift
+  const m = farm('g2', 14);
+  assert.ok(!F.mgrOpen(m) && F.shopItem(m, 'g2', 'mgr').locked);
+  assert.ok(F.unlocksAt(F.MANAGER.lv, 'g2').some((x) => x.name.includes(F.MANAGER.name)));
+  m.xp = lvXp(F.MANAGER.lv);
+  assert.ok(F.mgrOpen(m) && !F.mgrHired(m) && F.buy(m, 'g2', 'mgr') && F.mgrHired(m) && F.shopItem(m, 'g2', 'mgr').owned);
+  m.basket = { egg: 40, milk: 12, carrot: 9 };
+  // a full order board (no new orders come): one keeps 4 eggs
+  m.orders.list = [{ egg: 4 }, { sparkle: 1 }, { silk: 1 }].map((items, i) => ({ n: i + 1, who: F.PEOPLE[i], why: '', items, stand: 0, pay: 0, end: m.day + 30, big: false }));
+  assert.ok(!F.mgrCan(m) && !F.mgrSell(m), 'not before the shift');
+  assert.strictEqual(F.nextDay(m, 'g2').mgr, null, 'no shift: the basket waits');
+  m.shift = { day: m.day, n: 10, right: 6, earned: 1200 }; // ⭐⭐
+  assert.ok(F.mgrCan(m) && F.mgrSell(m) && F.mgrTonight(m) && m.mgr.keep === 4);
+  F.mgrStay(m);
+  assert.ok(!F.mgrTonight(m), 'keep it in the basket after all');
+  F.mgrSell(m);
+  const sale = F.forSale(m), value = F.standValue(sale, 'g2'), sold0 = m.stats.sold, money0 = m.money;
+  assert.deepStrictEqual(sale, { egg: 36, milk: 12, carrot: 9 }, 'not what the orders keep');
+  const night = F.nextDay(m, 'g2').mgr;
+  assert.deepStrictEqual(night, { n: 57, sold: value, kept: F.mgrKeep(value, 4, 'g2') });
+  assert.ok(night.kept % 5 === 0 && night.kept > 0 && night.kept < value);
+  assert.strictEqual(m.basket.egg, 4, 'the eggs for the order stay');
+  assert.strictEqual(m.stats.sold, sold0 + 57);
+  assert.deepStrictEqual(m.mgr.pend, { n: 57, sold: value, kept: night.kept, earned: 1200 });
+  assert.ok(!F.mgrTonight(m) && m.money === money0, 'her money waits for the morning question');
+  // a second night adds to it (a new shift), and collecting puts it in the wallet
+  m.basket.milk = 10;
+  m.shift = { day: m.day, n: 10, right: 10, earned: 900 }; // ⭐⭐⭐
+  F.mgrSell(m);
+  F.nextDay(m, 'g2');
+  const k2 = F.mgrKeep(10 * F.price('milk', 'g2'), 10, 'g2');
+  assert.deepStrictEqual(m.mgr.pend, { n: 67, sold: value + 750, kept: night.kept + k2, earned: 2100 });
+  const got = F.mgrCollect(m);
+  assert.deepStrictEqual([got, m.money - money0, m.mgr.pend, m.stats.mgrNights, m.stats.mgrSold, m.stats.mgrGot], [value + 750 - night.kept - k2, got, null, 1, 67, got]);
+  assert.strictEqual(F.mgrCollect(m), 0);
+  // what she keeps: 1 of every 2, 4 or 10 coins (2nd grade in 5¢ steps)
+  assert.deepStrictEqual([F.mgrKeep(1000, 2, 'g2'), F.mgrKeep(1000, 4, 'g2'), F.mgrKeep(1240, 10, 'g2'), F.mgrKeep(37, 4, 'k'), F.mgrKeep(37, 10, 'k')], [500, 250, 125, 9, 4]);
+  assert.deepStrictEqual([F.keepText(4, 'g2'), F.keepText(10, 'g2'), F.keepText(10, 'k')], ['25¢ of every dollar', '10¢ of every dollar', '1¢ of every 10¢']);
+  // a grown-up can turn her off: not in the shop, and she doesn't sell
+  m.basket.milk = 10;
+  m.shift = { day: m.day, n: 10, right: 10, earned: 0 };
+  F.mgrSell(m);
+  m.opts.mgr = false;
+  assert.ok(!F.mgrOpen(m) && !F.shopItem(m, 'g2', 'mgr') && F.nextDay(m, 'g2').mgr === null && m.basket.milk === 10);
+
+  // the morning question: count her coins, how much is yours (2nd grade from the 3rd tier), or who earned more
+  const kinds = {};
+  for (const g of ['k', 'g2']) for (let ti = 1; ti <= F.tiers(g).length; ti++) for (let i = 0; i < 150; i++) {
+    const sold = g === 'k' ? U.rnd(2, 600) : U.rnd(2, 1200) * 5, kept = F.mgrKeep(sold, U.pick(F.KEEP), g), earned = U.rnd(0, 3) ? U.rnd(1, 2 * sold) : sold - kept;
+    const pend = { n: U.rnd(1, 90), sold, kept, earned }, mine = sold - kept, p = F.mgrQuestion(pend, g, ti), tag = `${g} tier ${ti} ${JSON.stringify(pend)}`;
+    assert.ok(p && p.text && p.hint && p.explain && p.who[1] === F.MANAGER.name, tag);
+    if (p.kind === 'num') assert.ok(Number.isInteger(p.answer) && p.answer === mine, tag);
+    else {
+      assert.ok(p.choices.includes(p.answer) && new Set(p.choices).size === p.choices.length, tag + ': choices');
+      if (p.choices.length === 3) assert.strictEqual(p.answer, earned > mine ? p.choices[0] : mine > earned ? p.choices[1] : 'The same', tag);
+      else assert.strictEqual(p.answer, F.fmt(mine, g), tag);
+    }
+    const kind = p.visual.includes('fcmp') ? 'compare' : p.text.includes('these') ? 'coins' : 'yours';
+    if (kind === 'coins') assert.ok(mine <= F.tiers(g)[ti - 1].max, tag + ': coins within the tier');
+    if (kind === 'yours') assert.ok(g === 'g2' && ti >= 3, tag);
+    kinds[`${g}:${kind}`] = (kinds[`${g}:${kind}`] || 0) + 1;
+  }
+  assert.ok(['k:coins', 'k:compare', 'g2:coins', 'g2:yours', 'g2:compare'].every((k) => kinds[k] > 20), JSON.stringify(kinds));
+
+  // The economy, on a good farm day (the basket F.goodDay counts): from level 15 a shift of 10 customers no longer
+  // sells (nearly) all of it, so Mila opens there; selling it all at the stand always brings more than a shift and
+  // Mila; after a ⭐⭐ shift they still bring at least 70% of that (most often 80–90%).
+  const goodBasket = (L, g) => {
+    const beds = F.BEDS.filter((b) => b[0] <= L).length, pens = F.PENS.filter((p) => p[0] <= L).length, gx = g === 'k' ? 0 : 1;
+    const bed = { u: Math.floor(F.BED_UP.filter((u) => u.lv <= L).length / 2) }, room = 1 + F.PEN_UP.filter((x, i) => i < 2 && x.lv <= L).length;
+    const crop = Object.keys(F.CROPS).filter((id) => F.CROPS[id].lv <= L).map((id) => Object.assign({}, bed, { c: id })).sort((a, b) => (F.cropYield(b) * F.price(b.c, g) - F.CROPS[b.c].seed[gx]) / F.cropDays(b) - (F.cropYield(a) * F.price(a.c, g) - F.CROPS[a.c].seed[gx]) / F.cropDays(a))[0];
+    const out = { [crop.c]: Math.round((beds * F.cropYield(crop)) / F.cropDays(crop)) };
+    const net = (a) => a.per * F.price(a.item, g) - a.eat * F.FEED.price[gx];
+    Object.values(F.ANIMALS).filter((a) => a.lv <= L).sort((a, b) => net(b) - net(a)).slice(0, pens).forEach((a) => { out[a.item] = (out[a.item] || 0) + a.per * room; });
+    return out;
+  };
+  // a day at the stand: N customers (all of them right on the first try), as they come (⭐ every 5th, the truck every 3rd)
+  const atStand = (L, g, basket, N) => {
+    const x = Object.assign(farm(g, L), { basket: Object.assign({}, basket), stand: F.STANDS.filter((s) => s.lv <= L).length - 1, customers: U.rnd(0, 14) });
+    x.tier = F.tierOpen(x, g);
+    let money = 0, sold = 0;
+    for (let n = 0; n < N; n++) {
+      const vip = (x.customers + 1) % F.VIP_EVERY === 0, truck = !vip && (x.customers + 1) % F.TRUCK_EVERY === 0;
+      const p = F.customer(x, g, { stock: F.forSale(x), vip, truck, warm: n < F.WARM });
+      if (!p) break;
+      sold += U.sum(Object.values(p.sale));
+      const r = F.serve(x, g, p, true, true);
+      money += r.paid + r.tip;
+      x.xp = lvXp(L); // no level gifts
+    }
+    return { money, sold, left: F.forSale(x) };
+  };
+  const T = 150, share = {};
+  for (const g of ['k', 'g2']) {
+    for (const L of [F.MANAGER.lv - 3, F.MANAGER.lv - 1, F.MANAGER.lv, 20]) {
+      const b = goodBasket(L, g), n = U.sum(Object.values(b));
+      let sold = 0;
+      for (let t = 0; t < 2 * T; t++) sold += atStand(L, g, b, F.SHIFT).sold;
+      const part = sold / 2 / T / n;
+      share[`${g}:${L}`] = +part.toFixed(2);
+      assert.ok(L < F.MANAGER.lv ? part >= 0.88 : part <= (L > F.MANAGER.lv ? 0.75 : 0.86), `${g} level ${L}: a shift sells ${(sold / 2 / T).toFixed(1)} of the day's ${n} things`);
+    }
+    for (const L of [15, 20, 25, 30, 40, 50, 60]) {
+      const b = goodBasket(L, g);
+      let all = 0, mila = [0, 0, 0];
+      for (let t = 0; t < T; t++) {
+        all += atStand(L, g, b, 1e4).money;
+        const s = atStand(L, g, b, F.SHIFT), rest = F.standValue(s.left, g);
+        F.KEEP.forEach((keep, i) => { mila[i] += s.money + rest - F.mgrKeep(rest, keep, g); });
+      }
+      const tag = `${g} level ${L}: selling it all ${all / T | 0}, a shift and Mila ${mila.map((x) => x / T | 0).join(' / ')}`;
+      assert.ok(mila[0] < mila[1] && mila[1] < mila[2] && mila[2] < all, tag + ': selling it all yourself brings the most');
+      assert.ok(mila[1] >= 0.7 * all, tag + ': ⭐⭐ brings at least 70% of it');
+      share[`${g}:${L}:mila2`] = +(mila[1] / all).toFixed(2);
+    }
+  }
+  console.log('shift and Mila:', JSON.stringify(share));
+
+  // farms from before the shift get it; the preview shows a ⭐⭐ shift and Mila's money waiting
+  const old = F.ensure({ grade: 'g2', farm: (() => { const y = Object.assign(F.fresh(), { started: true }); delete y.opts; delete y.shift; delete y.mgr; return y; })() });
+  assert.deepStrictEqual([old.opts, old.shift.n, old.mgr.hired, old.stats.shifts], [{ shift: 10, ahead: false, mgr: true }, 0, false, 0]);
+  for (const g of ['k', 'g2']) {
+    const sc = F.showcase({ grade: g, farm: F.fresh() });
+    assert.ok(sc.opts.ahead && F.mgrHired(sc) && F.shiftStars(sc) === 2 && F.mgrCan(sc));
+    assert.strictEqual(sc.mgr.pend.kept, F.mgrKeep(sc.mgr.pend.sold, 4, g));
+    assert.ok(F.mgrQuestion(sc.mgr.pend, g, F.tierNow(sc, g)));
+  }
 }
 
 // ---------- the grown-up preview shows a level-60 farm with everything open

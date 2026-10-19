@@ -219,6 +219,8 @@
   // The farmhand feeds the animals every night and collects what they made in the morning, for a daily wage.
   // From level 48 the farmhand also picks ripe crops.
   F.HELPER = { lv: 39, picksLv: 48, hire: [20, 500], wage: [2, 25], name: 'Sam' };
+  // Mila, the market manager (see the market shift below): sells overnight what is left after the child's shift.
+  F.MANAGER = { lv: 15, hire: [40, 1000], name: 'Mila', e: '👩‍💼' };
   // The stand: a nicer stand brings tips for first-try right answers (part of the sale, at least 1¢).
   F.STANDS = [
     { e: '🪵', name: 'Wooden table', lv: 1, cost: [0, 0], tip: 0 },
@@ -281,7 +283,11 @@
     ],
   };
   F.tiers = (grade) => F.TIERS[grade === 'k' ? 'k' : 'g2'];
-  F.tierOpen = (fm, grade) => F.tiers(grade).filter((t) => t.lv <= F.level(fm.xp).level).length; // 1-based count
+  // How many tiers are open (1-based count): opened by the farm level; the ones ahead of the grade only when a grown-up
+  // allows them (fm.opts.ahead). A ⭐ challenge customer still brings one tier more.
+  F.tierOpen = (fm, grade) => Math.max(1, F.tiers(grade).filter((t) => t.lv <= F.level(fm.xp).level && (!t.ahead || (fm.opts || {}).ahead)).length);
+  // The tier customers bring now (fm.tier can be above the open ones when a grown-up just turned the harder ones off).
+  F.tierNow = (fm, grade) => Math.max(1, Math.min(fm.tier, F.tierOpen(fm, grade)));
   F.VIP_EVERY = 5; // every 5th customer is a ⭐ challenge customer
   // A big farm makes more than customers carry away (2–3 things each). When a pile builds up, every 3rd customer is
   // the market truck: it buys a whole pile of one thing at the wholesale price, with one money problem of the child's
@@ -360,6 +366,7 @@
     for (const u of F.BED_UP) if (u.lv === L) out.push({ e: u.icon, name: 'Garden bed upgrade: ' + u.name });
     for (const u of F.PEN_UP) if (u.lv === L) out.push({ e: '🏡', name: 'Pen upgrade: ' + u.name });
     for (const [n, lv] of F.FEED_PACKS) if (lv === L && L > 1) out.push({ e: F.FEED.e, name: `Feed: ${n} bags in one pack` });
+    if (L === F.MANAGER.lv) out.push({ e: F.MANAGER.e, name: `Market manager ${F.MANAGER.name}: sells what is left after your shift at the stand` });
     if (L === F.HELPER.lv) out.push({ e: '🧑‍🌾', name: `Farmhand ${F.HELPER.name}: feeds and collects for a wage` });
     if (L === F.HELPER.picksLv) out.push({ e: '🧑‍🌾', name: `${F.HELPER.name} picks ripe crops too` });
     const t = F.TITLES.find((x) => x[0] === L);
@@ -399,6 +406,9 @@
     orders: { seen: false, n: 0, list: [] }, // the order board (see below)
     yard: {}, // the barnyard's houses: animal: { a, g, fed, ready, u } (like a pen)
     boosts: {}, // farm supplies working now: id: { cost, until, gain } (see below)
+    opts: { shift: F.SHIFT, ahead: false, mgr: true }, // set by a grown-up: customers in a shift, problems beyond the grade, Mila
+    shift: { day: 1, n: 0, right: 0, earned: 0 }, // today's shift at the stand (see the market shift below)
+    mgr: { hired: false, tonight: 0, keep: 0, pend: null }, // Mila, the market manager
   });
   F.START_MONEY = [5, 30];
   F.ensure = (st) => {
@@ -428,6 +438,10 @@
     if (!fm.boosts) fm.boosts = {}; // and the farm supplies
     for (const k of ['boosts', 'boostCost', 'boostGain', 'boostWins']) if (!fm.stats[k]) fm.stats[k] = 0;
     for (const k of ['orders', 'orderPay', 'orderExtra']) if (!fm.stats[k]) fm.stats[k] = 0;
+    if (!fm.opts) fm.opts = { shift: F.SHIFT, ahead: false, mgr: true }; // and the market shift and Mila
+    if (!fm.shift) fm.shift = { day: fm.day, n: 0, right: 0, earned: 0 };
+    if (!fm.mgr) fm.mgr = { hired: false, tonight: 0, keep: 0, pend: null };
+    for (const k of ['shifts', 'star3', 'mgrNights', 'mgrSold', 'mgrGot', 'mgrKept']) if (!fm.stats[k]) fm.stats[k] = 0;
     return fm;
   };
 
@@ -531,6 +545,7 @@
   // Night: crops grow a day, fed animals grow and grown-ups make something. Returns what happened for the morning card.
   F.nextDay = (fm, grade = 'g2') => {
     const news = { ripe: [], made: [], grew: [], hungry: [], cooked: [], helper: null };
+    news.mgr = F.mgrNight(fm, grade); // what is in the basket tonight (before the animals make more)
     const hp = fm.helper;
     if (hp && hp.hired && hp.on) { // the farmhand works tonight if there is money for the wage
       const wage = F.HELPER.wage[gi(grade)];
@@ -633,6 +648,8 @@
       else out.push({ id: 'penup:' + i, tab: 'up', e: a.e, name: `${a.name} pen: every upgrade`, price: 0, lv: 1, owned: true });
     });
     const H = F.HELPER;
+    const M = F.MANAGER;
+    if (fm.opts.mgr !== false) out.push({ id: 'mgr', tab: 'farm', e: M.e, name: `Market manager ${M.name}`, price: M.hire[g], lv: M.lv, owned: !!(fm.mgr && fm.mgr.hired), note: `After your shift at the stand she sells what is left, overnight. She keeps a part for her work: less after a great shift. No wage.` });
     out.push({ id: 'helper', tab: 'farm', e: '🧑‍🌾', name: `Farmhand ${H.name}`, price: H.hire[g], lv: H.lv, owned: !!(fm.helper && fm.helper.hired), note: `Feeds the animals every night and collects in the morning. Wage: ${F.fmt(H.wage[g], grade)} a day.` });
     const na = F.ACCOUNTS[(fm.bank.acct || 0) + 1];
     if (na) out.push({ id: 'acct', tab: 'farm', e: na.e, name: 'Bank: ' + na.name, price: na.cost[g], lv: Math.max(na.lv, F.BANK_LV), note: `The bank adds the big interest on savings up to ${F.fmt(na.top[g], grade)}` });
@@ -663,6 +680,7 @@
     else if (kind === 'house') fm.yard[arg] = { a: arg, g: 0, fed: false, ready: 0, u: 0 };
     else if (kind === 'houseup') fm.yard[arg].u = (fm.yard[arg].u || 0) + 1;
     else if (kind === 'helper') fm.helper = { hired: true, on: true };
+    else if (kind === 'mgr') fm.mgr.hired = true;
     else if (kind === 'acct') fm.bank.acct = (fm.bank.acct || 0) + 1;
     if (fm.goal === id) fm.goal = '';
     return x;
@@ -1203,9 +1221,9 @@
   // An order pays the stand price and half as much again (a big order: twice the stand price); 2nd grade in 5¢ steps.
   F.orderPay = (stand, big, grade) => { const x = stand * (big ? 2 : 1.5); return grade === 'k' ? Math.ceil(x) : Math.ceil(x / 5) * 5; };
   F.standValue = (items, grade) => U.sum(Object.entries(items).map(([id, n]) => n * F.price(id, grade)));
-  // The most an order pays: the money of the hardest money problems open at this level (so the numbers are ones the
-  // child works with: 20¢ in kindergarten at level 5, $5 in 2nd grade at level 6 …).
-  F.orderCap = (fm, grade) => Math.max(...F.tiers(grade).filter((t) => t.lv <= F.level(fm.xp).level).map((t) => t.max));
+  // The most an order pays: the money of the hardest money problems open now (so the numbers are ones the child works
+  // with: 20¢ in kindergarten at level 5, $5 in 2nd grade at level 6 …; the ones ahead of the grade when allowed).
+  F.orderCap = (fm, grade) => F.tiers(grade)[F.tierOpen(fm, grade) - 1].max;
   // What this farm can make for an order. per: how many one garden bed (with the farm's poorest soil) or all the pens
   // of a kind make; days: nights for one batch; made things need a workshop, and their inputs must come from this farm.
   F.orderGoods = (fm) => {
@@ -1369,6 +1387,10 @@
     fm.merchant = F.merchantVisit(fm, g, 2, 3);
     fm.charms = { clover: { cost: k ? 30 : 900, until: 18, gain: k ? 12 : 640 }, myth: { a: 'cow', cost: k ? 60 : 2400, until: 17, gain: k ? 33 : 1750 } };
     fm.pens[1].rare = 2;
+    // every money problem open; a shift done with ⭐⭐ (so Mila's choice shows) and her money from last night waiting
+    fm.opts = { shift: F.SHIFT, ahead: true, mgr: true };
+    fm.shift = { day: fm.day, n: F.SHIFT, right: 7, earned: k ? 85 : 2450 };
+    fm.mgr = { hired: true, tonight: 0, keep: 0, pend: k ? { n: 31, sold: 124, kept: 31, earned: 92 } : { n: 31, sold: 4260, kept: 1065, earned: 2310 } };
     // farm supplies at work: Grow-Fast, and a rented field with carrots in one of its beds
     fm.boosts = { grow: { cost: k ? 20 : 500, until: 16, gain: k ? 6 : 150, grade: g }, field: { cost: k ? 30 : 900, until: 19, gain: 0, grade: g } };
     fm.beds.push({ c: 'carrot', g: 0, u: 0, rent: true }, { c: null, g: 0, u: 0, rent: true });
@@ -1643,9 +1665,10 @@
   const FALLBACK = ['count', 'collect', 'total', 'two'];
   // The next customer: a problem of the child's tier (one tier up for a ⭐ challenge customer).
   // stock: what can be sold (the basket; odd jobs use a pretend crate). Returns null when nothing can be sold.
-  F.customer = (fm, grade, { stock, vip = false, jobs = false, truck = false } = {}) => {
+  // warm: the first customers of a shift bring problems one tier easier (an easy start).
+  F.customer = (fm, grade, { stock, vip = false, jobs = false, truck = false, warm = false } = {}) => {
     const all = F.tiers(grade);
-    const ti = Math.min(all.length, Math.max(1, fm.tier) + (vip ? 1 : 0));
+    const ti = Math.max(1, Math.min(all.length, F.tierNow(fm, grade) + (vip ? 1 : warm ? -1 : 0)));
     const tier = all[ti - 1];
     if (!Object.values(stock).some((n) => n > 0)) return null;
     const t = truck && !vip && !jobs ? F.truckProblem(stock, grade, tier) : null;
@@ -1695,9 +1718,120 @@
     if (firstTry) fm.stats.right++;
     if (p.vip && firstTry) fm.stats.vip++;
     fm.customers++;
+    if (!p.jobs) res.shift = F.shiftServed(fm, firstTry, res.paid + res.tip); // 'done' when this customer finished the shift
     res.xp = (firstTry ? 5 : solved ? 2 : 1) + (p.vip && firstTry ? 5 : 0) + (p.ahead && firstTry ? 2 : 0);
     res.ups = F.addXp(fm, res.xp, grade);
     return res;
+  };
+
+  // ---------------------------------------------------------------- the market shift and Mila, the market manager
+  // A big farm makes more than a child wants to sell one problem at a time (from level 15 one shift of customers no
+  // longer sells a good farm day, checked by the tests). So the stand works in shifts: a shift is the first 10
+  // customers of a farm day (a grown-up picks 5, 10, 15 or 20), with a clear finish line; the first two bring problems
+  // one tier easier. After the shift the child can keep selling as long as they like (every customer pays the full
+  // price and tips). When they stop, Mila, the market manager (hired once in the shop, from level 15), can sell what is
+  // left overnight. She sells at the stand price and keeps a part for her work, by the shift's stars: ⭐ (the shift
+  // was played) 1 of every 2 coins, ⭐⭐ (60% of its customers right on the first try) 1 of every 4, ⭐⭐⭐ (80%) 1 of
+  // every 10. Only the shift counts for the stars, so selling on when tired never takes them away. Without a shift
+  // that day she doesn't work (the basket waits; nothing is lost). Selling it all yourself always brings more (the
+  // full price and tips; the tests check it). In the morning her money waits for one question: how much of it is yours.
+  // fm.shift = { day, n (customers that farm day), right (first-try right among the shift's), earned (at the stand) }
+  // fm.mgr = { hired, tonight (the farm day she sells on, that night), keep (1 of every …), pend: { n, sold, kept, earned } }
+  F.SHIFT = 10;
+  F.SHIFTS = [5, 10, 15, 20];
+  F.WARM = 2;
+  F.KEEP = [2, 4, 10]; // Mila keeps 1 of every 2, 4 or 10 coins after a ⭐, ⭐⭐ or ⭐⭐⭐ shift
+  F.shiftLen = (fm) => (fm.opts && F.SHIFTS.includes(fm.opts.shift) ? fm.opts.shift : F.SHIFT);
+  // Today's shift (a new farm day starts a new one).
+  F.shiftToday = (fm) => {
+    if (!fm.shift || fm.shift.day !== fm.day) fm.shift = { day: fm.day, n: 0, right: 0, earned: 0 };
+    return fm.shift;
+  };
+  // A customer at the stand was served (from F.serve). Returns 'done' when this one finished the shift.
+  F.shiftServed = (fm, firstTry, money) => {
+    const s = F.shiftToday(fm), len = F.shiftLen(fm);
+    if (s.n < len && firstTry) s.right++;
+    s.n++;
+    s.earned += money;
+    if (s.n !== len) return null;
+    fm.stats.shifts = (fm.stats.shifts || 0) + 1;
+    if (F.shiftStars(fm) === 3) fm.stats.star3 = (fm.stats.star3 || 0) + 1;
+    return 'done';
+  };
+  F.shiftLeft = (fm) => Math.max(0, F.shiftLen(fm) - F.shiftToday(fm).n);
+  F.shiftDone = (fm) => F.shiftLeft(fm) === 0;
+  // 0 before the shift is done; then 1 to 3 stars by the first-try right answers among its customers
+  F.shiftStars = (fm) => {
+    if (!F.shiftDone(fm)) return 0;
+    const len = F.shiftLen(fm), r = F.shiftToday(fm).right;
+    return r >= Math.ceil(len * 0.8) ? 3 : r >= Math.ceil(len * 0.6) ? 2 : 1;
+  };
+  F.starText = (n) => '⭐'.repeat(n);
+  F.mgrOpen = (fm) => F.level(fm.xp).level >= F.MANAGER.lv && (fm.opts || {}).mgr !== false;
+  F.mgrHired = (fm) => F.mgrOpen(fm) && !!(fm.mgr && fm.mgr.hired);
+  // She keeps 1 of every `keep` coins: 2nd grade in 5¢ steps.
+  F.mgrKeep = (sold, keep, grade) => { const x = sold / keep; return Math.min(sold, grade === 'k' ? Math.round(x) : Math.round(x / 5) * 5); };
+  // What she would keep after today's shift, per dollar (2nd grade) or per 10¢ (kindergarten): "25¢ of every dollar".
+  F.keepText = (keep, grade) => (grade === 'k' ? `1¢ of every ${keep}¢` : `${F.fmt(100 / keep, 'g2')} of every dollar`);
+  F.mgrTonight = (fm) => !!(fm.mgr && fm.mgr.tonight && fm.mgr.tonight === fm.day);
+  // Can she sell the rest tonight? (hired, today's shift done, something for sale)
+  F.mgrCan = (fm) => F.mgrHired(fm) && F.shiftDone(fm) && F.saleCount(fm) > 0;
+  F.mgrSell = (fm) => {
+    if (!F.mgrCan(fm)) return false;
+    Object.assign(fm.mgr, { tonight: fm.day, keep: F.KEEP[F.shiftStars(fm) - 1] });
+    return true;
+  };
+  F.mgrStay = (fm) => { if (fm.mgr) fm.mgr.tonight = 0; };
+  // Night (from F.nextDay): she takes what is for sale (not what the orders keep) and sells it. Her money waits in
+  // fm.mgr.pend for the morning question (a second night adds to it). Returns { n, sold, kept } or null.
+  F.mgrNight = (fm, grade) => {
+    const m = fm.mgr;
+    if (!m || !m.tonight) return null;
+    const ok = m.tonight === fm.day && F.mgrHired(fm);
+    m.tonight = 0;
+    if (!ok) return null;
+    const stock = F.forSale(fm), n = U.sum(Object.values(stock));
+    if (!n) return null;
+    const sold = F.standValue(stock, grade), kept = F.mgrKeep(sold, m.keep || F.KEEP[0], grade);
+    for (const [id, q] of Object.entries(stock)) { fm.basket[id] -= q; if (!fm.basket[id]) delete fm.basket[id]; }
+    fm.stats.sold += n;
+    const earned = fm.shift && fm.shift.day === fm.day ? fm.shift.earned : 0, p = m.pend;
+    m.pend = p ? { n: p.n + n, sold: p.sold + sold, kept: p.kept + kept, earned: p.earned + earned } : { n, sold, kept, earned };
+    return { n, sold, kept };
+  };
+  F.mgrGot = (pend) => pend.sold - pend.kept;
+  // The morning question answered: her money goes to the wallet. Returns what the child got.
+  F.mgrCollect = (fm) => {
+    const p = fm.mgr && fm.mgr.pend;
+    if (!p) return 0;
+    const got = F.mgrGot(p);
+    fm.money += got;
+    Object.assign(fm.stats, { earned: fm.stats.earned + got, mgrNights: (fm.stats.mgrNights || 0) + 1, mgrSold: (fm.stats.mgrSold || 0) + p.n, mgrGot: (fm.stats.mgrGot || 0) + got, mgrKept: (fm.stats.mgrKept || 0) + p.kept });
+    fm.mgr.pend = null;
+    return got;
+  };
+  // The morning question, at the child's tier: count the money she brings when it fits the tier's coins; from the third
+  // tier (2nd grade), how much is yours (what she sold for − what she keeps); otherwise who earned more, the child at
+  // the stand or Mila (with bars to help).
+  F.mgrQuestion = (pend, grade, tierNo) => {
+    const fmt = (c) => F.fmt(c, grade), tier = F.tiers(grade)[tierNo - 1], got = F.mgrGot(pend);
+    const base = { type: 'mgr', who: [F.MANAGER.e, F.MANAGER.name], sale: {}, total: 0 };
+    const sold = `sold <b>${pend.n} ${pend.n === 1 ? 'thing' : 'things'}</b> from your basket at the market`;
+    const coins = got <= tier.max ? F.coinsFor(got, tier.coins) : null;
+    if (coins && coins.length <= 12) {
+      return ask(Object.assign(base, { text: `${sold}. She kept <b>${fmt(pend.kept)}</b> for her work and brings you the rest: these. How much money is it?`, visual: MQ.V.coins(coins, grade === 'k' || tierNo === 1), hint: 'Start with the money worth the most, then count on.', explain: `${coins.map((k) => fmt(F.COINV[k])).join(' + ')} = ${fmt(got)}` }), got, grade);
+    }
+    if (grade !== 'k' && tierNo >= 3) {
+      const p = Object.assign(base, { text: `${sold} for <b>${fmt(pend.sold)}</b>. She keeps <b>${fmt(pend.kept)}</b> for her work. How much of the money is <b>yours</b>?`, visual: `<div class="ftags"><span class="ftag">💰 ${fmt(pend.sold)}</span><b>−</b><span class="ftag">${F.MANAGER.e} ${fmt(pend.kept)}</span></div>`, hint: `Take away what ${F.MANAGER.name} keeps: ${fmt(pend.sold)} − ${fmt(pend.kept)}.`, explain: `${fmt(pend.sold)} − ${fmt(pend.kept)} = ${fmt(got)}` });
+      return got < 100 ? Object.assign(p, { kind: 'num', answer: got, unit: '¢' }) : Object.assign(p, { kind: 'choice', answer: fmt(got), choices: F.moneyChoices(got, grade, [pend.sold, pend.kept, pend.sold + pend.kept]) });
+    }
+    const you = pend.earned, top = Math.max(you, got, 1), bar = (e, x) => `<div class="fcmp-row"><span>${e}</span><span class="fcmp-bar"><i style="width:${Math.max(3, Math.round((x / top) * 100))}%"></i></span><b>${fmt(x)}</b></div>`;
+    const answer = you > got ? '🏪 Me at the stand' : got > you ? `${F.MANAGER.e} ${F.MANAGER.name}` : 'The same';
+    return Object.assign(base, { kind: 'choice', answer, choices: ['🏪 Me at the stand', `${F.MANAGER.e} ${F.MANAGER.name}`, 'The same'],
+      text: `${sold}. She brings you <b>${fmt(got)}</b>. At your stand you earned <b>${fmt(you)}</b>. Who earned more money?`,
+      visual: `<div class="fcmp">${bar('🏪', you)}${bar(F.MANAGER.e, got)}</div>`,
+      hint: grade === 'k' ? 'Which number is bigger? Look at the bars too.' : 'Compare the dollars first, then the cents.',
+      explain: you === got ? `${fmt(you)} and ${fmt(got)} are the same` : `${fmt(Math.max(you, got))} is more than ${fmt(Math.min(you, got))}` });
   };
 
   MQ.farm = F;
