@@ -1890,6 +1890,80 @@ button.du-st:active { transform: translateY(2px); }
   .ls-double-rows > div { gap: 4px; }
   .ls-double-rows i { width: 20px; height: 20px; }
 }
+
+/* ---------- Sunny Farm weather, today's special and market day (js/farm-ui.js, js/farm-scene.js) ---------- */
+/* the farm page takes the day's colors: a light tint around the farm, the sky, the grass */
+body { transition: background-color 1s ease; }
+html:has(#app.wx-rain) body { --paper: #e2eaf1; }
+html:has(#app.wx-happy) body { --paper: #fdf2d8; }
+html:has(#app.wx-rainbow) body { --paper: #f2eefb; }
+html:has(#app.wx-fog) body { --paper: #e9eded; }
+html:has(#app.wx-heat) body { --paper: #fbe9cf; }
+html:has(#app.wx-storm) body { --paper: #d8deea; }
+html:has(#app.wx-wind) body { --paper: #e5f1ea; }
+html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
+.sky, .land { transition: background 1s ease; }
+.wxfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.wxfx i { position: absolute; font-style: normal; }
+.scene.wx-rain .sky { background: linear-gradient(#8ea4b9, #cdd9e3 80%); }
+.scene.wx-rain .land { background: linear-gradient(#7cc957, #63b244); }
+.scene.wx-rain .sun, .scene.wx-storm .sun { display: none; }
+.scene.wx-rain .cloud { filter: grayscale(0.5) brightness(0.92); }
+.wxfx .drops { inset: 0; transform: skewX(-12deg); background-image: radial-gradient(1.2px 6px at 50% 50%, rgba(255, 255, 255, 0.85) 98%, transparent 100%), radial-gradient(1px 5px at 30% 20%, rgba(230, 242, 255, 0.7) 98%, transparent 100%); background-size: 18px 26px, 25px 34px; animation: wxrain 0.7s linear infinite; }
+@keyframes wxrain { to { background-position: 0 26px, 0 34px; } }
+.scene.wx-storm .sky { background: linear-gradient(#55607a, #8d99b0 80%); }
+.scene.wx-storm .land { background: linear-gradient(#6faf52, #5f9d45); }
+.scene.wx-storm .cloud { filter: grayscale(0.8) brightness(0.7); }
+.wxfx .flash { inset: 0; background: #ffffff; opacity: 0; animation: wxflash 6s infinite; }
+@keyframes wxflash { 0%, 90%, 94%, 100% { opacity: 0; } 91% { opacity: 0.7; } 93% { opacity: 0.25; } }
+.scene.wx-fog .sky { background: linear-gradient(#cfd8dd, #eef1f2 80%); }
+.scene.wx-fog .sun { opacity: 0.35; }
+.scene.wx-fog .land { background: linear-gradient(#b5d4a2, #9cc486); }
+.wxfx .fogl { left: -20%; right: -20%; bottom: 0; height: 75%; background: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85)); animation: wxfog 14s ease-in-out infinite alternate; }
+@keyframes wxfog { to { transform: translateX(8%); } }
+.scene.wx-heat .sky { background: linear-gradient(#ffbe5c, #ffe6ad 80%); }
+.scene.wx-heat .sun { font-size: 2.8rem; filter: drop-shadow(0 0 16px #ff9a1f); }
+.scene.wx-heat .land { background: linear-gradient(#b7cf62, #a5c052); }
+.scene.wx-heat .hills { filter: saturate(0.6) sepia(0.25); }
+.wxfx .haze { left: 0; right: 0; bottom: 0; height: 44px; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.2) 0 18px, transparent 18px 36px); filter: blur(4px); animation: wxhaze 2.4s ease-in-out infinite alternate; }
+@keyframes wxhaze { to { transform: translateX(18px) scaleY(1.2); } }
+.scene.wx-happy .sky { background: linear-gradient(#ffd77d, #fff3cc 80%); }
+.scene.wx-happy .sun { font-size: 2.8rem; filter: drop-shadow(0 0 14px #ffd23f) drop-shadow(0 0 6px #ffffff); }
+.scene.wx-happy .land { background: linear-gradient(#9bda72, #86cb5e); }
+.wxfx .rays { top: -70px; right: -70px; width: 210px; height: 210px; border-radius: 50%; opacity: 0.6; background: repeating-conic-gradient(rgba(255, 244, 180, 0.8) 0 9deg, transparent 9deg 20deg); animation: sunspin 50s linear infinite; }
+.scene.wx-rainbow .sky { background: linear-gradient(#93d3f5, #dff4ff 80%); }
+.wxfx .bow { left: 8%; width: 84%; top: 26px; height: 230px; border-radius: 50%; background: radial-gradient(closest-side, transparent 72%, rgba(255, 70, 70, 0.4) 73% 76%, rgba(255, 165, 0, 0.4) 76% 79%, rgba(255, 235, 0, 0.4) 79% 82%, rgba(40, 190, 60, 0.4) 82% 85%, rgba(30, 120, 255, 0.4) 85% 88%, rgba(140, 60, 255, 0.4) 88% 91%, transparent 92%); }
+.scene.wx-wind .cloud { animation-duration: 10s; }
+.scene.wx-wind .cloud.c2 { animation-duration: 14s; }
+.wxfx .leaf { left: -8%; font-size: 1.1rem; animation: wxleaf 5s linear infinite; }
+.wxfx .leaf.l1 { top: 18px; }
+.wxfx .leaf.l2 { top: 52px; animation-duration: 6s; animation-delay: -2s; }
+.wxfx .leaf.l3 { top: 84px; animation-duration: 4.5s; animation-delay: -3.4s; }
+@keyframes wxleaf { 0% { left: -8%; transform: translateY(0) rotate(0); } 50% { transform: translateY(14px) rotate(200deg); } 100% { left: 106%; transform: translateY(-6px) rotate(380deg); } }
+/* market day: flags over the stand and a crowd in the yard */
+.bunting { position: absolute; left: 0; right: 0; top: 2px; height: 14px; z-index: 2; pointer-events: none; background-image: linear-gradient(135deg, #ff6b5b 33%, transparent 33%), linear-gradient(225deg, #ff6b5b 33%, transparent 33%), linear-gradient(135deg, #ffd23f 33%, transparent 33%), linear-gradient(225deg, #ffd23f 33%, transparent 33%); background-size: 40px 28px; background-position: 0 0, 0 0, 20px 0, 20px 0; background-repeat: repeat-x; }
+.stall .bunting { top: 26px; }
+.crowd { position: absolute; left: 100px; bottom: 8px; font-size: 1.6rem; animation: floaty 3s ease-in-out infinite; }
+/* the weather bar on the farm, the day cards, the week */
+.fwxbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; width: 100%; margin-top: 12px; border: 0; text-align: left; border-radius: var(--r); padding: 9px 12px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); color: var(--ink); font-size: 0.95rem; }
+.fwxbar.k-good { background: #f2fbff; box-shadow: inset 0 0 0 2px #a9d7ef; }
+.fwxbar.k-bad { background: #fff6ec; box-shadow: inset 0 0 0 2px #f0c08a; }
+.fwx-now { font-weight: 800; }
+.fwx-next { margin-left: auto; color: var(--ink-soft); font-weight: 700; }
+.fwx-next.warn { color: #a5501a; }
+.fwx-sp { padding: 1px 8px; border-radius: 999px; background: #fff1d2; box-shadow: inset 0 0 0 2px #f2c46a; font-weight: 800; font-size: 0.85rem; }
+.fwx2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 4px; text-align: left; }
+.fwx-day { display: flex; flex-direction: column; gap: 2px; padding: 10px; border-radius: 14px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); min-width: 0; }
+.fwx-day .fwx-when { font-size: 0.7rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); }
+.fwx-day .fwx-e { font-size: 2rem; line-height: 1.1; }
+.fwx-day small { font-size: 0.8rem; color: var(--ink-soft); font-weight: 700; }
+.fwx-day.k-good { background: #effaf2; box-shadow: inset 0 0 0 2px #a9d8b8; }
+.fwx-day.k-bad { background: #fff4e8; box-shadow: inset 0 0 0 2px #f0c08a; }
+.fwx-day .fwx-safe { color: #8a4b12; }
+.fwxweek li i { font-size: 1.15rem; color: inherit; }
+.fspecial { margin: 6px 0 0; padding: 6px 10px; border-radius: 12px; background: #fff1d2; box-shadow: inset 0 0 0 2px #f2c46a; font-size: 0.92rem; font-weight: 700; }
+.ftag.fsp { background: #fff1d2; box-shadow: inset 0 0 0 2px #f2c46a; }
+.ffriend { display: inline-block; margin-top: 4px; font-size: 0.9rem; color: #a2407a; }
 </style>
 </head>
 <body>
@@ -5933,6 +6007,8 @@ button.du-st:active { transform: translateY(2px); }
     { id: 'order1', icon: '📦', name: 'Special Delivery', desc: 'Deliver an order from the Sunny Farm order board', test: (s) => !!s.farm && (s.farm.stats.orders || 0) >= 1 },
     { id: 'order25', icon: '🏘️', name: 'Town Favorite', desc: 'Deliver 25 orders from the order board', test: (s) => !!s.farm && (s.farm.stats.orders || 0) >= 25 },
     { id: 'star3', icon: '🌟', name: 'Star Seller', desc: 'Finish a shift at your farm stand with ⭐⭐⭐', test: (s) => !!s.farm && (s.farm.stats.star3 || 0) >= 1 },
+    { id: 'market3', icon: '🎪', name: 'Market Day Star', desc: 'Finish a shift with ⭐⭐⭐ on a Sunny Farm market day', test: (s) => !!s.farm && (s.farm.stats.marketStar || 0) >= 1 },
+    { id: 'special20', icon: '⭐', name: 'Special Seller', desc: 'Sell 20 of the day’s ⭐ specials at your farm', test: (s) => !!s.farm && (s.farm.stats.specials || 0) >= 20 },
     { id: 'boost', icon: '🧪', name: 'Smart Farmer', desc: 'Buy a farm supply that pays for itself', test: (s) => !!s.farm && (s.farm.stats.boostWins || 0) >= 1 },
     { id: 'deposit', icon: '🔐', name: 'Patient Saver', desc: 'Collect a locked deposit from the farm bank', test: (s) => !!s.farm && (s.farm.stats.depBonus || 0) > 0 },
     { id: 'castle', icon: '🏰', name: 'Castle Builder', desc: 'Build the Castle on the Hill', test: (s) => !!s.farm && !!s.farm.dream && s.farm.dream.p >= 4 },
@@ -7487,6 +7563,7 @@ button.du-st:active { transform: translateY(2px); }
     if (L === F.BOOST_LV) out.push({ e: '🧪', name: 'Farm supplies in the shop: Grow-Fast, Animal treats, Big oven' });
     if (L === F.FIELD_LV) out.push({ e: '🚜', name: 'Rent a field: 2 more garden beds for a week (with all 6 beds)' });
     if (L === F.ORDERS_LV) out.push({ e: '📋', name: 'The order board: people in town order things from your farm' });
+    if (L === F.WX_LV) out.push({ e: '🌦️', name: 'Weather, a ⭐ special every day and 🎪 market day every week' });
     F.ACCOUNTS.forEach((a, i) => { if (i && a.lv === L) out.push({ e: a.e, name: `Bank: ${a.name} (more savings earn the big interest)` }); });
     for (const u of F.BED_UP) if (u.lv === L) out.push({ e: u.icon, name: 'Garden bed upgrade: ' + u.name });
     for (const u of F.PEN_UP) if (u.lv === L) out.push({ e: '🏡', name: 'Pen upgrade: ' + u.name });
@@ -7531,9 +7608,10 @@ button.du-st:active { transform: translateY(2px); }
     orders: { seen: false, n: 0, list: [] }, // the order board (see below)
     yard: {}, // the barnyard's houses: animal: { a, g, fed, ready, u } (like a pen)
     boosts: {}, // farm supplies working now: id: { cost, until, gain } (see below)
-    opts: { shift: F.SHIFT, ahead: false, mgr: true }, // set by a grown-up: customers in a shift, problems beyond the grade, Mila
+    opts: { shift: F.SHIFT, ahead: false, mgr: true, wx: 'all' }, // set by a grown-up: customers in a shift, problems beyond the grade, Mila, weather (all | good)
     shift: { day: 1, n: 0, right: 0, earned: 0 }, // today's shift at the stand (see the market shift below)
     mgr: { hired: false, tonight: 0, keep: 0, pend: null }, // Mila, the market manager
+    wx: null, // the weather (see below): { seed, seen, now, next, log }
   });
   F.START_MONEY = [5, 30];
   F.ensure = (st) => {
@@ -7567,6 +7645,10 @@ button.du-st:active { transform: translateY(2px); }
     if (!fm.shift) fm.shift = { day: fm.day, n: 0, right: 0, earned: 0 };
     if (!fm.mgr) fm.mgr = { hired: false, tonight: 0, keep: 0, pend: null };
     for (const k of ['shifts', 'star3', 'mgrNights', 'mgrSold', 'mgrGot', 'mgrKept']) if (!fm.stats[k]) fm.stats[k] = 0;
+    if (!fm.wx) fm.wx = { seed: Math.floor(Math.random() * 2147483647), seen: false, now: null, next: null, log: [] }; // and the weather
+    if (!fm.opts.wx) fm.opts.wx = 'all';
+    for (const k of ['wxGood', 'wxBad', 'wxGot', 'wxLost', 'specials', 'specialExtra', 'friends', 'marketStar']) if (!fm.stats[k]) fm.stats[k] = 0;
+    F.wxSync(fm, st.grade);
     return fm;
   };
 
@@ -7670,6 +7752,8 @@ button.du-st:active { transform: translateY(2px); }
   // Night: crops grow a day, fed animals grow and grown-ups make something. Returns what happened for the morning card.
   F.nextDay = (fm, grade = 'g2') => {
     const news = { ripe: [], made: [], grew: [], hungry: [], cooked: [], helper: null };
+    const wx = F.wxToday(fm), w = wx ? wx.w : ''; // today's weather works tonight
+    if (wx) news.wx = { w, got: 0, lost: 0, rested: 0, safe: 0, more: 0, less: 0, storm: w === 'storm' && F.mgrHired(fm) };
     news.mgr = F.mgrNight(fm, grade); // what is in the basket tonight (before the animals make more)
     const hp = fm.helper;
     if (hp && hp.hired && hp.on) { // the farmhand works tonight if there is money for the wage
@@ -7701,26 +7785,35 @@ button.du-st:active { transform: translateY(2px); }
     }
     fm.beds.forEach((b) => {
       if (!b.c || F.cropStage(b) === 'ready') return;
-      b.g++;
+      const aDay = Math.round((F.cropYield(b, fm) * F.price(b.c, grade)) / F.cropDays(b)); // what a day of growing is worth
+      if (w === 'heat' && !b.rent && !F.bedWater(b)) { news.wx.rested++; news.wx.lost += aDay; } // a hot night: it rests (a day later)
+      else { b.g++; if (w === 'heat' && !b.rent) news.wx.safe++; }
       if (F.boostOn(fm, 'grow') && F.cropStage(b) !== 'ready') { // Grow-Fast: a second day of growing tonight, worth a day of the crop
         b.g++;
-        fm.boosts.grow.gain += Math.round((F.cropYield(b, fm) * F.price(b.c, grade)) / F.cropDays(b));
+        fm.boosts.grow.gain += aDay;
       }
+      if (w === 'rain' && F.cropStage(b) !== 'ready') { b.g++; news.wx.got += aDay; } // warm rain: one more day of growing
       if (F.cropStage(b) === 'ready') news.ripe.push(b.c);
     });
+    const inPen = new Set(fm.pens);
     F.allPens(fm).forEach((p) => {
       if (!p.a) return;
       if (!p.fed) { news.hungry.push(p.a); return; }
       const before = F.animalStage(p);
       if (before === 2) {
-        const treat = F.boostOn(fm, 'treat') ? 1 : 0, a = F.ANIMALS[p.a], k = F.penMakes(p) + treat; // Animal treats: one more
-        if (treat) fm.boosts.treat.gain += F.price(F.mythOn(fm, p.a) ? F.MYTHS[p.a].item : a.item, grade);
+        const treat = F.boostOn(fm, 'treat') ? 1 : 0, a = F.ANIMALS[p.a], one = F.price(F.mythOn(fm, p.a) ? F.MYTHS[p.a].item : a.item, grade);
+        // warm sunshine: one more; a windy night: one less in a pen without a cozy barn (the barnyard houses are safe)
+        const sun = w === 'happy' ? 1 : 0, wind = w === 'wind' && inPen.has(p) && (p.u || 0) < 3 ? 1 : 0;
+        const k = Math.max(0, F.penMakes(p) + treat + sun - wind); // Animal treats: one more
+        if (treat) fm.boosts.treat.gain += one;
+        if (sun) { news.wx.more++; news.wx.got += one; }
+        if (wind) { news.wx.less++; news.wx.lost += one; } else if (w === 'wind' && inPen.has(p)) news.wx.safe++;
         if (F.mythOn(fm, p.a)) { // a Mythic Feed week: the rare thing instead of the usual one
           const it = F.MYTHS[p.a].item;
           p.rare = Math.min(30, (p.rare || 0) + k);
-          news.made.push([it, k]);
+          if (k) news.made.push([it, k]);
           fm.charms.myth.gain += k * (F.price(it, grade) - F.price(a.item, grade));
-        } else { p.ready = Math.min(30, (p.ready || 0) + k); news.made.push([a.item, k]); }
+        } else { p.ready = Math.min(30, (p.ready || 0) + k); if (k) news.made.push([a.item, k]); }
       }
       p.g++;
       if (F.animalStage(p) > before) news.grew.push([p.a, F.animalStage(p)]);
@@ -7731,7 +7824,16 @@ button.du-st:active { transform: translateY(2px); }
       if (F.level(fm.xp).level >= F.HELPER.picksLv) fm.beds.forEach((b, i) => { news.helper.picked += F.harvest(fm, i); });
     }
     news.built = F.buildOvernight(fm);
+    if (wx) { // what the weather did: in the stats and the log of the bank week
+      const kind = F.WX[w].kind;
+      if (kind === 'good' || wx.market) fm.stats.wxGood++;
+      if (kind === 'bad') fm.stats.wxBad++;
+      fm.stats.wxGot += news.wx.got;
+      fm.stats.wxLost += news.wx.lost;
+      fm.wx.log = (fm.wx.log || []).concat([[wx.day, w, wx.market ? 1 : 0]]).slice(-F.BANK_WEEK);
+    }
     fm.day++;
+    F.wxSync(fm, grade); // today's weather is yesterday's forecast; a new forecast for tomorrow
     news.charmEnd = F.charmsMorning(fm, grade);
     news.boostEnd = F.boostsMorning(fm, grade);
     news.orders = F.ordersMorning(fm, grade);
@@ -8326,6 +8428,122 @@ button.du-st:active { transform: translateY(2px); }
     return out;
   };
 
+  // ---------------------------------------------------------------- weather, today's special and market day
+  // From farm level 6 every farm day has weather, and the morning card says today's and tomorrow's. Good weather comes
+  // far more often than bad: 🌧️ warm rain (crops grow two days in one night), 🌞 warm sunshine (every fed grown-up pen
+  // and house makes 1 more tonight), 🌈 a rainbow (10% bigger tips today). From level 14 a little bad weather comes too:
+  // always forecast the day before, it only takes a bit of time or profit (never things or money), and there is a way
+  // to be safe from it: 🌫️ fog (no market truck today; sell big piles the day before), 🔥 a hot day (beds without a
+  // sprinkler rest tonight: a day later), ⛈️ a stormy night (Mila stays home and the basket waits; let her sell the
+  // night before), and in 2nd grade from level 23 🌬️ a windy night (grown-ups in pens without a cozy barn make 1 less;
+  // the barnyard houses are safe). Kindergarten gets bad weather at most once a bank week and never the wind. A
+  // grown-up can choose good weather only. Weather never touches the wallet, the bank, the basket, the workshops or a
+  // rented field (its farmer looks after it).
+  // Every farm day also has ⭐ a special: one thing this farm makes sells for half as much again today, at the stand
+  // and with Mila (the truck doesn't buy it). The 4th day of every bank week (farm day 4, 11, 18…) is 🎪 market day:
+  // fair weather, and every customer brings a friend who buys the same.
+  // The weather comes from the farm's seed and the farm day, and tomorrow's is fixed when it is forecast, so a forecast
+  // never changes. fm.wx = { seed, seen, now and next: { day, w, sp (the special), market }, log: [[day, w]] }
+  F.WX_LV = 6;
+  F.WX_BAD_LV = 14; // from here there is a way to be safe: the sprinkler, Mila (the night before)
+  F.WX_WIND_LV = 23; // the cozy barn
+  F.MARKET_DAY = 4; // the 4th day of every bank week
+  F.WX_TIP = 0.1; // a rainbow: tips 10% bigger
+  F.WEATHER = true; // the tests of the other rules turn the weather off
+  F.WX = {
+    sun: { e: '☀️', name: 'Sunny', kind: '', note: 'A sunny day on the farm.' },
+    rain: { e: '🌧️', name: 'Warm rain', kind: 'good', note: 'Tonight your crops grow 2 days in one night.' },
+    happy: { e: '🌞', name: 'Warm sunshine', kind: 'good', note: 'Happy animals! Tonight every fed grown-up pen and house makes 1 more.' },
+    rainbow: { e: '🌈', name: 'Rainbow', kind: 'good', note: 'Happy customers: bigger tips today for right answers.' },
+    fog: { e: '🌫️', name: 'Foggy day', kind: 'bad', note: 'The market truck can’t find the road. Customers still come.', safe: 'Sell big piles to the truck the day before.' },
+    heat: { e: '🔥', name: 'Hot day', kind: 'bad', note: 'Tonight beds without a 💧 sprinkler rest: their crops are ready a day later.', safe: 'Beds with a 💧 sprinkler keep growing, and so does 🧪 Grow-Fast.' },
+    storm: { e: '⛈️', name: 'Stormy night', kind: 'bad', note: `${F.MANAGER.name} stays home tonight. Your basket waits for tomorrow.`, safe: `Let ${F.MANAGER.name} sell the night before.` },
+    wind: { e: '🌬️', name: 'Windy night', kind: 'bad', note: 'Tonight grown-ups in pens without a 🛖 cozy barn make 1 less. Barnyard houses are safe.', safe: 'A 🛖 cozy barn keeps a pen safe, and 🥕 Animal treats make up for it.' },
+  };
+  F.WX_GOOD = ['rain', 'happy', 'rainbow'];
+  F.WX_BAD = ['fog', 'heat', 'storm', 'wind'];
+  // a number from 0 to 1 for the seed and the day (the same everywhere)
+  const wxRnd = (...xs) => {
+    let h = 0x811c9dc5;
+    for (const x of xs) { h = Math.imul(h ^ (x | 0), 0x01000193); h ^= h >>> 15; }
+    h = Math.imul(h ^ (h >>> 16), 0x85ebca6b); h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  };
+  F.wxOpen = (fm) => F.WEATHER && F.level(fm.xp).level >= F.WX_LV;
+  F.isMarketDay = (day) => day % F.BANK_WEEK === F.MARKET_DAY;
+  // The kinds of days in a bank week (its 7 days): 'market', 'good', 'bad' or ''. 2nd grade: 0, 1 or 2 bad days (about
+  // 1 a week), kindergarten: 1 bad day in about 2 weeks of 5; never two in a row, never on market day, never on the
+  // first day of a week (so not right after the last one of the week before). Every week has more good days than bad.
+  const BAD_AT = [1, 2, 4, 5, 6], BAD_TWO = [[1, 4], [1, 5], [1, 6], [2, 4], [2, 5], [2, 6]];
+  F.wxPlan = (seed, week, grade) => {
+    const k = grade === 'k', r = wxRnd(seed, week, 1), pick = (arr, s) => arr[Math.floor(wxRnd(seed, week, s) * arr.length)];
+    const plan = Array(F.BANK_WEEK).fill('');
+    plan[F.MARKET_DAY - 1] = 'market';
+    const bad = k ? (r < 0.4 ? [pick(BAD_AT, 2)] : []) : r < 0.25 ? [] : r < 0.8 ? [pick(BAD_AT, 2)] : pick(BAD_TWO, 3);
+    bad.forEach((i) => (plan[i] = 'bad'));
+    plan.forEach((x, i) => { if (!x && wxRnd(seed, week, 10 + i) < (k ? 0.55 : 0.45)) plan[i] = 'good'; });
+    while (plan.filter((x) => x === 'good' || x === 'market').length <= bad.length) plan[plan.indexOf('')] = 'good';
+    return plan;
+  };
+  F.wxSlot = (fm, grade, day) => F.wxPlan(fm.wx.seed, F.bankWeekNo(day), grade)[(day - 1) % F.BANK_WEEK];
+  // The bad weather this farm can have now: none before level 14 or with good weather only; a storm only with Mila
+  // hired, the wind only in 2nd grade from level 23 (the cozy barn).
+  F.wxBadKinds = (fm, grade) => {
+    const L = F.level(fm.xp).level;
+    if (L < F.WX_BAD_LV || (fm.opts || {}).wx === 'good') return [];
+    return F.WX_BAD.filter((w) => (w === 'storm' ? F.mgrHired(fm) : w === 'wind' ? grade !== 'k' && L >= F.WX_WIND_LV && fm.pens.some((p) => p.a) : true));
+  };
+  // How safe this farm is: [safe, all] (beds with a sprinkler on a hot day, pens with a cozy barn on a windy night).
+  F.wxGuard = (fm, w) => {
+    if (w === 'heat') { const b = F.ownBeds(fm); return [b.filter(F.bedWater).length, b.length]; }
+    if (w === 'wind') { const p = fm.pens.filter((x) => x.a); return [p.filter((x) => (x.u || 0) >= 3).length, p.length]; }
+    return null;
+  };
+  // Today's special: something this farm makes now (crops in its beds, what its grown-up animals and its workshops
+  // make, what is in the basket), not the same as the day before.
+  F.wxSpecialFor = (fm, day, avoid) => {
+    const goods = F.orderGoods(fm), ids = new Set();
+    fm.beds.forEach((b) => b.c && ids.add(b.c));
+    Object.values(goods).forEach((x) => x.kind !== 'crop' && ids.add(x.id));
+    Object.keys(fm.basket).forEach((id) => fm.basket[id] > 0 && ids.add(id));
+    let list = [...ids].filter((id) => F.ITEMS[id] && !F.ITEMS[id].myth && id !== 'rainbow' && id !== avoid).sort();
+    if (!list.length) list = Object.keys(goods).filter((id) => id !== avoid).sort();
+    return list.length ? list[Math.floor(wxRnd(fm.wx.seed, day, 7) * list.length)] : null;
+  };
+  // the special sells for half as much again, like an order (2nd grade in 5¢ steps)
+  F.specialPrice = (id, grade) => F.orderPay(F.price(id, grade), false, grade);
+  // A farm day's weather, special and market day, worked out for this farm now.
+  F.wxRoll = (fm, grade, day, avoid) => {
+    if (!F.wxOpen(fm)) return { day, w: 'sun', off: true };
+    const slot = F.wxSlot(fm, grade, day), pick = (arr, s) => arr[Math.floor(wxRnd(fm.wx.seed, day, s) * arr.length)];
+    const bad = slot === 'bad' ? F.wxBadKinds(fm, grade) : [];
+    const w = slot === 'market' ? (wxRnd(fm.wx.seed, day, 4) < 1 / 3 ? 'rainbow' : 'sun') : slot === 'good' ? pick(F.WX_GOOD, 5) : bad.length ? pick(bad, 6) : 'sun';
+    return { day, w, sp: F.wxSpecialFor(fm, day, avoid), market: slot === 'market' };
+  };
+  // Today's and tomorrow's weather, fixed once forecast (from F.ensure and every morning). Good weather only (set by a
+  // grown-up) turns a bad forecast into a sunny day.
+  F.wxSync = (fm, grade) => {
+    if (!F.WEATHER) return;
+    const x = fm.wx, open = F.wxOpen(fm), stale = (d, day) => !d || d.day !== day || (!!d.off && open);
+    if (stale(x.now, fm.day)) x.now = stale(x.next, fm.day) ? F.wxRoll(fm, grade, fm.day, null) : x.next;
+    if (stale(x.next, fm.day + 1)) x.next = F.wxRoll(fm, grade, fm.day + 1, x.now.sp);
+    if ((fm.opts || {}).wx === 'good') for (const k of ['now', 'next']) if (F.WX[x[k].w].kind === 'bad') x[k] = Object.assign({}, x[k], { w: 'sun' });
+  };
+  F.wxToday = (fm) => { const x = fm.wx && fm.wx.now; return F.WEATHER && x && !x.off && x.day === fm.day ? x : null; };
+  F.wxTomorrow = (fm) => { const x = fm.wx && fm.wx.next; return F.WEATHER && x && !x.off && x.day === fm.day + 1 ? x : null; };
+  F.wxIs = (fm, w) => { const x = F.wxToday(fm); return !!x && x.w === w; };
+  F.marketOn = (fm) => { const x = F.wxToday(fm); return !!x && !!x.market; };
+  F.special = (fm) => { const x = F.wxToday(fm); return (x && x.sp) || null; };
+  F.priceToday = (fm, id, grade) => (id === F.special(fm) ? F.specialPrice(id, grade) : F.price(id, grade));
+  F.valueToday = (fm, items, grade) => U.sum(Object.entries(items).map(([id, n]) => n * F.priceToday(fm, id, grade)));
+  // Bad weather that could slow an order (bad days from farm day `from` to `to`): one more night to spare for each.
+  F.wxSpare = (fm, grade, from, to) => {
+    if (!F.wxOpen(fm) || !F.wxBadKinds(fm, grade).length) return 0;
+    let n = 0;
+    for (let d = from; d <= to; d++) if (F.wxSlot(fm, grade, d) === 'bad') n++;
+    return n;
+  };
+
   // ---------------------------------------------------------------- the order board
   // From farm level 5, people in town order things from the farm: "6 eggs and 2 glasses of milk by farm day 12".
   // The board holds up to 3 orders, and a new one comes each morning when there is room. An order is made only of
@@ -8418,7 +8636,8 @@ button.du-st:active { transform: translateY(2px); }
     if (!Object.keys(items).length) items.carrot = Math.max(1, Math.floor(cap / F.orderPay(F.price('carrot', grade), big, grade)));
     const stand = F.standValue(items, grade), used = new Set(((fm.orders && fm.orders.list) || []).map((o) => o.who[1]));
     const who = U.pick((big ? F.VIPS : F.PEOPLE).filter((x) => !used.has(x[1])));
-    return { n, who, why: U.pick(big ? F.ORDER_WHY_BIG : F.ORDER_WHY), items, stand, pay: F.orderPay(stand, big, grade), end: fm.day + Math.max(3, F.orderNights(fm, items) + F.ORDER_SPARE[gi(grade)]), big };
+    const nights = Math.max(3, F.orderNights(fm, items) + F.ORDER_SPARE[gi(grade)]); // and a night more for each bad weather day
+    return { n, who, why: U.pick(big ? F.ORDER_WHY_BIG : F.ORDER_WHY), items, stand, pay: F.orderPay(stand, big, grade), end: fm.day + nights + F.wxSpare(fm, grade, fm.day, fm.day + nights - 1), big };
   };
   F.addOrder = (fm, grade) => {
     fm.orders.n++;
@@ -8519,6 +8738,9 @@ button.du-st:active { transform: translateY(2px); }
     // farm supplies at work: Grow-Fast, and a rented field with carrots in one of its beds
     fm.boosts = { grow: { cost: k ? 20 : 500, until: 16, gain: k ? 6 : 150, grade: g }, field: { cost: k ? 30 : 900, until: 19, gain: 0, grade: g } };
     fm.beds.push({ c: 'carrot', g: 0, u: 0, rent: true }, { c: null, g: 0, u: 0, rent: true });
+    // the weather: a rainbow today with eggs the special, a hot day tomorrow, and the bank week so far
+    Object.assign(fm.wx, { seen: true, now: { day: 14, w: 'rainbow', sp: 'egg', market: false }, next: { day: 15, w: 'heat', sp: 'milk', market: false },
+      log: [[8, 'rain', 0], [9, 'sun', 0], [10, 'happy', 0], [11, 'sun', 1], [12, 'fog', 0], [13, 'rain', 0]] });
     // the whole barnyard: babies, hungry, fed and with eggs to collect
     Object.keys(F.HOUSES).forEach((a, i) => { fm.yard[a] = { a, g: i === 4 ? 0 : 9, fed: i % 2 === 0, ready: i % 3 === 1 ? 2 : 0, u: i % 3 }; });
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
@@ -8591,17 +8813,18 @@ button.du-st:active { transform: translateY(2px); }
     const choices = F.moneyChoices(ans, grade);
     return Object.assign(p, { kind: 'choice', answer: F.fmt(ans, grade), choices });
   }
-  const tag = (id, grade) => `<span class="ftag">${F.ie(id)} ${F.fmt(F.price(id, grade), grade)}</span>`;
   const row = (id, n) => `<div class="frow" aria-hidden="true">${Array(Math.min(n, 12)).fill(F.ie(id)).join('')}</div>`;
 
-  // One problem. ctx: { grade, tier (object), stock: { item: count } }. Returns null when the stock can't make it.
+  // One problem. ctx: { grade, tier (object), stock: { item: count }, special: { id, price } (today's special) }.
+  // Returns null when the stock can't make it.
   // Every problem has: kind (num | choice | coins), text, answer, hint, explain, sale { item: count } and total (cents
   // the customer pays for the sale).
   F.problem = (type, ctx) => {
     const { grade, tier, stock } = ctx;
     const fmt = (c) => F.fmt(c, grade);
     const items = Object.keys(stock).filter((id) => stock[id] > 0);
-    const P = (id) => F.price(id, grade);
+    const sp = ctx.special, P = (id) => (sp && id === sp.id ? sp.price : F.price(id, grade));
+    const tg = (id) => `<span class="ftag${sp && id === sp.id ? ' fsp' : ''}">${sp && id === sp.id ? '⭐ ' : ''}${F.ie(id)} ${fmt(P(id))}</span>`; // a price tag
     // an item and how many, with the total at most `max`
     const pickSale = (minQ, maxQ, max) => {
       const ok = U.shuffle(items).map((id) => {
@@ -8615,7 +8838,7 @@ button.du-st:active { transform: translateY(2px); }
       const s = pickSale(2, grade === 'k' ? 3 : 4, tier.max);
       if (!s) return null;
       const [id, q] = s, T = q * P(id);
-      return ask({ type, text: `wants <b>${things(id, q)}</b>. One costs <b>${fmt(P(id))}</b>. How much is that in all?`, visual: row(id, q) + tag(id, grade), hint: `Add ${fmt(P(id))} ${q} times: ${Array(q).fill(P(id)).join(' + ')}.`, explain: `${Array(q).fill(fmt(P(id))).join(' + ')} = ${fmt(T)}`, sale: { [id]: q }, total: T }, T, grade);
+      return ask({ type, text: `wants <b>${things(id, q)}</b>. One costs <b>${fmt(P(id))}</b>. How much is that in all?`, visual: row(id, q) + tg(id), hint: `Add ${fmt(P(id))} ${q} times: ${Array(q).fill(P(id)).join(' + ')}.`, explain: `${Array(q).fill(fmt(P(id))).join(' + ')} = ${fmt(T)}`, sale: { [id]: q }, total: T }, T, grade);
     }
     if (type === 'count') {
       const s = pickSale(1, 3, tier.max);
@@ -8671,18 +8894,18 @@ button.du-st:active { transform: translateY(2px); }
       two.forEach((id) => (sale[id] = 1));
       if (type === 'two') {
         if (T > tier.max) return null;
-        return ask({ type, text: `wants <b>${list}</b>. How much is that in all?`, visual: `<div class="ftags">${two.map((id) => tag(id, grade)).join('<b>+</b>')}</div>`, hint: grade === 'k' ? 'Count on from the bigger price.' : 'Add the dollars, then the cents. 100¢ make a dollar.', explain: `${two.map((id) => fmt(P(id))).join(' + ')} = ${fmt(T)}`, sale, total: T }, T, grade);
+        return ask({ type, text: `wants <b>${list}</b>. How much is that in all?`, visual: `<div class="ftags">${two.map((id) => tg(id)).join('<b>+</b>')}</div>`, hint: grade === 'k' ? 'Count on from the bigger price.' : 'Add the dollars, then the cents. 100¢ make a dollar.', explain: `${two.map((id) => fmt(P(id))).join(' + ')} = ${fmt(T)}`, sale, total: T }, T, grade);
       }
       const over = (tier.pay || []).filter((x) => x > T);
       if (!over.length) return null;
       const H = over[0];
-      return ask({ type, text: `has <b>${fmt(H)}</b> and buys <b>${list}</b>. How much money will they have left?`, visual: `<div class="ftags">${two.map((id) => tag(id, grade)).join('<b>+</b>')}</div>`, hint: `First add the prices. Then count up from the total to ${fmt(H)}.`, explain: `${two.map((id) => fmt(P(id))).join(' + ')} = ${fmt(T)}; ${fmt(H)} − ${fmt(T)} = ${fmt(H - T)}`, sale, total: T }, H - T, grade);
+      return ask({ type, text: `has <b>${fmt(H)}</b> and buys <b>${list}</b>. How much money will they have left?`, visual: `<div class="ftags">${two.map((id) => tg(id)).join('<b>+</b>')}</div>`, hint: `First add the prices. Then count up from the total to ${fmt(H)}.`, explain: `${two.map((id) => fmt(P(id))).join(' + ')} = ${fmt(T)}; ${fmt(H)} − ${fmt(T)} = ${fmt(H - T)}`, sale, total: T }, H - T, grade);
     }
     if (type === 'multiply') {
       const s = pickSale(3, 9, tier.max);
       if (!s) return null;
       const [id, q] = s, T = q * P(id);
-      return ask({ type, text: `orders <b>${things(id, q)}</b> at <b>${fmt(P(id))}</b> each. How much is the order?`, visual: row(id, q) + tag(id, grade), hint: `${q} × ${fmt(P(id))}: find 2 × first, then keep adding, or split ${fmt(P(id))} into dollars and cents.`, explain: `${q} × ${fmt(P(id))} = ${fmt(T)}`, sale: { [id]: q }, total: T }, T, grade);
+      return ask({ type, text: `orders <b>${things(id, q)}</b> at <b>${fmt(P(id))}</b> each. How much is the order?`, visual: row(id, q) + tg(id), hint: `${q} × ${fmt(P(id))}: find 2 × first, then keep adding, or split ${fmt(P(id))} into dollars and cents.`, explain: `${q} × ${fmt(P(id))} = ${fmt(T)}`, sale: { [id]: q }, total: T }, T, grade);
     }
     if (type === 'deal') {
       const s = pickSale(2, 6, tier.max * 2);
@@ -8693,14 +8916,14 @@ button.du-st:active { transform: translateY(2px); }
       const q = qs.length ? U.pick(qs) : 2;
       if (q > stock[id]) return null;
       const T = (q / 2) * dealP;
-      return ask({ type, text: `likes today’s deal: <b>2 ${F.ITEMS[id].many} for ${fmt(dealP)}</b> (one is ${fmt(one)}) and takes <b>${things(id, q)}</b>. How much do they pay?`, visual: row(id, q) + tag(id, grade), hint: `${q} ${F.ITEMS[id].many} is ${q / 2} pairs. Each pair costs ${fmt(dealP)}.`, explain: `${q / 2} × ${fmt(dealP)} = ${fmt(T)} (without the deal it would be ${fmt(q * one)})`, sale: { [id]: q }, total: T }, T, grade);
+      return ask({ type, text: `likes today’s deal: <b>2 ${F.ITEMS[id].many} for ${fmt(dealP)}</b> (one is ${fmt(one)}) and takes <b>${things(id, q)}</b>. How much do they pay?`, visual: row(id, q) + tg(id), hint: `${q} ${F.ITEMS[id].many} is ${q / 2} pairs. Each pair costs ${fmt(dealP)}.`, explain: `${q / 2} × ${fmt(dealP)} = ${fmt(T)} (without the deal it would be ${fmt(q * one)})`, sale: { [id]: q }, total: T }, T, grade);
     }
     if (type === 'profit') {
       const crops = Object.keys(F.CROPS).filter((c) => items.includes(c) || F.CROPS[c].lv <= 8);
-      const c = U.pick(crops), seed = F.seedPrice(c, grade), y = F.CROPS[c].yield, T = y * P(c);
+      const c = U.pick(crops), seed = F.seedPrice(c, grade), y = F.CROPS[c].yield, P0 = F.price(c, grade), T = y * P0; // the usual price
       const s = pickSale(1, 2, tier.max);
       if (!s) return null;
-      return ask({ type, text: `asks a farmer question: a packet of ${F.ITEMS[c].e} seeds costs <b>${fmt(seed)}</b> and gives <b>${y} ${F.ITEMS[c].many}</b> that sell for <b>${fmt(P(c))}</b> each. How much <b>profit</b> is that? Then they buy ${things(s[0], s[1])}.`, hint: `Profit = money you get − money you spent. First ${y} × ${fmt(P(c))}.`, explain: `${y} × ${fmt(P(c))} = ${fmt(T)}; ${fmt(T)} − ${fmt(seed)} = ${fmt(T - seed)} profit`, sale: { [s[0]]: s[1] }, total: s[1] * P(s[0]) }, T - seed, grade);
+      return ask({ type, text: `asks a farmer question: a packet of ${F.ITEMS[c].e} seeds costs <b>${fmt(seed)}</b> and gives <b>${y} ${F.ITEMS[c].many}</b> that sell for <b>${fmt(P0)}</b> each. How much <b>profit</b> is that? Then they buy ${things(s[0], s[1])}.`, hint: `Profit = money you get − money you spent. First ${y} × ${fmt(P0)}.`, explain: `${y} × ${fmt(P0)} = ${fmt(T)}; ${fmt(T)} − ${fmt(seed)} = ${fmt(T - seed)} profit`, sale: { [s[0]]: s[1] }, total: s[1] * P(s[0]) }, T - seed, grade);
     }
     if (type === 'interest') {
       const [per, add] = F.bankRule(grade);
@@ -8718,6 +8941,14 @@ button.du-st:active { transform: translateY(2px); }
       if (!s) return null;
       const ins = Object.entries(r.in).map(([id, n]) => `${n} ${F.ITEMS[id].e}`).join(' + ');
       return ask({ type, text: `asks a farmer question: <b>${ins}</b> sell for <b>${fmt(w.inVal)}</b> in all. Made into ${F.ITEMS[r.out].e} ${F.ITEMS[r.out].name}, they sell for <b>${fmt(w.outVal)}</b>. How much <b>more</b> money is that? Then they buy ${things(s[0], s[1])}.`, hint: `Count up from ${fmt(w.inVal)} to ${fmt(w.outVal)}.`, explain: `${fmt(w.outVal)} − ${fmt(w.inVal)} = ${fmt(w.gain)}`, sale: { [s[0]]: s[1] }, total: s[1] * P(s[0]) }, w.gain, grade);
+    }
+    if (type === 'special') { // today's special: how much more than on a usual day? (kindergarten: one, at most 10¢ more)
+      if (!sp || !(stock[sp.id] > 0)) return null;
+      const id = sp.id, usual = F.price(id, grade), more = sp.price - usual, k = grade === 'k';
+      const q = k || tier === F.tiers(grade)[0] ? 1 : Math.min(stock[id], U.rnd(2, 4), Math.floor(tier.max / sp.price));
+      if (q < 1 || (k && more > 10)) return null;
+      const one = `Today’s special: one ${F.ITEMS[id].name} is <b>${fmt(sp.price)}</b> today. On a usual day it is <b>${fmt(usual)}</b>.`;
+      return ask({ type, text: `buys <b>${things(id, q)}</b>. ${one} ${q === 1 ? 'How much <b>more</b> is it today?' : `How much <b>more</b> do you get for ${q} today than on a usual day?`}`, visual: `<div class="ftags"><span class="ftag">${F.ie(id)} ${fmt(usual)}</span><b>→</b>${tg(id)}</div>`, hint: q === 1 ? `Count up from ${fmt(usual)} to ${fmt(sp.price)}.` : `First: how much more is one? ${fmt(sp.price)} − ${fmt(usual)}. Then ${q} times that.`, explain: q === 1 ? `${fmt(sp.price)} − ${fmt(usual)} = ${fmt(more)}` : `${fmt(sp.price)} − ${fmt(usual)} = ${fmt(more)}; ${q} × ${fmt(more)} = ${fmt(q * more)}`, sale: { [id]: q }, total: q * sp.price }, q * more, grade);
     }
     return null;
   };
@@ -8791,19 +9022,29 @@ button.du-st:active { transform: translateY(2px); }
   // The next customer: a problem of the child's tier (one tier up for a ⭐ challenge customer).
   // stock: what can be sold (the basket; odd jobs use a pretend crate). Returns null when nothing can be sold.
   // warm: the first customers of a shift bring problems one tier easier (an easy start).
+  // Today's special costs more (customers sometimes ask how much more), the truck doesn't buy it and doesn't come on a
+  // foggy day; on market day a friend comes along and buys the same (when there is enough).
   F.customer = (fm, grade, { stock, vip = false, jobs = false, truck = false, warm = false } = {}) => {
     const all = F.tiers(grade);
     const ti = Math.max(1, Math.min(all.length, F.tierNow(fm, grade) + (vip ? 1 : warm ? -1 : 0)));
     const tier = all[ti - 1];
     if (!Object.values(stock).some((n) => n > 0)) return null;
-    const t = truck && !vip && !jobs ? F.truckProblem(stock, grade, tier) : null;
+    const spId = jobs ? null : F.special(fm), special = spId ? { id: spId, price: F.specialPrice(spId, grade) } : null;
+    const tStock = Object.assign({}, stock);
+    if (spId) delete tStock[spId];
+    const t = truck && !vip && !jobs && !F.wxIs(fm, 'fog') ? F.truckProblem(tStock, grade, tier) : null;
     if (t) return Object.assign(t, { who: F.TRUCK, vip: false, jobs: false, tier: ti, ahead: !!tier.ahead });
-    const types = U.shuffle(tier.types).concat(FALLBACK);
+    const types = (special && stock[spId] > 0 && Math.random() < 0.3 ? ['special'] : []).concat(U.shuffle(tier.types), FALLBACK);
     for (const type of types) {
-      const p = F.problem(type, { grade, tier, stock });
+      const p = F.problem(type, { grade, tier, stock, special });
       if (!p) continue;
       const who = vip ? U.pick(F.VIPS) : U.pick(F.PEOPLE);
-      return Object.assign(p, { who, vip, jobs, tier: ti, ahead: !!tier.ahead });
+      Object.assign(p, { who, vip, jobs, tier: ti, ahead: !!tier.ahead });
+      if (!jobs && !p.noPay && F.marketOn(fm) && Object.entries(p.sale).every(([id, n]) => (stock[id] || 0) >= 2 * n)) { // 🎪 market day
+        const pal = U.pick(F.PEOPLE.filter((x) => x[1] !== who[1]));
+        Object.assign(p, { friend: pal, text: `${p.text}<br><small class="ffriend">🎪 Their friend ${pal[0]} <b>${pal[1]}</b> buys the same!</small>` });
+      }
+      return p;
     }
     // nothing fits the tier (e.g. only expensive items): count the money for one item
     const id = Object.keys(stock).find((k) => stock[k] > 0), T = F.price(id, grade);
@@ -8818,8 +9059,9 @@ button.du-st:active { transform: translateY(2px); }
     return stock;
   };
   F.wage = (tier, grade) => (grade === 'k' ? (tier >= 3 ? 2 : 1) : 5 * tier);
-  // a nicer stand tips more; the merchant's Street Musician adds 10% on any stand, his Lucky Clover 20% for a week
-  F.tipRate = (fm, clover = true) => F.STANDS[fm.stand].tip + (fm.treasure && fm.treasure.musician ? F.TREASURES.musician.tip : 0) + (clover && F.charmOn(fm, 'clover') ? F.CHARMS.clover.tip : 0);
+  // a nicer stand tips more; the merchant's Street Musician adds 10% on any stand, his Lucky Clover 20% for a week, a
+  // rainbow 10% for a day
+  F.tipRate = (fm, clover = true) => F.STANDS[fm.stand].tip + (fm.treasure && fm.treasure.musician ? F.TREASURES.musician.tip : 0) + (clover && F.charmOn(fm, 'clover') ? F.CHARMS.clover.tip : 0) + (F.wxIs(fm, 'rainbow') ? F.WX_TIP : 0);
   F.tip = (fm, total, clover = true) => { const r = F.tipRate(fm, clover); return r ? Math.max(1, Math.round(total * r)) : 0; };
   F.VIP_TIP = (grade, total) => Math.max(grade === 'k' ? 2 : 10, Math.round(total * 0.5));
 
@@ -8832,10 +9074,16 @@ button.du-st:active { transform: translateY(2px); }
       res.paid = solved ? (firstTry ? F.wage(p.tier, grade) : Math.ceil(F.wage(p.tier, grade) / 2)) : 0;
       fm.stats.jobs++;
     } else if (!p.noPay) {
-      for (const [id, n] of Object.entries(p.sale)) { fm.basket[id] = Math.max(0, (fm.basket[id] || 0) - n); if (!fm.basket[id]) delete fm.basket[id]; fm.stats.sold += n; }
-      res.paid = p.total;
-      if (firstTry) res.tip = p.vip ? F.VIP_TIP(grade, p.total) : p.truck ? 0 : F.tip(fm, p.total); // wholesale: no tip
-      if (firstTry && !p.vip && !p.truck && F.charmOn(fm, 'clover')) { res.clover = res.tip - F.tip(fm, p.total, false); fm.charms.clover.gain += res.clover; } // what the Lucky Clover added
+      const x = p.friend ? 2 : 1, sp = F.special(fm); // market day: the friend buys the same and pays the same
+      for (const [id, k] of Object.entries(p.sale)) {
+        const n = k * x;
+        fm.basket[id] = Math.max(0, (fm.basket[id] || 0) - n); if (!fm.basket[id]) delete fm.basket[id]; fm.stats.sold += n;
+        if (id === sp && !p.truck) { fm.stats.specials += n; fm.stats.specialExtra += n * (F.specialPrice(id, grade) - F.price(id, grade)); }
+      }
+      res.paid = p.total * x;
+      if (firstTry) res.tip = x * (p.vip ? F.VIP_TIP(grade, p.total) : p.truck ? 0 : F.tip(fm, p.total)); // wholesale: no tip
+      if (firstTry && !p.vip && !p.truck && F.charmOn(fm, 'clover')) { res.clover = res.tip - x * F.tip(fm, p.total, false); fm.charms.clover.gain += res.clover; } // what the Lucky Clover added
+      if (p.friend) fm.stats.friends++;
     }
     fm.money += res.paid + res.tip;
     fm.stats.earned += res.paid + res.tip;
@@ -8844,6 +9092,7 @@ button.du-st:active { transform: translateY(2px); }
     if (p.vip && firstTry) fm.stats.vip++;
     fm.customers++;
     if (!p.jobs) res.shift = F.shiftServed(fm, firstTry, res.paid + res.tip); // 'done' when this customer finished the shift
+    if (res.shift === 'done' && F.marketOn(fm) && F.shiftStars(fm) === 3) fm.stats.marketStar++;
     res.xp = (firstTry ? 5 : solved ? 2 : 1) + (p.vip && firstTry ? 5 : 0) + (p.ahead && firstTry ? 2 : 0);
     res.ups = F.addXp(fm, res.xp, grade);
     return res;
@@ -8899,8 +9148,8 @@ button.du-st:active { transform: translateY(2px); }
   // What she would keep after today's shift, per dollar (2nd grade) or per 10¢ (kindergarten): "25¢ of every dollar".
   F.keepText = (keep, grade) => (grade === 'k' ? `1¢ of every ${keep}¢` : `${F.fmt(100 / keep, 'g2')} of every dollar`);
   F.mgrTonight = (fm) => !!(fm.mgr && fm.mgr.tonight && fm.mgr.tonight === fm.day);
-  // Can she sell the rest tonight? (hired, today's shift done, something for sale)
-  F.mgrCan = (fm) => F.mgrHired(fm) && F.shiftDone(fm) && F.saleCount(fm) > 0;
+  // Can she sell the rest tonight? (hired, today's shift done, something for sale, no storm tonight)
+  F.mgrCan = (fm) => F.mgrHired(fm) && F.shiftDone(fm) && F.saleCount(fm) > 0 && !F.wxIs(fm, 'storm');
   F.mgrSell = (fm) => {
     if (!F.mgrCan(fm)) return false;
     Object.assign(fm.mgr, { tonight: fm.day, keep: F.KEEP[F.shiftStars(fm) - 1] });
@@ -8912,12 +9161,13 @@ button.du-st:active { transform: translateY(2px); }
   F.mgrNight = (fm, grade) => {
     const m = fm.mgr;
     if (!m || !m.tonight) return null;
-    const ok = m.tonight === fm.day && F.mgrHired(fm);
+    const ok = m.tonight === fm.day && F.mgrHired(fm) && !F.wxIs(fm, 'storm'); // in a storm she stays home
     m.tonight = 0;
     if (!ok) return null;
-    const stock = F.forSale(fm), n = U.sum(Object.values(stock));
+    const stock = F.forSale(fm), n = U.sum(Object.values(stock)), sp = F.special(fm);
     if (!n) return null;
-    const sold = F.standValue(stock, grade), kept = F.mgrKeep(sold, m.keep || F.KEEP[0], grade);
+    if (sp && stock[sp]) { fm.stats.specials += stock[sp]; fm.stats.specialExtra += stock[sp] * (F.specialPrice(sp, grade) - F.price(sp, grade)); }
+    const sold = F.valueToday(fm, stock, grade), kept = F.mgrKeep(sold, m.keep || F.KEEP[0], grade);
     for (const [id, q] of Object.entries(stock)) { fm.basket[id] -= q; if (!fm.basket[id]) delete fm.basket[id]; }
     fm.stats.sold += n;
     const earned = fm.shift && fm.shift.day === fm.day ? fm.shift.earned : 0, p = m.pend;
@@ -10079,6 +10329,9 @@ button.du-st:active { transform: translateY(2px); }
   // The merchant's treasures live on the farm: the goose and the sheep in the yard, the musician by the stand,
   // the fairy over the pens, the watering can by the beds.
   const treasures = (fm) => Object.keys(fm.treasure || {}).filter((id) => fm.treasure[id] && MQ.treasureArt).map((id) => `<span class="trs tr-${id}" title="${esc(F.TREASURES[id].name)}">${MQ.treasureArt(id)}</span>`).join('');
+  // The weather in the sky: rain drops, a lightning flash, fog, leaves on the wind, heat haze, a rainbow, sun rays.
+  const WXFX = { rain: '<i class="drops"></i>', storm: '<i class="drops"></i><i class="flash"></i>', fog: '<i class="fogl"></i>', heat: '<i class="haze"></i>', rainbow: '<i class="bow"></i>', happy: '<i class="rays"></i>', wind: '<i class="leaf l1">🍃</i><i class="leaf l2">🍂</i><i class="leaf l3">🍃</i>' };
+  const wxFx = (w) => (WXFX[w] ? `<div class="wxfx" aria-hidden="true">${WXFX[w]}</div>` : '');
   S.farm = (fm, grade) => {
     fmWorks = fm.works || {};
     fmNow = fm;
@@ -10097,9 +10350,10 @@ button.du-st:active { transform: translateY(2px); }
     const park = at('park').map((id) => `<span class="pk d-${id}" title="${esc(F.DECOR[id].name)}">${F.DECOR[id].e}</span>`).join('');
     const works = Object.keys(fmWorks).filter((id) => F.WORKS[id]);
     const stand = F.STANDS[fm.stand], n = F.saleCount(fm); // what the orders keep isn't for sale
-    return `<section class="scene${F.charmOn(fm, 'sun') ? ' sun-on' : ''}" aria-label="Your farm">
+    const wx = F.wxToday(fm);
+    return `<section class="scene${F.charmOn(fm, 'sun') ? ' sun-on' : ''}${wx ? ` wx-${wx.w}${wx.market ? ' wx-market' : ''}` : ''}" aria-label="Your farm${wx ? `: ${esc(F.WX[wx.w].name)}${wx.market ? ', market day' : ''}` : ''}">
       <div class="sky">
-        <span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>${sky.join('')}
+        <span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>${sky.join('')}${wx ? wxFx(wx.w) : ''}
         <div class="hills"></div>${hill}${has('fence') ? '<div class="hfence"></div>' : ''}
       </div>
       ${dreamland(fm)}
@@ -10109,7 +10363,7 @@ button.du-st:active { transform: translateY(2px); }
         ${F.yardOpen(fm) || Object.keys(fm.yard || {}).length ? `<div class="byard" aria-label="Barnyard">${Object.keys(F.HOUSES).map(houseHtml).join('')}</div>` : ''}
         ${works.length ? `<div class="works">${works.map(workHtml).join('')}</div>` : ''}
         <div class="yard">
-          <button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
+          ${wx && wx.market ? '<span class="bunting" aria-hidden="true"></span><span class="crowd" aria-hidden="true">🧑‍🤝‍🧑👨‍👩‍👧</span>' : ''}<button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
           ${yard}${fm.helper && fm.helper.hired && fm.helper.on ? `<span class="farmhand" title="Farmhand ${F.HELPER.name}">🧑‍🌾</span>` : ''}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}${treasures(fm)}${F.charmOn(fm, 'clover') && MQ.charmArt ? `<span class="trs tr-clover" title="Lucky Clover">${MQ.charmArt('clover')}</span>` : ''}${F.merchantHas(fm) ? `<button class="trs wagon" data-act="fMerchant" aria-label="${esc(F.MERCHANT.name)}'s wagon">${MQ.wagonArt()}</button>` : ''}
         </div>
         ${park ? `<div class="park">${park}</div>` : ''}
@@ -10119,8 +10373,8 @@ button.du-st:active { transform: translateY(2px); }
 
   // ---------------------------------------------------------------- the stall above a customer
   // mode: market (your stand), jobs (the big market), pay (the farm shop, where the child is the buyer).
-  S.stall = ({ mode, stand = 0, seller, shopper, goods = '', vip = false }) => `<div class="stall st${stand} m-${mode} ${vip ? 'vip' : ''}" aria-hidden="true">
-      <div class="awning"></div>
+  S.stall = ({ mode, stand = 0, seller, shopper, goods = '', vip = false, market = false }) => `<div class="stall st${stand} m-${mode} ${vip ? 'vip' : ''} ${market ? 'market' : ''}" aria-hidden="true">
+      <div class="awning"></div>${market ? '<span class="bunting"></span>' : ''}
       <div class="stall-in">
         <span class="seller">${seller}</span>
         <div class="counter"><span class="goods" id="goods">${goods}</span><span class="cashbox" id="cashbox">💰</span></div>
@@ -10265,6 +10519,7 @@ button.du-st:active { transform: translateY(2px); }
     const cheapest = Math.min(...Object.entries(F.CROPS).filter(([, c]) => c.lv <= F.level(f.xp).level).map(([id]) => F.seedPrice(id, grade())));
     const all = F.allPens(f), hungry = all.filter((p) => p.a && !p.fed);
     // a crop an order still needs that isn't growing anywhere: [order, crop]
+    const next = F.wxTomorrow(f), spNext = next && next.sp;
     const needCrop = F.orderStatus(f).flatMap(({ o, have }) => Object.keys(o.items).filter((id) => F.CROPS[id] && have[id] < o.items[id] && !f.beds.some((b) => b.c === id)).map((id) => [o, id]))[0];
     let t;
     if (f.mgr.pend) t = `${F.MANAGER.name} sold things for you last night! Tap her card to get your money. ${F.MANAGER.e}`;
@@ -10280,6 +10535,8 @@ button.du-st:active { transform: translateY(2px); }
     else if (hungry.length) t = 'Out of feed! Buy feed 🌾 in the shop.';
     else if (Object.entries(f.works).some(([id, w]) => w.r === null && F.WORKS[id].recipes.some((r, i) => F.canMake(f, id, i)))) t = 'You have what a workshop needs. Make something worth more!';
     else if (needCrop && f.beds.some((b) => !b.c) && f.money >= F.seedPrice(needCrop[1], grade())) t = `${needCrop[0].who[1]}’s order needs ${F.ITEMS[needCrop[1]].e} ${F.ITEMS[needCrop[1]].many}. Plant some in an empty bed!`;
+    else if (spNext && F.forSale(f)[spNext] && F.mgrTonight(f)) t = `Tomorrow ${F.ITEMS[spNext].e} ${F.ITEMS[spNext].many} are the ⭐ special: they sell for more. Keep them for tomorrow? Tap “Keep it” on ${F.MANAGER.name}’s card.`;
+    else if (F.mgrCan(f) && !F.mgrTonight(f) && next && next.w === 'storm') t = `A storm comes tomorrow night! Let ${F.MANAGER.name} sell the rest tonight. ⛈️`;
     else if (F.mgrCan(f) && !F.mgrTonight(f)) t = `Great shift! ${F.MANAGER.name} can sell the rest of your basket tonight. ${F.MANAGER.e}`;
     else if (F.saleCount(f) && !F.mgrTonight(f)) t = F.mgrHired(f) && !F.shiftDone(f) ? `Your basket is full of good things. Open the stand: after ${F.shiftLen(f)} customers, ${F.MANAGER.name} can sell the rest.` : 'Your basket is full of good things. Open the stand and sell them!';
     else if (f.beds.some((b) => !b.c) && f.money >= cheapest) t = 'An empty garden bed! Tap it to plant seeds.';
@@ -10327,6 +10584,7 @@ button.du-st:active { transform: translateY(2px); }
         <small class="muted">${f.xp - lv.from} / ${lv.to - lv.from} XP to level ${lv.level + 1} · Money problems: ${tier.ahead ? '⭐ ' : ''}${esc(tier.name)}</small>
       </section>
       ${MQ.store.preview ? pvTiers() : ''}
+      ${wxBar()}
       ${goalBar()}
       ${dreamCard()}
       ${merchantCard()}
@@ -10363,11 +10621,12 @@ button.du-st:active { transform: translateY(2px); }
         ${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}
         ${empty >= 2 ? '<button class="btn ghost" data-act="fPlantAll">🌱 Plant all</button>' : ''}
       </div>` : ''}
-    </div></nav>`, 'is-farm');
+    </div></nav>`, 'is-farm' + wxClass(f));
     K().setCur('farm');
     dockChanges({ money: f.money, basket: all, feed: f.feed });
     if (F.dreamOpen(f) && !f.dream.seen && !MQ.store.preview) setTimeout(() => { if (!$('#modal') && $('.fdream')) dreamIntro(); }, 500);
     else if (F.ordersOpen(f) && !f.orders.seen && !MQ.store.preview) setTimeout(() => { if (!$('#modal') && $('.scene') && !fs) orderIntro(); }, 500);
+    else if (F.wxToday(f) && !f.wx.seen && !MQ.store.preview) setTimeout(() => { if (!$('#modal') && $('.scene') && !fs) wxIntro(); }, 500);
   }
   // The dock numbers bump and show "+3" / "−2" when they change (after the things have flown there).
   let lastDock = null;
@@ -10561,6 +10820,7 @@ button.du-st:active { transform: translateY(2px); }
     if (news.bankDay) lines.push('🏦 It’s bank day! Your savings earned interest: go to the bank to collect it.');
     if (news.depReady) lines.push(`🔓 Your locked deposit unlocked: <b>${fmt(news.depReady)}</b> is waiting at the bank!`);
     if (news.depNew) lines.push(`<span class="mline">🏦 New at the bank: a <b>locked deposit</b>. Your savings are above ${fmt(F.bankTop(f.bank.acct, grade()))}: lock some, and every $5 comes back as $6!</span>`);
+    lines.push(...wxNews(news.wx));
     if (news.mgr) lines.unshift(`<span class="mline">${F.MANAGER.e} <b>${esc(F.MANAGER.name)}</b> sold ${news.mgr.n} ${news.mgr.n === 1 ? 'thing' : 'things'} from your basket last night. Your money is waiting!</span>`);
     lines.push(...orderLines(news.orders));
     if (news.gold) lines.push(`🪿 The Golden Goose laid a golden egg: <b>+${fmt(news.gold)}</b> in your wallet!`);
@@ -10581,8 +10841,10 @@ button.du-st:active { transform: translateY(2px); }
     for (const [a, n] of Object.entries(count(news.hungry))) lines.push(`${F.ANIMALS[a].e} ${n > 1 ? n + ' ' : ''}${esc(F.ANIMALS[a].name.toLowerCase())}${n > 1 ? 's were' : ' was'} hungry and didn’t grow. Feed animals before bed!`);
     for (const x of news.boostEnd || []) if (x.id === 'field') lines.push(`🚜 The rented field went back today${x.picked ? `: the farmer picked your last ${x.picked} crops for you. They are in your basket` : ''}.`);
     const b = news.built, ends = (charmEnds = (news.charmEnd || []).concat((news.boostEnd || []).map((x) => Object.assign({ boost: true }, x))));
-    K().modal(`${b ? builtBlock(b) : '<div class="bigemoji">☀️</div>'}<div class="mtitle">Good morning! Farm day ${f.day}</div>
-      ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : b || ends.length ? '' : '<p>A quiet night on the farm.</p>'}
+    const wx = F.wxToday(f), next = F.wxTomorrow(f);
+    K().modal(`${b ? builtBlock(b) : `<div class="bigemoji">${wx ? F.WX[wx.w].e : '☀️'}</div>`}<div class="mtitle">Good morning! Farm day ${f.day}</div>
+      ${wxBlock(f)}
+      ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : b || ends.length || wx ? '' : '<p>A quiet night on the farm.</p>'}
       ${ends.map(charmEndBlock).join('')}
       <div class="row">${fm().mgr.pend ? `<button class="btn ghost" data-act="fMgrCollect">${F.MANAGER.e} Get ${esc(F.MANAGER.name)}’s money</button>` : ''}<button class="btn" data-act="closeModal">Let’s go!</button>${b && !F.dreamDone(fm()) ? '<button class="btn ghost" data-act="go" data-arg="farm:dreams">🏗️ Big Dreams</button>' : ''}</div>`);
     if (b) {
@@ -10590,7 +10852,10 @@ button.du-st:active { transform: translateY(2px); }
       MQ.confetti(b.done ? 240 : 150, b.d.castle ? { colors: ['#ffd23f', '#ff8fe0', '#9d7bff', '#ffffff'], shape: 'star', rain: b.done } : b.done ? { colors: ['#ffd23f', '#ffe066', '#ff8a5a', '#7ed957'], shape: 'star' } : {});
       if (st().settings.voice !== false) MQ.speak(b.done ? `Your ${b.d.name} is finished!` : `The builders finished the ${b.st.name.toLowerCase()}!`);
       K().checkBadges();
-    } else MQ.sfx('reward');
+    } else {
+      MQ.sfx('reward');
+      if (wx && st().settings.readAloud) MQ.speak(`Today: ${F.WX[wx.w].name}.${next ? ` Tomorrow: ${F.WX[next.w].name}.` : ''}`);
+    }
   }
   // The morning after the builders worked: the new stage, glowing (a finished dream gets the golden treatment).
   function builtBlock(b) {
@@ -10768,6 +11033,7 @@ button.du-st:active { transform: translateY(2px); }
     if (p) return `<button class="fmgr hot" data-act="fMgrCollect"><span class="fmgr-e">${M.e}</span><span class="fmgr-t"><b>${esc(M.name)} sold ${things(p.n)} for you!</b><small>Tap to get your money</small></span></button>`;
     if (!F.mgrHired(f)) return '';
     const card = (b, small, btn = '', hot = false) => `<div class="fmgr ${hot ? 'hot' : ''}"><span class="fmgr-e">${M.e}</span><span class="fmgr-t"><b>${b}</b><small>${small}</small></span>${btn}</div>`;
+    if (F.wxIs(f, 'storm') && n) return card(`⛈️ A stormy night: ${esc(M.name)} stays home`, 'Your basket waits for tomorrow. Nothing is lost!');
     if (F.mgrTonight(f)) return card(`${esc(M.name)} sells the rest tonight`, `${things(n)} · she keeps ${F.keepText(f.mgr.keep, g)}. Tap 🌙 Sleep!`, '<button class="btn ghost" data-act="fMgrStay">Keep it</button>');
     if (!n) return '';
     if (stars) return card(`Shift done ${F.starText(stars)}`, `${esc(M.name)} can sell the other ${things(n)} tonight and keep ${F.keepText(F.KEEP[stars - 1], g)}.`, `<button class="btn" data-act="fMgrSell">${M.e} Sell it</button>`, true);
@@ -10780,6 +11046,7 @@ button.du-st:active { transform: translateY(2px); }
     if (!n || !F.mgrOpen(f)) return '';
     const box = (t, btns = '') => `<section class="fmgrbox"><span class="fmgr-e">${M.e}</span><div><p>${t}</p>${btns ? `<div class="row">${btns}</div>` : ''}</div></section>`;
     if (!f.mgr.hired) return box(`<b>${name}</b>, the market manager, can sell what is left after your shift. Hire her in the shop (🏡 Farm).`);
+    if (F.wxIs(f, 'storm')) return box(`⛈️ A stormy night: <b>${name}</b> stays home tonight. Your basket waits for tomorrow, and nothing is lost.`);
     if (F.mgrTonight(f)) return box(`✓ <b>${name} sells the other ${things(n)} tonight</b> and keeps ${F.keepText(f.mgr.keep, g)} for her work.`, '<button class="btn ghost" data-act="fMgrStay">Keep it in the basket</button>');
     if (!stars) {
       const left = F.shiftLeft(f);
@@ -10867,6 +11134,78 @@ button.du-st:active { transform: translateY(2px); }
       <p>People in town want things from <b>your</b> farm!</p>
       <ul class="funlocks"><li>🧺 Collect what an order needs. It stays in your basket: customers at the stand don’t buy it.</li><li>📦 Deliver it, and the order pays <b>more than your stand</b>.</li><li>📅 Each order has a few days. A new one comes every morning.</li></ul>
       <div class="row"><button class="btn ghost" data-act="closeModal">Later</button><button class="btn" data-act="fOrders">📋 See the orders</button></div>`);
+    MQ.sfx('streak');
+  }
+  // ---------------------------------------------------------------- weather, today's special and market day
+  // The farm page takes the day's colors (sky, grass and a light tint around it): #app gets wx-rain, wx-market…
+  const wxClass = (f) => { const x = F.wxToday(f); return x ? ` wx-${x.w}${x.market ? ' wx-market' : ''}` : ''; };
+  const wxName = (x) => `${F.WX[x.w].e} ${esc(F.WX[x.w].name)}`;
+  // Today and tomorrow at a glance, on the farm (tap for the week).
+  function wxBar() {
+    const f = fm(), now = F.wxToday(f), next = F.wxTomorrow(f);
+    if (!now) return '';
+    const sp = now.sp ? `<span class="fwx-sp">⭐ ${F.ie(now.sp)} ${fmt(F.specialPrice(now.sp, grade()))}</span>` : '';
+    return `<button class="fwxbar k-${F.WX[now.w].kind || 'sun'}" data-act="fWeather" aria-label="Farm weather">
+      <span class="fwx-now">${now.market ? '🎪 <b>Market day</b> · ' : ''}<b>Today</b> ${wxName(now)}</span>${sp}
+      ${next ? `<span class="fwx-next ${F.WX[next.w].kind === 'bad' ? 'warn' : ''}">Tomorrow ${wxName(next)}${next.market ? ' · 🎪' : ''}</span>` : ''}</button>`;
+  }
+  // How safe this farm is from a bad day: beds with a sprinkler, pens with a cozy barn, or what to do.
+  function wxSafe(f, w) {
+    const gd = F.wxGuard(f, w), what = w === 'heat' ? ['beds', 'a 💧 sprinkler'] : ['pens', 'a 🛖 cozy barn'];
+    if (gd && gd[1]) return gd[0] === gd[1] ? `All your ${what[0]} have ${what[1]}: they are safe!` : `${gd[0]} of your ${gd[1]} ${what[0]} ${gd[0] === 1 ? 'has' : 'have'} ${what[1]}. ${esc(F.WX[w].safe)}`;
+    return esc(F.WX[w].safe || '');
+  }
+  // A day's weather card (today or tomorrow).
+  function wxDay(f, x, when) {
+    const W = F.WX[x.w];
+    return `<div class="fwx-day k-${W.kind || 'sun'}"><small class="fwx-when">${when}</small><span class="fwx-e">${W.e}</span><b>${esc(W.name)}</b>
+      <small>${esc(W.note)}</small>${W.kind === 'bad' && (when === 'Tomorrow' || F.wxGuard(f, x.w)) ? `<small class="fwx-safe">🛡️ ${wxSafe(f, x.w)}</small>` : ''}</div>`;
+  }
+  // Today and tomorrow with the specials and market day (the morning card and the weather card).
+  function wxBlock(f) {
+    const now = F.wxToday(f), next = F.wxTomorrow(f), g = grade();
+    if (!now) return '';
+    const special = (x, day) => x.sp ? `<li>⭐ ${day} special: ${F.ie(x.sp)} <b>${esc(F.ITEMS[x.sp].many)}</b> sell for <b>${fmt(F.specialPrice(x.sp, g))}</b> (usually ${fmt(F.price(x.sp, g))}).</li>` : '';
+    const lines = [now.market ? '<li>🎪 <b>Market day!</b> Every customer brings a friend who buys the same.</li>' : '', special(now, 'Today’s'),
+      next && next.market ? '<li>🎪 Tomorrow is <b>market day</b>: fill your basket today!</li>' : '', next ? special(next, 'Tomorrow’s') : ''].join('');
+    return `<div class="fwx2">${wxDay(f, now, 'Today')}${next ? wxDay(f, next, 'Tomorrow') : ''}</div>${lines ? `<ul class="funlocks fwx-lines">${lines}</ul>` : ''}`;
+  }
+  // The morning card: what last night's weather did.
+  function wxNews(x) {
+    if (!x) return [];
+    const M = esc(F.MANAGER.name), out = [], n = (k, one, many) => `${k} ${k === 1 ? one : many}`;
+    if (x.w === 'rain' && x.got) out.push('🌧️ The warm rain watered your beds: they grew 2 days last night!');
+    if (x.w === 'happy' && x.more) out.push(`🌞 Happy animals in the warm sunshine: ${n(x.more, 'pen', 'pens and houses')} made 1 more!`);
+    if (x.w === 'heat') out.push(x.rested ? `🔥 It was hot: ${n(x.rested, 'bed', 'beds')} without a 💧 sprinkler rested, so ${x.rested === 1 ? 'it is' : 'they are'} ready a day later.${x.safe ? ` ${n(x.safe, 'bed', 'beds')} with a sprinkler kept growing.` : ''}` : x.safe ? '🔥 It was hot, but your 💧 sprinklers kept every bed growing!' : '');
+    if (x.w === 'wind') out.push(x.less ? `🌬️ It was windy: ${n(x.less, 'pen', 'pens')} without a 🛖 cozy barn made 1 less.` : x.safe ? '🌬️ It was windy, but your 🛖 cozy barns kept every pen safe!' : '');
+    if (x.storm) out.push(`⛈️ It was stormy, so ${M} stayed home. Your basket waited for you.`);
+    return out.filter(Boolean);
+  }
+  // The weather card: this bank week day by day (the days gone by, today, tomorrow), today and tomorrow, the rules.
+  function weather() {
+    const f = fm(), now = F.wxToday(f), next = F.wxTomorrow(f);
+    if (!now) return;
+    const log = new Map((f.wx.log || []).map((x) => [x[0], x[1]]));
+    const week = F.bankWeek(f.day).map((d) => {
+      const w = d === f.day ? now.w : next && d === next.day ? next.w : log.get(d);
+      const mark = F.isMarketDay(d) ? '🎪' : F.isBankDay(d) ? '🏦' : '';
+      return `<li class="${d < f.day ? 'past' : d === f.day ? 'now' : ''} ${mark ? 'bank' : ''}" title="${w ? esc(F.WX[w].name) : 'Not known yet'}"><small>Day</small><b>${d}</b><i>${w ? F.WX[w].e : '❔'}</i><small>${mark || '&nbsp;'}</small></li>`;
+    }).join('');
+    K().modal(`<div class="mtitle">🌦️ Farm weather</div>
+      <section class="bweek fwxweek"><ol>${week}</ol><small class="muted">🎪 market day · 🏦 bank day · ❔ not known yet</small></section>
+      ${wxBlock(f)}
+      <p class="muted small">Good weather comes much more often than bad. Bad weather is always on the forecast the day before, and it never takes your things or your money.</p>
+      <div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
+  }
+  function wxIntro() {
+    const f = fm();
+    f.wx.seen = true;
+    save();
+    K().modal(`<div class="bigemoji">🌦️</div><div class="mtitle">✨ New: Farm weather!</div>
+      <ul class="funlocks"><li>☀️ Every morning you see <b>today’s weather and tomorrow’s</b>.</li><li>🌧️ Good weather helps your farm: warm rain, sunshine, rainbows.</li>
+      ${F.level(f.xp).level >= F.WX_BAD_LV ? '<li>🔥 Sometimes a little bad weather comes. You see it the day before, so you can get ready.</li>' : ''}
+      <li>⭐ Every day one thing is the <b>special</b>: it sells for more.</li><li>🎪 Every week there is a <b>market day</b> (day ${F.MARKET_DAY}, ${F.MARKET_DAY + 7}, ${F.MARKET_DAY + 14}…): customers bring friends!</li></ul>
+      <div class="row"><button class="btn ghost" data-act="closeModal">OK</button><button class="btn" data-act="fWeather">🌦️ See the weather</button></div>`);
     MQ.sfx('streak');
   }
   function startDeliver(n) {
@@ -11155,6 +11494,9 @@ button.du-st:active { transform: translateY(2px); }
     Object.assign(fs, { p, tries: 0, input: '', tray: [], locked: false, step: 'main', pick: null, pause: false });
     const f = fm(), tiers = F.tiers(grade()), tier = tiers[(p.tier || f.tier) - 1];
     const status = STATUS[fs.mode] ? STATUS[fs.mode]() : fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : standStatus(false);
+    const sp = fs.mode === 'market' && p.type !== 'special' && p.sale && p.sale[F.special(f)] ? F.special(f) : null; // today's special in this sale
+    const spLine = sp ? `<div class="fspecial">⭐ Today’s special: ${F.ie(sp)} ${esc(F.ITEMS[sp].many)} are <b>${fmt(F.specialPrice(sp, grade()))}</b> today (usually ${fmt(F.price(sp, grade()))}).</div>` : '';
+    const sale = p.friend ? Object.fromEntries(Object.entries(p.sale).map(([id, n]) => [id, 2 * n])) : p.sale; // market day: the friend's things too
     const label = fs.label ? fs.label : LABEL[fs.mode] ? LABEL[fs.mode] : p.vip ? '⭐ Challenge customer · big tip' : p.truck ? '🚚 Buys a lot at once' : `🧮 ${esc(tier.name)}${tier.ahead ? ' ⭐' : ''}`;
     const intro = fs.mode === 'jobs' ? '<small class="muted">At the big Farmers’ Market:</small><br>' : '';
     const stall = fs.mode === 'pay'
@@ -11166,7 +11508,7 @@ button.du-st:active { transform: translateY(2px); }
       : fs.mode === 'profit' ? SC.stall({ mode: 'pay', seller: F.MERCHANT.e, shopper: MQ.face(st()), goods: '<i>🧮</i>' })
       : fs.mode === 'mgr' ? SC.stall({ mode: 'mgr', stand: f.stand, seller: MQ.face(st()), shopper: F.MANAGER.e, goods: '<i>💰</i>' })
       : fs.mode === 'order' ? SC.stall({ mode: 'market', stand: f.stand, seller: MQ.face(st()), shopper: p.who[0], goods: SC.goods(fs.order.items), vip: fs.order.big })
-      : SC.stall({ mode: fs.mode, stand: fs.mode === 'jobs' ? 9 : f.stand, seller: MQ.face(st()), shopper: p.who[0], goods: SC.goods(p.sale), vip: p.vip });
+      : SC.stall({ mode: fs.mode, stand: fs.mode === 'jobs' ? 9 : f.stand, seller: MQ.face(st()), shopper: p.who[0] + (p.friend ? p.friend[0] : ''), goods: SC.goods(sale), vip: p.vip, market: fs.mode === 'market' && F.marketOn(f) });
     K().render(`<div class="play fplay" style="--wc:${p.vip ? '#b0569e' : '#e0a21b'}">
       <header class="playbar"><button class="iconbtn" data-act="fQuit" aria-label="Stop">✕</button><div class="pstatus">${status}</div>${moneyPill()}</header>
       ${basketBar()}
@@ -11174,6 +11516,7 @@ button.du-st:active { transform: translateY(2px); }
       <section class="pcard enter ${p.vip ? 'vip' : ''}" id="pcard">
         <div class="pmeta"><span>${label}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="fSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
         <div class="fcust"><div class="ptext wordy">${intro}${p.who ? `<b>${esc(p.who[1])}</b> ` : ''}${p.text}</div></div>
+        ${spLine}
         ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
         <div id="fstep"></div>
         <div class="feedback" id="feedback" aria-live="polite"></div>
@@ -11201,8 +11544,8 @@ button.du-st:active { transform: translateY(2px); }
   };
   // At the stand: how far today's shift is (after: this customer was just served).
   const standStatus = (after) => {
-    const f = fm(), s = F.shiftToday(f), money = `+${fmt(fs.earned + fs.tips)}`;
-    return F.shiftDone(f) ? `🏪 Shift done ${F.starText(F.shiftStars(f))} · ${money}` : `🏪 Shift: customer ${after ? s.n : s.n + 1} of ${F.shiftLen(f)} · ${money}`;
+    const f = fm(), s = F.shiftToday(f), money = `+${fmt(fs.earned + fs.tips)}`, ic = F.marketOn(f) ? '🎪' : '🏪'; // market day
+    return F.shiftDone(f) ? `${ic} Shift done ${F.starText(F.shiftStars(f))} · ${money}` : `${ic} Shift: customer ${after ? s.n : s.n + 1} of ${F.shiftLen(f)} · ${money}`;
   };
   const LABEL = { pay: '🛒 Farm Shop', make: '🧮 Is it worth making?', sell: '💰 Selling animals', deposit: '🏦 Put money in the bank', withdraw: '🏦 Take money out', interest: '🏦 Bank day: interest', build: '🏗️ Pay the builders', lock: '🔒 Locked deposit', unlock: '🔓 Your deposit is back', profit: '🧮 Did it pay off?', order: '📦 Delivering an order', mgr: `${F.MANAGER.e} Your money from the market` };
   // the problem being answered now (paying too much asks for the change)
@@ -11313,11 +11656,11 @@ button.du-st:active { transform: translateY(2px); }
     fs.earned += r.paid;
     fs.tips += r.tip;
     fs.xp += r.xp;
-    if (!p.jobs && !p.noPay) for (const [id, n] of Object.entries(p.sale)) fs.sold[id] = (fs.sold[id] || 0) + n;
+    if (!p.jobs && !p.noPay) for (const [id, n] of Object.entries(p.sale)) fs.sold[id] = (fs.sold[id] || 0) + n * (p.friend ? 2 : 1);
     save();
     fs.locked = true;
     redrawBasket();
-    const thanks = p.noPay ? `${esc(p.who[1])} will come back with more money.` : p.jobs ? `You earned <b>${fmt(r.paid)}</b>.` : `${esc(p.who[1])} paid <b>${fmt(r.paid)}</b>${r.tip ? ` and tipped <b>${fmt(r.tip)}</b>${r.clover ? ' 🍀' : ''}` : ''}.`;
+    const thanks = p.noPay ? `${esc(p.who[1])} will come back with more money.` : p.jobs ? `You earned <b>${fmt(r.paid)}</b>.` : `${esc(p.who[1])}${p.friend ? ` and ${esc(p.friend[1])}` : ''} paid <b>${fmt(r.paid)}</b>${r.tip ? ` and tipped <b>${fmt(r.tip)}</b>${r.clover ? ' 🍀' : ''}` : ''}.`;
     if (solved) feedback(`${first ? U.pick(['Great job!', 'Thank you, farmer!', 'Perfect!', 'You got it!']) : 'Got it!'} ${thanks}${move === 'up' ? '<br>⬆️ Harder money problems unlocked!' : ''}${shiftMsg}`, 'ok');
     else feedback(`${shown}<br>${thanks}${shiftMsg}`, 'reveal');
     drawAnswer();
@@ -11488,7 +11831,7 @@ button.du-st:active { transform: translateY(2px); }
     const proj = F.project(b.bal, g, 6, b.acct), top = Math.max(1, ...proj);
     const bars = proj.map((v, k) => `<div class="bbar"><span class="bv">${fmt(v)}</span><span class="bfill" style="height:${Math.max(4, Math.round((v / top) * 100))}%"></span><small>${k === 0 ? 'Now' : 'Day ' + (nextBank + (k - 1) * F.BANK_WEEK)}</small></div>`).join('');
     // this bank week: 7 farm days, the last one is bank day
-    const week = F.bankWeek(f.day).map((d) => `<li class="${d < f.day ? 'past' : d === f.day ? 'now' : ''} ${F.isBankDay(d) ? 'bank' : ''}"><small>Day</small><b>${d}</b>${F.isBankDay(d) ? '<i>🏦</i>' : d < f.day ? '<i>✓</i>' : '<i></i>'}</li>`).join('');
+    const week = F.bankWeek(f.day).map((d) => `<li class="${d < f.day ? 'past' : d === f.day ? 'now' : ''} ${F.isBankDay(d) ? 'bank' : ''}"><small>Day</small><b>${d}</b>${F.isBankDay(d) ? '<i>🏦</i>' : d < f.day ? '<i>✓</i>' : F.wxOpen(f) && F.isMarketDay(d) ? '<i title="Market day">🎪</i>' : '<i></i>'}</li>`).join('');
     const status = due ? `✨ Bank day! The interest is waiting for you.` : F.isBankDay(f.day) ? `Today was bank day. The next one is farm day ${nextBank}.` : `${nights} more ${nights === 1 ? 'night' : 'nights'} until bank day (farm day ${nextBank}). Tap 🌙 Sleep on the farm to make a night pass.`;
     const LOG = { in: ['⬇️', 'Saved'], out: ['⬆️', 'Took out'], interest: ['✨', 'Interest'], piggy: ['🐷', 'Golden Piggy: interest again'], build: ['🏗️', 'Paid the builders'], dream: ['🏡', 'Your buildings earned'], lock: ['🔒', 'Locked in a deposit'], unlock: ['🔓', 'Deposit came back'] };
     const minus = new Set(['out', 'build', 'lock']);
@@ -11703,6 +12046,7 @@ button.du-st:active { transform: translateY(2px); }
     fDepCollect: () => startUnlock(),
     fMerchant: () => merchant(),
     fOrders: () => orders(),
+    fWeather: () => weather(),
     fDeliver: (a) => startDeliver(+a),
     fOrderNo: (a) => orderNo(+a),
     fOrderDrop: (a) => { F.dropOrder(fm(), +a); save(); redraw(); orders(); },
@@ -14020,7 +14364,7 @@ button.du-st:active { transform: translateY(2px); }
     const build = F.canBuild(F.ensure(st), st.grade);
     const trader = F.merchantHas(fm), unlocked = F.depositReady(fm), order = F.ordersReady(fm).length > 0;
     const mila = !!(fm.mgr && fm.mgr.pend);
-    const note = mila ? `${F.MANAGER.e} ${F.MANAGER.name} brought your money!` : bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : order ? '📦 An order is ready to deliver!' : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
+    const note = mila ? `${F.MANAGER.e} ${F.MANAGER.name} brought your money!` : bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : order ? '📦 An order is ready to deliver!' : waiting || made ? 'Something is ready to pick!' : n && F.marketOn(fm) ? `🎪 Market day! ${n} to sell` : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
     return `<button class="tile t-farm wide ${mila || waiting || made || bankDay || build || trader || unlocked || order || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
   }
 
@@ -14056,6 +14400,7 @@ button.du-st:active { transform: translateY(2px); }
       ${s.boosts ? `<p>🧪 Farm supplies: ${s.boosts} bought for ${F.fmt(s.boostCost || 0, st.grade)}; they brought ${F.fmt(s.boostGain || 0, st.grade)} (${s.boostWins || 0} paid for themselves). After each one the child works out whether it paid off.</p>` : ''}
       ${s.charms ? `<p>✨ Week charms from the merchant: ${s.charms} bought for ${F.fmt(s.charmCost || 0, st.grade)}; they brought ${F.fmt(s.charmGain || 0, st.grade)} (${s.charmWins || 0} paid for themselves). After each one the child works out whether it paid off.</p>` : ''}
       <p>${s.tasks} money problems from customers and odd jobs, <b>${pct(s.right, s.tasks)}%</b> right on the first try · ${s.vip} ⭐ challenge customers. Now practicing: <b>${esc(tier.name)}</b>${tier.ahead ? ' (ahead of grade)' : ''}.</p>
+      ${s.wxGood || s.wxBad ? `<p>🌦️ Weather (from farm level ${F.WX_LV}, in farm days): ${s.wxGood} good days and ${s.wxBad} bad ones so far; good weather brought ${F.fmt(s.wxGot || 0, st.grade)}, bad weather cost ${F.fmt(s.wxLost || 0, st.grade)} (only time or extra money, never things). ⭐ Specials sold: ${s.specials || 0} (${F.fmt(s.specialExtra || 0, st.grade)} more than usual) · 🎪 friends on market day: ${s.friends || 0}.</p>` : ''}
       ${s.shifts || s.mgrNights ? `<p>🏪 Shifts at the stand: ${s.shifts || 0} (${s.star3 || 0} with ⭐⭐⭐)${s.mgrNights ? ` · ${M.e} ${esc(M.name)} sold ${s.mgrSold} things on ${s.mgrNights} ${s.mgrNights === 1 ? 'night' : 'nights'}: ${F.fmt(s.mgrGot, st.grade)} for ${esc(st.name)}, she kept ${F.fmt(s.mgrKept, st.grade)}` : ''}.</p>` : ''}
       <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p>
       <div class="settings">
@@ -14064,6 +14409,9 @@ button.du-st:active { transform: translateY(2px); }
         <div class="chips">${F.SHIFTS.map((n) => `<button class="chip ${F.shiftLen(fm) === n ? 'sel' : ''}" data-act="farmOpt" data-arg="shift:${n}" aria-pressed="${F.shiftLen(fm) === n}">${n}</button>`).join('')}</div>
         <label class="toggle"><input type="checkbox" data-act="farmOpt" data-arg="ahead" ${o.ahead ? 'checked' : ''}> Money problems ahead of the grade for every customer (when off, they stay at the grade’s levels; ⭐ challenge customers still bring one level more)</label>
         <label class="toggle"><input type="checkbox" data-act="farmOpt" data-arg="mgr" ${o.mgr !== false ? 'checked' : ''}> ${M.e} ${esc(M.name)}, the market manager, can sell what is left after a shift</label>
+        <div class="label">Weather on the farm</div>
+        <p class="muted">From farm level ${F.WX_LV} every farm day has weather, forecast the day before. Good weather (warm rain, sunshine, a rainbow) comes much more often than bad. From level ${F.WX_BAD_LV} a little bad weather can come${st.grade === 'k' ? ', at most once a week' : ''}: it only takes a bit of time or extra money, never things, and the farm can be made safe from it (sprinklers${st.grade === 'k' ? '' : ', cozy barns'}, selling the day before).</p>
+        <div class="chips">${[['all', 'Good and a little bad'], ['good', 'Good weather only']].map(([v, t]) => `<button class="chip ${(o.wx || 'all') === v ? 'sel' : ''}" data-act="farmOpt" data-arg="wx:${v}" aria-pressed="${(o.wx || 'all') === v}">${t}</button>`).join('')}</div>
       </div></section>`;
   }
 
@@ -15911,9 +16259,10 @@ button.du-st:active { transform: translateY(2px); }
     // Sunny Farm's settings for grown-ups: the shift length, problems ahead of the grade, Mila
     farmOpt: (a, el) => {
       const F = MQ.farm, fm = F.ensure(st), [k, v] = a.split(':');
-      if (k === 'shift') {
-        fm.opts.shift = +v;
+      if (k === 'shift' || k === 'wx') {
+        fm.opts[k] = k === 'shift' ? +v : v;
         el.parentNode.querySelectorAll('.chip').forEach((b) => { b.classList.toggle('sel', b === el); b.setAttribute('aria-pressed', b === el); });
+        if (k === 'wx') F.wxSync(fm, st.grade); // good weather only: a bad forecast turns sunny
       } else fm.opts[k] = el.checked;
       if (k === 'ahead') fm.tier = F.tierNow(fm, st.grade);
       if (k === 'mgr' && !el.checked) F.mgrStay(fm);

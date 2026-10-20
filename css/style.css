@@ -1876,3 +1876,77 @@ button.du-st:active { transform: translateY(2px); }
   .ls-double-rows > div { gap: 4px; }
   .ls-double-rows i { width: 20px; height: 20px; }
 }
+
+/* ---------- Sunny Farm weather, today's special and market day (js/farm-ui.js, js/farm-scene.js) ---------- */
+/* the farm page takes the day's colors: a light tint around the farm, the sky, the grass */
+body { transition: background-color 1s ease; }
+html:has(#app.wx-rain) body { --paper: #e2eaf1; }
+html:has(#app.wx-happy) body { --paper: #fdf2d8; }
+html:has(#app.wx-rainbow) body { --paper: #f2eefb; }
+html:has(#app.wx-fog) body { --paper: #e9eded; }
+html:has(#app.wx-heat) body { --paper: #fbe9cf; }
+html:has(#app.wx-storm) body { --paper: #d8deea; }
+html:has(#app.wx-wind) body { --paper: #e5f1ea; }
+html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
+.sky, .land { transition: background 1s ease; }
+.wxfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.wxfx i { position: absolute; font-style: normal; }
+.scene.wx-rain .sky { background: linear-gradient(#8ea4b9, #cdd9e3 80%); }
+.scene.wx-rain .land { background: linear-gradient(#7cc957, #63b244); }
+.scene.wx-rain .sun, .scene.wx-storm .sun { display: none; }
+.scene.wx-rain .cloud { filter: grayscale(0.5) brightness(0.92); }
+.wxfx .drops { inset: 0; transform: skewX(-12deg); background-image: radial-gradient(1.2px 6px at 50% 50%, rgba(255, 255, 255, 0.85) 98%, transparent 100%), radial-gradient(1px 5px at 30% 20%, rgba(230, 242, 255, 0.7) 98%, transparent 100%); background-size: 18px 26px, 25px 34px; animation: wxrain 0.7s linear infinite; }
+@keyframes wxrain { to { background-position: 0 26px, 0 34px; } }
+.scene.wx-storm .sky { background: linear-gradient(#55607a, #8d99b0 80%); }
+.scene.wx-storm .land { background: linear-gradient(#6faf52, #5f9d45); }
+.scene.wx-storm .cloud { filter: grayscale(0.8) brightness(0.7); }
+.wxfx .flash { inset: 0; background: #ffffff; opacity: 0; animation: wxflash 6s infinite; }
+@keyframes wxflash { 0%, 90%, 94%, 100% { opacity: 0; } 91% { opacity: 0.7; } 93% { opacity: 0.25; } }
+.scene.wx-fog .sky { background: linear-gradient(#cfd8dd, #eef1f2 80%); }
+.scene.wx-fog .sun { opacity: 0.35; }
+.scene.wx-fog .land { background: linear-gradient(#b5d4a2, #9cc486); }
+.wxfx .fogl { left: -20%; right: -20%; bottom: 0; height: 75%; background: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85)); animation: wxfog 14s ease-in-out infinite alternate; }
+@keyframes wxfog { to { transform: translateX(8%); } }
+.scene.wx-heat .sky { background: linear-gradient(#ffbe5c, #ffe6ad 80%); }
+.scene.wx-heat .sun { font-size: 2.8rem; filter: drop-shadow(0 0 16px #ff9a1f); }
+.scene.wx-heat .land { background: linear-gradient(#b7cf62, #a5c052); }
+.scene.wx-heat .hills { filter: saturate(0.6) sepia(0.25); }
+.wxfx .haze { left: 0; right: 0; bottom: 0; height: 44px; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.2) 0 18px, transparent 18px 36px); filter: blur(4px); animation: wxhaze 2.4s ease-in-out infinite alternate; }
+@keyframes wxhaze { to { transform: translateX(18px) scaleY(1.2); } }
+.scene.wx-happy .sky { background: linear-gradient(#ffd77d, #fff3cc 80%); }
+.scene.wx-happy .sun { font-size: 2.8rem; filter: drop-shadow(0 0 14px #ffd23f) drop-shadow(0 0 6px #ffffff); }
+.scene.wx-happy .land { background: linear-gradient(#9bda72, #86cb5e); }
+.wxfx .rays { top: -70px; right: -70px; width: 210px; height: 210px; border-radius: 50%; opacity: 0.6; background: repeating-conic-gradient(rgba(255, 244, 180, 0.8) 0 9deg, transparent 9deg 20deg); animation: sunspin 50s linear infinite; }
+.scene.wx-rainbow .sky { background: linear-gradient(#93d3f5, #dff4ff 80%); }
+.wxfx .bow { left: 8%; width: 84%; top: 26px; height: 230px; border-radius: 50%; background: radial-gradient(closest-side, transparent 72%, rgba(255, 70, 70, 0.4) 73% 76%, rgba(255, 165, 0, 0.4) 76% 79%, rgba(255, 235, 0, 0.4) 79% 82%, rgba(40, 190, 60, 0.4) 82% 85%, rgba(30, 120, 255, 0.4) 85% 88%, rgba(140, 60, 255, 0.4) 88% 91%, transparent 92%); }
+.scene.wx-wind .cloud { animation-duration: 10s; }
+.scene.wx-wind .cloud.c2 { animation-duration: 14s; }
+.wxfx .leaf { left: -8%; font-size: 1.1rem; animation: wxleaf 5s linear infinite; }
+.wxfx .leaf.l1 { top: 18px; }
+.wxfx .leaf.l2 { top: 52px; animation-duration: 6s; animation-delay: -2s; }
+.wxfx .leaf.l3 { top: 84px; animation-duration: 4.5s; animation-delay: -3.4s; }
+@keyframes wxleaf { 0% { left: -8%; transform: translateY(0) rotate(0); } 50% { transform: translateY(14px) rotate(200deg); } 100% { left: 106%; transform: translateY(-6px) rotate(380deg); } }
+/* market day: flags over the stand and a crowd in the yard */
+.bunting { position: absolute; left: 0; right: 0; top: 2px; height: 14px; z-index: 2; pointer-events: none; background-image: linear-gradient(135deg, #ff6b5b 33%, transparent 33%), linear-gradient(225deg, #ff6b5b 33%, transparent 33%), linear-gradient(135deg, #ffd23f 33%, transparent 33%), linear-gradient(225deg, #ffd23f 33%, transparent 33%); background-size: 40px 28px; background-position: 0 0, 0 0, 20px 0, 20px 0; background-repeat: repeat-x; }
+.stall .bunting { top: 26px; }
+.crowd { position: absolute; left: 100px; bottom: 8px; font-size: 1.6rem; animation: floaty 3s ease-in-out infinite; }
+/* the weather bar on the farm, the day cards, the week */
+.fwxbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; width: 100%; margin-top: 12px; border: 0; text-align: left; border-radius: var(--r); padding: 9px 12px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); color: var(--ink); font-size: 0.95rem; }
+.fwxbar.k-good { background: #f2fbff; box-shadow: inset 0 0 0 2px #a9d7ef; }
+.fwxbar.k-bad { background: #fff6ec; box-shadow: inset 0 0 0 2px #f0c08a; }
+.fwx-now { font-weight: 800; }
+.fwx-next { margin-left: auto; color: var(--ink-soft); font-weight: 700; }
+.fwx-next.warn { color: #a5501a; }
+.fwx-sp { padding: 1px 8px; border-radius: 999px; background: #fff1d2; box-shadow: inset 0 0 0 2px #f2c46a; font-weight: 800; font-size: 0.85rem; }
+.fwx2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 4px; text-align: left; }
+.fwx-day { display: flex; flex-direction: column; gap: 2px; padding: 10px; border-radius: 14px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line); min-width: 0; }
+.fwx-day .fwx-when { font-size: 0.7rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); }
+.fwx-day .fwx-e { font-size: 2rem; line-height: 1.1; }
+.fwx-day small { font-size: 0.8rem; color: var(--ink-soft); font-weight: 700; }
+.fwx-day.k-good { background: #effaf2; box-shadow: inset 0 0 0 2px #a9d8b8; }
+.fwx-day.k-bad { background: #fff4e8; box-shadow: inset 0 0 0 2px #f0c08a; }
+.fwx-day .fwx-safe { color: #8a4b12; }
+.fwxweek li i { font-size: 1.15rem; color: inherit; }
+.fspecial { margin: 6px 0 0; padding: 6px 10px; border-radius: 12px; background: #fff1d2; box-shadow: inset 0 0 0 2px #f2c46a; font-size: 0.92rem; font-weight: 700; }
+.ftag.fsp { background: #fff1d2; box-shadow: inset 0 0 0 2px #f2c46a; }
+.ffriend { display: inline-block; margin-top: 4px; font-size: 0.9rem; color: #a2407a; }

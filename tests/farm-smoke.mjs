@@ -47,6 +47,7 @@ async function play(grade, tag, viewport) {
   await page.click(`[data-act=pickGrade][data-arg=${grade}]`);
   await page.click('[data-act=createKid]');
   await page.waitForSelector('.t-farm');
+  await page.evaluate(() => { MQ.farm.WEATHER = false; }); // the weather has its own part below
   await snap('01-home');
   await page.click('.t-farm');
   await page.waitForSelector('.farm .fbed');
@@ -686,6 +687,53 @@ async function play(grade, tag, viewport) {
     if (await page.$('.fmgr.hot')) errors.push(`${tag}: Mila's card still waits after collecting`);
   }
 
+  // weather, today's special and market day: the intro, the week, the farm's colors, a friend at the stand, a stormy night
+  {
+    await page.evaluate(() => { const F = MQ.farm, f = MQ.state.farm; F.WEATHER = true; f.wx.seen = false; f.wx.now = { day: f.day, w: 'rain', sp: 'egg', market: true }; f.wx.next = { day: f.day + 1, w: 'storm', sp: 'milk', market: false }; f.basket = { egg: 80 }; f.orders.list = []; f.customers = 1; f.shift = { day: f.day, n: 0, right: 0, earned: 0 }; MQ.store.save(); MQ.app.go('farm'); });
+    await page.waitForSelector('#modal [data-act=fWeather]');
+    await snap('52-weather-intro');
+    await page.click('#modal [data-act=fWeather]');
+    await page.waitForSelector('#modal .fwxweek li');
+    const wk = await page.evaluate(() => ({ days: document.querySelectorAll('#modal .fwxweek li').length, cards: document.querySelectorAll('#modal .fwx-day').length, bad: !!document.querySelector('#modal .fwx-day.k-bad .fwx-safe'), seen: MQ.state.farm.wx.seen }));
+    if (wk.days !== 7 || wk.cards !== 2 || !wk.bad || !wk.seen) errors.push(`${tag}: the weather card ${JSON.stringify(wk)}`);
+    await snap('53-weather-week');
+    await page.click('#modal [data-act=closeModal]');
+    await page.waitForTimeout(1100); // the colors fade in
+    const look = await page.evaluate(() => ({ app: document.querySelector('#app').className, scene: document.querySelector('.scene').className, bar: (document.querySelector('.fwxbar') || {}).textContent || '', paper: getComputedStyle(document.body).getPropertyValue('--paper').trim(), drops: !!document.querySelector('.scene .wxfx .drops'), bunting: !!document.querySelector('.yard .bunting') }));
+    if (!/wx-rain/.test(look.app) || !/wx-market/.test(look.app) || !/wx-rain/.test(look.scene) || !/Today/.test(look.bar) || !/Tomorrow/.test(look.bar) || look.paper !== '#e2eaf1' || !look.drops || !look.bunting) errors.push(`${tag}: the farm in the rain on market day ${JSON.stringify(look)}`);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await snap('54-weather-farm');
+    await page.click('.fstand');
+    let friends = 0;
+    for (let i = 0; i < 4; i++) {
+      await page.waitForSelector('.fplay #fanswer');
+      const s = await page.evaluate(() => { const p = MQ.farmUI.playing().p; return { friend: !!p.friend, q: p.sale.egg || 0, eggs: MQ.state.farm.basket.egg || 0, special: !!document.querySelector('.fspecial, .ftag.fsp') || p.type === 'special', shopper: document.querySelector('#shopper').textContent, status: document.querySelector('.pstatus').textContent }; });
+      if (!s.special) errors.push(`${tag}: the special's price is not shown at the stand`);
+      if (!s.status.includes('🎪')) errors.push(`${tag}: the stand doesn't say it is market day`);
+      if (s.friend) { friends++; if (friends === 1) await snap('55-market-friend'); }
+      await answer(page, true);
+      await page.waitForSelector('.fb.ok');
+      const eggs = await page.evaluate(() => MQ.state.farm.basket.egg || 0);
+      if (s.eggs - eggs !== (s.friend ? 2 : 1) * s.q) errors.push(`${tag}: market day sold ${s.eggs - eggs} eggs for ${s.q} (friend: ${s.friend})`);
+      if (await page.$('#modal')) await page.click('#modal [data-act=closeModal]');
+      if (i < 3) await page.click('[data-act=fNext]');
+    }
+    if (friends < 3) errors.push(`${tag}: only ${friends} of 4 customers brought a friend on market day`);
+    await page.click('.playbar [data-act=fQuit]');
+    await page.waitForSelector('.result');
+    await page.click('[data-act=go][data-arg=farm]');
+    await page.click('[data-act=fSleep]');
+    await page.waitForSelector('#modal .fwx2');
+    await snap('56-weather-morning');
+    const mo = await page.evaluate(() => ({ today: document.querySelector('#modal .fwx-day').textContent, app: document.querySelector('#app').className }));
+    if (!/Stormy night/.test(mo.today) || !/wx-storm/.test(mo.app)) errors.push(`${tag}: the morning after: ${JSON.stringify(mo)}`);
+    await page.click('#modal [data-act=closeModal]');
+    const mila = await page.evaluate(() => (document.querySelector('.fmgr') || {}).textContent || '');
+    if (!/stormy night/i.test(mila)) errors.push(`${tag}: Mila's card on a stormy night: "${mila}"`);
+    await snap('57-weather-storm');
+    await page.evaluate(() => { MQ.farm.shiftToday(MQ.state.farm); MQ.store.save(); }); // a new day's shift starts when it is read (before the preview check below)
+  }
+
   // reloading keeps the farm; the home tile shows it
   await page.reload();
   await page.waitForSelector('.t-farm');
@@ -721,7 +769,7 @@ async function play(grade, tag, viewport) {
   await page.click('.pvbar [data-act=exitPreview]');
   await page.waitForSelector('.home');
   const back = await page.evaluate(() => JSON.stringify(MQ.state.farm));
-  if (back !== real) errors.push(`${tag}: the preview changed the real farm`);
+  if (back !== real) { const A = JSON.parse(real), B = JSON.parse(back); errors.push(`${tag}: the preview changed the real farm: ${Object.keys(A).filter((k) => JSON.stringify(A[k]) !== JSON.stringify(B[k])).map((k) => `${k} ${JSON.stringify(A[k]).slice(0, 300)} → ${JSON.stringify(B[k]).slice(0, 300)}`).join('; ')}`); }
   // For grown-ups: the farm's shift length and problems ahead of the grade
   await page.click('[data-act=go][data-arg=parent]');
   {
@@ -732,9 +780,10 @@ async function play(grade, tag, viewport) {
   await page.waitForSelector('[data-act=farmOpt][data-arg="shift:5"]');
   await page.click('[data-act=farmOpt][data-arg="shift:5"]');
   await page.check('[data-act=farmOpt][data-arg=ahead]');
+  await page.click('[data-act=farmOpt][data-arg="wx:good"]');
   await snap('51-grownup-farm');
   const opts = await page.evaluate(() => MQ.state.farm.opts);
-  if (opts.shift !== 5 || !opts.ahead || opts.mgr === false) errors.push(`${tag}: farm settings ${JSON.stringify(opts)}`);
+  if (opts.shift !== 5 || !opts.ahead || opts.mgr === false || opts.wx !== 'good') errors.push(`${tag}: farm settings ${JSON.stringify(opts)}`);
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   if (overflow) errors.push(tag + ': horizontal overflow');

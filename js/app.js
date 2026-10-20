@@ -443,7 +443,7 @@
     const build = F.canBuild(F.ensure(st), st.grade);
     const trader = F.merchantHas(fm), unlocked = F.depositReady(fm), order = F.ordersReady(fm).length > 0;
     const mila = !!(fm.mgr && fm.mgr.pend);
-    const note = mila ? `${F.MANAGER.e} ${F.MANAGER.name} brought your money!` : bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : order ? '📦 An order is ready to deliver!' : waiting || made ? 'Something is ready to pick!' : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
+    const note = mila ? `${F.MANAGER.e} ${F.MANAGER.name} brought your money!` : bankDay ? '🏦 Bank day: interest is waiting!' : build ? '🏗️ Saved enough for your Big Dream!' : unlocked ? '🔓 Your bank deposit unlocked!' : trader ? `🧳 A traveling merchant is here!` : order ? '📦 An order is ready to deliver!' : waiting || made ? 'Something is ready to pick!' : n && F.marketOn(fm) ? `🎪 Market day! ${n} to sell` : n ? `${n} to sell at your stand` : 'Farm day ' + fm.day;
     return `<button class="tile t-farm wide ${mila || waiting || made || bankDay || build || trader || unlocked || order || n ? 'hot' : ''}" data-act="go" data-arg="farm"><span class="ti">🌻</span><span><b>Sunny Farm</b><small>Level ${F.level(fm.xp).level} · 💰 ${F.fmt(fm.money, st.grade)} · ${note}</small></span></button>`;
   }
 
@@ -479,6 +479,7 @@
       ${s.boosts ? `<p>🧪 Farm supplies: ${s.boosts} bought for ${F.fmt(s.boostCost || 0, st.grade)}; they brought ${F.fmt(s.boostGain || 0, st.grade)} (${s.boostWins || 0} paid for themselves). After each one the child works out whether it paid off.</p>` : ''}
       ${s.charms ? `<p>✨ Week charms from the merchant: ${s.charms} bought for ${F.fmt(s.charmCost || 0, st.grade)}; they brought ${F.fmt(s.charmGain || 0, st.grade)} (${s.charmWins || 0} paid for themselves). After each one the child works out whether it paid off.</p>` : ''}
       <p>${s.tasks} money problems from customers and odd jobs, <b>${pct(s.right, s.tasks)}%</b> right on the first try · ${s.vip} ⭐ challenge customers. Now practicing: <b>${esc(tier.name)}</b>${tier.ahead ? ' (ahead of grade)' : ''}.</p>
+      ${s.wxGood || s.wxBad ? `<p>🌦️ Weather (from farm level ${F.WX_LV}, in farm days): ${s.wxGood} good days and ${s.wxBad} bad ones so far; good weather brought ${F.fmt(s.wxGot || 0, st.grade)}, bad weather cost ${F.fmt(s.wxLost || 0, st.grade)} (only time or extra money, never things). ⭐ Specials sold: ${s.specials || 0} (${F.fmt(s.specialExtra || 0, st.grade)} more than usual) · 🎪 friends on market day: ${s.friends || 0}.</p>` : ''}
       ${s.shifts || s.mgrNights ? `<p>🏪 Shifts at the stand: ${s.shifts || 0} (${s.star3 || 0} with ⭐⭐⭐)${s.mgrNights ? ` · ${M.e} ${esc(M.name)} sold ${s.mgrSold} things on ${s.mgrNights} ${s.mgrNights === 1 ? 'night' : 'nights'}: ${F.fmt(s.mgrGot, st.grade)} for ${esc(st.name)}, she kept ${F.fmt(s.mgrKept, st.grade)}` : ''}.</p>` : ''}
       <p class="muted">Customers bring problems with real US coins and bills: counting money, totals, making change, paying with exact coins (2.MD.8), and later multi-step budgets, multiplying prices and deals. Problems get harder after 4 first-try right answers in a row and easier after 2 misses; a new level of problems opens as the farm grows.</p>
       <div class="settings">
@@ -487,6 +488,9 @@
         <div class="chips">${F.SHIFTS.map((n) => `<button class="chip ${F.shiftLen(fm) === n ? 'sel' : ''}" data-act="farmOpt" data-arg="shift:${n}" aria-pressed="${F.shiftLen(fm) === n}">${n}</button>`).join('')}</div>
         <label class="toggle"><input type="checkbox" data-act="farmOpt" data-arg="ahead" ${o.ahead ? 'checked' : ''}> Money problems ahead of the grade for every customer (when off, they stay at the grade’s levels; ⭐ challenge customers still bring one level more)</label>
         <label class="toggle"><input type="checkbox" data-act="farmOpt" data-arg="mgr" ${o.mgr !== false ? 'checked' : ''}> ${M.e} ${esc(M.name)}, the market manager, can sell what is left after a shift</label>
+        <div class="label">Weather on the farm</div>
+        <p class="muted">From farm level ${F.WX_LV} every farm day has weather, forecast the day before. Good weather (warm rain, sunshine, a rainbow) comes much more often than bad. From level ${F.WX_BAD_LV} a little bad weather can come${st.grade === 'k' ? ', at most once a week' : ''}: it only takes a bit of time or extra money, never things, and the farm can be made safe from it (sprinklers${st.grade === 'k' ? '' : ', cozy barns'}, selling the day before).</p>
+        <div class="chips">${[['all', 'Good and a little bad'], ['good', 'Good weather only']].map(([v, t]) => `<button class="chip ${(o.wx || 'all') === v ? 'sel' : ''}" data-act="farmOpt" data-arg="wx:${v}" aria-pressed="${(o.wx || 'all') === v}">${t}</button>`).join('')}</div>
       </div></section>`;
   }
 
@@ -2334,9 +2338,10 @@
     // Sunny Farm's settings for grown-ups: the shift length, problems ahead of the grade, Mila
     farmOpt: (a, el) => {
       const F = MQ.farm, fm = F.ensure(st), [k, v] = a.split(':');
-      if (k === 'shift') {
-        fm.opts.shift = +v;
+      if (k === 'shift' || k === 'wx') {
+        fm.opts[k] = k === 'shift' ? +v : v;
         el.parentNode.querySelectorAll('.chip').forEach((b) => { b.classList.toggle('sel', b === el); b.setAttribute('aria-pressed', b === el); });
+        if (k === 'wx') F.wxSync(fm, st.grade); // good weather only: a bad forecast turns sunny
       } else fm.opts[k] = el.checked;
       if (k === 'ahead') fm.tier = F.tierNow(fm, st.grade);
       if (k === 'mgr' && !el.checked) F.mgrStay(fm);

@@ -119,6 +119,9 @@
   // The merchant's treasures live on the farm: the goose and the sheep in the yard, the musician by the stand,
   // the fairy over the pens, the watering can by the beds.
   const treasures = (fm) => Object.keys(fm.treasure || {}).filter((id) => fm.treasure[id] && MQ.treasureArt).map((id) => `<span class="trs tr-${id}" title="${esc(F.TREASURES[id].name)}">${MQ.treasureArt(id)}</span>`).join('');
+  // The weather in the sky: rain drops, a lightning flash, fog, leaves on the wind, heat haze, a rainbow, sun rays.
+  const WXFX = { rain: '<i class="drops"></i>', storm: '<i class="drops"></i><i class="flash"></i>', fog: '<i class="fogl"></i>', heat: '<i class="haze"></i>', rainbow: '<i class="bow"></i>', happy: '<i class="rays"></i>', wind: '<i class="leaf l1">🍃</i><i class="leaf l2">🍂</i><i class="leaf l3">🍃</i>' };
+  const wxFx = (w) => (WXFX[w] ? `<div class="wxfx" aria-hidden="true">${WXFX[w]}</div>` : '');
   S.farm = (fm, grade) => {
     fmWorks = fm.works || {};
     fmNow = fm;
@@ -137,9 +140,10 @@
     const park = at('park').map((id) => `<span class="pk d-${id}" title="${esc(F.DECOR[id].name)}">${F.DECOR[id].e}</span>`).join('');
     const works = Object.keys(fmWorks).filter((id) => F.WORKS[id]);
     const stand = F.STANDS[fm.stand], n = F.saleCount(fm); // what the orders keep isn't for sale
-    return `<section class="scene${F.charmOn(fm, 'sun') ? ' sun-on' : ''}" aria-label="Your farm">
+    const wx = F.wxToday(fm);
+    return `<section class="scene${F.charmOn(fm, 'sun') ? ' sun-on' : ''}${wx ? ` wx-${wx.w}${wx.market ? ' wx-market' : ''}` : ''}" aria-label="Your farm${wx ? `: ${esc(F.WX[wx.w].name)}${wx.market ? ', market day' : ''}` : ''}">
       <div class="sky">
-        <span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>${sky.join('')}
+        <span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>${sky.join('')}${wx ? wxFx(wx.w) : ''}
         <div class="hills"></div>${hill}${has('fence') ? '<div class="hfence"></div>' : ''}
       </div>
       ${dreamland(fm)}
@@ -149,7 +153,7 @@
         ${F.yardOpen(fm) || Object.keys(fm.yard || {}).length ? `<div class="byard" aria-label="Barnyard">${Object.keys(F.HOUSES).map(houseHtml).join('')}</div>` : ''}
         ${works.length ? `<div class="works">${works.map(workHtml).join('')}</div>` : ''}
         <div class="yard">
-          <button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
+          ${wx && wx.market ? '<span class="bunting" aria-hidden="true"></span><span class="crowd" aria-hidden="true">🧑‍🤝‍🧑👨‍👩‍👧</span>' : ''}<button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
           ${yard}${fm.helper && fm.helper.hired && fm.helper.on ? `<span class="farmhand" title="Farmhand ${F.HELPER.name}">🧑‍🌾</span>` : ''}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}${treasures(fm)}${F.charmOn(fm, 'clover') && MQ.charmArt ? `<span class="trs tr-clover" title="Lucky Clover">${MQ.charmArt('clover')}</span>` : ''}${F.merchantHas(fm) ? `<button class="trs wagon" data-act="fMerchant" aria-label="${esc(F.MERCHANT.name)}'s wagon">${MQ.wagonArt()}</button>` : ''}
         </div>
         ${park ? `<div class="park">${park}</div>` : ''}
@@ -159,8 +163,8 @@
 
   // ---------------------------------------------------------------- the stall above a customer
   // mode: market (your stand), jobs (the big market), pay (the farm shop, where the child is the buyer).
-  S.stall = ({ mode, stand = 0, seller, shopper, goods = '', vip = false }) => `<div class="stall st${stand} m-${mode} ${vip ? 'vip' : ''}" aria-hidden="true">
-      <div class="awning"></div>
+  S.stall = ({ mode, stand = 0, seller, shopper, goods = '', vip = false, market = false }) => `<div class="stall st${stand} m-${mode} ${vip ? 'vip' : ''} ${market ? 'market' : ''}" aria-hidden="true">
+      <div class="awning"></div>${market ? '<span class="bunting"></span>' : ''}
       <div class="stall-in">
         <span class="seller">${seller}</span>
         <div class="counter"><span class="goods" id="goods">${goods}</span><span class="cashbox" id="cashbox">💰</span></div>
