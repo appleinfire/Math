@@ -29,12 +29,15 @@ async function noOverflow(page, where) {
 async function answer(page, right = true, thenRight = false) {
   const q = await page.evaluate(() => {
     const s = MQ.lessonsUI.session(), q = s.questions[s.qi];
-    return { answer: q.p.answer, choices: q.p.choices };
+    return { answer: q.p.answer, choices: q.p.choices, stage: s.stage };
   });
   const i = right ? q.choices.indexOf(q.answer) : q.choices.findIndex((x) => x !== q.answer);
   await page.click(`[data-act=lessonAnswer][data-arg="${i}"]`);
   if (!right && thenRight) {
     await page.waitForSelector('.ls-feedback.hint');
+    const feedback = (await page.locator('.ls-feedback.hint').textContent()).trim();
+    if (q.stage === 4 && feedback !== 'Not quite. Try once more.') throw new Error('Show revealed a hint after the first miss: ' + feedback);
+    if (q.stage !== 4 && !feedback.startsWith('Try again.')) throw new Error('guided practice lost its misconception hint: ' + feedback);
     await page.click(`[data-act=lessonAnswer][data-arg="${q.choices.indexOf(q.answer)}"]`);
   }
   await page.waitForSelector('[data-act=lessonNext]');
@@ -42,6 +45,21 @@ async function answer(page, right = true, thenRight = false) {
 }
 async function answerStage(page, n, wrongAt = -1) {
   for (let i = 0; i < n; i++) await answer(page, i !== wrongAt, i === wrongAt);
+}
+async function missShowTwice(page) {
+  const q = await page.evaluate(() => {
+    const s = MQ.lessonsUI.session(), q = s.questions[s.qi];
+    return { answer: q.p.answer, choices: q.p.choices, stage: s.stage };
+  });
+  if (q.stage !== 4) throw new Error('double-miss check must run in Show');
+  const wrong = q.choices.findIndex((x) => x !== q.answer);
+  await page.click(`[data-act=lessonAnswer][data-arg="${wrong}"]`);
+  const first = (await page.locator('.ls-feedback.hint').textContent()).trim();
+  if (first !== 'Not quite. Try once more.') throw new Error('Show revealed a hint after the first miss: ' + first);
+  await page.click(`[data-act=lessonAnswer][data-arg="${wrong}"]`);
+  const second = (await page.locator('.ls-feedback.answer').textContent()).trim();
+  if (!second.startsWith(`The answer is ${q.answer}.`)) throw new Error('Show did not explain the answer after the second miss: ' + second);
+  await page.click('[data-act=lessonNext]');
 }
 async function beginModule(page, id) {
   await page.click(`[data-module="${id}"]`);
@@ -57,8 +75,43 @@ async function buildGroups(page) {
 async function buildArray(page) {
   for (let i = 0; i < 15; i++) await page.click('.ls-build-array button:not(.on) >> nth=0');
   await page.click('[data-act=lessonBuild][data-arg=turn]');
+  if ((await page.locator('.ls-turn-note').textContent()).trim() !== '3 × 5 = 15 and 5 × 3 = 15: same dots, turned') throw new Error('array turn explanation is missing');
   await page.click('[data-act=lessonBuild][data-arg=cut]');
+  if ((await page.locator('.ls-split-note').textContent()).trim() !== '2 × 3 + 3 × 3 = 6 + 9 = 15') throw new Error('array split explanation is missing');
   await page.click('[data-act=lessonNext]');
+}
+async function backToLessons(page) {
+  await page.click('header [data-act=go][data-arg=lessons]');
+  await page.waitForSelector('.ls-modules');
+}
+async function inspectNewBuildModels(page, tag) {
+  await beginModule(page, 'facts2');
+  if ((await page.locator('.ls-line-build .numline').count()) !== 1) throw new Error(tag + ': facts ×2/×5/×10 has no number line');
+  await page.click('.ls-line-build');
+  await page.click('.ls-line-build');
+  if ((await page.locator('.ls-jump-arcs path').count()) !== 2) throw new Error(tag + ': each tap should draw one number-line jump');
+  if (!(await page.locator('.ls-jump-path').textContent()).includes('0 → 2 → 4')) throw new Error(tag + ': number-line jumps are not drawn');
+  await noOverflow(page, tag + ' number-line build');
+  await backToLessons(page);
+
+  await beginModule(page, 'facts34');
+  await page.click('.ls-double-build');
+  if ((await page.locator('.ls-double-rows > div').count()) !== 2 || (await page.locator('.ls-double-rows i').count()) !== 8) throw new Error(tag + ': double is not shown as two rows of dots');
+  await page.click('.ls-double-build');
+  if ((await page.locator('.ls-double-rows i').count()) !== 16) throw new Error(tag + ': double-again model is not drawn');
+  await noOverflow(page, tag + ' double build');
+  await backToLessons(page);
+
+  await beginModule(page, 'division');
+  if ((await page.locator('.ls-share-kids .ls-kid').count()) !== 3 || (await page.locator('.ls-berry-pile button').count()) !== 12) throw new Error(tag + ': sharing model needs three kids and 12 berries');
+  for (let i = 0; i < 12; i++) await page.click('.ls-berry-pile button >> nth=0');
+  if (!(await page.locator('.ls-good').textContent()).includes('Each kid gets 4')) throw new Error(tag + ': sharing result is missing');
+  await page.click('[data-act=lessonBuild][data-arg=startGrouping]');
+  if ((await page.locator('.ls-build-prompt').textContent()).trim() !== 'Make groups of 3 from 12') throw new Error(tag + ': grouping model is missing');
+  for (let i = 0; i < 12; i++) await page.click('.ls-berry-pile button >> nth=0');
+  if ((await page.locator('.ls-model-note').textContent()).trim() !== '4 groups') throw new Error(tag + ': grouping result is missing');
+  await noOverflow(page, tag + ' division build');
+  await backToLessons(page);
 }
 async function openGrownUps(page) {
   await page.click('[data-act=go][data-arg=parent]');
@@ -104,7 +157,8 @@ async function run(viewport, tag) {
   await buildArray(page);
   await answerStage(page, 1);
   await answerStage(page, 4);
-  await answerStage(page, 2, 0);
+  await missShowTwice(page);
+  await answer(page);
   await page.waitForSelector('.ls-another');
   await page.click('[data-act=lessonRemedy]');
   await answerStage(page, 2);
@@ -130,6 +184,7 @@ async function run(viewport, tag) {
   await page.click('[data-act=go][data-arg=home]');
   await page.click('.t-learn');
   for (const id of ['groups', 'arrays', 'facts2', 'facts34', 'division', 'families']) if (!(await page.locator(`[data-module="${id}"]`).isEnabled())) throw new Error(tag + ': preview did not open ' + id);
+  await inspectNewBuildModels(page, tag);
   await page.click('[data-module=families]');
   await page.click('[data-act=lessonNext]');
   await page.click('[data-act=exitPreview]');

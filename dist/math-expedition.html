@@ -1854,6 +1854,42 @@ button.du-st:active { transform: translateY(2px); }
   .ls-build-groups button span { font-size: 1.05rem; }
 }
 @media (prefers-reduced-motion: reduce) { .ls-bigstar { animation: none; } .ls-build-array { transition: none; } }
+
+/* Learn follow-up: visual Build it models for arrays, facts and both meanings of division. */
+.ls-build-prompt { margin: 14px 0 4px; font: 600 1.2rem var(--display); }
+.ls-model-note { width: fit-content; max-width: 100%; margin: 12px auto; padding: 9px 12px; border-radius: 12px; background: #f3f0fc; color: #513d88; font: 600 1rem/1.3 var(--display); }
+.ls-share-kids { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; max-width: 580px; margin: 14px auto; }
+.ls-share-kids > div { min-height: 112px; padding: 9px 5px; border: 3px solid #d7c9f6; border-radius: 18px; background: #f8f5ff; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.ls-kid { font-size: 2.35rem; line-height: 1; }
+.ls-kid-berries { min-height: 30px; font-size: 1.18rem; line-height: 1.35; overflow-wrap: anywhere; }
+.ls-share-kids b { color: #654ca4; font-size: 1.1rem; }
+.ls-berry-pile { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 590px; min-height: 54px; margin: 12px auto 5px; }
+.ls-berry-pile button { width: 46px; height: 46px; border: 2px solid #c38ad4; border-radius: 50%; background: #fff0f7; font-size: 1.45rem; }
+.ls-empty-pile { align-self: center; color: var(--ink-soft); font-weight: 800; }
+.ls-berry-groups { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 620px; margin: 14px auto; }
+.ls-berry-groups > div { min-height: 84px; padding: 8px 4px; border: 3px dashed #c38ad4; border-radius: 16px; background: #fff7fb; display: flex; flex-direction: column; justify-content: center; gap: 7px; }
+.ls-berry-groups > div.full { border-style: solid; background: #f7e8ff; }
+.ls-berry-groups b { color: #654ca4; font-size: 0.85rem; }
+.ls-berry-groups span { min-height: 24px; font-size: 1.15rem; }
+.ls-line-build, .ls-double-build { width: min(100%, 560px); min-height: 160px; margin: 18px auto; padding: 12px; border: 3px dashed #9b7be8; border-radius: 20px; background: #f8f5ff; color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.ls-line-build > span, .ls-double-build > span { color: #654ca4; font-weight: 900; }
+.ls-jump-line { position: relative; width: min(100%, 420px); }
+.ls-jump-line > svg { width: 100%; height: auto; display: block; }
+.ls-jump-arcs { position: absolute; inset: 0; pointer-events: none; }
+.ls-jump-arcs path { fill: none; stroke: #8b6bd5; stroke-width: 4; stroke-linecap: round; }
+.ls-jump-arcs circle { fill: #8b6bd5; }
+.ls-jump-path { min-height: 27px; font: 600 1.2rem var(--display); }
+.ls-double-rows { display: grid; gap: 8px; max-width: 100%; }
+.ls-double-rows > div { display: flex; justify-content: center; gap: 6px; }
+.ls-double-rows i { display: block; width: 24px; height: 24px; border: 3px solid #397ca8; border-radius: 50%; background: #65b9e6; }
+.ls-double-build b { font: 600 1.2rem var(--display); }
+@media (max-width: 520px) {
+  .ls-berry-pile { gap: 4px; }
+  .ls-berry-pile button { width: 42px; height: 42px; }
+  .ls-berry-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ls-double-rows > div { gap: 4px; }
+  .ls-double-rows i { width: 20px; height: 20px; }
+}
 </style>
 </head>
 <body>
@@ -3787,16 +3823,14 @@ button.du-st:active { transform: translateY(2px); }
 (function () {
   const MQ = (globalThis.MQ = globalThis.MQ || {});
   const L = {};
-  const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
-  const pick = (a) => a[Math.floor(Math.random() * a.length)];
-  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const { rnd, pick, shuffle } = MQ.U;
   const STEPS = ['see', 'build', 'together', 'try', 'show'];
   const today = () => (MQ.U && MQ.U.dateKey ? MQ.U.dateKey() : new Date().toISOString().slice(0, 10));
 
   L.STEPS = STEPS;
   L.MODULES = [
     { id: 'groups', icon: '🍎', title: 'Equal groups', minutes: '5–8 min', d: 1, steps: STEPS.slice(),
-      see: { title: 'Three groups of four', text: 'Each group has the same number.', lines: ['4 + 4 + 4 = 12', '3 groups of 4 = 12', '3 × 4 = 12', 'Groups of 2, 3, and 4 are not equal yet.'], visual: { kind: 'groups', a: 3, b: 4, emoji: '🍎' } },
+      see: { title: 'Three groups of four', text: 'Each group has the same number.', lines: ['4 + 4 + 4 = 12', '3 groups of 4 = 12', '3 × 4 = 12'], visual: { kind: 'groups', a: 3, b: 4, emoji: '🍎' } },
       build: { title: 'Build 3 equal groups of 4', text: 'Tap a group to add an apple. Make every group equal.', kind: 'groups', goal: 12 },
       together: { title: 'Solve it together', text: 'First count how many equal groups. Then count how many are in each group.', prompt: 'What is 4 groups of 3?' },
       alternate: { title: "Let's look at it another way", text: 'Jump by 4 on the number line: 0, 4, 8, 12.', visual: { kind: 'line', a: 0, b: 12, step: 4 } } },
@@ -3817,7 +3851,7 @@ button.du-st:active { transform: translateY(2px); }
       alternate: { title: "Let's look at it another way", text: 'Split the array into a part you know and one more row.', visual: { kind: 'array', a: 3, b: 7 } } },
     { id: 'division', icon: '➗', title: 'Meaning of division', minutes: '5–8 min', d: 4, steps: STEPS.slice(),
       see: { title: 'Division has two meanings', text: 'Both stories use 12 ÷ 3.', lines: ['Sharing: 12 shared among 3 kids', 'Grouping: how many groups of 3?', 'Both answers are 4.'], visual: { kind: 'groups', a: 3, b: 4, emoji: '🍓' } },
-      build: { title: 'Share 12 equally', text: 'Tap the kids one at a time. Give each kid the same number.', kind: 'share', goal: 12 },
+      build: { title: 'Share, then make groups', text: 'First share 12 berries equally among 3 kids.', kind: 'share', goal: 12 },
       together: { title: 'Solve it together', text: 'Ask: am I sharing into groups, or making groups of a size?', prompt: 'How many groups of 4 are in 16?' },
       alternate: { title: "Let's look at it another way", text: 'Use jumps: how many jumps of 3 reach 12?', visual: { kind: 'line', a: 0, b: 12, step: 3 } } },
     { id: 'families', icon: '🏠', title: 'Fact families', minutes: '5–8 min', d: 4, steps: STEPS.slice(),
@@ -3907,16 +3941,34 @@ button.du-st:active { transform: translateY(2px); }
   };
 
   L.hint = (p, given) => p.hint(given);
-  L.newBuild = (id) => ({ id, n: 0, counts: [0, 0, 0], filled: {}, turned: false, cut: false, done: false });
+  L.newBuild = (id) => ({ id, n: 0, counts: [0, 0, 0], filled: {}, turned: false, cut: false, part: id === 'division' ? 'sharing' : '', shareDone: false, groupingN: 0, done: false });
   L.buildTap = (state, action = 'tap') => {
     const m = byId(state.id), next = Object.assign({}, state);
     if (!m) return next;
-    if (m.build.kind === 'groups' || m.build.kind === 'share') {
+    if (m.build.kind === 'groups') {
       next.counts = (state.counts || [0, 0, 0]).slice();
       const named = /^group:(\d+)$/.exec(action), i = named ? +named[1] : next.counts.indexOf(Math.min(...next.counts));
       if (i >= 0 && i < 3 && next.counts[i] < 4) next.counts[i]++;
       next.n = next.counts.reduce((n, x) => n + x, 0);
       next.done = next.n === m.build.goal && next.counts.every((n) => n === 4);
+      return next;
+    }
+    if (m.build.kind === 'share') {
+      next.counts = (state.counts || [0, 0, 0]).slice();
+      if (action === 'startGrouping' && state.shareDone) {
+        next.part = 'grouping'; next.n = 0; next.groupingN = 0; next.done = false;
+        return next;
+      }
+      if (state.part === 'grouping') {
+        if (action === 'groupBerry' || action === 'tap') next.groupingN = Math.min(m.build.goal, (state.groupingN || 0) + 1);
+        next.n = next.groupingN; next.done = next.groupingN === m.build.goal;
+        return next;
+      }
+      const named = /^group:(\d+)$/.exec(action), i = named ? +named[1] : next.counts.indexOf(Math.min(...next.counts));
+      if ((action === 'shareBerry' || action === 'tap' || named) && i >= 0 && i < 3 && next.counts[i] < 4) next.counts[i]++;
+      next.n = next.counts.reduce((n, x) => n + x, 0);
+      next.shareDone = next.n === m.build.goal && next.counts.every((n) => n === 4);
+      next.done = false;
       return next;
     }
     if (m.build.kind === 'array') {
@@ -13360,7 +13412,7 @@ button.du-st:active { transform: translateY(2px); }
     if (!run) return 'Multiply and Divide lessons.';
     const m = run.module;
     if (run.stage === 0) return `${m.see.title}. ${m.see.text} ${m.see.lines.join('. ')}`;
-    if (run.stage === 1) return `${m.build.title}. ${m.build.text}`;
+    if (run.stage === 1) return run.build.part === 'grouping' ? 'Make groups of 3 from 12. Tap a berry to build each group.' : `${m.build.title}. ${m.build.text}`;
     if (run.stage === 'done') return `Module complete. Great learning!`;
     if (run.stage === 'another' && !run.questions) return `${m.alternate.title}. ${m.alternate.text}`;
     const q = current();
@@ -13424,22 +13476,36 @@ button.du-st:active { transform: translateY(2px); }
   }
   function buildBoard() {
     const b = run.build, m = run.module, kind = m.build.kind;
-    if (kind === 'groups' || kind === 'share') {
+    if (kind === 'groups') {
       const counts = b.counts || [0, 0, 0];
-      return `<div class="ls-build-groups">${counts.map((n, i) => `<button data-act="lessonBuild" data-arg="group:${i}" aria-label="Add to group ${i + 1}"><b>${i + 1}</b><span>${Array(n).fill(kind === 'share' ? '🍓' : '🍎').join(' ') || 'Tap'}</span></button>`).join('')}</div><p class="ls-count">${b.n} / ${m.build.goal}</p>`;
+      return `<div class="ls-build-groups">${counts.map((n, i) => `<button data-act="lessonBuild" data-arg="group:${i}" aria-label="Add to group ${i + 1}"><b>${i + 1}</b><span>${Array(n).fill('🍎').join(' ') || 'Tap'}</span></button>`).join('')}</div><p class="ls-count">${b.n} / ${m.build.goal}</p>`;
+    }
+    if (kind === 'share') {
+      const berryPile = (n, action) => `<div class="ls-berry-pile" aria-label="${n} berries left">${Array.from({ length: n }, (_, i) => `<button data-act="lessonBuild" data-arg="${action}" aria-label="Move berry ${i + 1}">🍓</button>`).join('') || '<span class="ls-empty-pile">All 12 berries are used.</span>'}</div>`;
+      if (b.part === 'grouping') {
+        const groups = Array.from({ length: 4 }, (_, i) => Math.max(0, Math.min(3, b.groupingN - i * 3)));
+        return `<h3 class="ls-build-prompt">Make groups of 3 from 12</h3><p>Tap the berries. Put 3 in each group.</p>${berryPile(12 - b.groupingN, 'groupBerry')}<div class="ls-berry-groups">${groups.map((n, i) => `<div class="${n === 3 ? 'full' : ''}"><b>Group ${i + 1}</b><span>${Array(n).fill('🍓').join(' ') || '· · ·'}</span></div>`).join('')}</div><p class="ls-model-note">${b.done ? '4 groups' : `${Math.floor(b.groupingN / 3)} full ${Math.floor(b.groupingN / 3) === 1 ? 'group' : 'groups'}`}</p>`;
+      }
+      const kids = ['🧒', '👧', '👦'], counts = b.counts || [0, 0, 0];
+      return `<h3 class="ls-build-prompt">Share 12 equally among 3 kids</h3><div class="ls-share-kids">${kids.map((kid, i) => `<div><span class="ls-kid">${kid}</span><span class="ls-kid-berries">${Array(counts[i]).fill('🍓').join(' ') || 'Waiting'}</span><b>${counts[i]}</b></div>`).join('')}</div>${berryPile(12 - b.n, 'shareBerry')}<p class="ls-count">${12 - b.n} berries left</p>${b.shareDone ? '<div class="ls-good">Each kid gets 4.</div><button class="btn" data-act="lessonBuild" data-arg="startGrouping">Make groups of 3 →</button>' : ''}`;
     }
     if (kind === 'array') {
       const dots = Array.from({ length: 15 }, (_, i) => `<button data-act="lessonBuild" data-arg="dot:${i}" class="${b.filled[i] ? 'on' : ''}" aria-label="Dot ${i + 1}"></button>`).join('');
-      return `<div class="ls-build-array ${b.turned ? 'turned' : ''} ${b.cut ? 'cut' : ''}">${dots}</div><div class="row"><button class="btn ghost" data-act="lessonBuild" data-arg="turn" ${b.n < 15 ? 'disabled' : ''}>↻ Turn</button><button class="btn ghost" data-act="lessonBuild" data-arg="cut" ${!b.turned ? 'disabled' : ''}>✂️ Split</button></div>`;
+      return `<div class="ls-build-array ${b.turned ? 'turned' : ''} ${b.cut ? 'cut' : ''}">${dots}</div><div class="row"><button class="btn ghost" data-act="lessonBuild" data-arg="turn" ${b.n < 15 ? 'disabled' : ''}>↻ Turn</button><button class="btn ghost" data-act="lessonBuild" data-arg="cut" ${!b.turned ? 'disabled' : ''}>✂️ Split</button></div>${b.turned ? '<p class="ls-model-note ls-turn-note">3 × 5 = 15 and 5 × 3 = 15: same dots, turned</p>' : ''}${b.cut ? '<p class="ls-model-note ls-split-note">2 × 3 + 3 × 3 = 6 + 9 = 15</p>' : ''}`;
     }
     if (kind === 'family') return `<div class="ls-family">${['3 × 4 = 12', '4 × 3 = 12', '12 ÷ 3 = 4', '12 ÷ 4 = 3'].map((s, i) => `<button data-act="lessonBuild" data-arg="card:${i}" class="${b.filled[i] ? 'on' : ''}">${b.filled[i] ? s : '?'}</button>`).join('')}</div>`;
-    const labels = kind === 'double' ? ['4 + 4 = 8', '8 + 8 = 16'] : ['2', '4', '6', '8', '10'];
-    return `<button class="ls-tap-model" data-act="lessonBuild" data-arg="tap"><span>${kind === 'double' ? 'Double' : 'Jump'}</span><b>${labels.slice(0, b.n).join(' → ') || 'Tap to start'}</b></button>`;
+    if (kind === 'jumps') {
+      const stops = Array.from({ length: b.n + 1 }, (_, i) => i * 2);
+      const arcs = Array.from({ length: b.n }, (_, i) => { const x1 = 22 + i * 59.2, x2 = x1 + 59.2; return `<path d="M ${x1.toFixed(1)} 52 Q ${((x1 + x2) / 2).toFixed(1)} 8 ${x2.toFixed(1)} 52"/><circle cx="${x2.toFixed(1)}" cy="52" r="4"/>`; }).join('');
+      return `<button class="ls-line-build" data-act="lessonBuild" data-arg="tap" ${b.done ? 'disabled' : ''}><span>Tap to jump 2</span><div class="ls-jump-line">${MQ.V.numberLine({ min: 0, max: 10, step: 2, marker: b.n ? b.n * 2 : null })}<svg class="ls-jump-arcs" viewBox="0 0 340 100" aria-hidden="true">${arcs}</svg></div><b class="ls-jump-path">${stops.join(' → ')}</b></button>`;
+    }
+    const dots = b.n === 0 ? 4 : b.n === 1 ? 4 : 8, rows = b.n === 0 ? 1 : 2;
+    return `<button class="ls-double-build" data-act="lessonBuild" data-arg="tap" ${b.done ? 'disabled' : ''}><span>${b.n === 0 ? 'Tap to double 4' : b.n === 1 ? 'Tap to double 8' : 'Double 8 = 16'}</span><div class="ls-double-rows">${Array.from({ length: rows }, () => `<div>${Array(dots).fill('<i></i>').join('')}</div>`).join('')}</div><b>${b.n === 0 ? '4' : b.n === 1 ? '4 + 4 = 8' : '8 + 8 = 16'}</b></button>`;
   }
   function drawBuild() {
     const x = run.module.build;
     K().render(shell(`<section class="ls-card"><div class="ls-step"><span>2 · Build it</span>${speakButton()}</div><h2>${x.title}</h2><p class="lead">${x.text}</p>${buildBoard()}${run.build.done ? '<div class="ls-good">✓ You built it!</div><button class="btn big" data-act="lessonNext">Solve together →</button>' : ''}</section>`, 1));
-    autoSpeak('build');
+    autoSpeak(`build:${run.build.part || 'main'}`);
   }
   function drawQuestion() {
     const q = current();
@@ -13498,8 +13564,8 @@ button.du-st:active { transform: translateY(2px); }
         if (run.stage === 4) run.showFirst.push(right);
         S.save();
       }
-      if (right) { q.locked = true; q.message = `✓ ${q.p.explain}`; st().stats.correct++; S.save(); MQ.sfx('right'); }
-      else if (q.tries === 0) { q.tries = 1; q.message = `Try again. ${L.hint(q.p, given)}`; MQ.sfx('wrong'); }
+      if (right) { q.locked = true; q.message = `✓ ${q.p.explain}`; st().stats.correct++; S.save(); MQ.sfx('correct'); }
+      else if (q.tries === 0) { q.tries = 1; q.message = run.stage === 4 ? 'Not quite. Try once more.' : `Try again. ${L.hint(q.p, given)}`; MQ.sfx('wrong'); }
       else { q.tries = 2; q.locked = true; q.message = `The answer is ${q.p.answer}. ${q.p.explain}`; MQ.sfx('wrong'); }
       drawQuestion();
     },

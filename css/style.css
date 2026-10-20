@@ -1840,3 +1840,39 @@ button.du-st:active { transform: translateY(2px); }
   .ls-build-groups button span { font-size: 1.05rem; }
 }
 @media (prefers-reduced-motion: reduce) { .ls-bigstar { animation: none; } .ls-build-array { transition: none; } }
+
+/* Learn follow-up: visual Build it models for arrays, facts and both meanings of division. */
+.ls-build-prompt { margin: 14px 0 4px; font: 600 1.2rem var(--display); }
+.ls-model-note { width: fit-content; max-width: 100%; margin: 12px auto; padding: 9px 12px; border-radius: 12px; background: #f3f0fc; color: #513d88; font: 600 1rem/1.3 var(--display); }
+.ls-share-kids { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; max-width: 580px; margin: 14px auto; }
+.ls-share-kids > div { min-height: 112px; padding: 9px 5px; border: 3px solid #d7c9f6; border-radius: 18px; background: #f8f5ff; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.ls-kid { font-size: 2.35rem; line-height: 1; }
+.ls-kid-berries { min-height: 30px; font-size: 1.18rem; line-height: 1.35; overflow-wrap: anywhere; }
+.ls-share-kids b { color: #654ca4; font-size: 1.1rem; }
+.ls-berry-pile { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 590px; min-height: 54px; margin: 12px auto 5px; }
+.ls-berry-pile button { width: 46px; height: 46px; border: 2px solid #c38ad4; border-radius: 50%; background: #fff0f7; font-size: 1.45rem; }
+.ls-empty-pile { align-self: center; color: var(--ink-soft); font-weight: 800; }
+.ls-berry-groups { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 620px; margin: 14px auto; }
+.ls-berry-groups > div { min-height: 84px; padding: 8px 4px; border: 3px dashed #c38ad4; border-radius: 16px; background: #fff7fb; display: flex; flex-direction: column; justify-content: center; gap: 7px; }
+.ls-berry-groups > div.full { border-style: solid; background: #f7e8ff; }
+.ls-berry-groups b { color: #654ca4; font-size: 0.85rem; }
+.ls-berry-groups span { min-height: 24px; font-size: 1.15rem; }
+.ls-line-build, .ls-double-build { width: min(100%, 560px); min-height: 160px; margin: 18px auto; padding: 12px; border: 3px dashed #9b7be8; border-radius: 20px; background: #f8f5ff; color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.ls-line-build > span, .ls-double-build > span { color: #654ca4; font-weight: 900; }
+.ls-jump-line { position: relative; width: min(100%, 420px); }
+.ls-jump-line > svg { width: 100%; height: auto; display: block; }
+.ls-jump-arcs { position: absolute; inset: 0; pointer-events: none; }
+.ls-jump-arcs path { fill: none; stroke: #8b6bd5; stroke-width: 4; stroke-linecap: round; }
+.ls-jump-arcs circle { fill: #8b6bd5; }
+.ls-jump-path { min-height: 27px; font: 600 1.2rem var(--display); }
+.ls-double-rows { display: grid; gap: 8px; max-width: 100%; }
+.ls-double-rows > div { display: flex; justify-content: center; gap: 6px; }
+.ls-double-rows i { display: block; width: 24px; height: 24px; border: 3px solid #397ca8; border-radius: 50%; background: #65b9e6; }
+.ls-double-build b { font: 600 1.2rem var(--display); }
+@media (max-width: 520px) {
+  .ls-berry-pile { gap: 4px; }
+  .ls-berry-pile button { width: 42px; height: 42px; }
+  .ls-berry-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ls-double-rows > div { gap: 4px; }
+  .ls-double-rows i { width: 20px; height: 20px; }
+}

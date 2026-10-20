@@ -2,16 +2,14 @@
 (function () {
   const MQ = (globalThis.MQ = globalThis.MQ || {});
   const L = {};
-  const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
-  const pick = (a) => a[Math.floor(Math.random() * a.length)];
-  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const { rnd, pick, shuffle } = MQ.U;
   const STEPS = ['see', 'build', 'together', 'try', 'show'];
   const today = () => (MQ.U && MQ.U.dateKey ? MQ.U.dateKey() : new Date().toISOString().slice(0, 10));
 
   L.STEPS = STEPS;
   L.MODULES = [
     { id: 'groups', icon: '🍎', title: 'Equal groups', minutes: '5–8 min', d: 1, steps: STEPS.slice(),
-      see: { title: 'Three groups of four', text: 'Each group has the same number.', lines: ['4 + 4 + 4 = 12', '3 groups of 4 = 12', '3 × 4 = 12', 'Groups of 2, 3, and 4 are not equal yet.'], visual: { kind: 'groups', a: 3, b: 4, emoji: '🍎' } },
+      see: { title: 'Three groups of four', text: 'Each group has the same number.', lines: ['4 + 4 + 4 = 12', '3 groups of 4 = 12', '3 × 4 = 12'], visual: { kind: 'groups', a: 3, b: 4, emoji: '🍎' } },
       build: { title: 'Build 3 equal groups of 4', text: 'Tap a group to add an apple. Make every group equal.', kind: 'groups', goal: 12 },
       together: { title: 'Solve it together', text: 'First count how many equal groups. Then count how many are in each group.', prompt: 'What is 4 groups of 3?' },
       alternate: { title: "Let's look at it another way", text: 'Jump by 4 on the number line: 0, 4, 8, 12.', visual: { kind: 'line', a: 0, b: 12, step: 4 } } },
@@ -32,7 +30,7 @@
       alternate: { title: "Let's look at it another way", text: 'Split the array into a part you know and one more row.', visual: { kind: 'array', a: 3, b: 7 } } },
     { id: 'division', icon: '➗', title: 'Meaning of division', minutes: '5–8 min', d: 4, steps: STEPS.slice(),
       see: { title: 'Division has two meanings', text: 'Both stories use 12 ÷ 3.', lines: ['Sharing: 12 shared among 3 kids', 'Grouping: how many groups of 3?', 'Both answers are 4.'], visual: { kind: 'groups', a: 3, b: 4, emoji: '🍓' } },
-      build: { title: 'Share 12 equally', text: 'Tap the kids one at a time. Give each kid the same number.', kind: 'share', goal: 12 },
+      build: { title: 'Share, then make groups', text: 'First share 12 berries equally among 3 kids.', kind: 'share', goal: 12 },
       together: { title: 'Solve it together', text: 'Ask: am I sharing into groups, or making groups of a size?', prompt: 'How many groups of 4 are in 16?' },
       alternate: { title: "Let's look at it another way", text: 'Use jumps: how many jumps of 3 reach 12?', visual: { kind: 'line', a: 0, b: 12, step: 3 } } },
     { id: 'families', icon: '🏠', title: 'Fact families', minutes: '5–8 min', d: 4, steps: STEPS.slice(),
@@ -122,16 +120,34 @@
   };
 
   L.hint = (p, given) => p.hint(given);
-  L.newBuild = (id) => ({ id, n: 0, counts: [0, 0, 0], filled: {}, turned: false, cut: false, done: false });
+  L.newBuild = (id) => ({ id, n: 0, counts: [0, 0, 0], filled: {}, turned: false, cut: false, part: id === 'division' ? 'sharing' : '', shareDone: false, groupingN: 0, done: false });
   L.buildTap = (state, action = 'tap') => {
     const m = byId(state.id), next = Object.assign({}, state);
     if (!m) return next;
-    if (m.build.kind === 'groups' || m.build.kind === 'share') {
+    if (m.build.kind === 'groups') {
       next.counts = (state.counts || [0, 0, 0]).slice();
       const named = /^group:(\d+)$/.exec(action), i = named ? +named[1] : next.counts.indexOf(Math.min(...next.counts));
       if (i >= 0 && i < 3 && next.counts[i] < 4) next.counts[i]++;
       next.n = next.counts.reduce((n, x) => n + x, 0);
       next.done = next.n === m.build.goal && next.counts.every((n) => n === 4);
+      return next;
+    }
+    if (m.build.kind === 'share') {
+      next.counts = (state.counts || [0, 0, 0]).slice();
+      if (action === 'startGrouping' && state.shareDone) {
+        next.part = 'grouping'; next.n = 0; next.groupingN = 0; next.done = false;
+        return next;
+      }
+      if (state.part === 'grouping') {
+        if (action === 'groupBerry' || action === 'tap') next.groupingN = Math.min(m.build.goal, (state.groupingN || 0) + 1);
+        next.n = next.groupingN; next.done = next.groupingN === m.build.goal;
+        return next;
+      }
+      const named = /^group:(\d+)$/.exec(action), i = named ? +named[1] : next.counts.indexOf(Math.min(...next.counts));
+      if ((action === 'shareBerry' || action === 'tap' || named) && i >= 0 && i < 3 && next.counts[i] < 4) next.counts[i]++;
+      next.n = next.counts.reduce((n, x) => n + x, 0);
+      next.shareDone = next.n === m.build.goal && next.counts.every((n) => n === 4);
+      next.done = false;
       return next;
     }
     if (m.build.kind === 'array') {

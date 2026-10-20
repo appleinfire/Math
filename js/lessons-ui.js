@@ -18,7 +18,7 @@
     if (!run) return 'Multiply and Divide lessons.';
     const m = run.module;
     if (run.stage === 0) return `${m.see.title}. ${m.see.text} ${m.see.lines.join('. ')}`;
-    if (run.stage === 1) return `${m.build.title}. ${m.build.text}`;
+    if (run.stage === 1) return run.build.part === 'grouping' ? 'Make groups of 3 from 12. Tap a berry to build each group.' : `${m.build.title}. ${m.build.text}`;
     if (run.stage === 'done') return `Module complete. Great learning!`;
     if (run.stage === 'another' && !run.questions) return `${m.alternate.title}. ${m.alternate.text}`;
     const q = current();
@@ -82,22 +82,36 @@
   }
   function buildBoard() {
     const b = run.build, m = run.module, kind = m.build.kind;
-    if (kind === 'groups' || kind === 'share') {
+    if (kind === 'groups') {
       const counts = b.counts || [0, 0, 0];
-      return `<div class="ls-build-groups">${counts.map((n, i) => `<button data-act="lessonBuild" data-arg="group:${i}" aria-label="Add to group ${i + 1}"><b>${i + 1}</b><span>${Array(n).fill(kind === 'share' ? '🍓' : '🍎').join(' ') || 'Tap'}</span></button>`).join('')}</div><p class="ls-count">${b.n} / ${m.build.goal}</p>`;
+      return `<div class="ls-build-groups">${counts.map((n, i) => `<button data-act="lessonBuild" data-arg="group:${i}" aria-label="Add to group ${i + 1}"><b>${i + 1}</b><span>${Array(n).fill('🍎').join(' ') || 'Tap'}</span></button>`).join('')}</div><p class="ls-count">${b.n} / ${m.build.goal}</p>`;
+    }
+    if (kind === 'share') {
+      const berryPile = (n, action) => `<div class="ls-berry-pile" aria-label="${n} berries left">${Array.from({ length: n }, (_, i) => `<button data-act="lessonBuild" data-arg="${action}" aria-label="Move berry ${i + 1}">🍓</button>`).join('') || '<span class="ls-empty-pile">All 12 berries are used.</span>'}</div>`;
+      if (b.part === 'grouping') {
+        const groups = Array.from({ length: 4 }, (_, i) => Math.max(0, Math.min(3, b.groupingN - i * 3)));
+        return `<h3 class="ls-build-prompt">Make groups of 3 from 12</h3><p>Tap the berries. Put 3 in each group.</p>${berryPile(12 - b.groupingN, 'groupBerry')}<div class="ls-berry-groups">${groups.map((n, i) => `<div class="${n === 3 ? 'full' : ''}"><b>Group ${i + 1}</b><span>${Array(n).fill('🍓').join(' ') || '· · ·'}</span></div>`).join('')}</div><p class="ls-model-note">${b.done ? '4 groups' : `${Math.floor(b.groupingN / 3)} full ${Math.floor(b.groupingN / 3) === 1 ? 'group' : 'groups'}`}</p>`;
+      }
+      const kids = ['🧒', '👧', '👦'], counts = b.counts || [0, 0, 0];
+      return `<h3 class="ls-build-prompt">Share 12 equally among 3 kids</h3><div class="ls-share-kids">${kids.map((kid, i) => `<div><span class="ls-kid">${kid}</span><span class="ls-kid-berries">${Array(counts[i]).fill('🍓').join(' ') || 'Waiting'}</span><b>${counts[i]}</b></div>`).join('')}</div>${berryPile(12 - b.n, 'shareBerry')}<p class="ls-count">${12 - b.n} berries left</p>${b.shareDone ? '<div class="ls-good">Each kid gets 4.</div><button class="btn" data-act="lessonBuild" data-arg="startGrouping">Make groups of 3 →</button>' : ''}`;
     }
     if (kind === 'array') {
       const dots = Array.from({ length: 15 }, (_, i) => `<button data-act="lessonBuild" data-arg="dot:${i}" class="${b.filled[i] ? 'on' : ''}" aria-label="Dot ${i + 1}"></button>`).join('');
-      return `<div class="ls-build-array ${b.turned ? 'turned' : ''} ${b.cut ? 'cut' : ''}">${dots}</div><div class="row"><button class="btn ghost" data-act="lessonBuild" data-arg="turn" ${b.n < 15 ? 'disabled' : ''}>↻ Turn</button><button class="btn ghost" data-act="lessonBuild" data-arg="cut" ${!b.turned ? 'disabled' : ''}>✂️ Split</button></div>`;
+      return `<div class="ls-build-array ${b.turned ? 'turned' : ''} ${b.cut ? 'cut' : ''}">${dots}</div><div class="row"><button class="btn ghost" data-act="lessonBuild" data-arg="turn" ${b.n < 15 ? 'disabled' : ''}>↻ Turn</button><button class="btn ghost" data-act="lessonBuild" data-arg="cut" ${!b.turned ? 'disabled' : ''}>✂️ Split</button></div>${b.turned ? '<p class="ls-model-note ls-turn-note">3 × 5 = 15 and 5 × 3 = 15: same dots, turned</p>' : ''}${b.cut ? '<p class="ls-model-note ls-split-note">2 × 3 + 3 × 3 = 6 + 9 = 15</p>' : ''}`;
     }
     if (kind === 'family') return `<div class="ls-family">${['3 × 4 = 12', '4 × 3 = 12', '12 ÷ 3 = 4', '12 ÷ 4 = 3'].map((s, i) => `<button data-act="lessonBuild" data-arg="card:${i}" class="${b.filled[i] ? 'on' : ''}">${b.filled[i] ? s : '?'}</button>`).join('')}</div>`;
-    const labels = kind === 'double' ? ['4 + 4 = 8', '8 + 8 = 16'] : ['2', '4', '6', '8', '10'];
-    return `<button class="ls-tap-model" data-act="lessonBuild" data-arg="tap"><span>${kind === 'double' ? 'Double' : 'Jump'}</span><b>${labels.slice(0, b.n).join(' → ') || 'Tap to start'}</b></button>`;
+    if (kind === 'jumps') {
+      const stops = Array.from({ length: b.n + 1 }, (_, i) => i * 2);
+      const arcs = Array.from({ length: b.n }, (_, i) => { const x1 = 22 + i * 59.2, x2 = x1 + 59.2; return `<path d="M ${x1.toFixed(1)} 52 Q ${((x1 + x2) / 2).toFixed(1)} 8 ${x2.toFixed(1)} 52"/><circle cx="${x2.toFixed(1)}" cy="52" r="4"/>`; }).join('');
+      return `<button class="ls-line-build" data-act="lessonBuild" data-arg="tap" ${b.done ? 'disabled' : ''}><span>Tap to jump 2</span><div class="ls-jump-line">${MQ.V.numberLine({ min: 0, max: 10, step: 2, marker: b.n ? b.n * 2 : null })}<svg class="ls-jump-arcs" viewBox="0 0 340 100" aria-hidden="true">${arcs}</svg></div><b class="ls-jump-path">${stops.join(' → ')}</b></button>`;
+    }
+    const dots = b.n === 0 ? 4 : b.n === 1 ? 4 : 8, rows = b.n === 0 ? 1 : 2;
+    return `<button class="ls-double-build" data-act="lessonBuild" data-arg="tap" ${b.done ? 'disabled' : ''}><span>${b.n === 0 ? 'Tap to double 4' : b.n === 1 ? 'Tap to double 8' : 'Double 8 = 16'}</span><div class="ls-double-rows">${Array.from({ length: rows }, () => `<div>${Array(dots).fill('<i></i>').join('')}</div>`).join('')}</div><b>${b.n === 0 ? '4' : b.n === 1 ? '4 + 4 = 8' : '8 + 8 = 16'}</b></button>`;
   }
   function drawBuild() {
     const x = run.module.build;
     K().render(shell(`<section class="ls-card"><div class="ls-step"><span>2 · Build it</span>${speakButton()}</div><h2>${x.title}</h2><p class="lead">${x.text}</p>${buildBoard()}${run.build.done ? '<div class="ls-good">✓ You built it!</div><button class="btn big" data-act="lessonNext">Solve together →</button>' : ''}</section>`, 1));
-    autoSpeak('build');
+    autoSpeak(`build:${run.build.part || 'main'}`);
   }
   function drawQuestion() {
     const q = current();
@@ -156,8 +170,8 @@
         if (run.stage === 4) run.showFirst.push(right);
         S.save();
       }
-      if (right) { q.locked = true; q.message = `✓ ${q.p.explain}`; st().stats.correct++; S.save(); MQ.sfx('right'); }
-      else if (q.tries === 0) { q.tries = 1; q.message = `Try again. ${L.hint(q.p, given)}`; MQ.sfx('wrong'); }
+      if (right) { q.locked = true; q.message = `✓ ${q.p.explain}`; st().stats.correct++; S.save(); MQ.sfx('correct'); }
+      else if (q.tries === 0) { q.tries = 1; q.message = run.stage === 4 ? 'Not quite. Try once more.' : `Try again. ${L.hint(q.p, given)}`; MQ.sfx('wrong'); }
       else { q.tries = 2; q.locked = true; q.message = `The answer is ${q.p.answer}. ${q.p.explain}`; MQ.sfx('wrong'); }
       drawQuestion();
     },
