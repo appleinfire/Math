@@ -26,6 +26,7 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 |---|---|
 | **Expedition Map** | 8 worlds × 6 levels. A level asks for 5 correct answers (7 for the Guardian). Finishing a level discovers a creature for the Field Journal. Stars depend on mistakes: 0 → ★★★, 1–2 → ★★, more → ★. Beating a world's Guardian opens the next world. |
 | **Endless Training** | Pick any topics, a difficulty (or **Auto**, which goes up after 4 first-try answers in a row and down after 2 misses), and a mode: Endless, Lightning 60 s or Lightning 2 min. Problems never run out. +1 💎 per first-try answer, a 🎁 chest every 5 in a row. |
+| **📖 Learn** | A six-module Multiply & Divide course for 2nd grade: see a worked example, build a model, solve with guided steps, practice, then show what you know. A miss brings a specific hint and, when needed, a different visual model—never a penalty. |
 | **Daily Quest** | 5 mixed problems from the worlds she has opened (2 of them are review questions when there are mistakes to practice). Gives crystals plus a bonus for each day in a row. |
 | **Mistakes come back** | Every first-try mistake, in games and in tests, is saved as a skill to practice (topic + difficulty). A fresh question of that skill comes back as every 4th question in levels (only topics of that world and earlier), Endless Training and Practice by type, in 2 of the 5 Daily Quest questions, and in the next Math Kangaroo or Logic challenge (up to 3 puzzles, in the matching point section). They are marked 🔁 Review. Never in the Placement Check (it would change the level) or in Lightning rounds. A skill is **fixed** after a right first answer on 3 different days (today, then 1 day later, then 3 days later); a new mistake starts it over. |
 | **🛠️ Fix-it Lab** | Lists the skills in repair with their progress (●●○) and plays up to 10 that are due today, with a strategy tip. Fixing a skill gives +3 💎. Badges for 10 and 50 fixes. |
@@ -35,11 +36,28 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 | **🧩 Puzzle Time** | Short problems that build something: a creature's picture from jigsaw pieces (snap it, find the piece, or guess who hides under the clouds), a smiling shape, a picture from shapes the child puts in place, or a dot-to-dot surprise (see below). 252 puzzles (98 free), picture collections for crystals with Legendary pictures that come alive, a puzzle of the day, stars and a gallery. |
 | **Hatchery** | A ladder of eggs to save crystals for (see below): Meadow 30 💎 → Crystal 80 💎 → Legendary 200 💎 → Dragon 500 💎 → a secret Royal Dragon Egg for 1,000 💎. 59 creatures in all; a bought egg always holds a new one. |
 | **Card Duels** | The collected creatures battle with their stats against a rival in three leagues; every round ends with a question about the two numbers (see below). |
-| **Badges & ranks** | 52 badges (streaks, collections, the Hatchery, Card Duels, daily habit, lightning rounds, challenge problems, Sunny Farm, its Big Dreams, the merchant, the order board, the farm supplies and the market shift, Puzzle Time). Explorer level grows with XP. |
+| **Badges & ranks** | 54 badges (streaks, collections, the Hatchery, Card Duels, daily habit, lightning rounds, challenge problems, Learn, Sunny Farm, its Big Dreams, the merchant, the order board, the farm supplies and the market shift, Puzzle Time). Explorer level grows with XP. |
 | **Hints** | A wrong answer gets a strategy hint and one more try ("make a ten", "count up", "break a ten"). A second miss shows the answer with an explanation. |
 | **Voice** | After each answer a voice says "Great job!" or a gentle "Oops! Try again." The next problem waits until the voice has finished; the **Next →** button skips the wait. Questions can be read aloud with 🔊 (automatic for kindergarten). Both can be turned off per child in *For grown-ups*. |
 | **Navigation** | Every screen has a back button; result screens have Home. **👥 Switch** on the home screen (or the small avatar in the top bar) changes the child without reloading. The browser's back gesture moves between screens and asks before leaving a game. |
 | **For grown-ups** | Protected by a multiplication question. Shows progress over time (the same charts as My Progress), accuracy per topic with the standard code, activity for the last 14 days, recent mistakes and how many are in repair, test history, the daily goal, settings (sound, *unlock all worlds*), save codes and reset. **👀 Look at every level** starts a grown-up preview: every world and level is open, Practice by type can start at any level 1–5, Sunny Farm opens as a level-60 farm, and nothing is saved (no stars, crystals, statistics, mistakes or test results, nothing unlocked for the child, nothing synced). A purple bar shows it is on; **Exit**, opening For grown-ups again, switching explorer or reloading ends it. |
+
+## 📖 Learn: Multiply & Divide
+
+The 2nd-grade home screen has a **Learn** tile for children whose class has started multiplication and division. It is also linked beside *Multiply & Divide* in Endless Training and from the Fix-it Lab when that skill needs repair. The topic is still correctly marked **3.OA (ahead)** in the standards list, but the child-facing course is simply called *Multiply & Divide*. Kindergarten does not see these entries.
+
+The six modules open in order and take about 5–8 minutes each:
+
+1. **Equal groups:** equal and unequal groups, repeated addition, and connecting a picture to `3 × 4`.
+2. **Arrays:** rows and columns, turning `3 × 5` into `5 × 3`, and splitting an array.
+3. **Facts ×2, ×5, ×10:** doubles and counting by fives or tens as strategies, not memorization drills.
+4. **Facts ×3 and ×4:** `×3 = ×2 + one more group`; `×4 = double, then double again`.
+5. **Meaning of division:** both sharing equally and asking how many equal-size groups fit.
+6. **Fact families:** the two multiplication and two division facts made by the same three numbers.
+
+Every module follows **See it → Build it → Solve together → Try it → Show what you know**. Build it uses large tap targets to make groups, fill/turn/split an array, make jumps, share objects or reveal a fact family; dragging is never required. Every step has 🔊, and the profile's read-aloud setting reads it automatically. Try it has four questions and Show has two. Two first-try answers in Show earn the module ⭐; otherwise *Let's look at it another way* shows a different model and gives two fresh questions. A first miss gives a hint for that misconception, a second miss shows the answer and explanation, and nothing is taken away.
+
+Try/Show answers count toward the daily goal, My Progress and the `mult` skill. A first-try answer gives +1 💎; the first completion gives +5 💎. A Show miss goes to the Fix-it Lab at the module's difficulty. After a module, **Practice** starts normal Endless Training: modules 1–2 at Sprout, 3–4 at Explorer, and 5–6 at Expert. Progress syncs between devices. Grown-up preview opens all six modules and saves nothing. Badges: **Lesson Learner** (first module) and **Times Table Explorer** (all six).
 
 ## 🥚 Hatchery
 
@@ -265,6 +283,7 @@ js/util.js            helpers
 js/visuals.js         SVG pictures: clocks, coins, base-ten blocks, rulers, graphs, shapes
 js/generators.js      2nd-grade problem generators, 14 topics × 5 difficulties
 js/generators-k.js    kindergarten problem generators, 10 topics × 5 difficulties
+js/lessons.js         Learn course content, question generators, hints and progression rules (no DOM)
 js/content.js         2nd-grade worlds and creatures, grade tracks, badges, buddy phrases
 js/content-k.js       kindergarten worlds and baby animals
 js/creature-art.js    Hatchery pictures: magical creatures, dragons at each growth stage, eggs (SVG drawn in code)
@@ -286,6 +305,7 @@ js/farm-art.js        Sunny Farm pictures drawn in code: the Big Dreams stage by
 js/shapes.js          Puzzle Time rules: pictures and shapes drawn in code, the jigsaw cut, problems, the album
 js/puzzle-art.js      Puzzle Time emoji pictures and their scenes, the Legendary pictures, the collections and their prices
 js/shapes-ui.js       Puzzle Time screens: the album page, collections, the gallery, the six puzzles, dragging pieces and shapes into place
+js/lessons-ui.js      Learn course screens and hands-on models
 js/fx.js              sounds (Web Audio), read-aloud (Web Speech), confetti
 js/app.js             screens and game logic
 tools/build.py        bundles everything into dist/math-expedition.html (local-only copy)
@@ -306,10 +326,12 @@ node tests/testprep.test.js        # Placement Check accuracy on simulated child
 node tests/farm.test.js            # Sunny Farm economy, days, shop, the barnyard, farm supplies and the rented field, Big Dreams, the merchant and his week charms, the locked deposit, the order board (every order played to check it can be made in time), the market shift and Mila (her nights, her morning question, and what a shift and Mila bring next to selling it all), and thousands of customer problems for both grades
 node tests/shapes.test.js          # Puzzle Time: the jigsaw cut covers every shape, every picture draws, packs and seasons, stars, the puzzle of the day, 40,000 problems, merging
 node tests/nnat.test.js            # NNAT-3 style puzzles: 4 kinds × 6 levels, the 48-question practice test and its scoring
+node tests/lessons.test.js         # Learn: six modules, generated questions and hints, paths, unlocking and progression
 node tests/smoke.mjs               # two children, both grades, played in Chromium (needs Playwright)
 node tests/farm-smoke.mjs          # Sunny Farm played by a 2nd grader and a kindergartner in Chromium
 node tests/shapes-smoke.mjs        # Puzzle Time: all six puzzles, the puzzle of the day, buying collections, a Legendary and a golden puzzle, stars, the gallery, for both grades
 node tests/nnat-smoke.mjs          # GATE plan card, NNAT warm-ups, practice by type and the timed practice test in Chromium
+node tests/lessons-smoke.mjs       # Learn on iPad and phone: completion, remediation, reload and grown-up preview
 node tests/cloud-e2e.mjs           # two devices syncing through the real Firebase project
 python3 tools/build.py             # refresh the single-file version in dist/
 ```

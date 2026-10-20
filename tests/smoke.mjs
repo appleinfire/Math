@@ -1,17 +1,28 @@
 // Browser smoke test: node tests/smoke.mjs [screenshotDir]
 // Plays through onboarding, a level, the trainer, daily quest, hatchery and grown-ups page; fails on any console error.
 import { createRequire } from 'module';
+import { createServer } from 'http';
+import { existsSync, readFileSync, statSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 const require = createRequire(import.meta.url);
 let pw;
 try { pw = require('playwright'); } catch { pw = require(path.join(process.env.NODE_PATH || '/usr/local/lib/node_modules', 'playwright')); }
 const dir = path.dirname(fileURLToPath(import.meta.url));
-const url = 'file://' + path.join(dir, '..', 'index.html');
+const site = path.join(dir, '..');
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
+const server = createServer((req, res) => {
+  const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname), rel = pathname === '/' ? 'index.html' : pathname.slice(1), file = path.resolve(site, rel);
+  if (!file.startsWith(path.resolve(site) + path.sep) || !existsSync(file) || !statSync(file).isFile()) { res.writeHead(404); return res.end('Not found'); }
+  res.writeHead(200, { 'content-type': types[path.extname(file)] || 'application/octet-stream', 'cache-control': 'no-store' });
+  res.end(readFileSync(file));
+});
+await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+const url = `http://127.0.0.1:${server.address().port}/index.html`;
 const shots = process.argv[2];
 const errors = [];
 
-const browser = await pw.chromium.launch({ executablePath: process.env.CHROMIUM || undefined });
+const browser = await pw.chromium.launch({ executablePath: process.env.CHROMIUM || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined) });
 
 // Answer the current question through the UI, right or wrong, whatever its format.
 async function answer(page, right = true) {
@@ -52,7 +63,7 @@ async function run(viewport, tag) {
   page.on('pageerror', (e) => errors.push(tag + ': ' + e.message));
   const snap = async (name) => shots && page.screenshot({ path: path.join(shots, `${tag}-${name}.png`), fullPage: true });
   await page.goto(url);
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('math-expedition-localonly', '1'); });
   await page.reload();
   await snap('01-onboard');
   await page.fill('#ob-name', 'Sofia');
@@ -699,7 +710,7 @@ async function run(viewport, tag) {
   const page = await browser.newPage();
   page.on('pageerror', (e) => errors.push('migrate: ' + e.message));
   await page.goto(url);
-  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('math-expedition-v1', JSON.stringify({ v: 1, name: 'Old', companion: '🦉', crystals: 42, xp: 120, levels: { 'tide-0': { stars: 3 } }, creatures: { hermit: { got: '2026-10-01' } } })); });
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('math-expedition-localonly', '1'); localStorage.setItem('math-expedition-v1', JSON.stringify({ v: 1, name: 'Old', companion: '🦉', crystals: 42, xp: 120, levels: { 'tide-0': { stars: 3 } }, creatures: { hermit: { got: '2026-10-01' } } })); });
   await page.reload();
   await page.waitForSelector('.home');
   const m = await page.evaluate(() => ({ name: MQ.state.name, grade: MQ.state.grade, gems: MQ.state.crystals, old: localStorage.getItem('math-expedition-v1') }));
@@ -714,7 +725,7 @@ async function run(viewport, tag) {
   page.on('pageerror', (e) => errors.push(tag + ': ' + e.message));
   page.on('console', (m) => m.type() === 'error' && !/fonts\.g|ERR_|Failed to load resource/.test(m.text()) && errors.push(tag + ': ' + m.text()));
   await page.goto(url);
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('math-expedition-localonly', '1'); });
   await page.reload();
   await page.fill('#ob-name', 'Mila');
   await page.click('[data-act=createKid]');
@@ -779,7 +790,7 @@ for (const [grade, vp] of [['g2', { width: 390, height: 844 }], ['k', { width: 1
   page.on('pageerror', (e) => errors.push(tag + ': ' + e.message));
   page.on('console', (m) => m.type() === 'error' && !/fonts\.g|ERR_|Failed to load resource/.test(m.text()) && errors.push(tag + ': ' + m.text()));
   await page.goto(url);
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('math-expedition-localonly', '1'); });
   await page.reload();
   await page.fill('#ob-name', grade === 'k' ? 'Leo' : 'Nina');
   if (grade === 'k') await page.click('[data-act=pickGrade][data-arg=k]');
@@ -833,5 +844,6 @@ for (const [grade, vp] of [['g2', { width: 390, height: 844 }], ['k', { width: 1
 await run({ width: 390, height: 844 }, 'phone');
 await run({ width: 1024, height: 768 }, 'ipad');
 await browser.close();
+await new Promise((resolve) => server.close(resolve));
 if (errors.length) { console.error(errors.join('\n')); process.exit(1); }
 console.log('Smoke test OK');

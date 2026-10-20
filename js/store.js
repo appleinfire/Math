@@ -42,6 +42,7 @@
     seen: {}, // test-prep topic: recently shown question keys (oldest first), so retakes bring new questions
     nnatDays: {}, // 'YYYY-MM-DD': NNAT-3 practice puzzles answered that day (the GATE plan counts practice days)
     puzzles: { n: 6, done: {}, stars: {}, packs: {}, gold: {}, daily: { last: '', streak: 0, best: 0 } }, // Puzzle Time (js/shapes.js): pieces in a jigsaw, puzzles finished, best stars, packs bought, golden ones, the puzzle of the day
+    lessons: {}, // Learn courses: module id -> { step, done, stars, at }
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
     settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true },
   });
@@ -291,6 +292,12 @@
     for (const [k, n] of Object.entries(pn.stars || {})) out.puzzles.stars[k] = max(n, out.puzzles.stars[k]);
     const dOld = po.daily || {}, dNew = pn.daily || {};
     out.puzzles.daily = Object.assign({}, (dOld.last || '') > (dNew.last || '') ? dOld : dNew, { best: max(dOld.best, dNew.best) });
+    // Learn: keep the furthest step and best completion from either device.
+    out.lessons = {};
+    for (const id of new Set([...Object.keys(old.lessons || {}), ...Object.keys(nw.lessons || {})])) {
+      const a = (old.lessons || {})[id] || {}, b = (nw.lessons || {})[id] || {};
+      out.lessons[id] = { step: max(a.step, b.step), done: !!(a.done || b.done), stars: max(a.stars, b.stars), at: (a.at || '') > (b.at || '') ? a.at : (b.at || '') };
+    }
     // Sunny Farm: the copy changed last wins as a whole (money is spent, animals move), by the farm's own clock,
     // so a device that only opened the farm can't replace a farm played on another device.
     if (old.farm && (!nw.farm || (old.farm.t || 0) > (nw.farm.t || 0))) out.farm = JSON.parse(JSON.stringify(old.farm));
