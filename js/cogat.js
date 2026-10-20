@@ -1,4 +1,4 @@
-// CogAT-style practice (the screening Eureka Union gives every 2nd grader for GATE).
+// CogAT-style practice for districts that use CogAT and for extra reasoning practice; Eureka Union uses NNAT-3 for GATE.
 // For 2nd grade the real test is picture-based with spoken directions, in three batteries:
 //   Verbal: Picture Analogies, Sentence Completion, Picture Classification
 //   Quantitative: Number Analogies, Number Puzzles, Number Series
