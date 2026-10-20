@@ -6,6 +6,7 @@ const assert = require('assert');
 for (const f of ['util', 'visuals', 'generators', 'generators-k', 'content', 'content-k', 'farm', 'store']) require(path.join(__dirname, '..', 'js', f + '.js'));
 const MQ = globalThis.MQ;
 const F = MQ.farm, U = MQ.U;
+F.WEATHER = false; // the other rules are tested without weather (the weather has its own tests at the end)
 
 // ---------- the economy pays off: every crop and every grown-up animal earns more than it costs
 for (const g of ['k', 'g2']) {
@@ -1290,7 +1291,7 @@ assert.strictEqual(S.mergeProfiles(played, later).farm.money, 7, 'the farm chang
 
   // farms from before the shift get it; the preview shows a ⭐⭐ shift and Mila's money waiting
   const old = F.ensure({ grade: 'g2', farm: (() => { const y = Object.assign(F.fresh(), { started: true }); delete y.opts; delete y.shift; delete y.mgr; return y; })() });
-  assert.deepStrictEqual([old.opts, old.shift.n, old.mgr.hired, old.stats.shifts], [{ shift: 10, ahead: false, mgr: true }, 0, false, 0]);
+  assert.deepStrictEqual([old.opts, old.shift.n, old.mgr.hired, old.stats.shifts], [{ shift: 10, ahead: false, mgr: true, wx: 'all' }, 0, false, 0]);
   for (const g of ['k', 'g2']) {
     const sc = F.showcase({ grade: g, farm: F.fresh() });
     assert.ok(sc.opts.ahead && F.mgrHired(sc) && F.shiftStars(sc) === 2 && F.mgrCan(sc));
@@ -1310,6 +1311,236 @@ for (const g of ['k', 'g2']) {
   assert.ok(F.bankDue(fm) > 0 && F.isBankDay(fm.day), 'a bank day is waiting');
   assert.ok(!F.shop(fm, g).some((x) => x.locked && !x.owned), 'nothing in the shop is locked (decorations after level 60 are already on the farm)');
   assert.ok(F.customer(fm, g, { stock: fm.basket }), 'customers come');
+}
+
+// ---------- weather, today's special and market day
+{
+  F.WEATHER = true;
+  const lvXp = (L) => { let x = 0; for (let k = 1; k < L; k++) x += F.need(k); return x; };
+  const farm = (g, L) => { const f = Object.assign(F.ensure({ grade: g }), { xp: lvXp(L), money: 1e6 }); F.wxSync(f, g); return f; };
+  const set = (f, w, more = {}) => (f.wx.now = Object.assign({ day: f.day, w, sp: null, market: false }, more));
+
+  // the week plan: market day on the 4th day; more good days than bad every week; never two bad days in a row;
+  // 2nd grade about 1 bad day a week (at most 2), kindergarten at most 1 (in about 2 weeks of 5); the same every time
+  const freq = {};
+  for (const g of ['k', 'g2']) {
+    let good = 0, bad = 0, weeks = 0;
+    for (let seed = 1; seed <= 20; seed++) for (let w = 1; w <= 52; w++) {
+      const plan = F.wxPlan(seed * 7919, w, g), b = plan.filter((x) => x === 'bad').length, gd = plan.filter((x) => x === 'good' || x === 'market').length;
+      assert.strictEqual(plan[F.MARKET_DAY - 1], 'market');
+      assert.ok(gd > b, 'every week has more good days than bad');
+      assert.ok(b <= (g === 'k' ? 1 : 2), 'at most 2 bad days a week (kindergarten 1)');
+      plan.forEach((x, i) => { if (x === 'bad') assert.ok(i > 0 && plan[i - 1] !== 'bad', 'never two bad days in a row'); });
+      assert.deepStrictEqual(F.wxPlan(seed * 7919, w, g), plan, 'the same plan every time');
+      good += gd; bad += b; weeks++;
+    }
+    freq[g] = { good: +(good / weeks).toFixed(2), bad: +(bad / weeks).toFixed(2) };
+    if (g === 'k') assert.ok(bad / weeks > 0.25 && bad / weeks < 0.55 && good >= 5 * bad, `kindergarten: mostly good weather ${JSON.stringify(freq[g])}`);
+    else assert.ok(bad / weeks > 0.7 && bad / weeks < 1.2 && good >= 2.5 * bad, `2nd grade: good weather 2.5 times as often as bad ${JSON.stringify(freq[g])}`);
+  }
+  assert.ok(F.isMarketDay(4) && F.isMarketDay(11) && !F.isMarketDay(7));
+
+  // weather opens at level 6; bad weather only from level 14, only what the farm can be safe from, never with good
+  // weather only; kindergarten never gets the wind
+  const kinds = (f, g, days = 140) => new Set(U.range(1, days).map((d) => F.wxRoll(f, g, d, null).w));
+  const young = farm('g2', 5);
+  assert.ok(!F.wxOpen(young) && !F.wxToday(young) && !F.special(young), 'no weather before level 6');
+  for (const g of ['k', 'g2']) {
+    const f = farm(g, 10);
+    assert.ok(F.wxToday(f) && F.wxTomorrow(f), 'today and tomorrow from level 6');
+    assert.ok(![...kinds(f, g)].some((w) => F.WX[w].kind === 'bad'), `no bad weather before level ${F.WX_BAD_LV} (${g})`);
+    const big = farm(g, 30);
+    assert.ok(!kinds(big, g).has('storm'), 'no storm without Mila');
+    big.mgr.hired = true;
+    big.pens[0] = { a: 'cow', g: 9, fed: true, ready: 0, u: 0 };
+    const ws = kinds(big, g, 400);
+    assert.ok(ws.has('heat') && ws.has('fog') && ws.has('storm') && ws.has('rain') && ws.has('happy') && ws.has('rainbow'), `${g}: ${[...ws]}`);
+    assert.strictEqual(ws.has('wind'), g === 'g2', 'the wind only in 2nd grade');
+    assert.ok(!kinds(farm(g, 20), g, 400).has('wind'), `no wind before level ${F.WX_WIND_LV}`);
+    big.opts.wx = 'good';
+    assert.ok(![...kinds(big, g, 400)].some((w) => F.WX[w].kind === 'bad'), 'good weather only');
+    big.opts.wx = 'all';
+    set(big, 'heat');
+    big.opts.wx = 'good';
+    F.wxSync(big, g);
+    assert.strictEqual(F.wxToday(big).w, 'sun', 'good weather only turns a bad forecast sunny');
+    for (let d = 1; d <= 60; d++) { const x = F.wxRoll(big, g, d, null); if (x.market) assert.ok(['sun', 'rainbow'].includes(x.w) && F.isMarketDay(d), 'fair weather on market day'); }
+  }
+
+  // a forecast never changes: tomorrow's becomes today's, even when the farm grows in between
+  {
+    const f = farm('g2', 20), next = Object.assign({}, f.wx.next);
+    f.xp = lvXp(40);
+    F.wxSync(f, 'g2');
+    assert.deepStrictEqual(f.wx.next, next);
+    F.nextDay(f, 'g2');
+    assert.deepStrictEqual(f.wx.now, next, 'today is yesterday’s forecast');
+    assert.strictEqual(f.wx.next.day, f.day + 1);
+    assert.deepStrictEqual(f.wx.log.slice(-1)[0].slice(0, 1), [f.day - 1], 'the bank week’s log');
+    assert.notStrictEqual(f.wx.next.sp, f.wx.now.sp || '-', 'a different special each day');
+  }
+
+  // the night: warm rain grows crops two days, a hot night rests beds without a sprinkler (not a rented field; Grow-Fast
+  // still adds its day), warm sunshine makes 1 more, the wind 1 less in a pen without a cozy barn (houses are safe)
+  {
+    const f = farm('g2', 30);
+    f.beds = [{ c: 'corn', g: 0, u: 0 }, { c: 'corn', g: 0, u: 3 }, { c: 'corn', g: 0, u: 0, rent: true }];
+    set(f, 'heat');
+    let n = F.nextDay(f, 'g2');
+    assert.deepStrictEqual(f.beds.map((b) => b.g), [0, 1, 1]);
+    assert.ok(n.wx.rested === 1 && n.wx.safe === 1 && n.wx.lost > 0);
+    f.boosts.grow = { cost: 1, until: f.day + 3, gain: 0 };
+    set(f, 'heat');
+    F.nextDay(f, 'g2');
+    assert.deepStrictEqual(f.beds.map((b) => b.g), [1, 2, 3], 'Grow-Fast keeps a hot bed growing');
+    delete f.boosts.grow;
+    f.beds = [{ c: 'pumpkin', g: 0, u: 0 }, { c: 'carrot', g: 0, u: 0 }];
+    set(f, 'rain');
+    n = F.nextDay(f, 'g2');
+    assert.deepStrictEqual(f.beds.map((b) => b.g), [2, 1], 'warm rain: two days of growing (a ripe crop waits)');
+    assert.ok(n.wx.got > 0 && n.ripe.includes('carrot'));
+    const pen = (u) => ({ a: 'cow', g: 9, fed: true, ready: 0, u });
+    f.pens = [pen(0), pen(3)];
+    f.yard = { chicken: { a: 'chicken', g: 9, fed: true, ready: 0, u: 0 } };
+    set(f, 'happy');
+    F.nextDay(f, 'g2');
+    assert.deepStrictEqual([f.pens[0].ready, f.pens[1].ready, f.yard.chicken.ready], [3, 8, 3]);
+    F.allPens(f).forEach((p) => { p.fed = true; p.ready = 0; });
+    set(f, 'wind');
+    n = F.nextDay(f, 'g2');
+    assert.deepStrictEqual([f.pens[0].ready, f.pens[1].ready, f.yard.chicken.ready], [1, 7, 2], 'the wind: 1 less without a cozy barn');
+    assert.ok(n.wx.less === 1 && n.wx.safe === 1 && n.wx.lost === F.price('milk', 'g2'));
+    F.allPens(f).forEach((p) => { p.fed = true; p.ready = 0; });
+    f.boosts.treat = { cost: 1, until: f.day + 3, gain: 0 };
+    set(f, 'wind');
+    F.nextDay(f, 'g2');
+    assert.strictEqual(f.pens[0].ready, 2, 'Animal treats make up for the wind');
+    assert.ok(f.stats.wxGood >= 2 && f.stats.wxBad >= 3 && f.stats.wxGot > 0 && f.stats.wxLost > 0);
+  }
+
+  // a stormy night: Mila stays home and the basket waits; fog: no truck today; a rainbow: 10% bigger tips
+  {
+    const f = farm('g2', 20);
+    Object.assign(f.mgr, { hired: true });
+    f.basket = { egg: 40 };
+    f.shift = { day: f.day, n: F.SHIFT, right: 10, earned: 100 };
+    assert.ok(F.mgrCan(f));
+    set(f, 'storm');
+    assert.ok(!F.mgrCan(f) && !F.mgrSell(f), 'no Mila on a stormy night');
+    f.mgr.tonight = f.day;
+    const n = F.nextDay(f, 'g2');
+    assert.ok(!n.mgr && n.wx.storm && f.basket.egg === 40, 'the basket waits');
+    set(f, 'fog');
+    f.basket = { carrot: 40 };
+    for (let i = 0; i < 20; i++) assert.ok(!F.customer(f, 'g2', { stock: F.forSale(f), truck: true }).truck, 'no truck in the fog');
+    set(f, 'sun');
+    assert.ok(F.customer(f, 'g2', { stock: F.forSale(f), truck: true }).truck);
+    const tip = F.tipRate(f);
+    set(f, 'rainbow');
+    assert.strictEqual(+(F.tipRate(f) - tip).toFixed(2), F.WX_TIP);
+    f.stand = 0;
+    assert.ok(F.tip(f, 30) >= 1, 'a rainbow brings tips even at the wooden table');
+  }
+
+  // today's special: half as much again (2nd grade in 5¢ steps); every customer pays it; customers ask how much more;
+  // the truck doesn't buy it; Mila sells it at the special price
+  assert.deepStrictEqual([F.specialPrice('egg', 'g2'), F.specialPrice('milk', 'g2'), F.specialPrice('carrot', 'k'), F.specialPrice('egg', 'k')], [25, 115, 2, 3]);
+  for (const g of ['k', 'g2']) {
+    const f = farm(g, 60);
+    f.opts.ahead = true;
+    for (let t = 1; t <= F.tiers(g).length; t++) {
+      f.tier = t;
+      set(f, 'sun', { sp: 'egg' });
+      const types = new Set();
+      for (let i = 0; i < 300; i++) {
+        const stock = { egg: 30, honey: 30 }, p = F.customer(f, g, { stock, vip: i % 5 === 4 });
+        types.add(p.type);
+        if (p.noPay || p.type === 'deal') continue;
+        assert.strictEqual(p.total, F.valueToday(f, p.sale, g), `${g} tier ${t} ${p.type}: the special price`);
+        if (p.type === 'special') {
+          const q = p.sale.egg, more = F.specialPrice('egg', g) - F.price('egg', g);
+          assert.strictEqual(String(p.answer), p.kind === 'num' ? String(q * more) : F.fmt(q * more, g));
+          if (p.kind === 'choice') assert.ok(p.choices.includes(p.answer));
+          assert.ok(p.text.includes('special') && p.hint && p.explain);
+        }
+      }
+      assert.ok(types.has('special'), `${g} tier ${t}: customers ask about the special`);
+    }
+    set(f, 'sun', { sp: 'egg' });
+    for (let i = 0; i < 20; i++) { const p = F.customer(f, g, { stock: { egg: 40, carrot: 40 }, truck: true }); assert.ok(p.truck && p.sale.carrot && !p.sale.egg, 'the truck leaves the special'); }
+    const before = f.stats.specials;
+    F.serve(f, g, { sale: { egg: 3 }, total: 3 * F.priceToday(f, 'egg', g), who: ['🐻', 'Bruno'] }, true, true);
+    assert.strictEqual(f.stats.specials, before + 3);
+    Object.assign(f.mgr, { hired: true, tonight: f.day, keep: 2 });
+    f.basket = { egg: 10 };
+    f.orders.list = [];
+    const m = F.nextDay(f, g).mgr;
+    assert.strictEqual(m.sold, 10 * F.specialPrice('egg', g), 'Mila sells the special at the special price');
+  }
+
+  // market day: a friend buys the same (twice the things and the money) when there is enough
+  for (const g of ['k', 'g2']) {
+    const f = farm(g, 20);
+    set(f, 'sun', { market: true });
+    f.basket = { egg: 100 };
+    const p = F.customer(f, g, { stock: F.forSale(f) });
+    assert.ok(p.friend && p.text.includes('buys the same'));
+    const r = F.serve(f, g, p, true, true), q = p.sale.egg;
+    assert.strictEqual(f.basket.egg, 100 - 2 * q);
+    assert.strictEqual(r.paid, 2 * p.total);
+    assert.ok(!F.customer(f, g, { stock: { egg: 1 } }).friend, 'no friend when there isn’t enough');
+    set(f, 'sun');
+    assert.ok(!F.customer(f, g, { stock: { egg: 100 } }).friend, 'only on market day');
+  }
+
+  // orders get a night more for each bad weather day before they end
+  {
+    const f = farm('g2', 30);
+    f.mgr.hired = true;
+    for (let i = 0; i < 200; i++) {
+      f.day = 1 + i;
+      const o = F.makeOrder(f, 'g2', 1 + i), nights = Math.max(3, F.orderNights(f, o.items) + F.ORDER_SPARE[1]);
+      assert.strictEqual(o.end, f.day + nights + F.wxSpare(f, 'g2', f.day, f.day + nights - 1));
+    }
+    assert.ok(F.wxSpare(f, 'g2', 1, 70) > 0);
+    f.opts.wx = 'good';
+    assert.strictEqual(F.wxSpare(f, 'g2', 1, 70), 0);
+  }
+
+  // good weather brings more than bad weather takes, even on a farm with no sprinklers and no cozy barns, and the
+  // weather adds at most about a tenth to a good week (so the prices of supplies, charms and treasures still hold)
+  const econ = {};
+  for (const g of ['k', 'g2']) for (const L of [15, 20, 30, 40, 50, 60]) {
+    const f = farm(g, L), d = F.goodDay(L, g), pens = F.PENS.filter((p) => p[0] <= L).length;
+    f.mgr.hired = true;
+    f.pens = U.range(1, pens).map(() => ({ a: 'chicken', g: 9, fed: true, ready: 0, u: 0 }));
+    const earns = (a) => a.per * F.price(a.item, g) - a.eat * F.FEED.price[g === 'k' ? 0 : 1]; // the best animals in the farm's pens
+    const one = U.sum(Object.values(F.ANIMALS).filter((a) => a.lv <= L).sort((a, b) => earns(b) - earns(a)).slice(0, pens).map((a) => F.price(a.item, g))); // one more (or less) from each
+    let got = 0, lost = 0, weeks = 0;
+    for (let seed = 1; seed <= 8; seed++) {
+      f.wx.seed = seed * 104729;
+      for (let day = 1; day <= 7 * 26; day++) {
+        const w = F.wxRoll(f, g, day, null).w;
+        got += w === 'rain' ? d.crops : w === 'happy' ? one : w === 'rainbow' ? F.WX_TIP * d.total : 0;
+        lost += w === 'heat' ? d.crops : w === 'wind' ? one : 0;
+      }
+      weeks += 26;
+    }
+    econ[`${g}:${L}`] = [+(got / weeks / (7 * d.total)).toFixed(3), +(lost / weeks / (7 * d.total)).toFixed(3)];
+    assert.ok(got > lost, `${g} level ${L}: good weather brings more than bad takes`);
+    assert.ok((got - lost) / weeks <= 0.12 * 7 * d.total, `${g} level ${L}: weather adds at most about a tenth to a week`);
+    assert.ok(lost / weeks <= d.crops + one, `${g} level ${L}: bad weather takes at most a day of crops and animals a week`);
+  }
+  console.log('weather:', JSON.stringify(freq), JSON.stringify(econ));
+
+  // old farms get the weather; the preview shows a rainbow today, a hot day tomorrow and eggs as the special
+  const old = F.ensure({ grade: 'g2', farm: (() => { const y = Object.assign(F.fresh(), { started: true }); delete y.wx; delete y.opts.wx; return y; })() });
+  assert.ok(old.wx.seed > 0 && old.opts.wx === 'all' && old.stats.specials === 0);
+  for (const g of ['k', 'g2']) {
+    const sc = F.showcase({ grade: g, farm: F.fresh() });
+    assert.deepStrictEqual([F.wxToday(sc).w, F.wxTomorrow(sc).w, F.special(sc)], ['rainbow', 'heat', 'egg']);
+  }
+  F.WEATHER = false;
 }
 
 console.log('farm tests passed ·', Object.entries(seen).map(([k, v]) => k + ' ' + v).join(', '));

@@ -362,6 +362,7 @@
     if (L === F.BOOST_LV) out.push({ e: '🧪', name: 'Farm supplies in the shop: Grow-Fast, Animal treats, Big oven' });
     if (L === F.FIELD_LV) out.push({ e: '🚜', name: 'Rent a field: 2 more garden beds for a week (with all 6 beds)' });
     if (L === F.ORDERS_LV) out.push({ e: '📋', name: 'The order board: people in town order things from your farm' });
+    if (L === F.WX_LV) out.push({ e: '🌦️', name: 'Weather, a ⭐ special every day and 🎪 market day every week' });
     F.ACCOUNTS.forEach((a, i) => { if (i && a.lv === L) out.push({ e: a.e, name: `Bank: ${a.name} (more savings earn the big interest)` }); });
     for (const u of F.BED_UP) if (u.lv === L) out.push({ e: u.icon, name: 'Garden bed upgrade: ' + u.name });
     for (const u of F.PEN_UP) if (u.lv === L) out.push({ e: '🏡', name: 'Pen upgrade: ' + u.name });
@@ -406,9 +407,10 @@
     orders: { seen: false, n: 0, list: [] }, // the order board (see below)
     yard: {}, // the barnyard's houses: animal: { a, g, fed, ready, u } (like a pen)
     boosts: {}, // farm supplies working now: id: { cost, until, gain } (see below)
-    opts: { shift: F.SHIFT, ahead: false, mgr: true }, // set by a grown-up: customers in a shift, problems beyond the grade, Mila
+    opts: { shift: F.SHIFT, ahead: false, mgr: true, wx: 'all' }, // set by a grown-up: customers in a shift, problems beyond the grade, Mila, weather (all | good)
     shift: { day: 1, n: 0, right: 0, earned: 0 }, // today's shift at the stand (see the market shift below)
     mgr: { hired: false, tonight: 0, keep: 0, pend: null }, // Mila, the market manager
+    wx: null, // the weather (see below): { seed, seen, now, next, log }
   });
   F.START_MONEY = [5, 30];
   F.ensure = (st) => {
@@ -442,6 +444,10 @@
     if (!fm.shift) fm.shift = { day: fm.day, n: 0, right: 0, earned: 0 };
     if (!fm.mgr) fm.mgr = { hired: false, tonight: 0, keep: 0, pend: null };
     for (const k of ['shifts', 'star3', 'mgrNights', 'mgrSold', 'mgrGot', 'mgrKept']) if (!fm.stats[k]) fm.stats[k] = 0;
+    if (!fm.wx) fm.wx = { seed: Math.floor(Math.random() * 2147483647), seen: false, now: null, next: null, log: [] }; // and the weather
+    if (!fm.opts.wx) fm.opts.wx = 'all';
+    for (const k of ['wxGood', 'wxBad', 'wxGot', 'wxLost', 'specials', 'specialExtra', 'friends', 'marketStar']) if (!fm.stats[k]) fm.stats[k] = 0;
+    F.wxSync(fm, st.grade);
     return fm;
   };
 
@@ -545,6 +551,8 @@
   // Night: crops grow a day, fed animals grow and grown-ups make something. Returns what happened for the morning card.
   F.nextDay = (fm, grade = 'g2') => {
     const news = { ripe: [], made: [], grew: [], hungry: [], cooked: [], helper: null };
+    const wx = F.wxToday(fm), w = wx ? wx.w : ''; // today's weather works tonight
+    if (wx) news.wx = { w, got: 0, lost: 0, rested: 0, safe: 0, more: 0, less: 0, storm: w === 'storm' && F.mgrHired(fm) };
     news.mgr = F.mgrNight(fm, grade); // what is in the basket tonight (before the animals make more)
     const hp = fm.helper;
     if (hp && hp.hired && hp.on) { // the farmhand works tonight if there is money for the wage
@@ -576,26 +584,35 @@
     }
     fm.beds.forEach((b) => {
       if (!b.c || F.cropStage(b) === 'ready') return;
-      b.g++;
+      const aDay = Math.round((F.cropYield(b, fm) * F.price(b.c, grade)) / F.cropDays(b)); // what a day of growing is worth
+      if (w === 'heat' && !b.rent && !F.bedWater(b)) { news.wx.rested++; news.wx.lost += aDay; } // a hot night: it rests (a day later)
+      else { b.g++; if (w === 'heat' && !b.rent) news.wx.safe++; }
       if (F.boostOn(fm, 'grow') && F.cropStage(b) !== 'ready') { // Grow-Fast: a second day of growing tonight, worth a day of the crop
         b.g++;
-        fm.boosts.grow.gain += Math.round((F.cropYield(b, fm) * F.price(b.c, grade)) / F.cropDays(b));
+        fm.boosts.grow.gain += aDay;
       }
+      if (w === 'rain' && F.cropStage(b) !== 'ready') { b.g++; news.wx.got += aDay; } // warm rain: one more day of growing
       if (F.cropStage(b) === 'ready') news.ripe.push(b.c);
     });
+    const inPen = new Set(fm.pens);
     F.allPens(fm).forEach((p) => {
       if (!p.a) return;
       if (!p.fed) { news.hungry.push(p.a); return; }
       const before = F.animalStage(p);
       if (before === 2) {
-        const treat = F.boostOn(fm, 'treat') ? 1 : 0, a = F.ANIMALS[p.a], k = F.penMakes(p) + treat; // Animal treats: one more
-        if (treat) fm.boosts.treat.gain += F.price(F.mythOn(fm, p.a) ? F.MYTHS[p.a].item : a.item, grade);
+        const treat = F.boostOn(fm, 'treat') ? 1 : 0, a = F.ANIMALS[p.a], one = F.price(F.mythOn(fm, p.a) ? F.MYTHS[p.a].item : a.item, grade);
+        // warm sunshine: one more; a windy night: one less in a pen without a cozy barn (the barnyard houses are safe)
+        const sun = w === 'happy' ? 1 : 0, wind = w === 'wind' && inPen.has(p) && (p.u || 0) < 3 ? 1 : 0;
+        const k = Math.max(0, F.penMakes(p) + treat + sun - wind); // Animal treats: one more
+        if (treat) fm.boosts.treat.gain += one;
+        if (sun) { news.wx.more++; news.wx.got += one; }
+        if (wind) { news.wx.less++; news.wx.lost += one; } else if (w === 'wind' && inPen.has(p)) news.wx.safe++;
         if (F.mythOn(fm, p.a)) { // a Mythic Feed week: the rare thing instead of the usual one
           const it = F.MYTHS[p.a].item;
           p.rare = Math.min(30, (p.rare || 0) + k);
-          news.made.push([it, k]);
+          if (k) news.made.push([it, k]);
           fm.charms.myth.gain += k * (F.price(it, grade) - F.price(a.item, grade));
-        } else { p.ready = Math.min(30, (p.ready || 0) + k); news.made.push([a.item, k]); }
+        } else { p.ready = Math.min(30, (p.ready || 0) + k); if (k) news.made.push([a.item, k]); }
       }
       p.g++;
       if (F.animalStage(p) > before) news.grew.push([p.a, F.animalStage(p)]);
@@ -606,7 +623,16 @@
       if (F.level(fm.xp).level >= F.HELPER.picksLv) fm.beds.forEach((b, i) => { news.helper.picked += F.harvest(fm, i); });
     }
     news.built = F.buildOvernight(fm);
+    if (wx) { // what the weather did: in the stats and the log of the bank week
+      const kind = F.WX[w].kind;
+      if (kind === 'good' || wx.market) fm.stats.wxGood++;
+      if (kind === 'bad') fm.stats.wxBad++;
+      fm.stats.wxGot += news.wx.got;
+      fm.stats.wxLost += news.wx.lost;
+      fm.wx.log = (fm.wx.log || []).concat([[wx.day, w, wx.market ? 1 : 0]]).slice(-F.BANK_WEEK);
+    }
     fm.day++;
+    F.wxSync(fm, grade); // today's weather is yesterday's forecast; a new forecast for tomorrow
     news.charmEnd = F.charmsMorning(fm, grade);
     news.boostEnd = F.boostsMorning(fm, grade);
     news.orders = F.ordersMorning(fm, grade);
@@ -1201,6 +1227,122 @@
     return out;
   };
 
+  // ---------------------------------------------------------------- weather, today's special and market day
+  // From farm level 6 every farm day has weather, and the morning card says today's and tomorrow's. Good weather comes
+  // far more often than bad: 🌧️ warm rain (crops grow two days in one night), 🌞 warm sunshine (every fed grown-up pen
+  // and house makes 1 more tonight), 🌈 a rainbow (10% bigger tips today). From level 14 a little bad weather comes too:
+  // always forecast the day before, it only takes a bit of time or profit (never things or money), and there is a way
+  // to be safe from it: 🌫️ fog (no market truck today; sell big piles the day before), 🔥 a hot day (beds without a
+  // sprinkler rest tonight: a day later), ⛈️ a stormy night (Mila stays home and the basket waits; let her sell the
+  // night before), and in 2nd grade from level 23 🌬️ a windy night (grown-ups in pens without a cozy barn make 1 less;
+  // the barnyard houses are safe). Kindergarten gets bad weather at most once a bank week and never the wind. A
+  // grown-up can choose good weather only. Weather never touches the wallet, the bank, the basket, the workshops or a
+  // rented field (its farmer looks after it).
+  // Every farm day also has ⭐ a special: one thing this farm makes sells for half as much again today, at the stand
+  // and with Mila (the truck doesn't buy it). The 4th day of every bank week (farm day 4, 11, 18…) is 🎪 market day:
+  // fair weather, and every customer brings a friend who buys the same.
+  // The weather comes from the farm's seed and the farm day, and tomorrow's is fixed when it is forecast, so a forecast
+  // never changes. fm.wx = { seed, seen, now and next: { day, w, sp (the special), market }, log: [[day, w]] }
+  F.WX_LV = 6;
+  F.WX_BAD_LV = 14; // from here there is a way to be safe: the sprinkler, Mila (the night before)
+  F.WX_WIND_LV = 23; // the cozy barn
+  F.MARKET_DAY = 4; // the 4th day of every bank week
+  F.WX_TIP = 0.1; // a rainbow: tips 10% bigger
+  F.WEATHER = true; // the tests of the other rules turn the weather off
+  F.WX = {
+    sun: { e: '☀️', name: 'Sunny', kind: '', note: 'A sunny day on the farm.' },
+    rain: { e: '🌧️', name: 'Warm rain', kind: 'good', note: 'Tonight your crops grow 2 days in one night.' },
+    happy: { e: '🌞', name: 'Warm sunshine', kind: 'good', note: 'Happy animals! Tonight every fed grown-up pen and house makes 1 more.' },
+    rainbow: { e: '🌈', name: 'Rainbow', kind: 'good', note: 'Happy customers: bigger tips today for right answers.' },
+    fog: { e: '🌫️', name: 'Foggy day', kind: 'bad', note: 'The market truck can’t find the road. Customers still come.', safe: 'Sell big piles to the truck the day before.' },
+    heat: { e: '🔥', name: 'Hot day', kind: 'bad', note: 'Tonight beds without a 💧 sprinkler rest: their crops are ready a day later.', safe: 'Beds with a 💧 sprinkler keep growing, and so does 🧪 Grow-Fast.' },
+    storm: { e: '⛈️', name: 'Stormy night', kind: 'bad', note: `${F.MANAGER.name} stays home tonight. Your basket waits for tomorrow.`, safe: `Let ${F.MANAGER.name} sell the night before.` },
+    wind: { e: '🌬️', name: 'Windy night', kind: 'bad', note: 'Tonight grown-ups in pens without a 🛖 cozy barn make 1 less. Barnyard houses are safe.', safe: 'A 🛖 cozy barn keeps a pen safe, and 🥕 Animal treats make up for it.' },
+  };
+  F.WX_GOOD = ['rain', 'happy', 'rainbow'];
+  F.WX_BAD = ['fog', 'heat', 'storm', 'wind'];
+  // a number from 0 to 1 for the seed and the day (the same everywhere)
+  const wxRnd = (...xs) => {
+    let h = 0x811c9dc5;
+    for (const x of xs) { h = Math.imul(h ^ (x | 0), 0x01000193); h ^= h >>> 15; }
+    h = Math.imul(h ^ (h >>> 16), 0x85ebca6b); h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  };
+  F.wxOpen = (fm) => F.WEATHER && F.level(fm.xp).level >= F.WX_LV;
+  F.isMarketDay = (day) => day % F.BANK_WEEK === F.MARKET_DAY;
+  // The kinds of days in a bank week (its 7 days): 'market', 'good', 'bad' or ''. 2nd grade: 0, 1 or 2 bad days (about
+  // 1 a week), kindergarten: 1 bad day in about 2 weeks of 5; never two in a row, never on market day, never on the
+  // first day of a week (so not right after the last one of the week before). Every week has more good days than bad.
+  const BAD_AT = [1, 2, 4, 5, 6], BAD_TWO = [[1, 4], [1, 5], [1, 6], [2, 4], [2, 5], [2, 6]];
+  F.wxPlan = (seed, week, grade) => {
+    const k = grade === 'k', r = wxRnd(seed, week, 1), pick = (arr, s) => arr[Math.floor(wxRnd(seed, week, s) * arr.length)];
+    const plan = Array(F.BANK_WEEK).fill('');
+    plan[F.MARKET_DAY - 1] = 'market';
+    const bad = k ? (r < 0.4 ? [pick(BAD_AT, 2)] : []) : r < 0.25 ? [] : r < 0.8 ? [pick(BAD_AT, 2)] : pick(BAD_TWO, 3);
+    bad.forEach((i) => (plan[i] = 'bad'));
+    plan.forEach((x, i) => { if (!x && wxRnd(seed, week, 10 + i) < (k ? 0.55 : 0.45)) plan[i] = 'good'; });
+    while (plan.filter((x) => x === 'good' || x === 'market').length <= bad.length) plan[plan.indexOf('')] = 'good';
+    return plan;
+  };
+  F.wxSlot = (fm, grade, day) => F.wxPlan(fm.wx.seed, F.bankWeekNo(day), grade)[(day - 1) % F.BANK_WEEK];
+  // The bad weather this farm can have now: none before level 14 or with good weather only; a storm only with Mila
+  // hired, the wind only in 2nd grade from level 23 (the cozy barn).
+  F.wxBadKinds = (fm, grade) => {
+    const L = F.level(fm.xp).level;
+    if (L < F.WX_BAD_LV || (fm.opts || {}).wx === 'good') return [];
+    return F.WX_BAD.filter((w) => (w === 'storm' ? F.mgrHired(fm) : w === 'wind' ? grade !== 'k' && L >= F.WX_WIND_LV && fm.pens.some((p) => p.a) : true));
+  };
+  // How safe this farm is: [safe, all] (beds with a sprinkler on a hot day, pens with a cozy barn on a windy night).
+  F.wxGuard = (fm, w) => {
+    if (w === 'heat') { const b = F.ownBeds(fm); return [b.filter(F.bedWater).length, b.length]; }
+    if (w === 'wind') { const p = fm.pens.filter((x) => x.a); return [p.filter((x) => (x.u || 0) >= 3).length, p.length]; }
+    return null;
+  };
+  // Today's special: something this farm makes now (crops in its beds, what its grown-up animals and its workshops
+  // make, what is in the basket), not the same as the day before.
+  F.wxSpecialFor = (fm, day, avoid) => {
+    const goods = F.orderGoods(fm), ids = new Set();
+    fm.beds.forEach((b) => b.c && ids.add(b.c));
+    Object.values(goods).forEach((x) => x.kind !== 'crop' && ids.add(x.id));
+    Object.keys(fm.basket).forEach((id) => fm.basket[id] > 0 && ids.add(id));
+    let list = [...ids].filter((id) => F.ITEMS[id] && !F.ITEMS[id].myth && id !== 'rainbow' && id !== avoid).sort();
+    if (!list.length) list = Object.keys(goods).filter((id) => id !== avoid).sort();
+    return list.length ? list[Math.floor(wxRnd(fm.wx.seed, day, 7) * list.length)] : null;
+  };
+  // the special sells for half as much again, like an order (2nd grade in 5¢ steps)
+  F.specialPrice = (id, grade) => F.orderPay(F.price(id, grade), false, grade);
+  // A farm day's weather, special and market day, worked out for this farm now.
+  F.wxRoll = (fm, grade, day, avoid) => {
+    if (!F.wxOpen(fm)) return { day, w: 'sun', off: true };
+    const slot = F.wxSlot(fm, grade, day), pick = (arr, s) => arr[Math.floor(wxRnd(fm.wx.seed, day, s) * arr.length)];
+    const bad = slot === 'bad' ? F.wxBadKinds(fm, grade) : [];
+    const w = slot === 'market' ? (wxRnd(fm.wx.seed, day, 4) < 1 / 3 ? 'rainbow' : 'sun') : slot === 'good' ? pick(F.WX_GOOD, 5) : bad.length ? pick(bad, 6) : 'sun';
+    return { day, w, sp: F.wxSpecialFor(fm, day, avoid), market: slot === 'market' };
+  };
+  // Today's and tomorrow's weather, fixed once forecast (from F.ensure and every morning). Good weather only (set by a
+  // grown-up) turns a bad forecast into a sunny day.
+  F.wxSync = (fm, grade) => {
+    if (!F.WEATHER) return;
+    const x = fm.wx, open = F.wxOpen(fm), stale = (d, day) => !d || d.day !== day || (!!d.off && open);
+    if (stale(x.now, fm.day)) x.now = stale(x.next, fm.day) ? F.wxRoll(fm, grade, fm.day, null) : x.next;
+    if (stale(x.next, fm.day + 1)) x.next = F.wxRoll(fm, grade, fm.day + 1, x.now.sp);
+    if ((fm.opts || {}).wx === 'good') for (const k of ['now', 'next']) if (F.WX[x[k].w].kind === 'bad') x[k] = Object.assign({}, x[k], { w: 'sun' });
+  };
+  F.wxToday = (fm) => { const x = fm.wx && fm.wx.now; return F.WEATHER && x && !x.off && x.day === fm.day ? x : null; };
+  F.wxTomorrow = (fm) => { const x = fm.wx && fm.wx.next; return F.WEATHER && x && !x.off && x.day === fm.day + 1 ? x : null; };
+  F.wxIs = (fm, w) => { const x = F.wxToday(fm); return !!x && x.w === w; };
+  F.marketOn = (fm) => { const x = F.wxToday(fm); return !!x && !!x.market; };
+  F.special = (fm) => { const x = F.wxToday(fm); return (x && x.sp) || null; };
+  F.priceToday = (fm, id, grade) => (id === F.special(fm) ? F.specialPrice(id, grade) : F.price(id, grade));
+  F.valueToday = (fm, items, grade) => U.sum(Object.entries(items).map(([id, n]) => n * F.priceToday(fm, id, grade)));
+  // Bad weather that could slow an order (bad days from farm day `from` to `to`): one more night to spare for each.
+  F.wxSpare = (fm, grade, from, to) => {
+    if (!F.wxOpen(fm) || !F.wxBadKinds(fm, grade).length) return 0;
+    let n = 0;
+    for (let d = from; d <= to; d++) if (F.wxSlot(fm, grade, d) === 'bad') n++;
+    return n;
+  };
+
   // ---------------------------------------------------------------- the order board
   // From farm level 5, people in town order things from the farm: "6 eggs and 2 glasses of milk by farm day 12".
   // The board holds up to 3 orders, and a new one comes each morning when there is room. An order is made only of
@@ -1293,7 +1435,8 @@
     if (!Object.keys(items).length) items.carrot = Math.max(1, Math.floor(cap / F.orderPay(F.price('carrot', grade), big, grade)));
     const stand = F.standValue(items, grade), used = new Set(((fm.orders && fm.orders.list) || []).map((o) => o.who[1]));
     const who = U.pick((big ? F.VIPS : F.PEOPLE).filter((x) => !used.has(x[1])));
-    return { n, who, why: U.pick(big ? F.ORDER_WHY_BIG : F.ORDER_WHY), items, stand, pay: F.orderPay(stand, big, grade), end: fm.day + Math.max(3, F.orderNights(fm, items) + F.ORDER_SPARE[gi(grade)]), big };
+    const nights = Math.max(3, F.orderNights(fm, items) + F.ORDER_SPARE[gi(grade)]); // and a night more for each bad weather day
+    return { n, who, why: U.pick(big ? F.ORDER_WHY_BIG : F.ORDER_WHY), items, stand, pay: F.orderPay(stand, big, grade), end: fm.day + nights + F.wxSpare(fm, grade, fm.day, fm.day + nights - 1), big };
   };
   F.addOrder = (fm, grade) => {
     fm.orders.n++;
@@ -1394,6 +1537,9 @@
     // farm supplies at work: Grow-Fast, and a rented field with carrots in one of its beds
     fm.boosts = { grow: { cost: k ? 20 : 500, until: 16, gain: k ? 6 : 150, grade: g }, field: { cost: k ? 30 : 900, until: 19, gain: 0, grade: g } };
     fm.beds.push({ c: 'carrot', g: 0, u: 0, rent: true }, { c: null, g: 0, u: 0, rent: true });
+    // the weather: a rainbow today with eggs the special, a hot day tomorrow, and the bank week so far
+    Object.assign(fm.wx, { seen: true, now: { day: 14, w: 'rainbow', sp: 'egg', market: false }, next: { day: 15, w: 'heat', sp: 'milk', market: false },
+      log: [[8, 'rain', 0], [9, 'sun', 0], [10, 'happy', 0], [11, 'sun', 1], [12, 'fog', 0], [13, 'rain', 0]] });
     // the whole barnyard: babies, hungry, fed and with eggs to collect
     Object.keys(F.HOUSES).forEach((a, i) => { fm.yard[a] = { a, g: i === 4 ? 0 : 9, fed: i % 2 === 0, ready: i % 3 === 1 ? 2 : 0, u: i % 3 }; });
     for (const id of Object.keys(F.ITEMS)) fm.basket[id] = 3;
@@ -1466,17 +1612,18 @@
     const choices = F.moneyChoices(ans, grade);
     return Object.assign(p, { kind: 'choice', answer: F.fmt(ans, grade), choices });
   }
-  const tag = (id, grade) => `<span class="ftag">${F.ie(id)} ${F.fmt(F.price(id, grade), grade)}</span>`;
   const row = (id, n) => `<div class="frow" aria-hidden="true">${Array(Math.min(n, 12)).fill(F.ie(id)).join('')}</div>`;
 
-  // One problem. ctx: { grade, tier (object), stock: { item: count } }. Returns null when the stock can't make it.
+  // One problem. ctx: { grade, tier (object), stock: { item: count }, special: { id, price } (today's special) }.
+  // Returns null when the stock can't make it.
   // Every problem has: kind (num | choice | coins), text, answer, hint, explain, sale { item: count } and total (cents
   // the customer pays for the sale).
   F.problem = (type, ctx) => {
     const { grade, tier, stock } = ctx;
     const fmt = (c) => F.fmt(c, grade);
     const items = Object.keys(stock).filter((id) => stock[id] > 0);
-    const P = (id) => F.price(id, grade);
+    const sp = ctx.special, P = (id) => (sp && id === sp.id ? sp.price : F.price(id, grade));
+    const tg = (id) => `<span class="ftag${sp && id === sp.id ? ' fsp' : ''}">${sp && id === sp.id ? '⭐ ' : ''}${F.ie(id)} ${fmt(P(id))}</span>`; // a price tag
     // an item and how many, with the total at most `max`
     const pickSale = (minQ, maxQ, max) => {
       const ok = U.shuffle(items).map((id) => {
@@ -1490,7 +1637,7 @@
       const s = pickSale(2, grade === 'k' ? 3 : 4, tier.max);
       if (!s) return null;
       const [id, q] = s, T = q * P(id);
-      return ask({ type, text: `wants <b>${things(id, q)}</b>. One costs <b>${fmt(P(id))}</b>. How much is that in all?`, visual: row(id, q) + tag(id, grade), hint: `Add ${fmt(P(id))} ${q} times: ${Array(q).fill(P(id)).join(' + ')}.`, explain: `${Array(q).fill(fmt(P(id))).join(' + ')} = ${fmt(T)}`, sale: { [id]: q }, total: T }, T, grade);
+      return ask({ type, text: `wants <b>${things(id, q)}</b>. One costs <b>${fmt(P(id))}</b>. How much is that in all?`, visual: row(id, q) + tg(id), hint: `Add ${fmt(P(id))} ${q} times: ${Array(q).fill(P(id)).join(' + ')}.`, explain: `${Array(q).fill(fmt(P(id))).join(' + ')} = ${fmt(T)}`, sale: { [id]: q }, total: T }, T, grade);
     }
     if (type === 'count') {
       const s = pickSale(1, 3, tier.max);
@@ -1546,18 +1693,18 @@
       two.forEach((id) => (sale[id] = 1));
       if (type === 'two') {
         if (T > tier.max) return null;
-        return ask({ type, text: `wants <b>${list}</b>. How much is that in all?`, visual: `<div class="ftags">${two.map((id) => tag(id, grade)).join('<b>+</b>')}</div>`, hint: grade === 'k' ? 'Count on from the bigger price.' : 'Add the dollars, then the cents. 100¢ make a dollar.', explain: `${two.map((id) => fmt(P(id))).join(' + ')} = ${fmt(T)}`, sale, total: T }, T, grade);
+        return ask({ type, text: `wants <b>${list}</b>. How much is that in all?`, visual: `<div class="ftags">${two.map((id) => tg(id)).join('<b>+</b>')}</div>`, hint: grade === 'k' ? 'Count on from the bigger price.' : 'Add the dollars, then the cents. 100¢ make a dollar.', explain: `${two.map((id) => fmt(P(id))).join(' + ')} = ${fmt(T)}`, sale, total: T }, T, grade);
       }
       const over = (tier.pay || []).filter((x) => x > T);
       if (!over.length) return null;
       const H = over[0];
-      return ask({ type, text: `has <b>${fmt(H)}</b> and buys <b>${list}</b>. How much money will they have left?`, visual: `<div class="ftags">${two.map((id) => tag(id, grade)).join('<b>+</b>')}</div>`, hint: `First add the prices. Then count up from the total to ${fmt(H)}.`, explain: `${two.map((id) => fmt(P(id))).join(' + ')} = ${fmt(T)}; ${fmt(H)} − ${fmt(T)} = ${fmt(H - T)}`, sale, total: T }, H - T, grade);
+      return ask({ type, text: `has <b>${fmt(H)}</b> and buys <b>${list}</b>. How much money will they have left?`, visual: `<div class="ftags">${two.map((id) => tg(id)).join('<b>+</b>')}</div>`, hint: `First add the prices. Then count up from the total to ${fmt(H)}.`, explain: `${two.map((id) => fmt(P(id))).join(' + ')} = ${fmt(T)}; ${fmt(H)} − ${fmt(T)} = ${fmt(H - T)}`, sale, total: T }, H - T, grade);
     }
     if (type === 'multiply') {
       const s = pickSale(3, 9, tier.max);
       if (!s) return null;
       const [id, q] = s, T = q * P(id);
-      return ask({ type, text: `orders <b>${things(id, q)}</b> at <b>${fmt(P(id))}</b> each. How much is the order?`, visual: row(id, q) + tag(id, grade), hint: `${q} × ${fmt(P(id))}: find 2 × first, then keep adding, or split ${fmt(P(id))} into dollars and cents.`, explain: `${q} × ${fmt(P(id))} = ${fmt(T)}`, sale: { [id]: q }, total: T }, T, grade);
+      return ask({ type, text: `orders <b>${things(id, q)}</b> at <b>${fmt(P(id))}</b> each. How much is the order?`, visual: row(id, q) + tg(id), hint: `${q} × ${fmt(P(id))}: find 2 × first, then keep adding, or split ${fmt(P(id))} into dollars and cents.`, explain: `${q} × ${fmt(P(id))} = ${fmt(T)}`, sale: { [id]: q }, total: T }, T, grade);
     }
     if (type === 'deal') {
       const s = pickSale(2, 6, tier.max * 2);
@@ -1568,14 +1715,14 @@
       const q = qs.length ? U.pick(qs) : 2;
       if (q > stock[id]) return null;
       const T = (q / 2) * dealP;
-      return ask({ type, text: `likes today’s deal: <b>2 ${F.ITEMS[id].many} for ${fmt(dealP)}</b> (one is ${fmt(one)}) and takes <b>${things(id, q)}</b>. How much do they pay?`, visual: row(id, q) + tag(id, grade), hint: `${q} ${F.ITEMS[id].many} is ${q / 2} pairs. Each pair costs ${fmt(dealP)}.`, explain: `${q / 2} × ${fmt(dealP)} = ${fmt(T)} (without the deal it would be ${fmt(q * one)})`, sale: { [id]: q }, total: T }, T, grade);
+      return ask({ type, text: `likes today’s deal: <b>2 ${F.ITEMS[id].many} for ${fmt(dealP)}</b> (one is ${fmt(one)}) and takes <b>${things(id, q)}</b>. How much do they pay?`, visual: row(id, q) + tg(id), hint: `${q} ${F.ITEMS[id].many} is ${q / 2} pairs. Each pair costs ${fmt(dealP)}.`, explain: `${q / 2} × ${fmt(dealP)} = ${fmt(T)} (without the deal it would be ${fmt(q * one)})`, sale: { [id]: q }, total: T }, T, grade);
     }
     if (type === 'profit') {
       const crops = Object.keys(F.CROPS).filter((c) => items.includes(c) || F.CROPS[c].lv <= 8);
-      const c = U.pick(crops), seed = F.seedPrice(c, grade), y = F.CROPS[c].yield, T = y * P(c);
+      const c = U.pick(crops), seed = F.seedPrice(c, grade), y = F.CROPS[c].yield, P0 = F.price(c, grade), T = y * P0; // the usual price
       const s = pickSale(1, 2, tier.max);
       if (!s) return null;
-      return ask({ type, text: `asks a farmer question: a packet of ${F.ITEMS[c].e} seeds costs <b>${fmt(seed)}</b> and gives <b>${y} ${F.ITEMS[c].many}</b> that sell for <b>${fmt(P(c))}</b> each. How much <b>profit</b> is that? Then they buy ${things(s[0], s[1])}.`, hint: `Profit = money you get − money you spent. First ${y} × ${fmt(P(c))}.`, explain: `${y} × ${fmt(P(c))} = ${fmt(T)}; ${fmt(T)} − ${fmt(seed)} = ${fmt(T - seed)} profit`, sale: { [s[0]]: s[1] }, total: s[1] * P(s[0]) }, T - seed, grade);
+      return ask({ type, text: `asks a farmer question: a packet of ${F.ITEMS[c].e} seeds costs <b>${fmt(seed)}</b> and gives <b>${y} ${F.ITEMS[c].many}</b> that sell for <b>${fmt(P0)}</b> each. How much <b>profit</b> is that? Then they buy ${things(s[0], s[1])}.`, hint: `Profit = money you get − money you spent. First ${y} × ${fmt(P0)}.`, explain: `${y} × ${fmt(P0)} = ${fmt(T)}; ${fmt(T)} − ${fmt(seed)} = ${fmt(T - seed)} profit`, sale: { [s[0]]: s[1] }, total: s[1] * P(s[0]) }, T - seed, grade);
     }
     if (type === 'interest') {
       const [per, add] = F.bankRule(grade);
@@ -1593,6 +1740,14 @@
       if (!s) return null;
       const ins = Object.entries(r.in).map(([id, n]) => `${n} ${F.ITEMS[id].e}`).join(' + ');
       return ask({ type, text: `asks a farmer question: <b>${ins}</b> sell for <b>${fmt(w.inVal)}</b> in all. Made into ${F.ITEMS[r.out].e} ${F.ITEMS[r.out].name}, they sell for <b>${fmt(w.outVal)}</b>. How much <b>more</b> money is that? Then they buy ${things(s[0], s[1])}.`, hint: `Count up from ${fmt(w.inVal)} to ${fmt(w.outVal)}.`, explain: `${fmt(w.outVal)} − ${fmt(w.inVal)} = ${fmt(w.gain)}`, sale: { [s[0]]: s[1] }, total: s[1] * P(s[0]) }, w.gain, grade);
+    }
+    if (type === 'special') { // today's special: how much more than on a usual day? (kindergarten: one, at most 10¢ more)
+      if (!sp || !(stock[sp.id] > 0)) return null;
+      const id = sp.id, usual = F.price(id, grade), more = sp.price - usual, k = grade === 'k';
+      const q = k || tier === F.tiers(grade)[0] ? 1 : Math.min(stock[id], U.rnd(2, 4), Math.floor(tier.max / sp.price));
+      if (q < 1 || (k && more > 10)) return null;
+      const one = `Today’s special: one ${F.ITEMS[id].name} is <b>${fmt(sp.price)}</b> today. On a usual day it is <b>${fmt(usual)}</b>.`;
+      return ask({ type, text: `buys <b>${things(id, q)}</b>. ${one} ${q === 1 ? 'How much <b>more</b> is it today?' : `How much <b>more</b> do you get for ${q} today than on a usual day?`}`, visual: `<div class="ftags"><span class="ftag">${F.ie(id)} ${fmt(usual)}</span><b>→</b>${tg(id)}</div>`, hint: q === 1 ? `Count up from ${fmt(usual)} to ${fmt(sp.price)}.` : `First: how much more is one? ${fmt(sp.price)} − ${fmt(usual)}. Then ${q} times that.`, explain: q === 1 ? `${fmt(sp.price)} − ${fmt(usual)} = ${fmt(more)}` : `${fmt(sp.price)} − ${fmt(usual)} = ${fmt(more)}; ${q} × ${fmt(more)} = ${fmt(q * more)}`, sale: { [id]: q }, total: q * sp.price }, q * more, grade);
     }
     return null;
   };
@@ -1666,19 +1821,29 @@
   // The next customer: a problem of the child's tier (one tier up for a ⭐ challenge customer).
   // stock: what can be sold (the basket; odd jobs use a pretend crate). Returns null when nothing can be sold.
   // warm: the first customers of a shift bring problems one tier easier (an easy start).
+  // Today's special costs more (customers sometimes ask how much more), the truck doesn't buy it and doesn't come on a
+  // foggy day; on market day a friend comes along and buys the same (when there is enough).
   F.customer = (fm, grade, { stock, vip = false, jobs = false, truck = false, warm = false } = {}) => {
     const all = F.tiers(grade);
     const ti = Math.max(1, Math.min(all.length, F.tierNow(fm, grade) + (vip ? 1 : warm ? -1 : 0)));
     const tier = all[ti - 1];
     if (!Object.values(stock).some((n) => n > 0)) return null;
-    const t = truck && !vip && !jobs ? F.truckProblem(stock, grade, tier) : null;
+    const spId = jobs ? null : F.special(fm), special = spId ? { id: spId, price: F.specialPrice(spId, grade) } : null;
+    const tStock = Object.assign({}, stock);
+    if (spId) delete tStock[spId];
+    const t = truck && !vip && !jobs && !F.wxIs(fm, 'fog') ? F.truckProblem(tStock, grade, tier) : null;
     if (t) return Object.assign(t, { who: F.TRUCK, vip: false, jobs: false, tier: ti, ahead: !!tier.ahead });
-    const types = U.shuffle(tier.types).concat(FALLBACK);
+    const types = (special && stock[spId] > 0 && Math.random() < 0.3 ? ['special'] : []).concat(U.shuffle(tier.types), FALLBACK);
     for (const type of types) {
-      const p = F.problem(type, { grade, tier, stock });
+      const p = F.problem(type, { grade, tier, stock, special });
       if (!p) continue;
       const who = vip ? U.pick(F.VIPS) : U.pick(F.PEOPLE);
-      return Object.assign(p, { who, vip, jobs, tier: ti, ahead: !!tier.ahead });
+      Object.assign(p, { who, vip, jobs, tier: ti, ahead: !!tier.ahead });
+      if (!jobs && !p.noPay && F.marketOn(fm) && Object.entries(p.sale).every(([id, n]) => (stock[id] || 0) >= 2 * n)) { // 🎪 market day
+        const pal = U.pick(F.PEOPLE.filter((x) => x[1] !== who[1]));
+        Object.assign(p, { friend: pal, text: `${p.text}<br><small class="ffriend">🎪 Their friend ${pal[0]} <b>${pal[1]}</b> buys the same!</small>` });
+      }
+      return p;
     }
     // nothing fits the tier (e.g. only expensive items): count the money for one item
     const id = Object.keys(stock).find((k) => stock[k] > 0), T = F.price(id, grade);
@@ -1693,8 +1858,9 @@
     return stock;
   };
   F.wage = (tier, grade) => (grade === 'k' ? (tier >= 3 ? 2 : 1) : 5 * tier);
-  // a nicer stand tips more; the merchant's Street Musician adds 10% on any stand, his Lucky Clover 20% for a week
-  F.tipRate = (fm, clover = true) => F.STANDS[fm.stand].tip + (fm.treasure && fm.treasure.musician ? F.TREASURES.musician.tip : 0) + (clover && F.charmOn(fm, 'clover') ? F.CHARMS.clover.tip : 0);
+  // a nicer stand tips more; the merchant's Street Musician adds 10% on any stand, his Lucky Clover 20% for a week, a
+  // rainbow 10% for a day
+  F.tipRate = (fm, clover = true) => F.STANDS[fm.stand].tip + (fm.treasure && fm.treasure.musician ? F.TREASURES.musician.tip : 0) + (clover && F.charmOn(fm, 'clover') ? F.CHARMS.clover.tip : 0) + (F.wxIs(fm, 'rainbow') ? F.WX_TIP : 0);
   F.tip = (fm, total, clover = true) => { const r = F.tipRate(fm, clover); return r ? Math.max(1, Math.round(total * r)) : 0; };
   F.VIP_TIP = (grade, total) => Math.max(grade === 'k' ? 2 : 10, Math.round(total * 0.5));
 
@@ -1707,10 +1873,16 @@
       res.paid = solved ? (firstTry ? F.wage(p.tier, grade) : Math.ceil(F.wage(p.tier, grade) / 2)) : 0;
       fm.stats.jobs++;
     } else if (!p.noPay) {
-      for (const [id, n] of Object.entries(p.sale)) { fm.basket[id] = Math.max(0, (fm.basket[id] || 0) - n); if (!fm.basket[id]) delete fm.basket[id]; fm.stats.sold += n; }
-      res.paid = p.total;
-      if (firstTry) res.tip = p.vip ? F.VIP_TIP(grade, p.total) : p.truck ? 0 : F.tip(fm, p.total); // wholesale: no tip
-      if (firstTry && !p.vip && !p.truck && F.charmOn(fm, 'clover')) { res.clover = res.tip - F.tip(fm, p.total, false); fm.charms.clover.gain += res.clover; } // what the Lucky Clover added
+      const x = p.friend ? 2 : 1, sp = F.special(fm); // market day: the friend buys the same and pays the same
+      for (const [id, k] of Object.entries(p.sale)) {
+        const n = k * x;
+        fm.basket[id] = Math.max(0, (fm.basket[id] || 0) - n); if (!fm.basket[id]) delete fm.basket[id]; fm.stats.sold += n;
+        if (id === sp && !p.truck) { fm.stats.specials += n; fm.stats.specialExtra += n * (F.specialPrice(id, grade) - F.price(id, grade)); }
+      }
+      res.paid = p.total * x;
+      if (firstTry) res.tip = x * (p.vip ? F.VIP_TIP(grade, p.total) : p.truck ? 0 : F.tip(fm, p.total)); // wholesale: no tip
+      if (firstTry && !p.vip && !p.truck && F.charmOn(fm, 'clover')) { res.clover = res.tip - x * F.tip(fm, p.total, false); fm.charms.clover.gain += res.clover; } // what the Lucky Clover added
+      if (p.friend) fm.stats.friends++;
     }
     fm.money += res.paid + res.tip;
     fm.stats.earned += res.paid + res.tip;
@@ -1719,6 +1891,7 @@
     if (p.vip && firstTry) fm.stats.vip++;
     fm.customers++;
     if (!p.jobs) res.shift = F.shiftServed(fm, firstTry, res.paid + res.tip); // 'done' when this customer finished the shift
+    if (res.shift === 'done' && F.marketOn(fm) && F.shiftStars(fm) === 3) fm.stats.marketStar++;
     res.xp = (firstTry ? 5 : solved ? 2 : 1) + (p.vip && firstTry ? 5 : 0) + (p.ahead && firstTry ? 2 : 0);
     res.ups = F.addXp(fm, res.xp, grade);
     return res;
@@ -1774,8 +1947,8 @@
   // What she would keep after today's shift, per dollar (2nd grade) or per 10¢ (kindergarten): "25¢ of every dollar".
   F.keepText = (keep, grade) => (grade === 'k' ? `1¢ of every ${keep}¢` : `${F.fmt(100 / keep, 'g2')} of every dollar`);
   F.mgrTonight = (fm) => !!(fm.mgr && fm.mgr.tonight && fm.mgr.tonight === fm.day);
-  // Can she sell the rest tonight? (hired, today's shift done, something for sale)
-  F.mgrCan = (fm) => F.mgrHired(fm) && F.shiftDone(fm) && F.saleCount(fm) > 0;
+  // Can she sell the rest tonight? (hired, today's shift done, something for sale, no storm tonight)
+  F.mgrCan = (fm) => F.mgrHired(fm) && F.shiftDone(fm) && F.saleCount(fm) > 0 && !F.wxIs(fm, 'storm');
   F.mgrSell = (fm) => {
     if (!F.mgrCan(fm)) return false;
     Object.assign(fm.mgr, { tonight: fm.day, keep: F.KEEP[F.shiftStars(fm) - 1] });
@@ -1787,12 +1960,13 @@
   F.mgrNight = (fm, grade) => {
     const m = fm.mgr;
     if (!m || !m.tonight) return null;
-    const ok = m.tonight === fm.day && F.mgrHired(fm);
+    const ok = m.tonight === fm.day && F.mgrHired(fm) && !F.wxIs(fm, 'storm'); // in a storm she stays home
     m.tonight = 0;
     if (!ok) return null;
-    const stock = F.forSale(fm), n = U.sum(Object.values(stock));
+    const stock = F.forSale(fm), n = U.sum(Object.values(stock)), sp = F.special(fm);
     if (!n) return null;
-    const sold = F.standValue(stock, grade), kept = F.mgrKeep(sold, m.keep || F.KEEP[0], grade);
+    if (sp && stock[sp]) { fm.stats.specials += stock[sp]; fm.stats.specialExtra += stock[sp] * (F.specialPrice(sp, grade) - F.price(sp, grade)); }
+    const sold = F.valueToday(fm, stock, grade), kept = F.mgrKeep(sold, m.keep || F.KEEP[0], grade);
     for (const [id, q] of Object.entries(stock)) { fm.basket[id] -= q; if (!fm.basket[id]) delete fm.basket[id]; }
     fm.stats.sold += n;
     const earned = fm.shift && fm.shift.day === fm.day ? fm.shift.earned : 0, p = m.pend;

@@ -55,6 +55,7 @@
     const cheapest = Math.min(...Object.entries(F.CROPS).filter(([, c]) => c.lv <= F.level(f.xp).level).map(([id]) => F.seedPrice(id, grade())));
     const all = F.allPens(f), hungry = all.filter((p) => p.a && !p.fed);
     // a crop an order still needs that isn't growing anywhere: [order, crop]
+    const next = F.wxTomorrow(f), spNext = next && next.sp;
     const needCrop = F.orderStatus(f).flatMap(({ o, have }) => Object.keys(o.items).filter((id) => F.CROPS[id] && have[id] < o.items[id] && !f.beds.some((b) => b.c === id)).map((id) => [o, id]))[0];
     let t;
     if (f.mgr.pend) t = `${F.MANAGER.name} sold things for you last night! Tap her card to get your money. ${F.MANAGER.e}`;
@@ -70,6 +71,8 @@
     else if (hungry.length) t = 'Out of feed! Buy feed 🌾 in the shop.';
     else if (Object.entries(f.works).some(([id, w]) => w.r === null && F.WORKS[id].recipes.some((r, i) => F.canMake(f, id, i)))) t = 'You have what a workshop needs. Make something worth more!';
     else if (needCrop && f.beds.some((b) => !b.c) && f.money >= F.seedPrice(needCrop[1], grade())) t = `${needCrop[0].who[1]}’s order needs ${F.ITEMS[needCrop[1]].e} ${F.ITEMS[needCrop[1]].many}. Plant some in an empty bed!`;
+    else if (spNext && F.forSale(f)[spNext] && F.mgrTonight(f)) t = `Tomorrow ${F.ITEMS[spNext].e} ${F.ITEMS[spNext].many} are the ⭐ special: they sell for more. Keep them for tomorrow? Tap “Keep it” on ${F.MANAGER.name}’s card.`;
+    else if (F.mgrCan(f) && !F.mgrTonight(f) && next && next.w === 'storm') t = `A storm comes tomorrow night! Let ${F.MANAGER.name} sell the rest tonight. ⛈️`;
     else if (F.mgrCan(f) && !F.mgrTonight(f)) t = `Great shift! ${F.MANAGER.name} can sell the rest of your basket tonight. ${F.MANAGER.e}`;
     else if (F.saleCount(f) && !F.mgrTonight(f)) t = F.mgrHired(f) && !F.shiftDone(f) ? `Your basket is full of good things. Open the stand: after ${F.shiftLen(f)} customers, ${F.MANAGER.name} can sell the rest.` : 'Your basket is full of good things. Open the stand and sell them!';
     else if (f.beds.some((b) => !b.c) && f.money >= cheapest) t = 'An empty garden bed! Tap it to plant seeds.';
@@ -117,6 +120,7 @@
         <small class="muted">${f.xp - lv.from} / ${lv.to - lv.from} XP to level ${lv.level + 1} · Money problems: ${tier.ahead ? '⭐ ' : ''}${esc(tier.name)}</small>
       </section>
       ${MQ.store.preview ? pvTiers() : ''}
+      ${wxBar()}
       ${goalBar()}
       ${dreamCard()}
       ${merchantCard()}
@@ -153,11 +157,12 @@
         ${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}
         ${empty >= 2 ? '<button class="btn ghost" data-act="fPlantAll">🌱 Plant all</button>' : ''}
       </div>` : ''}
-    </div></nav>`, 'is-farm');
+    </div></nav>`, 'is-farm' + wxClass(f));
     K().setCur('farm');
     dockChanges({ money: f.money, basket: all, feed: f.feed });
     if (F.dreamOpen(f) && !f.dream.seen && !MQ.store.preview) setTimeout(() => { if (!$('#modal') && $('.fdream')) dreamIntro(); }, 500);
     else if (F.ordersOpen(f) && !f.orders.seen && !MQ.store.preview) setTimeout(() => { if (!$('#modal') && $('.scene') && !fs) orderIntro(); }, 500);
+    else if (F.wxToday(f) && !f.wx.seen && !MQ.store.preview) setTimeout(() => { if (!$('#modal') && $('.scene') && !fs) wxIntro(); }, 500);
   }
   // The dock numbers bump and show "+3" / "−2" when they change (after the things have flown there).
   let lastDock = null;
@@ -351,6 +356,7 @@
     if (news.bankDay) lines.push('🏦 It’s bank day! Your savings earned interest: go to the bank to collect it.');
     if (news.depReady) lines.push(`🔓 Your locked deposit unlocked: <b>${fmt(news.depReady)}</b> is waiting at the bank!`);
     if (news.depNew) lines.push(`<span class="mline">🏦 New at the bank: a <b>locked deposit</b>. Your savings are above ${fmt(F.bankTop(f.bank.acct, grade()))}: lock some, and every $5 comes back as $6!</span>`);
+    lines.push(...wxNews(news.wx));
     if (news.mgr) lines.unshift(`<span class="mline">${F.MANAGER.e} <b>${esc(F.MANAGER.name)}</b> sold ${news.mgr.n} ${news.mgr.n === 1 ? 'thing' : 'things'} from your basket last night. Your money is waiting!</span>`);
     lines.push(...orderLines(news.orders));
     if (news.gold) lines.push(`🪿 The Golden Goose laid a golden egg: <b>+${fmt(news.gold)}</b> in your wallet!`);
@@ -371,8 +377,10 @@
     for (const [a, n] of Object.entries(count(news.hungry))) lines.push(`${F.ANIMALS[a].e} ${n > 1 ? n + ' ' : ''}${esc(F.ANIMALS[a].name.toLowerCase())}${n > 1 ? 's were' : ' was'} hungry and didn’t grow. Feed animals before bed!`);
     for (const x of news.boostEnd || []) if (x.id === 'field') lines.push(`🚜 The rented field went back today${x.picked ? `: the farmer picked your last ${x.picked} crops for you. They are in your basket` : ''}.`);
     const b = news.built, ends = (charmEnds = (news.charmEnd || []).concat((news.boostEnd || []).map((x) => Object.assign({ boost: true }, x))));
-    K().modal(`${b ? builtBlock(b) : '<div class="bigemoji">☀️</div>'}<div class="mtitle">Good morning! Farm day ${f.day}</div>
-      ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : b || ends.length ? '' : '<p>A quiet night on the farm.</p>'}
+    const wx = F.wxToday(f), next = F.wxTomorrow(f);
+    K().modal(`${b ? builtBlock(b) : `<div class="bigemoji">${wx ? F.WX[wx.w].e : '☀️'}</div>`}<div class="mtitle">Good morning! Farm day ${f.day}</div>
+      ${wxBlock(f)}
+      ${lines.length ? `<ul class="funlocks">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>` : b || ends.length || wx ? '' : '<p>A quiet night on the farm.</p>'}
       ${ends.map(charmEndBlock).join('')}
       <div class="row">${fm().mgr.pend ? `<button class="btn ghost" data-act="fMgrCollect">${F.MANAGER.e} Get ${esc(F.MANAGER.name)}’s money</button>` : ''}<button class="btn" data-act="closeModal">Let’s go!</button>${b && !F.dreamDone(fm()) ? '<button class="btn ghost" data-act="go" data-arg="farm:dreams">🏗️ Big Dreams</button>' : ''}</div>`);
     if (b) {
@@ -380,7 +388,10 @@
       MQ.confetti(b.done ? 240 : 150, b.d.castle ? { colors: ['#ffd23f', '#ff8fe0', '#9d7bff', '#ffffff'], shape: 'star', rain: b.done } : b.done ? { colors: ['#ffd23f', '#ffe066', '#ff8a5a', '#7ed957'], shape: 'star' } : {});
       if (st().settings.voice !== false) MQ.speak(b.done ? `Your ${b.d.name} is finished!` : `The builders finished the ${b.st.name.toLowerCase()}!`);
       K().checkBadges();
-    } else MQ.sfx('reward');
+    } else {
+      MQ.sfx('reward');
+      if (wx && st().settings.readAloud) MQ.speak(`Today: ${F.WX[wx.w].name}.${next ? ` Tomorrow: ${F.WX[next.w].name}.` : ''}`);
+    }
   }
   // The morning after the builders worked: the new stage, glowing (a finished dream gets the golden treatment).
   function builtBlock(b) {
@@ -558,6 +569,7 @@
     if (p) return `<button class="fmgr hot" data-act="fMgrCollect"><span class="fmgr-e">${M.e}</span><span class="fmgr-t"><b>${esc(M.name)} sold ${things(p.n)} for you!</b><small>Tap to get your money</small></span></button>`;
     if (!F.mgrHired(f)) return '';
     const card = (b, small, btn = '', hot = false) => `<div class="fmgr ${hot ? 'hot' : ''}"><span class="fmgr-e">${M.e}</span><span class="fmgr-t"><b>${b}</b><small>${small}</small></span>${btn}</div>`;
+    if (F.wxIs(f, 'storm') && n) return card(`⛈️ A stormy night: ${esc(M.name)} stays home`, 'Your basket waits for tomorrow. Nothing is lost!');
     if (F.mgrTonight(f)) return card(`${esc(M.name)} sells the rest tonight`, `${things(n)} · she keeps ${F.keepText(f.mgr.keep, g)}. Tap 🌙 Sleep!`, '<button class="btn ghost" data-act="fMgrStay">Keep it</button>');
     if (!n) return '';
     if (stars) return card(`Shift done ${F.starText(stars)}`, `${esc(M.name)} can sell the other ${things(n)} tonight and keep ${F.keepText(F.KEEP[stars - 1], g)}.`, `<button class="btn" data-act="fMgrSell">${M.e} Sell it</button>`, true);
@@ -570,6 +582,7 @@
     if (!n || !F.mgrOpen(f)) return '';
     const box = (t, btns = '') => `<section class="fmgrbox"><span class="fmgr-e">${M.e}</span><div><p>${t}</p>${btns ? `<div class="row">${btns}</div>` : ''}</div></section>`;
     if (!f.mgr.hired) return box(`<b>${name}</b>, the market manager, can sell what is left after your shift. Hire her in the shop (🏡 Farm).`);
+    if (F.wxIs(f, 'storm')) return box(`⛈️ A stormy night: <b>${name}</b> stays home tonight. Your basket waits for tomorrow, and nothing is lost.`);
     if (F.mgrTonight(f)) return box(`✓ <b>${name} sells the other ${things(n)} tonight</b> and keeps ${F.keepText(f.mgr.keep, g)} for her work.`, '<button class="btn ghost" data-act="fMgrStay">Keep it in the basket</button>');
     if (!stars) {
       const left = F.shiftLeft(f);
@@ -657,6 +670,78 @@
       <p>People in town want things from <b>your</b> farm!</p>
       <ul class="funlocks"><li>🧺 Collect what an order needs. It stays in your basket: customers at the stand don’t buy it.</li><li>📦 Deliver it, and the order pays <b>more than your stand</b>.</li><li>📅 Each order has a few days. A new one comes every morning.</li></ul>
       <div class="row"><button class="btn ghost" data-act="closeModal">Later</button><button class="btn" data-act="fOrders">📋 See the orders</button></div>`);
+    MQ.sfx('streak');
+  }
+  // ---------------------------------------------------------------- weather, today's special and market day
+  // The farm page takes the day's colors (sky, grass and a light tint around it): #app gets wx-rain, wx-market…
+  const wxClass = (f) => { const x = F.wxToday(f); return x ? ` wx-${x.w}${x.market ? ' wx-market' : ''}` : ''; };
+  const wxName = (x) => `${F.WX[x.w].e} ${esc(F.WX[x.w].name)}`;
+  // Today and tomorrow at a glance, on the farm (tap for the week).
+  function wxBar() {
+    const f = fm(), now = F.wxToday(f), next = F.wxTomorrow(f);
+    if (!now) return '';
+    const sp = now.sp ? `<span class="fwx-sp">⭐ ${F.ie(now.sp)} ${fmt(F.specialPrice(now.sp, grade()))}</span>` : '';
+    return `<button class="fwxbar k-${F.WX[now.w].kind || 'sun'}" data-act="fWeather" aria-label="Farm weather">
+      <span class="fwx-now">${now.market ? '🎪 <b>Market day</b> · ' : ''}<b>Today</b> ${wxName(now)}</span>${sp}
+      ${next ? `<span class="fwx-next ${F.WX[next.w].kind === 'bad' ? 'warn' : ''}">Tomorrow ${wxName(next)}${next.market ? ' · 🎪' : ''}</span>` : ''}</button>`;
+  }
+  // How safe this farm is from a bad day: beds with a sprinkler, pens with a cozy barn, or what to do.
+  function wxSafe(f, w) {
+    const gd = F.wxGuard(f, w), what = w === 'heat' ? ['beds', 'a 💧 sprinkler'] : ['pens', 'a 🛖 cozy barn'];
+    if (gd && gd[1]) return gd[0] === gd[1] ? `All your ${what[0]} have ${what[1]}: they are safe!` : `${gd[0]} of your ${gd[1]} ${what[0]} ${gd[0] === 1 ? 'has' : 'have'} ${what[1]}. ${esc(F.WX[w].safe)}`;
+    return esc(F.WX[w].safe || '');
+  }
+  // A day's weather card (today or tomorrow).
+  function wxDay(f, x, when) {
+    const W = F.WX[x.w];
+    return `<div class="fwx-day k-${W.kind || 'sun'}"><small class="fwx-when">${when}</small><span class="fwx-e">${W.e}</span><b>${esc(W.name)}</b>
+      <small>${esc(W.note)}</small>${W.kind === 'bad' && (when === 'Tomorrow' || F.wxGuard(f, x.w)) ? `<small class="fwx-safe">🛡️ ${wxSafe(f, x.w)}</small>` : ''}</div>`;
+  }
+  // Today and tomorrow with the specials and market day (the morning card and the weather card).
+  function wxBlock(f) {
+    const now = F.wxToday(f), next = F.wxTomorrow(f), g = grade();
+    if (!now) return '';
+    const special = (x, day) => x.sp ? `<li>⭐ ${day} special: ${F.ie(x.sp)} <b>${esc(F.ITEMS[x.sp].many)}</b> sell for <b>${fmt(F.specialPrice(x.sp, g))}</b> (usually ${fmt(F.price(x.sp, g))}).</li>` : '';
+    const lines = [now.market ? '<li>🎪 <b>Market day!</b> Every customer brings a friend who buys the same.</li>' : '', special(now, 'Today’s'),
+      next && next.market ? '<li>🎪 Tomorrow is <b>market day</b>: fill your basket today!</li>' : '', next ? special(next, 'Tomorrow’s') : ''].join('');
+    return `<div class="fwx2">${wxDay(f, now, 'Today')}${next ? wxDay(f, next, 'Tomorrow') : ''}</div>${lines ? `<ul class="funlocks fwx-lines">${lines}</ul>` : ''}`;
+  }
+  // The morning card: what last night's weather did.
+  function wxNews(x) {
+    if (!x) return [];
+    const M = esc(F.MANAGER.name), out = [], n = (k, one, many) => `${k} ${k === 1 ? one : many}`;
+    if (x.w === 'rain' && x.got) out.push('🌧️ The warm rain watered your beds: they grew 2 days last night!');
+    if (x.w === 'happy' && x.more) out.push(`🌞 Happy animals in the warm sunshine: ${n(x.more, 'pen', 'pens and houses')} made 1 more!`);
+    if (x.w === 'heat') out.push(x.rested ? `🔥 It was hot: ${n(x.rested, 'bed', 'beds')} without a 💧 sprinkler rested, so ${x.rested === 1 ? 'it is' : 'they are'} ready a day later.${x.safe ? ` ${n(x.safe, 'bed', 'beds')} with a sprinkler kept growing.` : ''}` : x.safe ? '🔥 It was hot, but your 💧 sprinklers kept every bed growing!' : '');
+    if (x.w === 'wind') out.push(x.less ? `🌬️ It was windy: ${n(x.less, 'pen', 'pens')} without a 🛖 cozy barn made 1 less.` : x.safe ? '🌬️ It was windy, but your 🛖 cozy barns kept every pen safe!' : '');
+    if (x.storm) out.push(`⛈️ It was stormy, so ${M} stayed home. Your basket waited for you.`);
+    return out.filter(Boolean);
+  }
+  // The weather card: this bank week day by day (the days gone by, today, tomorrow), today and tomorrow, the rules.
+  function weather() {
+    const f = fm(), now = F.wxToday(f), next = F.wxTomorrow(f);
+    if (!now) return;
+    const log = new Map((f.wx.log || []).map((x) => [x[0], x[1]]));
+    const week = F.bankWeek(f.day).map((d) => {
+      const w = d === f.day ? now.w : next && d === next.day ? next.w : log.get(d);
+      const mark = F.isMarketDay(d) ? '🎪' : F.isBankDay(d) ? '🏦' : '';
+      return `<li class="${d < f.day ? 'past' : d === f.day ? 'now' : ''} ${mark ? 'bank' : ''}" title="${w ? esc(F.WX[w].name) : 'Not known yet'}"><small>Day</small><b>${d}</b><i>${w ? F.WX[w].e : '❔'}</i><small>${mark || '&nbsp;'}</small></li>`;
+    }).join('');
+    K().modal(`<div class="mtitle">🌦️ Farm weather</div>
+      <section class="bweek fwxweek"><ol>${week}</ol><small class="muted">🎪 market day · 🏦 bank day · ❔ not known yet</small></section>
+      ${wxBlock(f)}
+      <p class="muted small">Good weather comes much more often than bad. Bad weather is always on the forecast the day before, and it never takes your things or your money.</p>
+      <div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
+  }
+  function wxIntro() {
+    const f = fm();
+    f.wx.seen = true;
+    save();
+    K().modal(`<div class="bigemoji">🌦️</div><div class="mtitle">✨ New: Farm weather!</div>
+      <ul class="funlocks"><li>☀️ Every morning you see <b>today’s weather and tomorrow’s</b>.</li><li>🌧️ Good weather helps your farm: warm rain, sunshine, rainbows.</li>
+      ${F.level(f.xp).level >= F.WX_BAD_LV ? '<li>🔥 Sometimes a little bad weather comes. You see it the day before, so you can get ready.</li>' : ''}
+      <li>⭐ Every day one thing is the <b>special</b>: it sells for more.</li><li>🎪 Every week there is a <b>market day</b> (day ${F.MARKET_DAY}, ${F.MARKET_DAY + 7}, ${F.MARKET_DAY + 14}…): customers bring friends!</li></ul>
+      <div class="row"><button class="btn ghost" data-act="closeModal">OK</button><button class="btn" data-act="fWeather">🌦️ See the weather</button></div>`);
     MQ.sfx('streak');
   }
   function startDeliver(n) {
@@ -945,6 +1030,9 @@
     Object.assign(fs, { p, tries: 0, input: '', tray: [], locked: false, step: 'main', pick: null, pause: false });
     const f = fm(), tiers = F.tiers(grade()), tier = tiers[(p.tier || f.tier) - 1];
     const status = STATUS[fs.mode] ? STATUS[fs.mode]() : fs.mode === 'jobs' ? `🧹 Odd jobs · ${fs.n} done · +${fmt(fs.earned)}` : standStatus(false);
+    const sp = fs.mode === 'market' && p.type !== 'special' && p.sale && p.sale[F.special(f)] ? F.special(f) : null; // today's special in this sale
+    const spLine = sp ? `<div class="fspecial">⭐ Today’s special: ${F.ie(sp)} ${esc(F.ITEMS[sp].many)} are <b>${fmt(F.specialPrice(sp, grade()))}</b> today (usually ${fmt(F.price(sp, grade()))}).</div>` : '';
+    const sale = p.friend ? Object.fromEntries(Object.entries(p.sale).map(([id, n]) => [id, 2 * n])) : p.sale; // market day: the friend's things too
     const label = fs.label ? fs.label : LABEL[fs.mode] ? LABEL[fs.mode] : p.vip ? '⭐ Challenge customer · big tip' : p.truck ? '🚚 Buys a lot at once' : `🧮 ${esc(tier.name)}${tier.ahead ? ' ⭐' : ''}`;
     const intro = fs.mode === 'jobs' ? '<small class="muted">At the big Farmers’ Market:</small><br>' : '';
     const stall = fs.mode === 'pay'
@@ -956,7 +1044,7 @@
       : fs.mode === 'profit' ? SC.stall({ mode: 'pay', seller: F.MERCHANT.e, shopper: MQ.face(st()), goods: '<i>🧮</i>' })
       : fs.mode === 'mgr' ? SC.stall({ mode: 'mgr', stand: f.stand, seller: MQ.face(st()), shopper: F.MANAGER.e, goods: '<i>💰</i>' })
       : fs.mode === 'order' ? SC.stall({ mode: 'market', stand: f.stand, seller: MQ.face(st()), shopper: p.who[0], goods: SC.goods(fs.order.items), vip: fs.order.big })
-      : SC.stall({ mode: fs.mode, stand: fs.mode === 'jobs' ? 9 : f.stand, seller: MQ.face(st()), shopper: p.who[0], goods: SC.goods(p.sale), vip: p.vip });
+      : SC.stall({ mode: fs.mode, stand: fs.mode === 'jobs' ? 9 : f.stand, seller: MQ.face(st()), shopper: p.who[0] + (p.friend ? p.friend[0] : ''), goods: SC.goods(sale), vip: p.vip, market: fs.mode === 'market' && F.marketOn(f) });
     K().render(`<div class="play fplay" style="--wc:${p.vip ? '#b0569e' : '#e0a21b'}">
       <header class="playbar"><button class="iconbtn" data-act="fQuit" aria-label="Stop">✕</button><div class="pstatus">${status}</div>${moneyPill()}</header>
       ${basketBar()}
@@ -964,6 +1052,7 @@
       <section class="pcard enter ${p.vip ? 'vip' : ''}" id="pcard">
         <div class="pmeta"><span>${label}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="fSpeak" aria-label="Read the question aloud">🔊</button>' : ''}</span></div>
         <div class="fcust"><div class="ptext wordy">${intro}${p.who ? `<b>${esc(p.who[1])}</b> ` : ''}${p.text}</div></div>
+        ${spLine}
         ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
         <div id="fstep"></div>
         <div class="feedback" id="feedback" aria-live="polite"></div>
@@ -991,8 +1080,8 @@
   };
   // At the stand: how far today's shift is (after: this customer was just served).
   const standStatus = (after) => {
-    const f = fm(), s = F.shiftToday(f), money = `+${fmt(fs.earned + fs.tips)}`;
-    return F.shiftDone(f) ? `🏪 Shift done ${F.starText(F.shiftStars(f))} · ${money}` : `🏪 Shift: customer ${after ? s.n : s.n + 1} of ${F.shiftLen(f)} · ${money}`;
+    const f = fm(), s = F.shiftToday(f), money = `+${fmt(fs.earned + fs.tips)}`, ic = F.marketOn(f) ? '🎪' : '🏪'; // market day
+    return F.shiftDone(f) ? `${ic} Shift done ${F.starText(F.shiftStars(f))} · ${money}` : `${ic} Shift: customer ${after ? s.n : s.n + 1} of ${F.shiftLen(f)} · ${money}`;
   };
   const LABEL = { pay: '🛒 Farm Shop', make: '🧮 Is it worth making?', sell: '💰 Selling animals', deposit: '🏦 Put money in the bank', withdraw: '🏦 Take money out', interest: '🏦 Bank day: interest', build: '🏗️ Pay the builders', lock: '🔒 Locked deposit', unlock: '🔓 Your deposit is back', profit: '🧮 Did it pay off?', order: '📦 Delivering an order', mgr: `${F.MANAGER.e} Your money from the market` };
   // the problem being answered now (paying too much asks for the change)
@@ -1103,11 +1192,11 @@
     fs.earned += r.paid;
     fs.tips += r.tip;
     fs.xp += r.xp;
-    if (!p.jobs && !p.noPay) for (const [id, n] of Object.entries(p.sale)) fs.sold[id] = (fs.sold[id] || 0) + n;
+    if (!p.jobs && !p.noPay) for (const [id, n] of Object.entries(p.sale)) fs.sold[id] = (fs.sold[id] || 0) + n * (p.friend ? 2 : 1);
     save();
     fs.locked = true;
     redrawBasket();
-    const thanks = p.noPay ? `${esc(p.who[1])} will come back with more money.` : p.jobs ? `You earned <b>${fmt(r.paid)}</b>.` : `${esc(p.who[1])} paid <b>${fmt(r.paid)}</b>${r.tip ? ` and tipped <b>${fmt(r.tip)}</b>${r.clover ? ' 🍀' : ''}` : ''}.`;
+    const thanks = p.noPay ? `${esc(p.who[1])} will come back with more money.` : p.jobs ? `You earned <b>${fmt(r.paid)}</b>.` : `${esc(p.who[1])}${p.friend ? ` and ${esc(p.friend[1])}` : ''} paid <b>${fmt(r.paid)}</b>${r.tip ? ` and tipped <b>${fmt(r.tip)}</b>${r.clover ? ' 🍀' : ''}` : ''}.`;
     if (solved) feedback(`${first ? U.pick(['Great job!', 'Thank you, farmer!', 'Perfect!', 'You got it!']) : 'Got it!'} ${thanks}${move === 'up' ? '<br>⬆️ Harder money problems unlocked!' : ''}${shiftMsg}`, 'ok');
     else feedback(`${shown}<br>${thanks}${shiftMsg}`, 'reveal');
     drawAnswer();
@@ -1278,7 +1367,7 @@
     const proj = F.project(b.bal, g, 6, b.acct), top = Math.max(1, ...proj);
     const bars = proj.map((v, k) => `<div class="bbar"><span class="bv">${fmt(v)}</span><span class="bfill" style="height:${Math.max(4, Math.round((v / top) * 100))}%"></span><small>${k === 0 ? 'Now' : 'Day ' + (nextBank + (k - 1) * F.BANK_WEEK)}</small></div>`).join('');
     // this bank week: 7 farm days, the last one is bank day
-    const week = F.bankWeek(f.day).map((d) => `<li class="${d < f.day ? 'past' : d === f.day ? 'now' : ''} ${F.isBankDay(d) ? 'bank' : ''}"><small>Day</small><b>${d}</b>${F.isBankDay(d) ? '<i>🏦</i>' : d < f.day ? '<i>✓</i>' : '<i></i>'}</li>`).join('');
+    const week = F.bankWeek(f.day).map((d) => `<li class="${d < f.day ? 'past' : d === f.day ? 'now' : ''} ${F.isBankDay(d) ? 'bank' : ''}"><small>Day</small><b>${d}</b>${F.isBankDay(d) ? '<i>🏦</i>' : d < f.day ? '<i>✓</i>' : F.wxOpen(f) && F.isMarketDay(d) ? '<i title="Market day">🎪</i>' : '<i></i>'}</li>`).join('');
     const status = due ? `✨ Bank day! The interest is waiting for you.` : F.isBankDay(f.day) ? `Today was bank day. The next one is farm day ${nextBank}.` : `${nights} more ${nights === 1 ? 'night' : 'nights'} until bank day (farm day ${nextBank}). Tap 🌙 Sleep on the farm to make a night pass.`;
     const LOG = { in: ['⬇️', 'Saved'], out: ['⬆️', 'Took out'], interest: ['✨', 'Interest'], piggy: ['🐷', 'Golden Piggy: interest again'], build: ['🏗️', 'Paid the builders'], dream: ['🏡', 'Your buildings earned'], lock: ['🔒', 'Locked in a deposit'], unlock: ['🔓', 'Deposit came back'] };
     const minus = new Set(['out', 'build', 'lock']);
@@ -1493,6 +1582,7 @@
     fDepCollect: () => startUnlock(),
     fMerchant: () => merchant(),
     fOrders: () => orders(),
+    fWeather: () => weather(),
     fDeliver: (a) => startDeliver(+a),
     fOrderNo: (a) => orderNo(+a),
     fOrderDrop: (a) => { F.dropOrder(fm(), +a); save(); redraw(); orders(); },
