@@ -326,7 +326,7 @@
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
-    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg), duel: () => MQ.duelUI.show(), shapes: () => MQ.shapesUI.show() }[scr];
+    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg), duel: () => MQ.duelUI.show(), shapes: () => MQ.shapesUI.show(), lessons: () => MQ.lessonsUI.show() }[scr];
     if (redraw) redraw();
   }
   function newExplorer() {
@@ -414,6 +414,7 @@
       <div class="tiles">
         <button class="tile t-map" data-act="go" data-arg="map"><span class="ti">🗺️</span><b>Expedition Map</b><small>${WORLDS().length} worlds · ${WORLDS().length * 6} levels</small></button>
         <button class="tile t-endless" data-act="go" data-arg="trainer"><span class="ti">♾️</span><b>Endless Training</b><small>Pick topics & difficulty</small></button>
+        ${st.grade === 'g2' ? `<button class="tile t-learn" data-act="go" data-arg="lessons"><span class="ti">📖</span><b>Learn</b><small>Multiply &amp; Divide · ${MQ.lessons.completed(st)} / 6 modules</small></button>` : ''}
         <button class="tile t-daily ${dailyDone ? 'done' : ''}" data-act="daily"><span class="ti">${dailyDone ? '✅' : '📅'}</span><b>Daily Quest</b><small>${dailyDone ? 'Done today · 🔥 ' + st.daily.streak : '+' + (DAILY_REWARD + MQ.dragonTreasure(st)) + ' 💎 · streak ' + st.daily.streak}</small></button>
         <button class="tile t-fixit ${toFix ? 'hot' : ''}" data-act="go" data-arg="fixit"><span class="ti">🛠️</span><b>Fix-it Lab</b><small>${toFix ? `${toFix} to fix today` : inRepair ? 'All done today ✓' : 'No mistakes to fix'}</small></button>
         <button class="tile t-journal" data-act="go" data-arg="journal"><span class="ti">📔</span><b>Field Journal</b><small>${have} / ${total} creatures</small></button>
@@ -1065,6 +1066,7 @@
       <p class="lead">Mistakes help your brain grow! Here are the kinds of problems that went wrong. Get a new one right on 3 different days and it is fixed for good: <b>+${FIX_REWARD} 💎</b> each.</p>
       ${due.length ? `<button class="btn big" data-act="startFixit">Fix ${Math.min(10, due.length)} now ▶</button>`
         : all.length ? '<div class="unlock">✅ All done for today! Come back tomorrow for the next tries.</div>' : '<div class="unlock">🎉 Nothing to fix. When a problem goes wrong, it shows up here.</div>'}
+      ${st.grade === 'g2' && all.some((r) => r.topic === 'mult') ? '<button class="ls-fix-link" data-act="go" data-arg="lessons">📖 Learn Multiply &amp; Divide first →</button>' : ''}
       ${all.length ? `<ul class="fxlist">${rows}</ul>` : ''}
       <p class="muted small">Mistakes from every game and test come here. Similar questions also come back in levels, training, the Daily Quest and practice tests. Fixed so far: <b>${st.stats.fixed || 0}</b>.</p>
     </main>`);
@@ -1585,7 +1587,7 @@
     const t = st.trainer;
     t.topics = t.topics.filter((x) => MQ.TOPICS[x] && MQ.TOPICS[x].track === st.grade);
     if (!t.topics.length) t.topics = track().core.slice(0, 3);
-    const chip = (id) => { const T = MQ.TOPICS[id]; return `<button class="chip ${t.topics.includes(id) ? 'sel' : ''}" data-act="toggleTopic" data-arg="${id}" aria-pressed="${t.topics.includes(id)}">${T.icon} ${T.name}</button>`; };
+    const chip = (id) => { const T = MQ.TOPICS[id], b = `<button class="chip ${t.topics.includes(id) ? 'sel' : ''}" data-act="toggleTopic" data-arg="${id}" aria-pressed="${t.topics.includes(id)}">${T.icon} ${T.name}</button>`; return id === 'mult' && st.grade === 'g2' ? `<span class="topic-learn">${b}<button class="learn-link" data-act="go" data-arg="lessons">📖 Learn</button></span>` : b; };
     const diffs = ['auto', 1, 2, 3, 4, 5].map((d) => `<button class="seg ${String(t.diff) === String(d) ? 'sel' : ''}" data-act="setDiff" data-arg="${d}">${d === 'auto' ? '🎯<b>Auto</b><small>adjusts to you</small>' : `${D_ICONS[d]}<b>${D_NAMES[d]}</b><small>${track().dLabels[d]}</small>`}</button>`).join('');
     const modes = [['endless', '♾️', 'Endless', 'no clock, hints on'], ['l60', '⚡', 'Lightning 60s', `best: ${st.stats.lightning60 || 0}`], ['l120', '⏱️', 'Lightning 2 min', `best: ${st.stats.lightning120 || 0}`]]
       .map(([id, ic, n, sub]) => `<button class="seg ${t.mode === id ? 'sel' : ''}" data-act="setMode" data-arg="${id}">${ic}<b>${n}</b><small>${sub}</small></button>`).join('');
@@ -2032,6 +2034,7 @@
       </section>
       <section><h2>Progress over time</h2>${progressBlock()}</section>
       <section><h2>Last 14 days</h2><div class="days">${days.map((d) => `<div class="day" title="${d.k}: ${d.n}"><span style="height:${Math.round((d.n / maxN) * 100)}%"></span><small>${d.wd}</small></div>`).join('')}</div></section>
+      ${st.grade === 'g2' ? `<section><h2>📖 Learn</h2><p><b>${MQ.lessons.completed(st)} of 6</b> Multiply &amp; Divide modules complete.</p></section>` : ''}
       <section><h2>Topics</h2><p class="muted">Green ≥ 85% first-try accuracy, yellow 65–84%, red below 65%: a good topic to practice in Endless Training.</p>
         <div class="tablewrap"><table class="topics"><thead><tr><th>Topic · standard</th><th>Tries</th><th>Accuracy</th><th>Highest level</th></tr></thead><tbody>${rows}</tbody></table></div></section>
       <section><h2>Recent mistakes</h2>
@@ -2126,6 +2129,7 @@
     if (scr === 'farm') return MQ.farmUI.show(arg);
     if (scr === 'duel') return MQ.duelUI.show(arg);
     if (scr === 'shapes') return MQ.shapesUI.show(arg);
+    if (scr === 'lessons') return MQ.lessonsUI.show(arg);
     ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, nntypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
 
@@ -2366,6 +2370,7 @@
     if (st && MQ.farmUI && MQ.farmUI.actions[name]) return MQ.farmUI.actions[name](arg, el); // Sunny Farm (js/farm-ui.js)
     if (st && MQ.duelUI && MQ.duelUI.actions[name]) return MQ.duelUI.actions[name](arg, el); // Card Duels (js/duel.js)
     if (st && MQ.shapesUI && MQ.shapesUI.actions[name]) MQ.shapesUI.actions[name](arg, el); // Puzzle Time (js/shapes-ui.js)
+    if (st && MQ.lessonsUI && MQ.lessonsUI.actions[name]) return MQ.lessonsUI.actions[name](arg, el); // Learn (js/lessons-ui.js)
   }
 
   function init() {
@@ -2418,7 +2423,8 @@
   }
 
   // kit: what the Sunny Farm, Card Duels and Puzzle Time screens (js/farm-ui.js, js/duel.js, js/shapes-ui.js) borrow from the app
-  const kit = { render, toast, modal, closeModal, go, checkBadges, header, addGems, addXp, record, state: () => st, setCur: (c) => { cur = c; } };
+  const kit = { render, toast, modal, closeModal, go, checkBadges, header, addGems, addXp, record, state: () => st, setCur: (c) => { cur = c; },
+    startPractice: (topic, d) => { st.trainer = { topics: [topic], diff: d, mode: 'endless' }; S.save(); startTrainer(); } };
   MQ.app = { init, go, kit, session: () => sess, contest: () => ct }; // session() and contest() are used by the browser tests
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

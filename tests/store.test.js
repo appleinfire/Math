@@ -47,6 +47,14 @@ const ua = Object.assign(base(), { rev: 10, duels: { wins: { meadow: 5, crystal:
 const ub = Object.assign(base(), { rev: 20, duels: { wins: { meadow: 3, dragon: 1 }, played: 12 } });
 assert.deepStrictEqual(S.mergeProfiles(ua, ub).duels, { played: 12, wins: { meadow: 5, crystal: 1, dragon: 1 } });
 assert.deepStrictEqual(S.mergeProfiles(base(), Object.assign(base(), { rev: 1 })).duels, { played: 0, wins: {} });
+// Learn course: the furthest step and best result on either device are kept; old saves still work.
+const la = Object.assign(base(), { rev: 8, lessons: { groups: { step: 4, done: true, stars: 1, at: '2026-10-18' }, arrays: { step: 1, done: false, stars: 0, at: '2026-10-18' } } });
+const lb = Object.assign(base(), { rev: 9, lessons: { groups: { step: 3, done: false, stars: 0, at: '2026-10-19' }, arrays: { step: 3, done: false, stars: 0, at: '2026-10-19' } } });
+assert.deepStrictEqual(S.mergeProfiles(la, lb).lessons, {
+  groups: { step: 4, done: true, stars: 1, at: '2026-10-19' },
+  arrays: { step: 3, done: false, stars: 0, at: '2026-10-19' },
+});
+assert.deepStrictEqual(S.mergeProfiles(base(), Object.assign(base(), { rev: 1 })).lessons, {}, 'old copies without lessons still merge');
 
 // Placement Check results taken on two devices are all kept, oldest first.
 const ta = Object.assign(base(), { rev: 10, tests: { checks: [{ id: 'm1', date: '2026-10-01', overall: 5 }] } });
