@@ -2,11 +2,17 @@
 // Checks Learn course content, generated questions, error-specific hints, progression and both assessment paths.
 const path = require('path');
 const assert = require('assert');
+const fs = require('fs');
 for (const f of ['util', 'lessons', 'content']) require(path.join(__dirname, '..', 'js', f + '.js'));
 const L = globalThis.MQ.lessons;
+const rulesSource = fs.readFileSync(path.join(__dirname, '..', 'js', 'lessons.js'), 'utf8');
+const uiSource = fs.readFileSync(path.join(__dirname, '..', 'js', 'lessons-ui.js'), 'utf8');
 
 assert.strictEqual(L.MODULES.length, 6, 'six multiplication and division modules');
 assert.deepStrictEqual(L.MODULES.map((m) => m.id), ['groups', 'arrays', 'facts2', 'facts34', 'division', 'families']);
+assert.ok(rulesSource.includes('const { rnd, pick, shuffle } = MQ.U;'), 'lesson generators use shared MQ.U helpers');
+assert.ok(uiSource.includes("MQ.sfx('correct')") && !uiSource.includes("MQ.sfx('right')"), 'correct answers use the available sound');
+assert.ok(!L.module('groups').see.lines.some((s) => /not equal/i.test(s)), 'equal-groups example does not describe a missing unequal picture');
 for (const m of L.MODULES) {
   assert.deepStrictEqual(m.steps, ['see', 'build', 'together', 'try', 'show'], m.id + ': all five lesson steps');
   assert.ok(m.see.title && m.see.text && m.see.visual && m.build.title && m.build.text && m.together.prompt && m.alternate.visual, m.id + ': complete lesson content');
@@ -28,9 +34,27 @@ for (const m of L.MODULES) {
   while (!build.done && guard++ < 100) {
     build = L.buildTap(build, 'tap');
     if (m.id === 'arrays' && build.n === m.build.goal) { build = L.buildTap(build, 'turn'); build = L.buildTap(build, 'cut'); }
+    if (m.id === 'division' && build.shareDone && build.part === 'sharing') build = L.buildTap(build, 'startGrouping');
   }
   assert.ok(build.done, m.id + ': Build it has a working tap path');
 }
+
+// Division Build it teaches both meanings with all 12 objects present in each model.
+let divisionBuild = L.newBuild('division');
+for (let i = 0; i < 12; i++) divisionBuild = L.buildTap(divisionBuild, 'shareBerry');
+assert.deepStrictEqual(divisionBuild.counts, [4, 4, 4], 'sharing deals berries equally to three kids');
+assert.ok(divisionBuild.shareDone && !divisionBuild.done, 'sharing alone does not skip the grouping model');
+divisionBuild = L.buildTap(divisionBuild, 'startGrouping');
+assert.strictEqual(divisionBuild.part, 'grouping');
+for (let i = 0; i < 12; i++) divisionBuild = L.buildTap(divisionBuild, 'groupBerry');
+assert.ok(divisionBuild.done && divisionBuild.groupingN === 12, 'grouping uses all 12 berries');
+
+let arrayBuild = L.newBuild('arrays');
+for (let i = 0; i < 15; i++) arrayBuild = L.buildTap(arrayBuild, `dot:${i}`);
+arrayBuild = L.buildTap(arrayBuild, 'turn');
+assert.ok(arrayBuild.turned && !arrayBuild.done, 'array must still be split after it is turned');
+arrayBuild = L.buildTap(arrayBuild, 'cut');
+assert.ok(arrayBuild.done, 'turned and split array completes Build it');
 
 // The examples called out in the lesson brief have exact, misconception-specific feedback.
 let addInstead, subtractInstead;
