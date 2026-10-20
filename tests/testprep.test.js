@@ -9,6 +9,20 @@ const P = MQ.prep;
 // Every topic used by the check has a domain.
 for (const track of Object.values(P.POOL)) for (const [dom, topics] of Object.entries(track)) for (const t of topics) assert.strictEqual(MQ.TOPICS[t].domain, dom, t);
 
+// Multiplication and division enter only when the adaptive check rises above 2nd grade.
+for (let step = 0; step <= 7; step++) {
+  assert.ok(!P.sourcesAt(step, 'alg').some((s) => s.topic === 'mult'), `${P.STEPS[step].label} must not include multiplication`);
+  for (let i = 0; i < 40; i++) assert.notStrictEqual(P.problemAt(step, 'alg').topic, 'mult');
+}
+const early3Sources = P.sourcesAt(8, 'alg'), grade3Sources = P.sourcesAt(9, 'alg');
+assert.deepStrictEqual(early3Sources.find((s) => s.topic === 'mult').d, [1, 2, 3], 'Early 3rd checks equal groups and multiplication facts');
+assert.strictEqual(grade3Sources.find((s) => s.topic === 'mult').d, 4, '3rd grade+ checks division and a missing factor');
+for (const [step, allowed] of [[8, new Set([1, 2, 3])], [9, new Set([4])]]) {
+  const mult = Array.from({ length: 200 }, () => P.problemAt(step, 'alg')).filter((p) => p.topic === 'mult');
+  assert.ok(mult.length, `${P.STEPS[step].label} must generate multiplication questions`);
+  assert.ok(mult.every((p) => allowed.has(p.d)), `${P.STEPS[step].label} uses the intended multiplication level`);
+}
+
 // A simulated child: knows everything well below their level, nothing well above, and guesses on choices.
 function simulate(grade, level, history = []) {
   const eng = P.newCheck(grade, history);
@@ -21,7 +35,7 @@ function simulate(grade, level, history = []) {
   return P.result(eng);
 }
 
-const RUNS = 60;
+const RUNS = 200;
 let worst = 1;
 for (const grade of ['k', 'g2']) {
   for (const level of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
@@ -38,12 +52,14 @@ for (const grade of ['k', 'g2']) {
     assert.ok(drate >= 0.75, `domain estimates for ${grade} level ${level} are too rough (${drate})`);
   }
 }
+assert.ok(worst >= 0.97, `Placement Check must stay within one step in at least 97% of simulated runs (${worst})`);
 
 // Check length matches the plan: about 20 questions for K, 30 for 2nd grade, domains interleaved.
 const ek = P.newCheck('k'), e2 = P.newCheck('g2');
 assert.strictEqual(P.total(ek), 20);
 assert.strictEqual(P.total(e2), 30);
 assert.deepStrictEqual(e2.plan.slice(0, 4), ['nbt', 'alg', 'md', 'geo']);
+assert.deepStrictEqual(Object.fromEntries(P.DOMAINS.map((d) => [d.id, e2.plan.filter((x) => x === d.id).length])), { nbt: 8, alg: 8, md: 8, geo: 6 });
 assert.strictEqual(e2.start, 3, 'first 2nd-grade check starts one grade below (Early 1st)');
 assert.strictEqual(P.newCheck('g2', [{ grade: 'g2', overall: 7.2 }]).start, 6, 'a later check starts just below the last result');
 

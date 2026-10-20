@@ -47,6 +47,19 @@
   const TOP = P.STEPS.length - 1;
   const clampStep = (x) => U.clamp(Math.round(x), 0, TOP);
   P.label = (theta) => P.STEPS[clampStep(theta)].label;
+  // Above 2nd grade, Algebra also checks the 3.OA skills that i-Ready can reach adaptively.
+  // Early 3rd uses multiplication models and facts; 3rd grade+ uses division and a missing factor.
+  P.sourcesAt = (step, dom) => {
+    const st = P.STEPS[clampStep(step)];
+    const sources = POOL[st.track][dom].map((topic) => ({ topic, d: st.d }));
+    if (st.track === 'g2' && dom === 'alg' && st.d === 4) sources.push({ topic: 'mult', d: [1, 2, 3] });
+    if (st.track === 'g2' && dom === 'alg' && st.d === 5) sources.push({ topic: 'mult', d: 4 });
+    return sources;
+  };
+  P.problemAt = (step, dom) => {
+    const source = U.pick(P.sourcesAt(step, dom));
+    return MQ.makeProblem(source.topic, Array.isArray(source.d) ? U.pick(source.d) : source.d);
+  };
 
   // Where a child "should" be today: fall = early, winter = mid, spring = late in their grade.
   P.expected = (grade, date = new Date()) => {
@@ -99,10 +112,9 @@
   P.next = (eng) => {
     const dom = eng.plan[eng.items.length];
     const step = clampStep(domainNow(eng, dom));
-    const st = P.STEPS[step];
     let p;
     for (let i = 0; i < 30; i++) {
-      p = MQ.makeProblem(U.pick(POOL[st.track][dom]), st.d);
+      p = P.problemAt(step, dom);
       const key = p.text + (p.visual || '');
       if (!eng.seen.has(key)) { eng.seen.add(key); break; }
     }
