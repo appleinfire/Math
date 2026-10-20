@@ -13497,7 +13497,7 @@ button.du-st:active { transform: translateY(2px); }
   }
   function drawBuild() {
     const x = run.module.build;
-    K().render(shell(`<section class="ls-card"><div class="ls-step"><span>2 · Build it</span>${speakButton()}</div><h2>${x.title}</h2><p class="lead">${x.text}</p>${buildBoard()}${run.build.done ? '<div class="ls-good">✓ You built it!</div><button class="btn big" data-act="lessonNext">Solve together →</button>' : ''}</section>`, 1));
+    K().render(shell(`<section class="ls-card"><div class="ls-step"><span>2 · Build it</span>${speakButton()}</div><h2>${x.title}</h2><p class="lead">${run.build.part === 'grouping' ? 'Now the other meaning: how many groups of 3 are in 12?' : x.text}</p>${buildBoard()}${run.build.done ? '<div class="ls-good">✓ You built it!</div><button class="btn big" data-act="lessonNext">Solve together →</button>' : ''}</section>`, 1));
     autoSpeak(`build:${run.build.part || 'main'}`);
   }
   function drawQuestion() {
