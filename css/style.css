@@ -791,6 +791,27 @@ svg.vis.abacus { max-height: 160px; }
 /* Home: Fix-it Lab, progress, daily goal */
 .t-fixit.hot { box-shadow: inset 0 0 0 3px #3c9d5d, 0 4px 0 #2b7b46; background: #e6f6ec; }
 .t-class { box-shadow: inset 0 0 0 3px #3f7fd8, 0 4px 0 #2a5fb0; background: #e3edfc; }
+.school { width: min(760px, 100%); margin: 0 auto; box-sizing: border-box; }
+.sc-week { width: 100%; border: 0; border-radius: 18px; padding: 12px 14px; margin: 6px 0 10px; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; text-align: left; color: var(--ink); background: #e3edfc; box-shadow: inset 0 0 0 3px #3f7fd8, 0 4px 0 #2a5fb0; }
+.sc-week b { display: block; font: 600 1.15rem/1.2 var(--display); }
+.sc-week small { display: block; color: var(--ink-soft); font-weight: 700; margin-top: 2px; }
+.sc-week .sc-wi { font-size: 1.9rem; }
+.sc-week .btn { background: #3f7fd8; box-shadow: 0 4px 0 #2a5fb0; white-space: nowrap; }
+.sc-units { display: grid; gap: 10px; margin-top: 10px; }
+.sc-unit { border-radius: 18px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line), 0 4px 0 var(--line); overflow: hidden; }
+.sc-unit.here { box-shadow: inset 0 0 0 3px #3f7fd8, 0 4px 0 #2a5fb0; }
+.sc-head { width: 100%; border: 0; background: none; padding: 11px 14px; display: grid; grid-template-columns: 36px minmax(0, 1fr) 22px; gap: 10px; align-items: center; text-align: left; color: var(--ink); min-height: 64px; }
+.sc-head b { display: block; font: 600 1.08rem/1.2 var(--display); }
+.sc-head small { display: block; margin-top: 2px; color: var(--ink-soft); font-weight: 700; }
+.sc-num { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #e3edfc; color: #2a5fb0; font-weight: 900; }
+.sc-go { font-size: 1.6rem; color: #3f7fd8; text-align: center; }
+.sc-unit.locked .sc-head { opacity: 0.6; }
+.sc-parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; padding: 0 12px 12px; }
+.sc-part { border: 0; border-radius: 14px; padding: 10px 12px; text-align: left; background: #f4f7fb; box-shadow: inset 0 0 0 2px var(--line); color: var(--ink); min-height: 58px; }
+.sc-part b { display: block; font-weight: 800; }
+.sc-part small { display: block; color: var(--ink-soft); font-weight: 700; }
+.sc-part.now { background: #e3edfc; box-shadow: inset 0 0 0 3px #3f7fd8; }
+.sc-tag { display: inline-block; margin-top: 4px; font-size: 0.78rem; font-weight: 800; color: #2a5fb0; }
 .classset .chips .chip { text-align: left; }
 .classnote { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--sun-soft); font-weight: 700; }
 .t-progress { box-shadow: inset 0 0 0 2px var(--line), 0 3px 0 var(--line); }

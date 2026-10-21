@@ -326,7 +326,7 @@
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
-    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg), duel: () => MQ.duelUI.show(), shapes: () => MQ.shapesUI.show(), lessons: () => MQ.lessonsUI.show() }[scr];
+    const redraw = { home, map, journal, badges, prep, fixit, progress, school, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg), duel: () => MQ.duelUI.show(), shapes: () => MQ.shapesUI.show(), lessons: () => MQ.lessonsUI.show() }[scr];
     if (redraw) redraw();
   }
   function newExplorer() {
@@ -433,10 +433,27 @@
     later(growCheck, 900);
   }
 
-  // In class now (js/school.js): practice that follows what the class is learning; a grown-up sets it on the grown-ups page.
+  // School lessons (js/school.js): every lesson group of the class's math program, this week's first.
+  // The child opens any module unless a grown-up limits them; with another program, the topics a grown-up picked.
   function classTile() {
-    const f = MQ.school.focus(st);
-    return f ? `<button class="tile t-class" data-act="classPractice"><span class="ti">🏫</span><b>In class now</b><small>${esc(f.title)}</small></button>` : '';
+    const SC = MQ.school, pid = SC.program(st), f = SC.focus(st);
+    if (pid === 'topics') return f ? `<button class="tile t-class" data-act="classPractice"><span class="ti">🏫</span><b>In class now</b><small>${esc(f.title)}</small></button>` : '';
+    if (!pid) return '';
+    return `<button class="tile t-class" data-act="go" data-arg="school"><span class="ti">🏫</span><b>School lessons</b><small>${f ? 'In class: ' + esc(f.title) : `${SC.units(pid, st.grade).length} modules`}</small></button>`;
+  }
+  function school() {
+    const SC = MQ.school, pid = SC.program(st);
+    if (!pid || pid === 'topics') return home();
+    const units = SC.units(pid, st.grade), wk = SC.week(st), f = SC.focus(st), P = SC.PROGRAMS[pid];
+    const wkKey = wk ? wk.unit + ':' + wk.part : '', shownN = ui.sc && ui.sc.wk === wkKey ? ui.sc.n : wk ? wk.unit : 0; // the child's last open module, until the week changes
+    const now = f ? `<button class="sc-week" data-act="classPractice" data-arg="${wk.unit}:${wk.part}"><span class="sc-wi">🏫</span><span><b>In class now</b><small>${esc(f.title)} · ${esc(f.sub)}</small></span><span class="btn">Practice ▶</span></button>` : '';
+    const list = units.map((u) => {
+      const open = SC.isOpen(st, u.n, S.preview), here = !!wk && wk.unit === u.n, shown = open && shownN === u.n;
+      const parts = shown ? `<div class="sc-parts">${u.parts.map((p, i) => { const isNow = here && wk.part === i; return `<button class="sc-part ${isNow ? 'now' : ''}" data-act="classPractice" data-arg="${u.n}:${i}"><b>Lessons ${p.from}–${p.to}</b><small>${esc(p.title)}</small>${isNow ? '<span class="sc-tag">🏫 In class now</span>' : ''}</button>`; }).join('')}</div>` : '';
+      return `<section class="sc-unit ${open ? '' : 'locked'} ${shown ? 'open' : ''} ${here ? 'here' : ''}"><button class="sc-head" data-act="schoolUnit" data-arg="${u.n}" aria-expanded="${shown}"><span class="sc-num">${open ? u.n : '🔒'}</span><span><b>${esc(u.title)}</b><small>${open ? `${P.unitName} ${u.n} · ${u.parts.length} lesson groups${here ? ' · 🏫 in class now' : ''}` : 'A grown-up can open it'}</small></span><span class="sc-go">${shown ? '▾' : '›'}</span></button>${parts}</section>`;
+    }).join('');
+    render(header('School lessons') + `<main class="school"><p class="lead">${esc(P.short)} · ${MQ.track(st.grade).label}</p>${now}<p class="muted">Pick any lessons to practice: 10 problems each.</p><div class="sc-units">${list}</div></main>`);
+    cur = 'school';
   }
 
   // Sunny Farm: level, money and what's waiting (ripe crops, things to collect, a full basket).
@@ -679,7 +696,7 @@
       <section class="pcard" id="pcard"></section>
       <div id="answer" class="answer"></div>
     </div>`, 'is-play');
-    say(sess.mode === 'level' ? `${bname()}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${bname()}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${bname()}: Lightning round! Go go go! ⚡` : sess.classSet ? `${bname()}: Let’s practice what your class is learning! 🏫` : sess.mode === 'daily' ? `${bname()}: Today’s quest — ${sess.warm && sess.warm.length ? '5 math puzzles and 2 GATE warm-ups 🔷' : '5 mixed puzzles'}!` : `${bname()}: Let’s train! Every 5 in a row opens a chest. 🎁`);
+    say(sess.mode === 'level' ? `${bname()}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${bname()}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${bname()}: Lightning round! Go go go! ⚡` : sess.classSet ? `${bname()}: ${sess.classSet.now ? 'Let’s practice what your class is learning!' : `Let’s practice: ${sess.classSet.title}!`} 🏫` : sess.mode === 'daily' ? `${bname()}: Today’s quest — ${sess.warm && sess.warm.length ? '5 math puzzles and 2 GATE warm-ups 🔷' : '5 mixed puzzles'}!` : `${bname()}: Let’s train! Every 5 in a row opens a chest. 🎁`);
     nextProblem();
     if (sess.timer) sess.interval = setInterval(tick, 1000);
   }
@@ -694,7 +711,7 @@
     const el = $('#pstatus');
     if (!el) return;
     if (sess.classSet) {
-      el.innerHTML = `<span class="ptitle">🏫 In class now</span><span class="slots">${U.range(1, sess.goal).map((i) => `<i class="${i <= sess.correct ? 'on' : ''}"></i>`).join('')}</span>`;
+      el.innerHTML = `<span class="ptitle">🏫 ${sess.classSet.now ? 'In class now' : 'School lessons'}</span><span class="slots">${U.range(1, sess.goal).map((i) => `<i class="${i <= sess.correct ? 'on' : ''}"></i>`).join('')}</span>`;
     } else if (sess.mode === 'trainer') {
       const m = Math.floor(sess.left / 60), s = String(sess.left % 60).padStart(2, '0');
       el.innerHTML = `<span class="stat">🔥 <b>${sess.streak}</b></span><span class="stat">✓ <b>${sess.correct}</b></span>` +
@@ -1050,8 +1067,8 @@
     const acc = pct(sess.firstTry, sess.answered), cls = sess.classSet;
     render(`<main class="result" style="${cls ? '--wc:#3f7fd8;--wt:#e3edfc' : '--wc:#ff6b5b;--wt:#ffe3dd'}">
       <div class="bigemoji">${cls ? '🏫' : sess.timer ? '⚡' : '♾️'}</div>
-      <h1 class="title">${cls ? 'Class practice done!' : sess.timer ? 'Time!' : 'Training done!'}</h1>
-      ${cls ? `<p class="lead">${esc(cls.title)}</p>` : ''}
+      <h1 class="title">${cls ? 'Lesson practice done!' : sess.timer ? 'Time!' : 'Training done!'}</h1>
+      ${cls ? `<p class="lead">${esc(cls.title)}${cls.program === 'topics' ? '' : ` · ${esc(cls.sub)}`}</p>` : ''}
       ${record ? `<div class="unlock">🏆 ${record}</div>` : ''}
       <div class="sumgrid">
         <div><b>${sess.correct}</b><small>correct</small></div>
@@ -1062,7 +1079,7 @@
       ${sess.fixedNow ? `<div class="unlock">🛠️ ${sess.fixedNow} old ${sess.fixedNow === 1 ? 'mistake' : 'mistakes'} fixed for good!</div>` : ''}
       ${sess.earned + sess.fixedNow ? eggNudge() : ''}
       <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button>${cls
-        ? `${cls.learn && st.grade === 'g2' ? '<button class="btn ghost" data-act="go" data-arg="lessons">📖 Learn</button>' : ''}<button class="btn" data-act="classPractice">Practice again</button>`
+        ? `${cls.learn && st.grade === 'g2' ? '<button class="btn ghost" data-act="go" data-arg="lessons">📖 Learn</button>' : ''}${cls.program === 'topics' ? '' : '<button class="btn ghost" data-act="go" data-arg="school">Other lessons</button>'}<button class="btn" data-act="classPractice" data-arg="${sess.classArg}">Practice again</button>`
         : sess.kgTopic
         ? `<button class="btn ghost" data-act="go" data-arg="${MQ.TOPICS[sess.kgTopic].cogat ? 'cgtypes' : MQ.TOPICS[sess.kgTopic].logic ? 'lgtypes' : 'kgtypes'}">Other types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
         : '<button class="btn ghost" data-act="go" data-arg="trainer">Change settings</button><button class="btn" data-act="startTrainer">Play again</button>'}</div></main>`);
@@ -1126,7 +1143,7 @@
       return finishFixit();
     }
     if (sess.mode === 'trainer') {
-      if (sess.answered === 0) return go(sess.classSet ? 'home' : 'trainer');
+      if (sess.answered === 0) return go(sess.classSet ? (sess.classArg ? 'school' : 'home') : 'trainer');
       clearTimers();
       sess.locked = true;
       return finishTrainer();
@@ -1629,11 +1646,14 @@
       revFit: (r) => familyOf(r.topic) === st.grade });
   }
   const CLASS_GOAL = 10;
-  function startClass() {
-    const f = MQ.school.focus(st);
+  function startClass(arg) { // arg 'unit:part' = a lesson group from School lessons; none = what the class is on now
+    const SC = MQ.school;
+    let f;
+    if (arg) { const [n, pi] = arg.split(':').map(Number); if (!SC.isOpen(st, n, S.preview)) return go('school'); f = SC.focusFor(st, n, pi); }
+    else f = SC.focus(st);
     if (!f) return home();
     const topics = new Set(f.skills.map((k) => k.topic));
-    startSession({ mode: 'trainer', classSet: f, skills: f.skills, topics: [...topics], d: [2, 2], goal: CLASS_GOAL, timer: 0, revFit: (r) => topics.has(r.topic) });
+    startSession({ mode: 'trainer', classSet: f, classArg: arg || '', skills: f.skills, topics: [...topics], d: [2, 2], goal: CLASS_GOAL, timer: 0, revFit: (r) => topics.has(r.topic) });
   }
   function startDaily() {
     // Mix of topics from worlds that are open, at a level that stretches a little.
@@ -2107,31 +2127,36 @@
     </main>`);
   }
 
-  // In class now: the school's math program and this week's lessons (or, for any program, the topics in class).
+  // School lessons: the school's math program, this week's lessons (optional) and which modules the child can open
+  // (or, for any program, the topics in class).
   function classSection() {
-    const SC = MQ.school, c = SC.settings(st), f = SC.focus(st), P = SC.PROGRAMS[c.program], units = SC.units(c.program, st.grade);
-    const chip = (act, arg, label, on) => `<button class="chip ${on ? 'sel' : ''}" data-act="${act}" data-arg="${arg}" aria-pressed="${on}">${label}</button>`;
-    let body = '';
+    const SC = MQ.school, c = SC.settings(st), pid = SC.program(st), f = SC.focus(st), P = SC.PROGRAMS[pid], units = SC.units(pid, st.grade), wk = SC.week(st);
+    const chip = (act, arg, label, on, off = false) => `<button class="chip ${on ? 'sel' : ''}" data-act="${act}" data-arg="${arg}" aria-pressed="${on}" ${off ? 'disabled' : ''}>${label}</button>`;
+    let body = '', what = '';
     if (P && units.length) {
-      const unit = units.find((u) => u.n === c.unit) || units[0];
-      body = `<div class="label">${P.unitName}</div><div class="chips">${units.map((u) => chip('setSchoolUnit', u.n, `${u.n} · ${esc(u.title)}`, u.n === unit.n)).join('')}</div>
-        <div class="label">Lessons this week</div><div class="chips">${unit.parts.map((p, i) => chip('setSchoolPart', i, `${p.from}–${p.to} · ${esc(p.title)}`, unit.n === c.unit && i === c.part)).join('')}</div>
-        <p class="muted">${esc(P.how)}</p>`;
-    } else if (c.program === 'topics') {
+      const unit = wk && units.find((u) => u.n === wk.unit), mix = f ? [...new Set(f.skills.filter((k) => k.w > 1).map(SC.skillName))].join(', ') : '';
+      body = `<div class="label">This week in class (optional)</div><div class="chips">${chip('setSchoolUnit', 0, 'Not set', !wk)}${units.map((u) => chip('setSchoolUnit', u.n, `${u.n} · ${esc(u.title)}`, !!wk && wk.unit === u.n)).join('')}</div>
+        ${unit ? `<div class="label">Lessons this week</div><div class="chips">${unit.parts.map((p, i) => chip('setSchoolPart', i, `${p.from}–${p.to} · ${esc(p.title)}`, wk.part === i)).join('')}</div>` : ''}
+        <p class="muted">${esc(P.how)}</p>
+        <div class="label">What ${esc(st.name)} can open</div><div class="chips">${chip('setSchoolOpen', 'all', 'Every module', c.open !== 'chosen')}${chip('setSchoolOpen', 'chosen', 'Only modules I choose', c.open === 'chosen')}</div>
+        ${c.open === 'chosen' ? `<div class="chips">${units.map((u) => { const week = !!wk && wk.unit === u.n; return chip('toggleSchoolAllowed', u.n, `${u.n} · ${esc(u.title)}`, week || (c.allowed || []).includes(u.n), week); }).join('')}</div><p class="muted">This week’s module is always open.</p>` : ''}`;
+      what = `<p class="muted">Home screen: <b>🏫 School lessons</b>. ${esc(st.name)} picks any lessons of ${c.open === 'chosen' ? 'the open modules' : 'every module, also ones the class has not reached yet'}: 10 problems each.${f ? ` <b>${esc(f.title)}</b> (${esc(f.sub)}) is marked 🏫 In class now, and 2 questions of every Daily Quest come from it. Practice now: ${esc(mix)}.` : ' Mark this week’s lessons to put them first and into the Daily Quest.'}</p>`;
+    } else if (pid === 'topics') {
       body = `<div class="label">Topics the class is on now (up to ${SC.TOPIC_MAX})</div><div class="chips">${track().core.map((id) => chip('toggleSchoolTopic', id, `${MQ.TOPICS[id].icon} ${MQ.TOPICS[id].name}`, c.topics.includes(id))).join('')}</div>`;
+      if (f) what = `<p class="muted">Home screen: <b>🏫 In class now · ${esc(f.title)}</b>, 10 problems. 2 questions of every Daily Quest come from it too.</p>`;
     }
     const nx = SC.next(st);
-    const stale = SC.stale(st) ? `<p class="classnote">Set on ${fmtDate(c.at)}. Has the class moved on?${nx ? ' <button class="linkbtn" data-act="schoolNext">Go to the next lessons</button>' : ''}</p>` : '';
-    const mix = f ? [...new Set(f.skills.filter((k) => k.w > 1 || f.program === 'topics').map(SC.skillName))].join(', ') : '';
-    const what = f ? `<p class="muted">Home screen: <b>🏫 In class now · ${esc(f.title)}</b>${f.program === 'topics' ? '' : ` (${esc(f.sub)})`}, 10 problems. ${f.program === 'topics' ? '' : 'These lessons come up most; earlier lessons of the module come back as review. '}2 questions of every Daily Quest come from it too. Practice now: ${esc(mix)}.</p>` : '';
-    return `<section class="settings classset"><h2>🏫 In class now</h2>
-      <p class="muted">Tell the app what ${esc(st.name)}’s class is learning this week, and practice follows it: a tile on the home screen and part of the Daily Quest. Levels and worlds stay as they are.</p>
+    const stale = SC.stale(st) ? `<p class="classnote">This week’s lessons were set on ${fmtDate(c.weekAt || c.at)}. Has the class moved on?${nx ? ' <button class="linkbtn" data-act="schoolNext">Go to the next lessons</button>' : ''}</p>` : '';
+    return `<section class="settings classset"><h2>🏫 School lessons</h2>
+      <p class="muted">Practice by the lessons of ${esc(st.name)}’s math program at school. Levels and worlds stay as they are.</p>
       <div class="label">Math program at school</div>
-      <div class="chips">${SC.programsFor(st.grade).map((id) => chip('setSchool', id, esc(SC.PROGRAMS[id].short), c.program === id)).join('')}${chip('setSchool', 'topics', 'Another program: pick topics', c.program === 'topics')}${chip('setSchool', 'off', 'Off', !c.program || (c.program !== 'topics' && !units.length))}</div>
+      <div class="chips">${SC.programsFor(st.grade).map((id) => chip('setSchool', id, esc(SC.PROGRAMS[id].short), pid === id)).join('')}${chip('setSchool', 'topics', 'Another program: pick topics', pid === 'topics')}${chip('setSchool', 'off', 'Off', !pid)}</div>
       ${body}${stale}${what}</section>`;
   }
+  // Any change marks the setting as chosen by a grown-up (until then 2nd grade follows its program by default).
   function setSchool(change) {
-    st.settings.school = Object.assign(MQ.school.settings(st), change, { at: U.dateKey() });
+    const SC = MQ.school, c = SC.settings(st);
+    st.settings.school = Object.assign(c, { program: c.program || SC.program(st) || 'off' }, change, { at: U.dateKey() });
     S.save();
     keepScroll(parent);
   }
@@ -2188,7 +2213,7 @@
     if (scr === 'duel') return MQ.duelUI.show(arg);
     if (scr === 'shapes') return MQ.shapesUI.show(arg);
     if (scr === 'lessons') return MQ.lessonsUI.show(arg);
-    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, nntypes, fixit, progress, parent: parentGate }[scr] || home)();
+    ({ home, map, world: () => world(arg), trainer, school, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, nntypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
 
   const ACTIONS = {
@@ -2329,12 +2354,20 @@
     },
     progRange: (a) => { prog().range = a; keepScroll(cur === 'progress' ? progress : parent); },
     progTopic: (a) => { prog().topic = a; keepScroll(cur === 'progress' ? progress : parent); },
-    classPractice: () => startClass(),
-    setSchool: (a) => setSchool({ program: a === 'off' ? '' : a }),
-    setSchoolUnit: (a) => setSchool({ unit: +a, part: 0 }),
-    setSchoolPart: (a) => setSchool({ part: +a }),
+    classPractice: (a) => startClass(a),
+    schoolUnit: (a) => {
+      if (!MQ.school.isOpen(st, +a, S.preview)) return toast('🔒 A grown-up can open this module in <b>For grown-ups</b>.');
+      const wk = MQ.school.week(st), wkKey = wk ? wk.unit + ':' + wk.part : '', shown = ui.sc && ui.sc.wk === wkKey ? ui.sc.n : wk ? wk.unit : 0;
+      ui.sc = { n: shown === +a ? 0 : +a, wk: wkKey };
+      keepScroll(school);
+    },
+    setSchool: (a) => setSchool({ program: a }),
+    setSchoolUnit: (a) => setSchool({ unit: +a, part: 0, weekAt: U.dateKey() }),
+    setSchoolPart: (a) => setSchool({ part: +a, weekAt: U.dateKey() }),
+    setSchoolOpen: (a) => setSchool({ open: a }),
+    toggleSchoolAllowed: (a) => { const al = MQ.school.settings(st).allowed || []; setSchool({ allowed: al.includes(+a) ? al.filter((x) => x !== +a) : [...al, +a].sort((x, y) => x - y) }); },
     toggleSchoolTopic: (a) => { const t = MQ.school.settings(st).topics; setSchool({ topics: t.includes(a) ? t.filter((x) => x !== a) : [...t, a].slice(-MQ.school.TOPIC_MAX) }); },
-    schoolNext: () => { const nx = MQ.school.next(st); if (nx) setSchool(nx); },
+    schoolNext: () => { const nx = MQ.school.next(st); if (nx) setSchool(Object.assign(nx, { weekAt: U.dateKey() })); },
     setGoal: (a, el) => {
       const [k, v] = a.split(':');
       st.goal = Object.assign({ perDay: 0, days: 5 }, st.goal, { [k]: +v });

@@ -1,4 +1,4 @@
-// Browser test for "In class now": node tests/school-smoke.mjs [screenshotDir]
+// Browser test for School lessons: node tests/school-smoke.mjs [screenshotDir]
 // A grown-up picks the school program and this week's lessons, the home screen shows the tile, a class practice
 // asks only those skills, the Daily Quest mixes in 2 of them, and every new picture renders on a phone and an iPad.
 import { createRequire } from 'module';
@@ -54,54 +54,100 @@ async function run(viewport, tag) {
   await page.click('[data-act=pickGrade][data-arg=g2]');
   await page.click('[data-act=createKid]');
   await page.waitForSelector('.home');
-  if (await page.$('.t-class')) errors.push(tag + ': class tile shows before a grown-up sets it');
+  const practice = async (want, title) => { // play a whole lesson practice; returns the topics and kinds asked
+    const kinds = new Set(), topics = new Set();
+    for (let i = 0; i < 10; i++) {
+      await ready(page);
+      if (await page.$('.result')) break;
+      const q = await page.evaluate(() => ({ k: MQ.app.session().p.kindId || '', t: MQ.app.session().p.topic, title: document.querySelector('.pstatus .ptitle').textContent }));
+      kinds.add(q.k); topics.add(q.t);
+      if (!title.test(q.title)) errors.push(tag + ': play bar title ' + q.title);
+      if (i === 0) await snap('04-play-' + want);
+      await answer(page);
+      await page.click('.fb.ok [data-act=advance]', { timeout: 3000 }).catch(() => {});
+    }
+    await page.waitForSelector('.result');
+    return { kinds, topics };
+  };
 
-  // ---- a grown-up picks Eureka Math, Module 3, Lessons 8–10
+  // ---- before any grown-up setting: School lessons on the home screen, every module open, no week marked
+  const tile0 = await page.textContent('.t-class').catch(() => '');
+  if (!/School lessons/.test(tile0) || !/8 modules/.test(tile0)) errors.push(tag + ': home tile before any setting: ' + tile0);
+  await page.click('.t-class');
+  await page.waitForSelector('.school');
+  if ((await page.$$('.sc-unit')).length !== 8 || (await page.$$('.sc-unit.locked')).length || (await page.$('.sc-week'))) errors.push(tag + ': School lessons should show 8 open modules and no week');
+  // the child opens Module 8 (not reached in class yet) and practices telling time
+  await page.click('[data-act=schoolUnit][data-arg="8"]');
+  await snap('01-modules');
+  await page.click('[data-act=classPractice][data-arg="8:2"]');
+  const gems0 = await page.evaluate(() => MQ.state.crystals);
+  const m8 = await practice('m8', /School lessons/);
+  if (![...m8.topics].every((t) => ['time', 'shapes'].includes(t))) errors.push(tag + ': Module 8 practice asked ' + [...m8.topics].join(', '));
+  const res = await page.evaluate(() => ({ title: document.querySelector('.result .title').textContent, again: document.querySelector('[data-act=classPractice]').dataset.arg, other: !!document.querySelector('[data-act=go][data-arg=school]') }));
+  if (res.title !== 'Lesson practice done!' || res.again !== '8:2' || !res.other) errors.push(tag + ': result screen ' + JSON.stringify(res));
+  if ((await page.evaluate(() => MQ.state.crystals)) <= gems0) errors.push(tag + ': no crystals for lesson practice');
+  await snap('02-done');
+  if (await page.evaluate(() => MQ.state.settings.school.at)) errors.push(tag + ': playing changed the grown-up setting');
+
+  // ---- a grown-up marks this week: Eureka Math, Module 3, Lessons 8–10
   await grownUps(page);
-  await snap('01-off');
-  await page.click('[data-act=setSchool][data-arg=eureka]');
+  if (!(await page.$('.classset [data-act=setSchool][data-arg=eureka].sel'))) errors.push(tag + ': Eureka not shown as the program in use');
   await page.click('[data-act=setSchoolUnit][data-arg="3"]');
   await page.click('[data-act=setSchoolPart][data-arg="2"]');
+  const today = await page.evaluate(() => MQ.U.dateKey());
   const set = await page.evaluate(() => MQ.state.settings.school);
-  if (set.program !== 'eureka' || set.unit !== 3 || set.part !== 2 || set.at !== (await page.evaluate(() => MQ.U.dateKey()))) errors.push(tag + ': setting not saved ' + JSON.stringify(set));
+  if (set.program !== 'eureka' || set.unit !== 3 || set.part !== 2 || set.at !== today || set.weekAt !== today) errors.push(tag + ': setting not saved ' + JSON.stringify(set));
   const sec = await page.textContent('.classset');
-  if (!/Lessons this week/.test(sec) || !/\$1, \$10 and \$100 bills/.test(sec) || !/Lesson 12 Homework/.test(sec)) errors.push(tag + ': grown-ups section text: ' + sec.slice(0, 300));
+  if (!/Lessons this week/.test(sec) || !/\$1, \$10 and \$100 bills/.test(sec) || !/Lesson 12 Homework/.test(sec) || !/What Sofia can open/.test(sec)) errors.push(tag + ': grown-ups section text: ' + sec.slice(0, 300));
   if (!(await page.$('.classset [data-act=setSchoolPart][data-arg="2"].sel'))) errors.push(tag + ': chosen lessons not highlighted');
-  await snap('02-eureka');
+  await snap('03-week');
 
-  // ---- the home tile and a class practice of 10 problems, all from these lessons (or earlier ones of Module 3)
+  // ---- home tile and School lessons show this week first; its practice asks only Module 3 so far
   await page.evaluate(() => MQ.app.go('home'));
   const tile = await page.textContent('.t-class');
-  if (!/In class now/.test(tile) || !/bills/.test(tile)) errors.push(tag + ': home tile: ' + tile);
-  await snap('03-home');
-  const gems0 = await page.evaluate(() => MQ.state.crystals);
+  if (!/School lessons/.test(tile) || !/In class: \$1, \$10 and \$100 bills/.test(tile)) errors.push(tag + ': home tile: ' + tile);
   await page.click('.t-class');
-  const kinds = new Set(), topics = new Set();
-  for (let i = 0; i < 10; i++) {
-    await ready(page);
-    if (await page.$('.result')) break;
-    const q = await page.evaluate(() => ({ k: MQ.app.session().p.kindId || '', t: MQ.app.session().p.topic, title: document.querySelector('.pstatus .ptitle').textContent }));
-    kinds.add(q.k); topics.add(q.t);
-    if (!/In class now/.test(q.title)) errors.push(tag + ': play bar title ' + q.title);
-    if (i === 0) await snap('04-play');
-    await answer(page);
-    await page.click('.fb.ok [data-act=advance]', { timeout: 3000 }).catch(() => {});
-  }
-  await page.waitForSelector('.result');
-  if (![...topics].every((t) => t === 'place') || !kinds.has('pv_bills')) errors.push(tag + ': class practice asked other things: ' + [...topics, ...kinds].join(', '));
-  const res = await page.evaluate(() => ({ title: document.querySelector('.result .title').textContent, again: !!document.querySelector('[data-act=classPractice]') }));
-  if (res.title !== 'Class practice done!' || !res.again) errors.push(tag + ': result screen ' + JSON.stringify(res));
-  if ((await page.evaluate(() => MQ.state.crystals)) <= gems0) errors.push(tag + ': no crystals for class practice');
-  await snap('05-done');
+  await page.waitForSelector('.sc-week');
+  if (!(await page.$('.sc-unit.here.open .sc-part.now'))) errors.push(tag + ': this week not open and marked on School lessons');
+  await snap('04-school-week');
+  await page.click('.sc-week');
+  const wk = await practice('week', /In class now/);
+  if (![...wk.topics].every((t) => t === 'place') || !wk.kinds.has('pv_bills')) errors.push(tag + ': this week asked other things: ' + [...wk.topics, ...wk.kinds].join(', '));
+  if ((await page.evaluate(() => document.querySelector('[data-act=classPractice]').dataset.arg)) !== '3:2') errors.push(tag + ': practice again is not this week');
+
+  // ---- a grown-up limits what opens: only Module 1 (and this week's Module 3)
+  await grownUps(page);
+  await page.click('[data-act=setSchoolOpen][data-arg=chosen]');
+  await page.click('[data-act=toggleSchoolAllowed][data-arg="1"]');
+  if (!(await page.$('[data-act=toggleSchoolAllowed][data-arg="3"][disabled].sel'))) errors.push(tag + ': this week’s module should be shown as always open');
+  const lim = await page.evaluate(() => MQ.state.settings.school);
+  if (lim.open !== 'chosen' || lim.allowed.join() !== '1' || lim.weekAt !== today) errors.push(tag + ': limit not saved ' + JSON.stringify(lim));
+  await snap('05-limit');
+  await page.evaluate(() => MQ.app.go('school'));
+  const locked = await page.$$eval('.sc-unit', (els) => els.map((e) => (e.classList.contains('locked') ? 'L' : 'o')).join(''));
+  if (locked !== 'oLoLLLLL') errors.push(tag + ': locked modules ' + locked);
+  await page.click('[data-act=schoolUnit][data-arg="5"]');
+  if (!/grown-up can open/i.test(await page.textContent('.toast').catch(() => ''))) errors.push(tag + ': no message on a locked module');
+  if (await page.$('.sc-unit.locked.open')) errors.push(tag + ': a locked module opened');
+  await snap('06-locked');
+  // a locked lesson cannot start even when its button is tapped from somewhere else: back to School lessons
+  await page.evaluate(() => document.querySelector('.school').insertAdjacentHTML('beforeend', '<button id="sneak" data-act="classPractice" data-arg="5:0">x</button>'));
+  await page.click('#sneak');
+  await page.waitForSelector('.school');
+  if (await page.evaluate(() => !!MQ.app.session())) errors.push(tag + ': a locked lesson started');
+  await grownUps(page);
+  await page.click('[data-act=setSchoolOpen][data-arg=all]');
 
   // ---- every new class picture in a real problem card: arrows, place value chart, tape diagram, number bond, bills
   for (const [unit, part, name] of [[4, 0, 'arrows'], [4, 1, 'bundle'], [4, 4, 'take-from-hundred'], [4, 5, 'tape'], [6, 1, 'rows'], [7, 0, 'tally'], [7, 1, 'money'], [7, 5, 'lineplot'], [8, 2, 'time']]) {
-    await page.evaluate(([u, p]) => { MQ.state.settings.school = { program: 'eureka', unit: u, part: p, topics: [], at: MQ.U.dateKey() }; MQ.app.go('home'); }, [unit, part]);
-    await page.click('.t-class');
+    await page.evaluate(() => MQ.app.go('school'));
+    await page.click(`[data-act=schoolUnit][data-arg="${unit}"]`).catch(() => {});
+    if (!(await page.$(`[data-act=classPractice][data-arg="${unit}:${part}"]`))) await page.click(`[data-act=schoolUnit][data-arg="${unit}"]`);
+    await page.click(`.sc-part[data-arg="${unit}:${part}"]`);
     await ready(page);
-    await snap('06-' + name);
+    await snap('07-' + name);
     await page.click('[data-act=quit]');
-    await page.waitForSelector('.home'); // nothing answered yet: straight back home
+    await page.waitForSelector('.school'); // nothing answered yet: straight back to School lessons
   }
   await page.evaluate(() => MQ.app.go('home'));
   const bad = await page.evaluate(() => {
@@ -118,7 +164,7 @@ async function run(viewport, tag) {
   if (bad.length) errors.push(tag + ': ' + bad.join('; '));
 
   // ---- the Daily Quest asks 2 questions from class, marked 🏫 Class
-  await page.evaluate(() => { MQ.state.settings.school = { program: 'eureka', unit: 3, part: 2, topics: [], at: MQ.U.dateKey() }; MQ.state.settings.gatePlan = false; MQ.state.review = {}; MQ.app.go('home'); });
+  await page.evaluate(() => { MQ.state.settings.gatePlan = false; MQ.state.review = {}; MQ.app.go('home'); });
   await page.click('[data-act=daily]');
   let fromClass = 0, chips = 0;
   for (let i = 0; i < 5; i++) {
@@ -126,7 +172,7 @@ async function run(viewport, tag) {
     if (await page.$('.result')) break;
     const q = await page.evaluate(() => ({ cls: !!MQ.app.session().p.cls, chip: !!document.querySelector('.pcard .dchip.cls') }));
     fromClass += q.cls; chips += q.chip;
-    if (q.cls && i === 0) await snap('07-daily-class');
+    if (q.cls && i === 0) await snap('08-daily-class');
     await answer(page);
     await page.click('.fb.ok [data-act=advance]', { timeout: 3000 }).catch(() => {});
   }
@@ -134,7 +180,7 @@ async function run(viewport, tag) {
   await page.waitForSelector('.result');
 
   // ---- three weeks later: ask whether the class moved on, and move on with one tap
-  await page.evaluate(() => { MQ.state.settings.school.at = '2020-01-01'; });
+  await page.evaluate(() => { MQ.state.settings.school.weekAt = '2020-01-01'; });
   await grownUps(page);
   if (!(await page.$('.classnote [data-act=schoolNext]'))) errors.push(tag + ': no "moved on?" note after 3 weeks');
   await page.click('[data-act=schoolNext]');
@@ -146,7 +192,7 @@ async function run(viewport, tag) {
   for (const t of ['time', 'money', 'data', 'shapes']) await page.click(`[data-act=toggleSchoolTopic][data-arg=${t}]`);
   const tp = await page.evaluate(() => MQ.state.settings.school.topics);
   if (tp.join() !== 'money,data,shapes') errors.push(tag + ': topics kept ' + tp.join());
-  await snap('08-topics');
+  await snap('09-topics');
   await page.evaluate(() => MQ.app.go('home'));
   if (!/Money · Graphs · Shapes/.test(await page.textContent('.t-class'))) errors.push(tag + ': topics tile ' + (await page.textContent('.t-class')));
   await page.click('.t-class');
@@ -171,7 +217,7 @@ async function run(viewport, tag) {
   await page.click('.classset [data-act=toggleSchoolTopic] >> nth=0');
   await page.evaluate(() => MQ.app.go('home'));
   if (!(await page.$('.t-class'))) errors.push(tag + ': no class tile for kindergarten topics');
-  await snap('09-k-home');
+  await snap('10-k-home');
 
   if (await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)) errors.push(tag + ': horizontal overflow');
   await page.close();
@@ -181,4 +227,4 @@ await run({ width: 1024, height: 768 }, 'ipad');
 await browser.close();
 await new Promise((resolve) => server.close(resolve));
 if (errors.length) { console.error(errors.join('\n')); process.exit(1); }
-console.log('In class now smoke test OK');
+console.log('School lessons smoke test OK');
