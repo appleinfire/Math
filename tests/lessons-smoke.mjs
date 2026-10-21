@@ -1,5 +1,6 @@
 // Run: node tests/lessons-smoke.mjs
-// Completes Learn modules 1–2 on iPad and phone, including remediation, persistence and grown-up preview.
+// Completes Learn modules 1–2 of Multiply & Divide and module 1 of Add & Subtract on iPad and phone, including
+// remediation, persistence, Practice and grown-up preview, and taps through every Build it model.
 import { createRequire } from 'module';
 import { createServer } from 'http';
 import { existsSync, readFileSync, statSync } from 'fs';
@@ -113,6 +114,53 @@ async function inspectNewBuildModels(page, tag) {
   await noOverflow(page, tag + ' division build');
   await backToLessons(page);
 }
+// Add & Subtract Build it models: ten-frames and place value disks, each with its own tap path and notes.
+const note = async (page) => (await page.locator('.ls-model-note').textContent()).trim();
+async function inspectAddSubModels(page, tag) {
+  await beginModule(page, 'addtens');
+  for (let i = 0; i < 2; i++) await page.click('[data-act=lessonBuild][data-arg=ten]');
+  if (!(await page.locator('[data-act=lessonBuild][data-arg=ten]').isDisabled())) throw new Error(tag + ': more than 2 tens can be added to 34');
+  for (let i = 0; i < 5; i++) await page.click('[data-act=lessonBuild][data-arg=one]');
+  if ((await note(page)) !== '34 + 25 = 5 tens 9 ones = 59' || (await page.locator('.ls-pv .ls-disk.new').count()) !== 7) throw new Error(tag + ': 34 + 25 model');
+  await noOverflow(page, tag + ' add tens build');
+  await backToLessons(page);
+
+  await beginModule(page, 'bundle');
+  for (let i = 0; i < 10; i++) await page.click('.ls-pv button.ls-disk.d1 >> nth=0');
+  if ((await note(page)) !== '10 ones make 1 new ten: 47 + 26 = 7 tens 3 ones = 73' || (await page.locator('.ls-pv-col >> nth=0').locator('.ls-disk').count()) !== 7) throw new Error(tag + ': bundling 10 ones');
+  await noOverflow(page, tag + ' bundle build');
+  await backToLessons(page);
+
+  await beginModule(page, 'unbundle');
+  await page.click('.ls-pv button.ls-disk.d1 >> nth=0');
+  if (!/Unbundle a ten first/.test(await page.locator('.ls-build-msg').textContent())) throw new Error(tag + ': taking away a one before unbundling is not explained');
+  await page.click('.ls-pv button.ls-disk.d10 >> nth=0');
+  if ((await page.locator('.ls-pv-col >> nth=1').locator('.ls-disk').count()) !== 12) throw new Error(tag + ': a ten did not become 10 ones');
+  for (let i = 0; i < 7; i++) await page.click('.ls-pv-col >> nth=1 >> button.ls-disk >> nth=0');
+  for (let i = 0; i < 2; i++) await page.click('.ls-pv-col >> nth=0 >> button.ls-disk >> nth=0');
+  if ((await note(page)) !== '52 − 27 = 2 tens 5 ones = 25' || !(await page.locator('[data-act=lessonNext]').count())) throw new Error(tag + ': 52 − 27 model');
+  await noOverflow(page, tag + ' unbundle build');
+  await backToLessons(page);
+
+  await beginModule(page, 'hundreds');
+  await page.click('.ls-pv-col >> nth=1 >> button.ls-disk >> nth=0');
+  if (!/Start with the ones/.test(await page.locator('.ls-build-msg').textContent())) throw new Error(tag + ': bundling tens first is not explained');
+  await page.click('.ls-pv-col >> nth=2 >> button.ls-disk >> nth=0');
+  await page.click('.ls-pv-col >> nth=1 >> button.ls-disk >> nth=0');
+  if ((await note(page)) !== '365 + 248 = 6 hundreds 1 ten 3 ones = 613') throw new Error(tag + ': 365 + 248 model');
+  await noOverflow(page, tag + ' bundle twice build');
+  await backToLessons(page);
+
+  await beginModule(page, 'zeros');
+  await page.click('.ls-pv-col >> nth=0 >> button.ls-disk >> nth=0');
+  await page.click('.ls-pv-col >> nth=1 >> button.ls-disk >> nth=0');
+  if ((await note(page)) !== 'Ready: 3 hundreds 9 tens 10 ones. 400 − 247 = 153' || (await page.locator('.ls-pv-col >> nth=2').locator('.ls-disk').count()) !== 10) throw new Error(tag + ': 400 − 247 model');
+  await page.click('[data-act=lessonNext]');
+  await page.waitForSelector('.ls-question');
+  if (!(await page.locator('.ls-visual svg.pvchart').count())) throw new Error(tag + ': Solve together has no place value chart');
+  await noOverflow(page, tag + ' zeros question');
+  await backToLessons(page);
+}
 async function openGrownUps(page) {
   await page.click('[data-act=go][data-arg=parent]');
   const eq = await page.locator('.eqline').textContent(), nums = eq.match(/\d+/g).map(Number);
@@ -176,6 +224,29 @@ async function run(viewport, tag) {
   const persisted = await page.evaluate(() => ({ a: MQ.lessons.progress(MQ.state, 'groups'), b: MQ.lessons.progress(MQ.state, 'arrays') }));
   if (!persisted.a.done || !persisted.b.done) throw new Error(tag + ': progress did not survive reload');
 
+  // Add & Subtract: its own module 1 is open, module 2 waits; finish Make a ten, then Practice in Add to 100.
+  if ((await page.locator('.ls-intro[data-course]').count()) !== 2) throw new Error(tag + ': Learn does not show both courses');
+  if (!(await page.locator('[data-module=maketen]').isEnabled()) || (await page.locator('[data-module=addtens]').isEnabled())) throw new Error(tag + ': Add & Subtract does not start at Make a ten');
+  await beginModule(page, 'maketen');
+  if ((await page.locator('.ls-frame.two button').count()) !== 5) throw new Error(tag + ': 8 + 5 ten-frames are missing');
+  await page.click('.ls-frame.two button >> nth=0');
+  await page.click('.ls-frame.two button >> nth=0');
+  if ((await note(page)) !== '8 + 5 = 10 + 3 = 13' || (await page.locator('.ls-frame:not(.two) i.on').count()) !== 10) throw new Error(tag + ': the first ten is not full');
+  await noOverflow(page, tag + ' ten-frames');
+  await page.click('[data-act=lessonNext]');
+  await answerStage(page, 1);
+  await answerStage(page, 4, 1); // a miss in Try it gets a specific hint
+  await answerStage(page, 2);
+  await page.waitForSelector('.ls-finish');
+  await page.click('[data-act=lessonPractice]');
+  const practice = await page.evaluate(() => { const s = MQ.app.session(); return { topics: s.topics, d: s.d, gems: MQ.state.crystals }; });
+  if (practice.topics.join() !== 'add100' || practice.d.join() !== '2,2') throw new Error(tag + ': Practice after Make a ten ' + JSON.stringify(practice));
+  await page.click('[data-act=quit]');
+  await page.click('[data-act=go][data-arg=home]');
+  if (!/3 \/ 12/.test(await page.textContent('.t-learn'))) throw new Error(tag + ': home tile does not count both courses: ' + (await page.textContent('.t-learn')));
+  await page.click('.t-learn');
+  if (!(await page.locator('[data-module=addtens]').isEnabled()) || !(await page.evaluate(() => MQ.state.lessons.maketen.done))) throw new Error(tag + ': Add tens and ones did not open after Make a ten');
+
   // Grown-up preview opens all modules and writes nothing to the saved profile.
   await page.click('[data-act=go][data-arg=home]');
   await openGrownUps(page);
@@ -183,8 +254,9 @@ async function run(viewport, tag) {
   await page.click('[data-act=startPreview]');
   await page.click('[data-act=go][data-arg=home]');
   await page.click('.t-learn');
-  for (const id of ['groups', 'arrays', 'facts2', 'facts34', 'division', 'families']) if (!(await page.locator(`[data-module="${id}"]`).isEnabled())) throw new Error(tag + ': preview did not open ' + id);
+  for (const id of ['groups', 'arrays', 'facts2', 'facts34', 'division', 'families', 'maketen', 'addtens', 'bundle', 'unbundle', 'hundreds', 'zeros']) if (!(await page.locator(`[data-module="${id}"]`).isEnabled())) throw new Error(tag + ': preview did not open ' + id);
   await inspectNewBuildModels(page, tag);
+  await inspectAddSubModels(page, tag);
   await page.click('[data-module=families]');
   await page.click('[data-act=lessonNext]');
   await page.click('[data-act=exitPreview]');

@@ -1999,6 +1999,39 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
 .fspecial { margin: 6px 0 0; padding: 6px 10px; border-radius: 12px; background: #fff1d2; box-shadow: inset 0 0 0 2px #f2c46a; font-size: 0.92rem; font-weight: 700; }
 .ftag.fsp { background: #fff1d2; box-shadow: inset 0 0 0 2px #f2c46a; }
 .ffriend { display: inline-block; margin-top: 4px; font-size: 0.9rem; color: #a2407a; }
+
+/* Learn: Add & Subtract course (two course sections, ten-frames, place value disks). */
+.ls-modules + .ls-intro { margin-top: 26px; }
+.ls-intro h2 small { font: 700 0.9rem var(--body); color: var(--ink-soft); margin-left: 6px; }
+.ls-intro[data-course="addsub"] { background: linear-gradient(135deg, #e3edfc, #fff7de); box-shadow: inset 0 0 0 2px #b9cff2; }
+.ls-frames { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin: 14px auto; }
+.ls-frame { display: grid; grid-template-columns: repeat(5, 38px); grid-template-rows: repeat(2, 38px); gap: 3px; padding: 4px; border-radius: 10px; background: #22304f; }
+.ls-frame > * { border-radius: 6px; background: #ffffff; border: 0; padding: 0; display: grid; place-items: center; }
+.ls-frame i.on::after, .ls-frame button::after { content: ''; width: 26px; height: 26px; border-radius: 50%; background: #ff7e6b; }
+.ls-frame i.on.new::after { background: #3f7fd8; }
+.ls-frame.two button::after { background: #3f7fd8; }
+.ls-frame.two button { cursor: pointer; box-shadow: inset 0 0 0 3px #b9cff2; }
+.ls-plus { font: 700 1.8rem var(--display); color: var(--ink-soft); }
+.ls-pv { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; max-width: 560px; margin: 14px auto 6px; }
+.ls-pv-col { border-radius: 14px; background: #ffffff; box-shadow: inset 0 0 0 2px #c7d0e0; padding: 6px 6px 10px; text-align: center; }
+.ls-pv-col > b { display: block; font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 4px; }
+.ls-pv-disks { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; min-height: 40px; align-content: flex-start; }
+.ls-pv-disks em { color: var(--ink-soft); font-size: 0.8rem; align-self: center; }
+.ls-disk { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #22304f; display: grid; place-items: center; font: 800 0.72rem var(--display); color: #22304f; padding: 0; }
+.ls-disk.d100 { background: #ff8c78; }
+.ls-disk.d10 { background: #ffc94d; }
+.ls-disk.d1 { background: #79c6ea; font-size: 0.85rem; }
+button.ls-disk { cursor: pointer; box-shadow: 0 3px 0 #22304f; }
+.ls-disk.new { outline: 3px solid #3f7fd8; outline-offset: 1px; }
+.ls-disk.sel { outline: 3px solid #23955a; outline-offset: 1px; transform: translateY(-2px); }
+.ls-disk.gone { opacity: 0.25; text-decoration: line-through; border-style: dashed; }
+.ls-build-msg { width: fit-content; max-width: 100%; margin: 8px auto; padding: 8px 12px; border-radius: 12px; background: var(--sun-soft); color: #6b4706; font-weight: 800; }
+@media (max-width: 420px) {
+  .ls-frames { flex-direction: column; gap: 4px; }
+  .ls-frame { grid-template-columns: repeat(5, 30px); grid-template-rows: repeat(2, 30px); }
+  .ls-frame i.on::after, .ls-frame button::after { width: 20px; height: 20px; }
+  .ls-disk { width: 30px; height: 30px; font-size: 0.64rem; }
+}
 </style>
 <div id="app"><p style="padding:40px;text-align:center">Loading Math Expedition…</p></div>
   <script>
@@ -4635,13 +4668,57 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
       together: { title: 'Solve it together', text: 'Find the two factors and their product. Turn each multiplication fact into division.', prompt: 'If 5 × 4 = 20, what is 20 ÷ 5?' },
       alternate: { title: "Let's look at it another way", text: 'Cover one number. Use the other two to find the missing number.', visual: { kind: 'groups', a: 4, b: 3, emoji: '🔷' } } },
   ];
+  // Multiply & Divide records under mult; Practice afterwards starts Endless Training at these levels.
+  L.MODULES.forEach((m, i) => Object.assign(m, { course: 'muldiv', topic: 'mult', practice: { topic: 'mult', d: i < 2 ? 1 : i < 4 ? 2 : 4 } }));
+  // Add & Subtract: the place value models a 2nd-grade class works with (Eureka Math Grade 2 Modules 1, 4 and 5).
+  const another = "Let's look at it another way";
+  const ADDSUB = [
+    { id: 'maketen', icon: '🔟', title: 'Make a ten', d: 2, topic: 'add100', practice: { topic: 'add100', d: 2 },
+      see: { title: 'Make a ten to add', text: 'Break apart the smaller number to fill up a ten.', lines: ['8 + 5: break 5 into 2 and 3', '8 + 2 = 10, then 10 + 3 = 13', '38 + 5 = 40 + 3 = 43'], visual: { kind: 'bond', whole: 5, a: 2, b: 3 } },
+      build: { title: 'Fill the ten: 8 + 5', text: 'Tap a dot in the second frame to move it. Fill up the first ten.', kind: 'tenframe', goal: 2 },
+      together: { title: 'Solve it together', text: 'How many more make the next ten? Take them from the other number, then add the rest.', prompt: 'What is 38 + 7?' },
+      alternate: { title: another, text: 'Jump to the next ten first, then jump the rest.', visual: { kind: 'arrows', start: 38, steps: [{ op: '+2', to: 40 }, { op: '+3', to: 43 }] } } },
+    { id: 'addtens', icon: '🧱', title: 'Add tens and ones', d: 2, topic: 'add100', practice: { topic: 'add100', d: 2 },
+      see: { title: 'Tens with tens, ones with ones', text: 'Add the tens first, then the ones.', lines: ['34 + 25', '34 + 20 = 54', '54 + 5 = 59'], visual: { kind: 'arrows', start: 34, steps: [{ op: '+20', to: 54 }, { op: '+5', to: 59 }] } },
+      build: { title: 'Build 34 + 25', text: 'The chart shows 34. Tap to add 2 tens and 5 ones.', kind: 'pvadd', goal: 7 },
+      together: { title: 'Solve it together', text: 'Add the tens to the tens. Then add the ones to the ones.', prompt: 'What is 34 + 25?' },
+      alternate: { title: another, text: 'Put the tens rods together and the ones cubes together.', visual: { kind: 'blocks', h: 0, t: 5, o: 9 } } },
+    { id: 'bundle', icon: '📦', title: 'Make a new ten', d: 3, topic: 'add100', practice: { topic: 'add100', d: 3 },
+      see: { title: '10 ones make 1 ten', text: 'When the ones make 10 or more, bundle 10 of them into a new ten.', lines: ['47 + 26', 'Ones: 7 + 6 = 13', '13 ones = 1 new ten and 3 ones', 'Tens: 4 + 2 + 1 = 7, so 73'], visual: { kind: 'chart', h: 0, t: 6, o: 13 } },
+      build: { title: 'Bundle 10 ones: 47 + 26', text: '47 + 26 is on the chart. Tap 10 ones to bundle them into a ten.', kind: 'bundle', goal: 10 },
+      together: { title: 'Solve it together', text: 'Add the ones first. 10 or more? Bundle a new ten and add it to the tens.', prompt: 'What is 47 + 26?' },
+      alternate: { title: another, text: 'Jump to the next ten first: 47 + 3 = 50. Then add the rest: 50 + 23 = 73.', visual: { kind: 'arrows', start: 47, steps: [{ op: '+3', to: 50 }, { op: '+23', to: 73 }] } } },
+    { id: 'unbundle', icon: '🔓', title: 'Unbundle a ten', d: 3, topic: 'sub100', practice: { topic: 'sub100', d: 3 },
+      see: { title: 'Not enough ones? Unbundle a ten', text: 'Change 1 ten into 10 ones. Then subtract.', lines: ['52 − 27', '2 ones − 7 ones: not enough!', 'Unbundle a ten: 4 tens and 12 ones', '12 − 7 = 5 and 4 − 2 = 2, so 25'], visual: { kind: 'chart', h: 0, t: 4, o: 12 } },
+      build: { title: 'Take 27 from 52', text: 'Unbundle a ten first. Then take away 7 ones and 2 tens.', kind: 'unbundle', goal: 10 },
+      together: { title: 'Solve it together', text: 'Look at the ones. Not enough to take away? Unbundle a ten. Then subtract the ones and the tens.', prompt: 'What is 52 − 27?' },
+      alternate: { title: another, text: 'Count up from the smaller number instead. The jumps add up to the answer: 3 + 22 = 25.', visual: { kind: 'arrows', start: 27, steps: [{ op: '+3', to: 30 }, { op: '+22', to: 52 }] } } },
+    { id: 'hundreds', icon: '💯', title: 'Add to 1,000', d: 3, topic: 'big', practice: { topic: 'big', d: 3 },
+      see: { title: 'Bundle ones, then tens', text: '10 ones make a ten. 10 tens make a hundred.', lines: ['365 + 248', 'Ones: 5 + 8 = 13: a new ten and 3 ones', 'Tens: 6 + 4 + 1 = 11: a new hundred and 1 ten', 'Hundreds: 3 + 2 + 1 = 6, so 613'], visual: { kind: 'chart', h: 5, t: 10, o: 13 } },
+      build: { title: 'Bundle twice: 365 + 248', text: 'Bundle 10 ones into a ten. Then bundle 10 tens into a hundred.', kind: 'bundle2', goal: 2 },
+      together: { title: 'Solve it together', text: 'Ones, then tens, then hundreds. Bundle whenever a place has 10 or more.', prompt: 'What is 365 + 248?' },
+      alternate: { title: another, text: 'Use arrows: add the hundreds, then the tens, then the ones.', visual: { kind: 'arrows', start: 365, steps: [{ op: '+200', to: 565 }, { op: '+40', to: 605 }, { op: '+8', to: 613 }] } } },
+    { id: 'zeros', icon: '0️⃣', title: 'Subtract across zeros', d: 4, topic: 'big', practice: { topic: 'big', d: 4 },
+      see: { title: 'Unbundle a hundred, then a ten', text: 'No tens and no ones to take from? Unbundle twice.', lines: ['400 − 247', '4 hundreds = 3 hundreds and 10 tens', '10 tens = 9 tens and 10 ones', '3 hundreds 9 tens 10 ones − 247 = 153'], visual: { kind: 'chart', h: 3, t: 9, o: 10 } },
+      build: { title: 'Get 400 ready', text: 'The chart shows 400. Unbundle a hundred, then a ten.', kind: 'zeros', goal: 2 },
+      together: { title: 'Solve it together', text: 'Get ready first: unbundle where you need to. Then subtract the ones, the tens and the hundreds.', prompt: 'What is 400 − 247?' },
+      alternate: { title: another, text: 'Make it easier: take 1 from both numbers. 400 − 247 = 399 − 246 = 153, and nothing needs unbundling.', visual: { kind: 'column', nums: [399, 246], op: '−' } } },
+  ];
+  ADDSUB.forEach((m) => Object.assign(m, { course: 'addsub', minutes: '5–8 min', steps: STEPS.slice() }));
+  L.MODULES.push(...ADDSUB);
+  L.COURSES = [
+    { id: 'addsub', icon: '➕', title: 'Add & Subtract', intro: 'Make a ten, then bundle and unbundle tens and hundreds on the place value chart, the way your class does.' },
+    { id: 'muldiv', icon: '✖️', title: 'Multiply & Divide', intro: 'Learn with pictures, build models, and practice one small step at a time.' },
+  ];
+  L.courseModules = (course) => L.MODULES.filter((m) => m.course === course);
+  L.courseFor = (topic) => (L.MODULES.find((m) => m.topic === topic) || {}).course || '';
   const byId = (id) => L.MODULES.find((m) => m.id === id);
   L.module = byId;
   L.ensure = (st) => (st.lessons = st.lessons || {});
   L.progress = (st, id) => (L.ensure(st)[id] || { step: 0, done: false, stars: 0, at: '' });
-  L.isOpen = (st, id, preview = false) => {
-    const i = L.MODULES.findIndex((m) => m.id === id);
-    return i === 0 || preview || (i > 0 && L.progress(st, L.MODULES[i - 1].id).done);
+  L.isOpen = (st, id, preview = false) => { // each course opens one module after another
+    const m = byId(id), list = m ? L.courseModules(m.course) : [], i = list.indexOf(m);
+    return i === 0 || preview || (i > 0 && L.progress(st, list[i - 1].id).done);
   };
   L.markStep = (st, id, step) => {
     const old = L.progress(st, id), p = (L.ensure(st)[id] = Object.assign({}, old));
@@ -4654,8 +4731,9 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     p.done = true; p.stars = Math.max(1, p.stars || 0); p.at = today();
     return { progress: p, first };
   };
-  L.completed = (st) => L.MODULES.filter((m) => L.progress(st, m.id).done).length;
-  L.practiceDifficulty = (id) => { const i = L.MODULES.findIndex((m) => m.id === id); return i < 2 ? 1 : i < 4 ? 2 : 4; };
+  L.completed = (st, course) => L.MODULES.filter((m) => (!course || m.course === course) && L.progress(st, m.id).done).length;
+  L.practice = (id) => byId(id).practice;
+  L.practiceDifficulty = (id) => byId(id).practice.d;
   L.assessmentPath = (firstTry) => firstTry.length === 2 && firstTry.every(Boolean) ? 'done' : 'another';
 
   function options(answer, likely = []) {
@@ -4665,7 +4743,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     return shuffle(out.slice(0, 4));
   }
   const Q = (module, text, answer, likely, explain, hint, visual, d) => ({
-    module, topic: 'mult', d: d || byId(module).d, kind: 'choice', text, say: text.replace(/<[^>]+>/g, ' '), answer,
+    module, topic: byId(module).topic, d: d || byId(module).d, kind: 'choice', text, say: text.replace(/<[^>]+>/g, ' '), answer,
     choices: options(answer, likely), explain, visual: visual || null, hint,
   });
   const countHint = (a, b, answer) => (given) => {
@@ -4712,11 +4790,79 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
       const hint = (given) => +given === total - (answer === a ? b : a) ? 'Division is not subtraction. Use the multiplication fact in the question.' : `The family uses only ${a}, ${b}, and ${total}. Which number is missing?`;
       return Q(id, text, answer, [a, b, total].filter((n) => n !== answer).concat([answer + 1]), `${a} × ${b} = ${total}, ${b} × ${a} = ${total}, ${total} ÷ ${a} = ${b}, and ${total} ÷ ${b} = ${a}.`, hint, alternate ? { kind: 'groups', a, b, emoji: '🔷' } : { kind: 'array', a, b });
     }
+    // ---- Add & Subtract: each wrong choice is a mistake children make, and gets its own hint
+    const dg = (n) => [Math.floor(n / 100), Math.floor(n / 10) % 10, n % 10];
+    const jumps = (start, parts) => { let v = start; return parts.filter(Boolean).map((x, i, all) => ({ op: (x < 0 ? '−' : '+') + Math.abs(x), to: i === all.length - 1 ? null : (v += x) })); };
+    if (id === 'maketen') {
+      let a, b;
+      do { a = rnd(12, hard ? 88 : 78); b = rnd(hard ? 3 : 4, 9); } while (a % 10 === 0 || a % 10 + b < 11 || a + b > 99);
+      const need = 10 - (a % 10), next = a + need, rest = b - need, answer = a + b;
+      const hint = (given) => +given === answer - 10 ? `You forgot the new ten. ${a} + ${need} = ${next}, then ${next} + ${rest} = ${answer}.`
+        : +given === next ? `That is only the next ten. Now add the ${rest} that is left.`
+        : `Make a ten: ${a} + ${need} = ${next}. Then add the ${rest} that is left.`;
+      return Q(id, `What is ${a} + ${b}?`, answer, [answer - 10, next, answer + 1], `${a} + ${need} = ${next}, ${next} + ${rest} = ${answer}.`, hint,
+        alternate ? { kind: 'arrows', start: a, steps: jumps(a, [need, rest]) } : phase === 'show' ? null : { kind: 'bond', whole: b, a: need, b: rest });
+    }
+    if (id === 'addtens') {
+      let a, b;
+      do { a = rnd(12, 78); b = !hard && Math.random() < 0.4 ? rnd(1, 6) * 10 : rnd(11, 59); } while (a % 10 + b % 10 > 9 || a + b > 99);
+      const [, t1, o1] = dg(a), [, t2, o2] = dg(b), answer = a + b;
+      const hint = (given) => +given === a + t2 + o2 ? `${b} is ${t2} ten${t2 === 1 ? '' : 's'} and ${o2} one${o2 === 1 ? '' : 's'}. Add ${t2 * 10}, not ${t2}.`
+        : +given === (t1 + t2) * 10 && o1 + o2 ? `Now add the ones too: ${o1} + ${o2} = ${o1 + o2}.`
+        : +given === t1 + o1 + t2 + o2 ? 'Keep the places apart: tens with tens, ones with ones.'
+        : `Tens: ${t1 * 10} + ${t2 * 10} = ${(t1 + t2) * 10}. Ones: ${o1} + ${o2} = ${o1 + o2}.`;
+      return Q(id, `What is ${a} + ${b}?`, answer, [a + t2 + o2, (t1 + t2) * 10, t1 + o1 + t2 + o2, answer + 10], `Tens: ${t1 * 10} + ${t2 * 10} = ${(t1 + t2) * 10}. Ones: ${o1} + ${o2} = ${o1 + o2}. ${(t1 + t2) * 10} + ${o1 + o2} = ${answer}.`, hint,
+        alternate ? { kind: 'blocks', h: 0, t: t1 + t2, o: o1 + o2 } : phase === 'show' ? null : { kind: 'arrows', start: a, steps: jumps(a, [t2 * 10, o2]) });
+    }
+    if (id === 'bundle') {
+      let a, b;
+      do { a = rnd(15, 79); b = rnd(12, 69); } while (a % 10 + b % 10 < (hard ? 10 : 11) || a + b > 99);
+      const [, t1, o1] = dg(a), [, t2, o2] = dg(b), ones = o1 + o2, answer = a + b, glued = +`${t1 + t2}${ones}`;
+      const hint = (given) => +given === answer - 10 ? `${o1} + ${o2} = ${ones} ones: that is 1 new ten and ${ones - 10} ones. Add the new ten to the tens.`
+        : +given === glued ? `${ones} ones is too many for one place. Bundle 10 ones into a new ten.`
+        : +given === answer + 10 ? `Only 1 new ten: ${ones} ones = 1 ten and ${ones - 10} ones.`
+        : `Ones first: ${o1} + ${o2} = ${ones}. Bundle 10 ones into a ten, then add the tens.`;
+      return Q(id, `What is ${a} + ${b}?`, answer, [answer - 10, glued, answer + 10], `Ones: ${o1} + ${o2} = ${ones}, that is 1 ten and ${ones - 10} ones. Tens: ${t1} + ${t2} + 1 = ${t1 + t2 + 1}. So ${answer}.`, hint,
+        alternate ? { kind: 'arrows', start: a, steps: jumps(a, [10 - o1, b - 10 + o1]) } : phase === 'show' ? { kind: 'column', nums: [a, b], op: '+' } : { kind: 'chart', h: 0, t: t1 + t2, o: ones });
+    }
+    if (id === 'unbundle') {
+      let a, b;
+      do { a = rnd(31, 98); b = rnd(12, a - 5); } while (a % 10 >= b % 10 || Math.floor(a / 10) <= Math.floor(b / 10) || a - b <= 10 - (b % 10));
+      const [, t1, o1] = dg(a), [, t2, o2] = dg(b), answer = a - b, flip = 10 * (t1 - t2) + (o2 - o1), up = 10 - o2;
+      const hint = (given) => +given === flip ? `In the ones, ${o1} − ${o2} does not work, and you can't flip it to ${o2} − ${o1}. Unbundle a ten: ${o1 + 10} − ${o2} = ${o1 + 10 - o2}. Then only ${t1 - 1} tens are left.`
+        : +given === a + b ? `This is take away: the answer is less than ${a}.`
+        : +given === answer - 10 ? `You took away one ten too many. After unbundling there are ${t1 - 1} tens: ${t1 - 1} − ${t2} = ${t1 - 1 - t2}.`
+        : `Unbundle a ten: ${t1 - 1} tens and ${o1 + 10} ones. Then ${o1 + 10} − ${o2} and ${t1 - 1} − ${t2}.`;
+      return Q(id, `What is ${a} − ${b}?`, answer, [flip, answer - 10, a + b], `${a} = ${t1 - 1} tens and ${o1 + 10} ones. ${o1 + 10} − ${o2} = ${o1 + 10 - o2}, ${t1 - 1} − ${t2} = ${t1 - 1 - t2}. So ${answer}.`, hint,
+        alternate ? { kind: 'arrows', start: b, steps: [{ op: '+' + up, to: b + up }, { op: '+' + (a - b - up), to: a }] } : phase === 'show' ? { kind: 'column', nums: [a, b], op: '−' } : { kind: 'chart', h: 0, t: t1, o: o1 });
+    }
+    if (id === 'hundreds') {
+      let a, b, A, B, c1, c2;
+      do { a = rnd(105, 789); b = rnd(hard ? 105 : 15, 489); A = dg(a); B = dg(b); c1 = A[2] + B[2] >= 10; c2 = A[1] + B[1] + (c1 ? 1 : 0) >= 10; } while (a + b > 999 || !(hard ? c1 && c2 : c1 !== c2));
+      const answer = a + b, tens = A[1] + B[1] + (c1 ? 1 : 0);
+      const hint = (given) => +given === answer - 110 ? 'There are two new bundles: a new ten from the ones and a new hundred from the tens.'
+        : +given === answer - 10 ? `You forgot the new ten: ${A[2]} + ${B[2]} = ${A[2] + B[2]} ones.`
+        : +given === answer - 100 ? `You forgot the new hundred: the tens make ${tens} tens.`
+        : 'Add the ones, then the tens, then the hundreds. Bundle whenever a place has 10 or more.';
+      return Q(id, `What is ${a} + ${b}?`, answer, [c1 && answer - 10, c2 && answer - 100, c1 && c2 && answer - 110, answer + 100].filter(Boolean), `Ones: ${A[2]} + ${B[2]} = ${A[2] + B[2]}. Tens: ${A[1]} + ${B[1]}${c1 ? ' + 1' : ''} = ${tens}. Hundreds: ${A[0]} + ${B[0]}${c2 ? ' + 1' : ''} = ${A[0] + B[0] + (c2 ? 1 : 0)}. So ${answer}.`, hint,
+        alternate ? { kind: 'arrows', start: a, steps: jumps(a, [B[0] * 100, B[1] * 10, B[2]]) } : phase === 'show' ? { kind: 'column', nums: [a, b], op: '+' } : { kind: 'chart', h: A[0] + B[0], t: A[1] + B[1], o: A[2] + B[2] });
+    }
+    if (id === 'zeros') {
+      let a, b, A, B;
+      do { a = rnd(3, 9) * 100 + (hard && !alternate && Math.random() < 0.5 ? rnd(1, 8) : 0); b = rnd(111, a - 50); A = dg(a); B = dg(b); } while (B[2] <= A[2] || B[1] === 0);
+      const answer = a - b, flip = 100 * Math.abs(A[0] - B[0]) + 10 * B[1] + Math.abs(A[2] - B[2]);
+      const hint = (given) => +given === answer + 100 ? `You unbundled a hundred, so one hundred is gone: ${A[0] - 1} hundreds are left.`
+        : +given === answer + 10 ? 'You unbundled a ten too, so 9 tens are left, not 10.'
+        : +given === flip ? `You can't flip 0 − ${B[1]} into ${B[1]} − 0. Unbundle a hundred and a ten first.`
+        : `Get ready: ${a} = ${A[0] - 1} hundreds, 9 tens and ${A[2] + 10} ones. Then subtract each place.`;
+      return Q(id, `What is ${a} − ${b}?`, answer, [answer + 100, answer + 10, flip], `${a} = ${A[0] - 1} hundreds, 9 tens and ${A[2] + 10} ones. Ones: ${A[2] + 10} − ${B[2]} = ${A[2] + 10 - B[2]}. Tens: 9 − ${B[1]} = ${9 - B[1]}. Hundreds: ${A[0] - 1} − ${B[0]} = ${A[0] - 1 - B[0]}. So ${answer}.`, hint,
+        alternate ? { kind: 'column', nums: [a - 1, b - 1], op: '−' } : phase === 'show' ? { kind: 'column', nums: [a, b], op: '−' } : { kind: 'chart', h: A[0] - 1, t: 9, o: A[2] + 10 });
+    }
     throw new Error('Unknown lesson module: ' + id);
   };
 
   L.hint = (p, given) => p.hint(given);
-  L.newBuild = (id) => ({ id, n: 0, counts: [0, 0, 0], filled: {}, turned: false, cut: false, part: id === 'division' ? 'sharing' : '', shareDone: false, groupingN: 0, done: false });
+  L.newBuild = (id) => ({ id, n: 0, counts: [0, 0, 0], filled: {}, turned: false, cut: false, part: id === 'division' ? 'sharing' : '', shareDone: false, groupingN: 0, t: 0, o: 0, unb: false, ones: 0, tens: 0, step: 0, msg: '', done: false });
   L.buildTap = (state, action = 'tap') => {
     const m = byId(state.id), next = Object.assign({}, state);
     if (!m) return next;
@@ -4762,7 +4908,31 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
       next.n = Object.keys(next.filled).length; next.done = next.n === 4;
       return next;
     }
-    next.n = Math.min(m.build.goal, next.n + 1); next.done = next.n >= m.build.goal;
+    next.msg = '';
+    if (m.build.kind === 'pvadd') { // 34 + 25: add 2 tens and 5 ones to the chart
+      if ((action === 'ten' || action === 'tap') && next.t < 2) next.t++;
+      else if ((action === 'one' || action === 'tap') && next.o < 5) next.o++;
+      next.n = next.t + next.o; next.done = next.n === m.build.goal;
+      return next;
+    }
+    if (m.build.kind === 'unbundle') { // 52 − 27: unbundle a ten, then take away 7 ones and 2 tens
+      if (!next.unb) {
+        if (action === 'ten' || action === 'tap') next.unb = true;
+        else if (action === 'one') next.msg = 'There are only 2 ones. Unbundle a ten first!';
+      } else if ((action === 'one' || action === 'tap') && next.ones < 7) next.ones++;
+      else if ((action === 'ten' || action === 'tap') && next.tens < 2) next.tens++;
+      next.n = (next.unb ? 1 : 0) + next.ones + next.tens; next.done = next.n === m.build.goal;
+      return next;
+    }
+    if (m.build.kind === 'bundle2' || m.build.kind === 'zeros') { // two steps in order: ones then tens (adding), a hundred then a ten (zeros)
+      const [first, second] = m.build.kind === 'bundle2' ? ['ones', 'tens'] : ['hundred', 'ten'];
+      if (next.step === 0 && (action === first || action === 'tap')) next.step = 1;
+      else if (next.step === 1 && (action === second || action === 'tap')) next.step = 2;
+      else if (next.step === 0 && action === second) next.msg = m.build.kind === 'bundle2' ? 'Start with the ones: bundle 10 ones first.' : 'There are no tens yet. Unbundle a hundred first.';
+      next.n = next.step; next.done = next.step === 2;
+      return next;
+    }
+    next.n = Math.min(m.build.goal, next.n + 1); next.done = next.n >= m.build.goal; // tenframe, bundle, jumps, double: one tap each
     return next;
   };
 
@@ -6720,6 +6890,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     { id: 'puzzleday7', icon: '🌞', name: 'Puzzle Week', desc: 'Make the puzzle of the day 7 days in a row', test: (s) => !!s.puzzles && !!s.puzzles.daily && s.puzzles.daily.best >= 7 },
     { id: 'lesson1', icon: '📖', name: 'Lesson Learner', desc: 'Finish your first Learn module', test: (s) => Object.values(s.lessons || {}).some((x) => x.done) },
     { id: 'lessonall', icon: '✖️', name: 'Times Table Explorer', desc: 'Finish all 6 Multiply & Divide modules', test: (s) => ['groups', 'arrays', 'facts2', 'facts34', 'division', 'families'].every((id) => !!(s.lessons || {})[id] && s.lessons[id].done) },
+    { id: 'lessonadd', icon: '➕', name: 'Bundle Builder', desc: 'Finish all 6 Add & Subtract modules', test: (s) => ['maketen', 'addtens', 'bundle', 'unbundle', 'hundreds', 'zeros'].every((id) => !!(s.lessons && s.lessons[id] && s.lessons[id].done)) },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];
 
@@ -6947,7 +7118,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
         g2: [
           { n: 1, title: 'Adding and subtracting to 100', parts: [
             { from: 1, to: 2, title: 'Make ten and the next ten', skills: ['add20/2', 'add20/3', 'add_bond/2', 'add100/1'] },
-            { from: 3, to: 8, title: 'Make a ten, take from a ten', skills: ['add100/1', 'sub100/1', 'add_bond/2', 'sub_bond/2', 'sub_bond/3', 'add20/2'] },
+            { from: 3, to: 8, title: 'Make a ten, take from a ten', skills: ['add100/1', 'sub100/1', 'add_bond/2', 'sub_bond/2', 'sub_bond/3', 'add20/2'], learn: 'maketen' },
           ] },
           { n: 2, title: 'Measuring length', parts: [
             { from: 1, to: 3, title: 'Centimeters and rulers', skills: ['measure/2'] },
@@ -6964,17 +7135,17 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
             { from: 19, to: 21, title: '1, 10 and 100 more or less', skills: ['pv_more/3', 'pv_more/4'] },
           ] },
           { n: 4, title: 'Adding and subtracting to 200', parts: [
-            { from: 1, to: 5, title: 'Mental math with tens and arrows', skills: ['pv_more/2', 'add_arrow/2', 'sub_arrow/2', 'add_simpler/3', 'sub_simpler/3', 'words/3'] },
-            { from: 6, to: 10, title: 'Adding: bundle a new ten', skills: ['add_bundle/3', 'add100/3', 'add_arrow/3', 'add_200/4'] },
-            { from: 11, to: 16, title: 'Subtracting: unbundle a ten', skills: ['sub_unbundle/3', 'sub100/3', 'sub_arrow/3', 'sub_200/4', 'words_tape/3'] },
+            { from: 1, to: 5, title: 'Mental math with tens and arrows', skills: ['pv_more/2', 'add_arrow/2', 'sub_arrow/2', 'add_simpler/3', 'sub_simpler/3', 'words/3'], learn: 'addtens' },
+            { from: 6, to: 10, title: 'Adding: bundle a new ten', skills: ['add_bundle/3', 'add100/3', 'add_arrow/3', 'add_200/4'], learn: 'bundle' },
+            { from: 11, to: 16, title: 'Subtracting: unbundle a ten', skills: ['sub_unbundle/3', 'sub100/3', 'sub_arrow/3', 'sub_200/4', 'words_tape/3'], learn: 'unbundle' },
             { from: 17, to: 22, title: 'Adding to 200: new tens and hundreds', skills: ['add_bundle/4', 'add_200/4', 'add_200/5', 'add_arrow/4', 'add100/5'] },
             { from: 23, to: 28, title: 'Subtracting from 200', skills: ['sub_bond/4', 'sub_unbundle/4', 'sub_200/4', 'sub_200/5', 'sub_arrow/4'] },
             { from: 29, to: 31, title: 'Two-step word problems', skills: ['words_tape/4', 'words/4', 'add_200/4', 'sub_200/4'] },
           ] },
           { n: 5, title: 'Adding and subtracting to 1,000', parts: [
             { from: 1, to: 7, title: 'Hundreds and tens: arrows, easier problems', skills: ['pv_more/3', 'big/1', 'big_arrow/2', 'big_arrow/3', 'big_simpler/3', 'big_bond/3'] },
-            { from: 8, to: 12, title: 'Adding: new tens and hundreds', skills: ['big/2', 'big/3', 'big/4', 'big_bond/4'] },
-            { from: 13, to: 20, title: 'Subtracting: unbundle tens and hundreds', skills: ['big/2', 'big/3', 'big/4', 'big_simpler/4', 'big_arrow/4', 'big_check/3', 'big_check/4'] },
+            { from: 8, to: 12, title: 'Adding: new tens and hundreds', skills: ['big/2', 'big/3', 'big/4', 'big_bond/4'], learn: 'hundreds' },
+            { from: 13, to: 20, title: 'Subtracting: unbundle tens and hundreds', skills: ['big/2', 'big/3', 'big/4', 'big_simpler/4', 'big_arrow/4', 'big_check/3', 'big_check/4'], learn: 'zeros' },
           ] },
           { n: 6, title: 'Equal groups, arrays, odd and even', parts: [
             { from: 1, to: 4, title: 'Equal groups', skills: ['mult/1', 'arr_tape/2', 'arr_tape/3', 'arrays/3'], learn: 'groups' },
@@ -14590,7 +14761,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
 })();
 </script>
   <script>
-// Learn screens for the Multiply & Divide course. Rules and content are in js/lessons.js.
+// Learn screens for the Add & Subtract and Multiply & Divide courses. Rules and content are in js/lessons.js.
 (function () {
   const MQ = globalThis.MQ, L = MQ.lessons, S = MQ.store;
   const K = () => MQ.app.kit;
@@ -14601,13 +14772,24 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
   const speakButton = () => '<button class="ls-speak" data-act="lessonSpeak" aria-label="Read this step aloud">🔊</button>';
   const visual = (v) => {
     if (!v) return '';
-    if (v.kind === 'array') return MQ.V.array(v.a, v.b);
-    if (v.kind === 'groups') return MQ.V.groups(v.a, v.b, v.emoji || '●');
-    if (v.kind === 'line') return MQ.V.numberLine({ min: v.a, max: v.b, step: v.step, marker: v.b });
+    const V = MQ.V;
+    if (v.kind === 'array') return V.array(v.a, v.b);
+    if (v.kind === 'groups') return V.groups(v.a, v.b, v.emoji || '●');
+    if (v.kind === 'line') return V.numberLine({ min: v.a, max: v.b, step: v.step, marker: v.b });
+    if (v.kind === 'bond') return V.bond(v.whole, v.a, v.b);
+    if (v.kind === 'arrows') return V.arrows(v.start, v.steps);
+    if (v.kind === 'chart') return V.pvChart(v.h, v.t, v.o);
+    if (v.kind === 'column') return V.column(v.nums, v.op);
+    if (v.kind === 'blocks') return V.blocks(v.h, v.t, v.o);
     return '';
   };
+  const D_NAMES = { 1: 'Sprout', 2: 'Explorer', 3: 'Ranger', 4: 'Expert', 5: 'Legend' };
+  // Place value disks for Build it: a disk is a button when tapping its place does something.
+  const disk = (label, cls = '', act = '') => (act ? `<button class="ls-disk d${label} ${cls}" data-act="lessonBuild" data-arg="${act}" aria-label="${label}">${label}</button>` : `<span class="ls-disk d${label} ${cls}">${label}</span>`);
+  const pvBoard = (cols) => `<div class="ls-pv">${cols.map((c) => `<div class="ls-pv-col"><b>${c.name}</b><div class="ls-pv-disks">${c.disks.join('') || `<em>no ${c.name}</em>`}</div></div>`).join('')}</div>`;
+  const many = (n, f) => Array.from({ length: n }, (_, i) => f(i));
   function speech() {
-    if (!run) return 'Multiply and Divide lessons.';
+    if (!run) return 'Learn: Add and Subtract, Multiply and Divide.';
     const m = run.module;
     if (run.stage === 0) return `${m.see.title}. ${m.see.text} ${m.see.lines.join('. ')}`;
     if (run.stage === 1) return run.build.part === 'grouping' ? 'Make groups of 3 from 12. Tap a berry to build each group.' : `${m.build.title}. ${m.build.text}`;
@@ -14625,13 +14807,16 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
 
   function hub() {
     if (st().grade !== 'g2') return K().go('home');
-    const cards = L.MODULES.map((m, i) => {
-      const p = L.progress(st(), m.id), open = L.isOpen(st(), m.id, S.preview);
-      const status = p.done ? '⭐ Complete' : open && p.step ? `${stepName(p.step)} · continue` : open ? m.minutes : 'Finish the module before it';
-      return `<button class="ls-module ${p.done ? 'done' : ''}" data-act="lessonOpen" data-arg="${m.id}" ${open ? '' : 'disabled'} data-module="${m.id}">
-        <span class="ls-num">${p.done ? '⭐' : open ? i + 1 : '🔒'}</span><span class="ls-icon">${m.icon}</span><span><b>${m.title}</b><small>${status}</small></span><span class="ls-go">›</span></button>`;
-    }).join('');
-    K().render(K().header('📖 Learn') + `<main class="ls-hub"><section class="ls-intro"><h2>Multiply &amp; Divide</h2><p>Learn with pictures, build models, and practice one small step at a time.</p></section><div class="ls-modules">${cards}</div></main>`);
+    const course = (c) => {
+      const list = L.courseModules(c.id), cards = list.map((m, i) => {
+        const p = L.progress(st(), m.id), open = L.isOpen(st(), m.id, S.preview);
+        const status = p.done ? '⭐ Complete' : open && p.step ? `${stepName(p.step)} · continue` : open ? m.minutes : 'Finish the module before it';
+        return `<button class="ls-module ${p.done ? 'done' : ''}" data-act="lessonOpen" data-arg="${m.id}" ${open ? '' : 'disabled'} data-module="${m.id}">
+          <span class="ls-num">${p.done ? '⭐' : open ? i + 1 : '🔒'}</span><span class="ls-icon">${m.icon}</span><span><b>${m.title}</b><small>${status}</small></span><span class="ls-go">›</span></button>`;
+      }).join('');
+      return `<section class="ls-intro" data-course="${c.id}"><h2>${c.icon} ${esc(c.title)} <small>${L.completed(st(), c.id)} / ${list.length}</small></h2><p>${c.intro}</p></section><div class="ls-modules">${cards}</div>`;
+    };
+    K().render(K().header('📖 Learn') + `<main class="ls-hub">${L.COURSES.map(course).join('')}</main>`);
     K().setCur('lessons');
   }
 
@@ -14697,12 +14882,43 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
       const arcs = Array.from({ length: b.n }, (_, i) => { const x1 = 22 + i * 59.2, x2 = x1 + 59.2; return `<path d="M ${x1.toFixed(1)} 52 Q ${((x1 + x2) / 2).toFixed(1)} 8 ${x2.toFixed(1)} 52"/><circle cx="${x2.toFixed(1)}" cy="52" r="4"/>`; }).join('');
       return `<button class="ls-line-build" data-act="lessonBuild" data-arg="tap" ${b.done ? 'disabled' : ''}><span>Tap to jump 2</span><div class="ls-jump-line">${MQ.V.numberLine({ min: 0, max: 10, step: 2, marker: b.n ? b.n * 2 : null })}<svg class="ls-jump-arcs" viewBox="0 0 340 100" aria-hidden="true">${arcs}</svg></div><b class="ls-jump-path">${stops.join(' → ')}</b></button>`;
     }
+    if (kind === 'tenframe') { // 8 + 5: move dots from the second frame to fill the first ten
+      const first = many(10, (i) => `<i class="${i < 8 ? 'on' : i < 8 + b.n ? 'on new' : ''}"></i>`).join(''), left = 5 - b.n;
+      const second = many(10, (i) => (i < left ? `<button data-act="lessonBuild" data-arg="move" aria-label="Move a dot"></button>` : '<i></i>')).join('');
+      return `<div class="ls-frames"><div class="ls-frame">${first}</div><span class="ls-plus">+</span><div class="ls-frame two">${second}</div></div><p class="ls-model-note">${b.done ? '8 + 5 = 10 + 3 = 13' : `Move ${2 - b.n} more to make 10`}</p>`;
+    }
+    if (kind === 'pvadd') { // 34 + 25 on the chart
+      return pvBoard([{ name: 'tens', disks: [...many(3, () => disk(10)), ...many(b.t, () => disk(10, 'new'))] }, { name: 'ones', disks: [...many(4, () => disk(1)), ...many(b.o, () => disk(1, 'new'))] }]) +
+        `<div class="row"><button class="btn ghost" data-act="lessonBuild" data-arg="ten" ${b.t >= 2 ? 'disabled' : ''}>+ 1 ten</button><button class="btn ghost" data-act="lessonBuild" data-arg="one" ${b.o >= 5 ? 'disabled' : ''}>+ 1 one</button></div>` +
+        `<p class="ls-model-note">${b.done ? '34 + 25 = 5 tens 9 ones = 59' : `Added ${b.t} of 2 tens and ${b.o} of 5 ones`}</p>`;
+    }
+    if (kind === 'bundle') { // 47 + 26 = 6 tens 13 ones: pick 10 ones to bundle
+      const ones = b.done ? many(3, () => disk(1)) : many(13, (i) => (i < b.n ? disk(1, 'sel') : disk(1, '', 'one')));
+      return pvBoard([{ name: 'tens', disks: [...many(6, () => disk(10)), ...(b.done ? [disk(10, 'new')] : [])] }, { name: 'ones', disks: ones }]) +
+        `<p class="ls-model-note">${b.done ? '10 ones make 1 new ten: 47 + 26 = 7 tens 3 ones = 73' : `${b.n} of 10 ones picked`}</p>`;
+    }
+    if (kind === 'unbundle') { // 52 − 27: unbundle a ten, take away 7 ones and 2 tens
+      const tensN = b.unb ? 4 : 5, onesN = b.unb ? 12 : 2;
+      const tens = many(tensN, (i) => (i >= tensN - b.tens ? disk(10, 'gone') : disk(10, '', 'ten')));
+      const ones = many(onesN, (i) => (i >= onesN - b.ones ? disk(1, 'gone') : disk(1, b.unb && i >= 2 ? 'new' : '', 'one')));
+      return pvBoard([{ name: 'tens', disks: tens }, { name: 'ones', disks: ones }]) +
+        `<p class="ls-model-note">${b.done ? '52 − 27 = 2 tens 5 ones = 25' : !b.unb ? 'Tap a ten to unbundle it into 10 ones.' : `Take away ${7 - b.ones} more ones and ${2 - b.tens} more tens.`}</p>`;
+    }
+    if (kind === 'bundle2') { // 365 + 248 = 5 hundreds 10 tens 13 ones
+      const t = [10, 11, 1][b.step], o = [13, 3, 3][b.step], live = (act) => (b.done ? '' : act);
+      return pvBoard([{ name: 'hundreds', disks: many(b.step === 2 ? 6 : 5, (i) => disk(100, i === 5 ? 'new' : '')) }, { name: 'tens', disks: many(t, (i) => disk(10, b.step === 1 && i === 10 ? 'new' : '', live('tens'))) }, { name: 'ones', disks: many(o, () => disk(1, '', live('ones'))) }]) +
+        `<p class="ls-model-note">${['Tap the ones: 13 ones. Bundle 10 of them into a ten.', 'Now tap the tens: 11 tens. Bundle 10 of them into a hundred.', '365 + 248 = 6 hundreds 1 ten 3 ones = 613'][b.step]}</p>`;
+    }
+    if (kind === 'zeros') { // 400: unbundle a hundred, then a ten
+      return pvBoard([{ name: 'hundreds', disks: many(b.step === 0 ? 4 : 3, () => disk(100, '', b.done ? '' : 'hundred')) }, { name: 'tens', disks: many([0, 10, 9][b.step], () => disk(10, '', b.done ? '' : 'ten')) }, { name: 'ones', disks: many(b.step === 2 ? 10 : 0, () => disk(1, 'new')) }]) +
+        `<p class="ls-model-note">${['Tap a hundred to unbundle it into 10 tens.', 'Now tap a ten to unbundle it into 10 ones.', 'Ready: 3 hundreds 9 tens 10 ones. 400 − 247 = 153'][b.step]}</p>`;
+    }
     const dots = b.n === 0 ? 4 : b.n === 1 ? 4 : 8, rows = b.n === 0 ? 1 : 2;
     return `<button class="ls-double-build" data-act="lessonBuild" data-arg="tap" ${b.done ? 'disabled' : ''}><span>${b.n === 0 ? 'Tap to double 4' : b.n === 1 ? 'Tap to double 8' : 'Double 8 = 16'}</span><div class="ls-double-rows">${Array.from({ length: rows }, () => `<div>${Array(dots).fill('<i></i>').join('')}</div>`).join('')}</div><b>${b.n === 0 ? '4' : b.n === 1 ? '4 + 4 = 8' : '8 + 8 = 16'}</b></button>`;
   }
   function drawBuild() {
     const x = run.module.build;
-    K().render(shell(`<section class="ls-card"><div class="ls-step"><span>2 · Build it</span>${speakButton()}</div><h2>${x.title}</h2><p class="lead">${run.build.part === 'grouping' ? 'Now the other meaning: how many groups of 3 are in 12?' : x.text}</p>${buildBoard()}${run.build.done ? '<div class="ls-good">✓ You built it!</div><button class="btn big" data-act="lessonNext">Solve together →</button>' : ''}</section>`, 1));
+    K().render(shell(`<section class="ls-card"><div class="ls-step"><span>2 · Build it</span>${speakButton()}</div><h2>${x.title}</h2><p class="lead">${run.build.part === 'grouping' ? 'Now the other meaning: how many groups of 3 are in 12?' : x.text}</p>${buildBoard()}${run.build.msg ? `<p class="ls-build-msg">${run.build.msg}</p>` : ''}${run.build.done ? '<div class="ls-good">✓ You built it!</div><button class="btn big" data-act="lessonNext">Solve together →</button>' : ''}</section>`, 1));
     autoSpeak(`build:${run.build.part || 'main'}`);
   }
   function drawQuestion() {
@@ -14721,7 +14937,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     autoSpeak('another');
   }
   function drawDone() {
-    const d = L.practiceDifficulty(run.module.id), label = d === 1 ? 'Sprout' : d === 2 ? 'Explorer' : 'Expert';
+    const label = D_NAMES[L.practiceDifficulty(run.module.id)];
     K().render(shell(`<section class="ls-card ls-finish"><div class="ls-bigstar">⭐</div><h1>Module complete!</h1><p>You learned ${run.module.title.toLowerCase()}.</p>${run.firstFinish ? '<div class="ls-reward">+5 💎</div>' : ''}<div class="row"><button class="btn ghost" data-act="go" data-arg="lessons">All modules</button><button class="btn" data-act="lessonPractice" data-arg="${run.module.id}">Practice · ${label} →</button></div></section>`, 4));
     autoSpeak('done');
   }
@@ -14767,7 +14983,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
       else { q.tries = 2; q.locked = true; q.message = `The answer is ${q.p.answer}. ${q.p.explain}`; MQ.sfx('wrong'); }
       drawQuestion();
     },
-    lessonPractice: (id) => K().startPractice('mult', L.practiceDifficulty(id)),
+    lessonPractice: (id) => { const pr = L.practice(id); K().startPractice(pr.topic, pr.d); },
   };
   MQ.lessonsUI = { show: (arg) => arg ? start(arg) : hub(), actions, session: () => run };
 })();
@@ -15190,7 +15406,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
         ${classTile()}
         <button class="tile t-map" data-act="go" data-arg="map"><span class="ti">🗺️</span><b>Expedition Map</b><small>${WORLDS().length} worlds · ${WORLDS().length * 6} levels</small></button>
         <button class="tile t-endless" data-act="go" data-arg="trainer"><span class="ti">♾️</span><b>Endless Training</b><small>Pick topics & difficulty</small></button>
-        ${st.grade === 'g2' ? `<button class="tile t-learn" data-act="go" data-arg="lessons"><span class="ti">📖</span><b>Learn</b><small>Multiply &amp; Divide · ${MQ.lessons.completed(st)} / 6 modules</small></button>` : ''}
+        ${st.grade === 'g2' ? `<button class="tile t-learn" data-act="go" data-arg="lessons"><span class="ti">📖</span><b>Learn</b><small>Add &amp; Subtract · Multiply &amp; Divide · ${MQ.lessons.completed(st)} / ${MQ.lessons.MODULES.length}</small></button>` : ''}
         <button class="tile t-daily ${dailyDone ? 'done' : ''}" data-act="daily"><span class="ti">${dailyDone ? '✅' : '📅'}</span><b>Daily Quest</b><small>${dailyDone ? 'Done today · 🔥 ' + st.daily.streak : '+' + (DAILY_REWARD + MQ.dragonTreasure(st)) + ' 💎 · streak ' + st.daily.streak}</small></button>
         <button class="tile t-fixit ${toFix ? 'hot' : ''}" data-act="go" data-arg="fixit"><span class="ti">🛠️</span><b>Fix-it Lab</b><small>${toFix ? `${toFix} to fix today` : inRepair ? 'All done today ✓' : 'No mistakes to fix'}</small></button>
         <button class="tile t-journal" data-act="go" data-arg="journal"><span class="ti">📔</span><b>Field Journal</b><small>${have} / ${total} creatures</small></button>
@@ -15854,7 +16070,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
       ${sess.fixedNow ? `<div class="unlock">🛠️ ${sess.fixedNow} old ${sess.fixedNow === 1 ? 'mistake' : 'mistakes'} fixed for good!</div>` : ''}
       ${sess.earned + sess.fixedNow ? eggNudge() : ''}
       <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button>${cls
-        ? `${cls.learn && st.grade === 'g2' ? '<button class="btn ghost" data-act="go" data-arg="lessons">📖 Learn</button>' : ''}${cls.program === 'topics' ? '' : '<button class="btn ghost" data-act="go" data-arg="school">Other lessons</button>'}<button class="btn" data-act="classPractice" data-arg="${sess.classArg}">Practice again</button>`
+        ? `${cls.learn && st.grade === 'g2' ? `<button class="btn ghost" data-act="go" data-arg="lessons:${cls.learn}">📖 Learn: ${esc(MQ.lessons.module(cls.learn).title)}</button>` : ''}${cls.program === 'topics' ? '' : '<button class="btn ghost" data-act="go" data-arg="school">Other lessons</button>'}<button class="btn" data-act="classPractice" data-arg="${sess.classArg}">Practice again</button>`
         : sess.kgTopic
         ? `<button class="btn ghost" data-act="go" data-arg="${MQ.TOPICS[sess.kgTopic].cogat ? 'cgtypes' : MQ.TOPICS[sess.kgTopic].logic ? 'lgtypes' : 'kgtypes'}">Other types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
         : '<button class="btn ghost" data-act="go" data-arg="trainer">Change settings</button><button class="btn" data-act="startTrainer">Play again</button>'}</div></main>`);
@@ -15878,7 +16094,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
       <p class="lead">Mistakes help your brain grow! Here are the kinds of problems that went wrong. Get a new one right on 3 different days and it is fixed for good: <b>+${FIX_REWARD} 💎</b> each.</p>
       ${due.length ? `<button class="btn big" data-act="startFixit">Fix ${Math.min(10, due.length)} now ▶</button>`
         : all.length ? '<div class="unlock">✅ All done for today! Come back tomorrow for the next tries.</div>' : '<div class="unlock">🎉 Nothing to fix. When a problem goes wrong, it shows up here.</div>'}
-      ${st.grade === 'g2' && all.some((r) => r.topic === 'mult') ? '<button class="ls-fix-link" data-act="go" data-arg="lessons">📖 Learn Multiply &amp; Divide first →</button>' : ''}
+      ${st.grade === 'g2' ? [...new Set(all.map((r) => MQ.lessons.courseFor(r.topic)).filter(Boolean))].map((c) => `<button class="ls-fix-link" data-act="go" data-arg="lessons">📖 Learn ${esc(MQ.lessons.COURSES.find((x) => x.id === c).title)} first →</button>`).join('') : ''}
       ${all.length ? `<ul class="fxlist">${rows}</ul>` : ''}
       <p class="muted small">Mistakes from every game and test come here. Similar questions also come back in levels, training, the Daily Quest and practice tests. Fixed so far: <b>${st.stats.fixed || 0}</b>.</p>
     </main>`);
@@ -16857,7 +17073,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
       </section>
       <section><h2>Progress over time</h2>${progressBlock()}</section>
       <section><h2>Last 14 days</h2><div class="days">${days.map((d) => `<div class="day" title="${d.k}: ${d.n}"><span style="height:${Math.round((d.n / maxN) * 100)}%"></span><small>${d.wd}</small></div>`).join('')}</div></section>
-      ${st.grade === 'g2' ? `<section><h2>📖 Learn</h2><p><b>${MQ.lessons.completed(st)} of 6</b> Multiply &amp; Divide modules complete.</p></section>` : ''}
+      ${st.grade === 'g2' ? `<section><h2>📖 Learn</h2>${MQ.lessons.COURSES.map((c) => `<p><b>${MQ.lessons.completed(st, c.id)} of ${MQ.lessons.courseModules(c.id).length}</b> ${esc(c.title)} modules complete.</p>`).join('')}</section>` : ''}
       <section><h2>Topics</h2><p class="muted">Green ≥ 85% first-try accuracy, yellow 65–84%, red below 65%: a good topic to practice in Endless Training.</p>
         <div class="tablewrap"><table class="topics"><thead><tr><th>Topic · standard</th><th>Tries</th><th>Accuracy</th><th>Highest level</th></tr></thead><tbody>${rows}</tbody></table></div></section>
       <section><h2>Recent mistakes</h2>

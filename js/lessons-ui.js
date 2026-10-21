@@ -1,4 +1,4 @@
-// Learn screens for the Multiply & Divide course. Rules and content are in js/lessons.js.
+// Learn screens for the Add & Subtract and Multiply & Divide courses. Rules and content are in js/lessons.js.
 (function () {
   const MQ = globalThis.MQ, L = MQ.lessons, S = MQ.store;
   const K = () => MQ.app.kit;
@@ -9,13 +9,24 @@
   const speakButton = () => '<button class="ls-speak" data-act="lessonSpeak" aria-label="Read this step aloud">🔊</button>';
   const visual = (v) => {
     if (!v) return '';
-    if (v.kind === 'array') return MQ.V.array(v.a, v.b);
-    if (v.kind === 'groups') return MQ.V.groups(v.a, v.b, v.emoji || '●');
-    if (v.kind === 'line') return MQ.V.numberLine({ min: v.a, max: v.b, step: v.step, marker: v.b });
+    const V = MQ.V;
+    if (v.kind === 'array') return V.array(v.a, v.b);
+    if (v.kind === 'groups') return V.groups(v.a, v.b, v.emoji || '●');
+    if (v.kind === 'line') return V.numberLine({ min: v.a, max: v.b, step: v.step, marker: v.b });
+    if (v.kind === 'bond') return V.bond(v.whole, v.a, v.b);
+    if (v.kind === 'arrows') return V.arrows(v.start, v.steps);
+    if (v.kind === 'chart') return V.pvChart(v.h, v.t, v.o);
+    if (v.kind === 'column') return V.column(v.nums, v.op);
+    if (v.kind === 'blocks') return V.blocks(v.h, v.t, v.o);
     return '';
   };
+  const D_NAMES = { 1: 'Sprout', 2: 'Explorer', 3: 'Ranger', 4: 'Expert', 5: 'Legend' };
+  // Place value disks for Build it: a disk is a button when tapping its place does something.
+  const disk = (label, cls = '', act = '') => (act ? `<button class="ls-disk d${label} ${cls}" data-act="lessonBuild" data-arg="${act}" aria-label="${label}">${label}</button>` : `<span class="ls-disk d${label} ${cls}">${label}</span>`);
+  const pvBoard = (cols) => `<div class="ls-pv">${cols.map((c) => `<div class="ls-pv-col"><b>${c.name}</b><div class="ls-pv-disks">${c.disks.join('') || `<em>no ${c.name}</em>`}</div></div>`).join('')}</div>`;
+  const many = (n, f) => Array.from({ length: n }, (_, i) => f(i));
   function speech() {
-    if (!run) return 'Multiply and Divide lessons.';
+    if (!run) return 'Learn: Add and Subtract, Multiply and Divide.';
     const m = run.module;
     if (run.stage === 0) return `${m.see.title}. ${m.see.text} ${m.see.lines.join('. ')}`;
     if (run.stage === 1) return run.build.part === 'grouping' ? 'Make groups of 3 from 12. Tap a berry to build each group.' : `${m.build.title}. ${m.build.text}`;
@@ -33,13 +44,16 @@
 
   function hub() {
     if (st().grade !== 'g2') return K().go('home');
-    const cards = L.MODULES.map((m, i) => {
-      const p = L.progress(st(), m.id), open = L.isOpen(st(), m.id, S.preview);
-      const status = p.done ? '⭐ Complete' : open && p.step ? `${stepName(p.step)} · continue` : open ? m.minutes : 'Finish the module before it';
-      return `<button class="ls-module ${p.done ? 'done' : ''}" data-act="lessonOpen" data-arg="${m.id}" ${open ? '' : 'disabled'} data-module="${m.id}">
-        <span class="ls-num">${p.done ? '⭐' : open ? i + 1 : '🔒'}</span><span class="ls-icon">${m.icon}</span><span><b>${m.title}</b><small>${status}</small></span><span class="ls-go">›</span></button>`;
-    }).join('');
-    K().render(K().header('📖 Learn') + `<main class="ls-hub"><section class="ls-intro"><h2>Multiply &amp; Divide</h2><p>Learn with pictures, build models, and practice one small step at a time.</p></section><div class="ls-modules">${cards}</div></main>`);
+    const course = (c) => {
+      const list = L.courseModules(c.id), cards = list.map((m, i) => {
+        const p = L.progress(st(), m.id), open = L.isOpen(st(), m.id, S.preview);
+        const status = p.done ? '⭐ Complete' : open && p.step ? `${stepName(p.step)} · continue` : open ? m.minutes : 'Finish the module before it';
+        return `<button class="ls-module ${p.done ? 'done' : ''}" data-act="lessonOpen" data-arg="${m.id}" ${open ? '' : 'disabled'} data-module="${m.id}">
+          <span class="ls-num">${p.done ? '⭐' : open ? i + 1 : '🔒'}</span><span class="ls-icon">${m.icon}</span><span><b>${m.title}</b><small>${status}</small></span><span class="ls-go">›</span></button>`;
+      }).join('');
+      return `<section class="ls-intro" data-course="${c.id}"><h2>${c.icon} ${esc(c.title)} <small>${L.completed(st(), c.id)} / ${list.length}</small></h2><p>${c.intro}</p></section><div class="ls-modules">${cards}</div>`;
+    };
+    K().render(K().header('📖 Learn') + `<main class="ls-hub">${L.COURSES.map(course).join('')}</main>`);
     K().setCur('lessons');
   }
 
@@ -105,12 +119,43 @@
       const arcs = Array.from({ length: b.n }, (_, i) => { const x1 = 22 + i * 59.2, x2 = x1 + 59.2; return `<path d="M ${x1.toFixed(1)} 52 Q ${((x1 + x2) / 2).toFixed(1)} 8 ${x2.toFixed(1)} 52"/><circle cx="${x2.toFixed(1)}" cy="52" r="4"/>`; }).join('');
       return `<button class="ls-line-build" data-act="lessonBuild" data-arg="tap" ${b.done ? 'disabled' : ''}><span>Tap to jump 2</span><div class="ls-jump-line">${MQ.V.numberLine({ min: 0, max: 10, step: 2, marker: b.n ? b.n * 2 : null })}<svg class="ls-jump-arcs" viewBox="0 0 340 100" aria-hidden="true">${arcs}</svg></div><b class="ls-jump-path">${stops.join(' → ')}</b></button>`;
     }
+    if (kind === 'tenframe') { // 8 + 5: move dots from the second frame to fill the first ten
+      const first = many(10, (i) => `<i class="${i < 8 ? 'on' : i < 8 + b.n ? 'on new' : ''}"></i>`).join(''), left = 5 - b.n;
+      const second = many(10, (i) => (i < left ? `<button data-act="lessonBuild" data-arg="move" aria-label="Move a dot"></button>` : '<i></i>')).join('');
+      return `<div class="ls-frames"><div class="ls-frame">${first}</div><span class="ls-plus">+</span><div class="ls-frame two">${second}</div></div><p class="ls-model-note">${b.done ? '8 + 5 = 10 + 3 = 13' : `Move ${2 - b.n} more to make 10`}</p>`;
+    }
+    if (kind === 'pvadd') { // 34 + 25 on the chart
+      return pvBoard([{ name: 'tens', disks: [...many(3, () => disk(10)), ...many(b.t, () => disk(10, 'new'))] }, { name: 'ones', disks: [...many(4, () => disk(1)), ...many(b.o, () => disk(1, 'new'))] }]) +
+        `<div class="row"><button class="btn ghost" data-act="lessonBuild" data-arg="ten" ${b.t >= 2 ? 'disabled' : ''}>+ 1 ten</button><button class="btn ghost" data-act="lessonBuild" data-arg="one" ${b.o >= 5 ? 'disabled' : ''}>+ 1 one</button></div>` +
+        `<p class="ls-model-note">${b.done ? '34 + 25 = 5 tens 9 ones = 59' : `Added ${b.t} of 2 tens and ${b.o} of 5 ones`}</p>`;
+    }
+    if (kind === 'bundle') { // 47 + 26 = 6 tens 13 ones: pick 10 ones to bundle
+      const ones = b.done ? many(3, () => disk(1)) : many(13, (i) => (i < b.n ? disk(1, 'sel') : disk(1, '', 'one')));
+      return pvBoard([{ name: 'tens', disks: [...many(6, () => disk(10)), ...(b.done ? [disk(10, 'new')] : [])] }, { name: 'ones', disks: ones }]) +
+        `<p class="ls-model-note">${b.done ? '10 ones make 1 new ten: 47 + 26 = 7 tens 3 ones = 73' : `${b.n} of 10 ones picked`}</p>`;
+    }
+    if (kind === 'unbundle') { // 52 − 27: unbundle a ten, take away 7 ones and 2 tens
+      const tensN = b.unb ? 4 : 5, onesN = b.unb ? 12 : 2;
+      const tens = many(tensN, (i) => (i >= tensN - b.tens ? disk(10, 'gone') : disk(10, '', 'ten')));
+      const ones = many(onesN, (i) => (i >= onesN - b.ones ? disk(1, 'gone') : disk(1, b.unb && i >= 2 ? 'new' : '', 'one')));
+      return pvBoard([{ name: 'tens', disks: tens }, { name: 'ones', disks: ones }]) +
+        `<p class="ls-model-note">${b.done ? '52 − 27 = 2 tens 5 ones = 25' : !b.unb ? 'Tap a ten to unbundle it into 10 ones.' : `Take away ${7 - b.ones} more ones and ${2 - b.tens} more tens.`}</p>`;
+    }
+    if (kind === 'bundle2') { // 365 + 248 = 5 hundreds 10 tens 13 ones
+      const t = [10, 11, 1][b.step], o = [13, 3, 3][b.step], live = (act) => (b.done ? '' : act);
+      return pvBoard([{ name: 'hundreds', disks: many(b.step === 2 ? 6 : 5, (i) => disk(100, i === 5 ? 'new' : '')) }, { name: 'tens', disks: many(t, (i) => disk(10, b.step === 1 && i === 10 ? 'new' : '', live('tens'))) }, { name: 'ones', disks: many(o, () => disk(1, '', live('ones'))) }]) +
+        `<p class="ls-model-note">${['Tap the ones: 13 ones. Bundle 10 of them into a ten.', 'Now tap the tens: 11 tens. Bundle 10 of them into a hundred.', '365 + 248 = 6 hundreds 1 ten 3 ones = 613'][b.step]}</p>`;
+    }
+    if (kind === 'zeros') { // 400: unbundle a hundred, then a ten
+      return pvBoard([{ name: 'hundreds', disks: many(b.step === 0 ? 4 : 3, () => disk(100, '', b.done ? '' : 'hundred')) }, { name: 'tens', disks: many([0, 10, 9][b.step], () => disk(10, '', b.done ? '' : 'ten')) }, { name: 'ones', disks: many(b.step === 2 ? 10 : 0, () => disk(1, 'new')) }]) +
+        `<p class="ls-model-note">${['Tap a hundred to unbundle it into 10 tens.', 'Now tap a ten to unbundle it into 10 ones.', 'Ready: 3 hundreds 9 tens 10 ones. 400 − 247 = 153'][b.step]}</p>`;
+    }
     const dots = b.n === 0 ? 4 : b.n === 1 ? 4 : 8, rows = b.n === 0 ? 1 : 2;
     return `<button class="ls-double-build" data-act="lessonBuild" data-arg="tap" ${b.done ? 'disabled' : ''}><span>${b.n === 0 ? 'Tap to double 4' : b.n === 1 ? 'Tap to double 8' : 'Double 8 = 16'}</span><div class="ls-double-rows">${Array.from({ length: rows }, () => `<div>${Array(dots).fill('<i></i>').join('')}</div>`).join('')}</div><b>${b.n === 0 ? '4' : b.n === 1 ? '4 + 4 = 8' : '8 + 8 = 16'}</b></button>`;
   }
   function drawBuild() {
     const x = run.module.build;
-    K().render(shell(`<section class="ls-card"><div class="ls-step"><span>2 · Build it</span>${speakButton()}</div><h2>${x.title}</h2><p class="lead">${run.build.part === 'grouping' ? 'Now the other meaning: how many groups of 3 are in 12?' : x.text}</p>${buildBoard()}${run.build.done ? '<div class="ls-good">✓ You built it!</div><button class="btn big" data-act="lessonNext">Solve together →</button>' : ''}</section>`, 1));
+    K().render(shell(`<section class="ls-card"><div class="ls-step"><span>2 · Build it</span>${speakButton()}</div><h2>${x.title}</h2><p class="lead">${run.build.part === 'grouping' ? 'Now the other meaning: how many groups of 3 are in 12?' : x.text}</p>${buildBoard()}${run.build.msg ? `<p class="ls-build-msg">${run.build.msg}</p>` : ''}${run.build.done ? '<div class="ls-good">✓ You built it!</div><button class="btn big" data-act="lessonNext">Solve together →</button>' : ''}</section>`, 1));
     autoSpeak(`build:${run.build.part || 'main'}`);
   }
   function drawQuestion() {
@@ -129,7 +174,7 @@
     autoSpeak('another');
   }
   function drawDone() {
-    const d = L.practiceDifficulty(run.module.id), label = d === 1 ? 'Sprout' : d === 2 ? 'Explorer' : 'Expert';
+    const label = D_NAMES[L.practiceDifficulty(run.module.id)];
     K().render(shell(`<section class="ls-card ls-finish"><div class="ls-bigstar">⭐</div><h1>Module complete!</h1><p>You learned ${run.module.title.toLowerCase()}.</p>${run.firstFinish ? '<div class="ls-reward">+5 💎</div>' : ''}<div class="row"><button class="btn ghost" data-act="go" data-arg="lessons">All modules</button><button class="btn" data-act="lessonPractice" data-arg="${run.module.id}">Practice · ${label} →</button></div></section>`, 4));
     autoSpeak('done');
   }
@@ -175,7 +220,7 @@
       else { q.tries = 2; q.locked = true; q.message = `The answer is ${q.p.answer}. ${q.p.explain}`; MQ.sfx('wrong'); }
       drawQuestion();
     },
-    lessonPractice: (id) => K().startPractice('mult', L.practiceDifficulty(id)),
+    lessonPractice: (id) => { const pr = L.practice(id); K().startPractice(pr.topic, pr.d); },
   };
   MQ.lessonsUI = { show: (arg) => arg ? start(arg) : hub(), actions, session: () => run };
 })();

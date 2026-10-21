@@ -415,7 +415,7 @@
         ${classTile()}
         <button class="tile t-map" data-act="go" data-arg="map"><span class="ti">🗺️</span><b>Expedition Map</b><small>${WORLDS().length} worlds · ${WORLDS().length * 6} levels</small></button>
         <button class="tile t-endless" data-act="go" data-arg="trainer"><span class="ti">♾️</span><b>Endless Training</b><small>Pick topics & difficulty</small></button>
-        ${st.grade === 'g2' ? `<button class="tile t-learn" data-act="go" data-arg="lessons"><span class="ti">📖</span><b>Learn</b><small>Multiply &amp; Divide · ${MQ.lessons.completed(st)} / 6 modules</small></button>` : ''}
+        ${st.grade === 'g2' ? `<button class="tile t-learn" data-act="go" data-arg="lessons"><span class="ti">📖</span><b>Learn</b><small>Add &amp; Subtract · Multiply &amp; Divide · ${MQ.lessons.completed(st)} / ${MQ.lessons.MODULES.length}</small></button>` : ''}
         <button class="tile t-daily ${dailyDone ? 'done' : ''}" data-act="daily"><span class="ti">${dailyDone ? '✅' : '📅'}</span><b>Daily Quest</b><small>${dailyDone ? 'Done today · 🔥 ' + st.daily.streak : '+' + (DAILY_REWARD + MQ.dragonTreasure(st)) + ' 💎 · streak ' + st.daily.streak}</small></button>
         <button class="tile t-fixit ${toFix ? 'hot' : ''}" data-act="go" data-arg="fixit"><span class="ti">🛠️</span><b>Fix-it Lab</b><small>${toFix ? `${toFix} to fix today` : inRepair ? 'All done today ✓' : 'No mistakes to fix'}</small></button>
         <button class="tile t-journal" data-act="go" data-arg="journal"><span class="ti">📔</span><b>Field Journal</b><small>${have} / ${total} creatures</small></button>
@@ -1079,7 +1079,7 @@
       ${sess.fixedNow ? `<div class="unlock">🛠️ ${sess.fixedNow} old ${sess.fixedNow === 1 ? 'mistake' : 'mistakes'} fixed for good!</div>` : ''}
       ${sess.earned + sess.fixedNow ? eggNudge() : ''}
       <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button>${cls
-        ? `${cls.learn && st.grade === 'g2' ? '<button class="btn ghost" data-act="go" data-arg="lessons">📖 Learn</button>' : ''}${cls.program === 'topics' ? '' : '<button class="btn ghost" data-act="go" data-arg="school">Other lessons</button>'}<button class="btn" data-act="classPractice" data-arg="${sess.classArg}">Practice again</button>`
+        ? `${cls.learn && st.grade === 'g2' ? `<button class="btn ghost" data-act="go" data-arg="lessons:${cls.learn}">📖 Learn: ${esc(MQ.lessons.module(cls.learn).title)}</button>` : ''}${cls.program === 'topics' ? '' : '<button class="btn ghost" data-act="go" data-arg="school">Other lessons</button>'}<button class="btn" data-act="classPractice" data-arg="${sess.classArg}">Practice again</button>`
         : sess.kgTopic
         ? `<button class="btn ghost" data-act="go" data-arg="${MQ.TOPICS[sess.kgTopic].cogat ? 'cgtypes' : MQ.TOPICS[sess.kgTopic].logic ? 'lgtypes' : 'kgtypes'}">Other types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
         : '<button class="btn ghost" data-act="go" data-arg="trainer">Change settings</button><button class="btn" data-act="startTrainer">Play again</button>'}</div></main>`);
@@ -1103,7 +1103,7 @@
       <p class="lead">Mistakes help your brain grow! Here are the kinds of problems that went wrong. Get a new one right on 3 different days and it is fixed for good: <b>+${FIX_REWARD} 💎</b> each.</p>
       ${due.length ? `<button class="btn big" data-act="startFixit">Fix ${Math.min(10, due.length)} now ▶</button>`
         : all.length ? '<div class="unlock">✅ All done for today! Come back tomorrow for the next tries.</div>' : '<div class="unlock">🎉 Nothing to fix. When a problem goes wrong, it shows up here.</div>'}
-      ${st.grade === 'g2' && all.some((r) => r.topic === 'mult') ? '<button class="ls-fix-link" data-act="go" data-arg="lessons">📖 Learn Multiply &amp; Divide first →</button>' : ''}
+      ${st.grade === 'g2' ? [...new Set(all.map((r) => MQ.lessons.courseFor(r.topic)).filter(Boolean))].map((c) => `<button class="ls-fix-link" data-act="go" data-arg="lessons">📖 Learn ${esc(MQ.lessons.COURSES.find((x) => x.id === c).title)} first →</button>`).join('') : ''}
       ${all.length ? `<ul class="fxlist">${rows}</ul>` : ''}
       <p class="muted small">Mistakes from every game and test come here. Similar questions also come back in levels, training, the Daily Quest and practice tests. Fixed so far: <b>${st.stats.fixed || 0}</b>.</p>
     </main>`);
@@ -2082,7 +2082,7 @@
       </section>
       <section><h2>Progress over time</h2>${progressBlock()}</section>
       <section><h2>Last 14 days</h2><div class="days">${days.map((d) => `<div class="day" title="${d.k}: ${d.n}"><span style="height:${Math.round((d.n / maxN) * 100)}%"></span><small>${d.wd}</small></div>`).join('')}</div></section>
-      ${st.grade === 'g2' ? `<section><h2>📖 Learn</h2><p><b>${MQ.lessons.completed(st)} of 6</b> Multiply &amp; Divide modules complete.</p></section>` : ''}
+      ${st.grade === 'g2' ? `<section><h2>📖 Learn</h2>${MQ.lessons.COURSES.map((c) => `<p><b>${MQ.lessons.completed(st, c.id)} of ${MQ.lessons.courseModules(c.id).length}</b> ${esc(c.title)} modules complete.</p>`).join('')}</section>` : ''}
       <section><h2>Topics</h2><p class="muted">Green ≥ 85% first-try accuracy, yellow 65–84%, red below 65%: a good topic to practice in Endless Training.</p>
         <div class="tablewrap"><table class="topics"><thead><tr><th>Topic · standard</th><th>Tries</th><th>Accuracy</th><th>Highest level</th></tr></thead><tbody>${rows}</tbody></table></div></section>
       <section><h2>Recent mistakes</h2>
