@@ -95,7 +95,7 @@ async function run(viewport, tag) {
   await snap('05-done');
 
   // ---- every new class picture in a real problem card: arrows, place value chart, tape diagram, number bond, bills
-  for (const [unit, part, name] of [[4, 0, 'arrows'], [4, 1, 'bundle'], [4, 4, 'take-from-hundred'], [4, 5, 'tape']]) {
+  for (const [unit, part, name] of [[4, 0, 'arrows'], [4, 1, 'bundle'], [4, 4, 'take-from-hundred'], [4, 5, 'tape'], [6, 1, 'rows'], [7, 0, 'tally'], [7, 1, 'money'], [7, 5, 'lineplot'], [8, 2, 'time']]) {
     await page.evaluate(([u, p]) => { MQ.state.settings.school = { program: 'eureka', unit: u, part: p, topics: [], at: MQ.U.dateKey() }; MQ.app.go('home'); }, [unit, part]);
     await page.click('.t-class');
     await ready(page);

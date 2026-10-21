@@ -575,6 +575,10 @@ body[data-track="k"] { --paper: #eef2fb; }
 svg.vis.pvchart { max-width: 100%; }
 svg.vis.tape { max-width: 100%; }
 svg.vis.bond { width: 150px; }
+.tally table { border-collapse: collapse; margin: 0 auto; }
+.tally th { text-align: left; padding: 6px 12px 6px 4px; font-weight: 800; white-space: nowrap; }
+.tally td { padding: 6px 4px; border-left: 2px solid var(--line); }
+.tally tr + tr th, .tally tr + tr td { border-top: 2px solid var(--line); }
 .comparerows { display: flex; flex-direction: column; gap: 8px; }
 .comparerows div { display: grid; grid-template-columns: repeat(10, 1.25em); font-size: 1.9rem; padding: 4px 8px; border-radius: 12px; background: #f1f6fb; }
 .shaperow { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 340px; }

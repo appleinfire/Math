@@ -78,10 +78,10 @@ When it is set, the home screen shows a **🏫 In class now** tile with the less
 | 4 · Adding and subtracting to 200 | 1–5 mental math with tens and arrows · 6–10 adding: bundle a new ten · 11–16 subtracting: unbundle a ten · 17–22 adding to 200 · 23–28 subtracting from 200 · 29–31 two-step word problems |
 | 5 · Adding and subtracting to 1,000 | 1–7 hundreds and tens: arrows, easier problems · 8–12 adding: new tens and hundreds · 13–20 subtracting: unbundle tens and hundreds |
 | 6 · Equal groups, arrays, odd and even | 1–4 equal groups · 5–9 arrays · 10–16 rectangles made of squares · 17–20 odd and even |
-| 7 · Graphs, money and measuring | 1–5 picture and bar graphs · 6–13 coins and bills · 14–15 inch rulers · 16–19 inches, feet and yards · 20–22 length word problems · 23–26 measurement data |
-| 8 · Shapes, fractions and time | 1–5 shapes and cubes · 6–12 halves, thirds and fourths · 13–16 telling time, a.m. and p.m. |
+| 7 · Graphs, money and measuring | 1–5 tables, picture and bar graphs · 6–13 coins and bills · 14–15 inch rulers · 16–19 inches, feet and yards · 20–22 length word problems · 23–26 line plots |
+| 8 · Shapes, fractions and time | 1–5 shapes, angles and cubes · 6–12 halves, thirds and fourths · 13–16 telling time, a.m. and p.m. |
 
-**Class strategies.** The questions use the models a 2nd-grade class works with, drawn in code: **number bonds** (make a ten, take from a ten or a hundred), **arrows** for mental math (38 →+20→ 58 →+1→ 59, counting up to subtract), **making an easier problem** (29 + 46 = 30 + 45, 32 − 19 = 33 − 20, 400 − 247 = 399 − 246), the **place value chart** with disks (what to bundle or unbundle, more than 9 tens or ones), **tape diagrams** for *more than / fewer than* and two-step word problems, **number names** (four hundred seven), **$1, $10 and $100 bills**, numbers compared in any form (42 tens ○ 390) and 1, 10, 100 more or less with the unknown anywhere. These 19 kinds of questions are not only for In class now: at the levels where they fit (mostly 🧭 Explorer to 🏔️ Expert), about a third of the Place Value, Add to 100, Subtract to 100, Add & Subtract to 1000 and Word Problems questions are of these kinds, in levels, training and the Daily Quest too. Any right answer counts; the model shows the way in the picture, the hint and the explanation.
+**Class strategies.** The questions use the models a 2nd-grade class works with, drawn in code: **number bonds** (make a ten, take from a ten or a hundred), **arrows** for mental math (38 →+20→ 58 →+1→ 59, counting up to subtract), **making an easier problem** (29 + 46 = 30 + 45, 32 − 19 = 33 − 20, 400 − 247 = 399 − 246), the **place value chart** with disks (what to bundle or unbundle, more than 9 tens or ones), **tape diagrams** for *more than / fewer than* and two-step word problems, **number names** (four hundred seven), **$1, $10 and $100 bills**, numbers compared in any form (42 tens ○ 390), 1, 10, 100 more or less with the unknown anywhere, and **checking subtraction with addition**. For measuring, money, data, time and shapes: **benchmarks** to estimate (a door is about 2 meters), **smaller units, bigger numbers**, **rulers as number lines** (each mark is 5 more, a cricket's hops, centimeters to a meter), **rows and columns** of arrays and **equal groups on a tape**, **$1, $5, $10 and $20 bills**, **different coins for the same amount**, **counting up to $1**, **tables with tally marks**, **line plots**, **quarter past / half past / quarter to**, **hours from a.m. to p.m.** (and past midnight at the top level), **square corners and parallel sides** of quadrilaterals, **angles**, and **what part makes 1 whole**. These 34 kinds of questions are not only for In class now: at the levels where they fit (mostly 🧭 Explorer to 🏔️ Expert), about a third of the questions of the matching topics are of these kinds, in levels, training and the Daily Quest too. Any right answer counts; the model shows the way in the picture, the hint and the explanation.
 
 **Another curriculum later.** Programs are data in `js/school.js`: each one lists its units, their lesson groups and the skills each group practices (a topic and level, or one of the class strategy kinds). Supporting another curriculum means adding one more entry there; until then *Another program: pick topics* works for any class, and *Off* turns it all off.
 
@@ -301,9 +301,9 @@ Difficulty for kindergarten: 🌱 Sprout and 🧭 Explorer = core K, 🏕️ Ran
 | 🏖️ Tide Pools | Facts to 20, missing numbers, the equal sign | 2.OA.1–2 |
 | 🌿 Rainforest | Place value, expanded form, number names, $1/$10/$100 bills, more than 9 tens, compare in any form, 1/10/100 more or less, skip counting, rounding (challenge) | 2.NBT.1–4, 2.NBT.8 |
 | 🌾 Savanna | Add and subtract within 100 (and to 200 at the top levels), with and without regrouping; number bonds, arrows, easier problems, the place value chart | 2.NBT.5–7, 2.NBT.9 |
-| 🌙 Night Forest | Time to 5 minutes, a.m./p.m., elapsed time (challenge); coins, dollars, change | 2.MD.7–8 |
-| 🏜️ Fossil Desert | Odd and even, arrays, shapes, halves/thirds/fourths, cubes | 2.OA.3–4, 2.G.1–3 |
-| ❄️ Arctic | Rulers (in/cm), units, conversions; picture and bar graphs; perimeter and area (challenge) | 2.MD.1–6, 2.MD.9–10 |
+| 🌙 Night Forest | Time to 5 minutes, quarter past/to, a.m./p.m., hours from a.m. to p.m., elapsed time (challenge); coins, $1/$5/$10/$20 bills, different coins for the same amount, change from $1 | 2.MD.7–8 |
+| 🏜️ Fossil Desert | Odd and even, arrays (rows and columns, equal groups on a tape), shapes, angles, quadrilaterals, halves/thirds/fourths and the whole, cubes | 2.OA.3–4, 2.G.1–3 |
+| ❄️ Arctic | Rulers (in/cm), units, estimating with benchmarks, rulers as number lines, conversions; tally tables, picture and bar graphs, line plots; perimeter and area (challenge) | 2.MD.1–6, 2.MD.9–10 |
 | 🌊 Deep Ocean | Add and subtract within 1000 (arrows, make a hundred, easier problems); one- and two-step word problems with tape diagrams | 2.NBT.7, 2.OA.1 |
 | ☁️ Sky Kingdom | Challenge zone: multiplication, division, number puzzles, pyramids, magic squares | 3.OA, logic |
 
@@ -315,8 +315,8 @@ Difficulty: 🌱 Sprout (warm-up) · 🧭 Explorer and 🏕️ Ranger (core 2nd 
 index.html            app shell
 css/style.css         all styles
 js/util.js            helpers
-js/visuals.js         SVG pictures: clocks, coins and bills, base-ten blocks, rulers, graphs, shapes, arrows, place value chart, tape diagrams, number bonds
-js/generators.js      2nd-grade problem generators, 14 topics × 5 difficulties, and 19 class strategy kinds (MQ.KINDS)
+js/visuals.js         SVG pictures: clocks, coins and bills, base-ten blocks, rulers, graphs, shapes, arrows, place value chart, tape diagrams, number bonds, line plots, tally tables
+js/generators.js      2nd-grade problem generators, 14 topics × 5 difficulties, and 34 class strategy kinds (MQ.KINDS)
 js/generators-k.js    kindergarten problem generators, 10 topics × 5 difficulties
 js/lessons.js         Learn course content, question generators, hints and progression rules (no DOM)
 js/school.js          In class now: school programs as data (Eureka Math grade 2 modules and lessons), what to practice this week
@@ -354,7 +354,7 @@ templates/app-shell/   the same shell (profiles, family sync, grown-ups page, pr
 No build step or dependencies are needed to run it. After changing code, run:
 
 ```
-node tests/generators.test.js      # 312,000 generated problems checked, plus 67,500 class strategy questions with every answer recomputed
+node tests/generators.test.js      # 312,000 generated problems checked, plus 111,000 class strategy questions with every answer recomputed (clocks and number lines read from the picture)
 node tests/store.test.js           # merging progress from two devices, mistakes to practice, family keys
 node tests/hatchery.test.js        # eggs, creature pictures (valid SVG), dragon growth and treasure, the buddy, the farm merchant's pictures
 node tests/duel.test.js            # creature stats by rarity, Card Duel rules and questions, league balance in simulated duels

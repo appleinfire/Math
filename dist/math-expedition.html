@@ -589,6 +589,10 @@ body[data-track="k"] { --paper: #eef2fb; }
 svg.vis.pvchart { max-width: 100%; }
 svg.vis.tape { max-width: 100%; }
 svg.vis.bond { width: 150px; }
+.tally table { border-collapse: collapse; margin: 0 auto; }
+.tally th { text-align: left; padding: 6px 12px 6px 4px; font-weight: 800; white-space: nowrap; }
+.tally td { padding: 6px 4px; border-left: 2px solid var(--line); }
+.tally tr + tr th, .tally tr + tr td { border-top: 2px solid var(--line); }
 .comparerows { display: flex; flex-direction: column; gap: 8px; }
 .comparerows div { display: grid; grid-template-columns: repeat(10, 1.25em); font-size: 1.9rem; padding: 4px 8px; border-radius: 12px; background: #f1f6fb; }
 .shaperow { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 340px; }
@@ -2436,6 +2440,31 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
       c(92, 34, whole, '#ffe7a8') + c(45, 114, a, '#d9f2ee') + c(139, 114, b, '#d9f2ee'), 'bond', `number bond: ${whole} is ${a} and ${b}`);
   };
 
+  // ---------- Line plot: an X for every item above its value on a number line (2.MD.9) ----------
+  // counts: { value: how many }; data-plot keeps the numbers the picture shows (for tests).
+  V.linePlot = ({ min, max, counts, unit = '', title = '' }) => {
+    const n = max - min, L = 26, W = 340, px = (W - 2 * L) / n, top = Math.max(1, ...Object.values(counts));
+    const y = 18 + top * 17, X = (v) => L + (v - min) * px;
+    let s = `<line x1="${L - 14}" y1="${y}" x2="${W - L + 14}" y2="${y}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
+    for (let v = min; v <= max; v++) {
+      s += `<line x1="${r1(X(v))}" y1="${y - 7}" x2="${r1(X(v))}" y2="${y + 7}" stroke="${INK}" stroke-width="2"/>` + text(X(v), y + 26, v, 14);
+      for (let k = 0; k < (counts[v] || 0); k++) s += text(X(v), y - 12 - k * 17, '×', 20, 'fill="#c2412d"');
+    }
+    if (unit) s += text(W / 2, y + 46, unit, 12, 'font-weight="700"');
+    const data = Object.entries(counts).map(([v, c]) => v + ':' + c).join(',');
+    return (title ? `<div class="vis-title">${title}</div>` : '') + svg(W, y + (unit ? 54 : 36), s, 'lineplot', 'line plot').replace('<svg ', `<svg data-plot="${data}" `);
+  };
+
+  // ---------- Table with tally marks: |||| with a line across makes 5 ----------
+  const tallies = (n) => {
+    let s = '', x = 3;
+    for (let g = 0; g < Math.floor(n / 5); g++, x += 34) s += [0, 1, 2, 3].map((i) => `<line x1="${x + i * 6}" y1="3" x2="${x + i * 6}" y2="25" stroke="${INK}" stroke-width="2.5" stroke-linecap="round"/>`).join('') + `<line x1="${x - 3}" y1="21" x2="${x + 22}" y2="7" stroke="${INK}" stroke-width="2.5" stroke-linecap="round"/>`;
+    for (let i = 0; i < n % 5; i++) s += `<line x1="${x + i * 6}" y1="3" x2="${x + i * 6}" y2="25" stroke="${INK}" stroke-width="2.5" stroke-linecap="round"/>`;
+    return `<svg viewBox="0 0 ${x + (n % 5) * 6 + 6} 28" width="${x + (n % 5) * 6 + 6}" height="28" role="img" aria-label="tally marks" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
+  };
+  V.tally = (rows, title = '') =>
+    `<div class="vis tally">${title ? `<div class="vis-title">${title}</div>` : ''}<table>${rows.map((r) => `<tr data-n="${r.n}"><th>${r.label}</th><td>${tallies(r.n)}</td></tr>`).join('')}</table></div>`;
+
   // ---------- Number pyramid ----------
   V.pyramid = (rows) => {
     // rows: array from top to bottom, entries number or null (= ?)
@@ -3022,6 +3051,8 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
   // 5. Odd, even & arrays  (2.OA.3, 2.OA.4; 3.OA.1 as challenge)
   // ======================================================================
   function arrays(d) {
+    const ck = classKind('arrays', d, 0.3);
+    if (ck) return ck;
     if (d === 1) {
       const n = rnd(3, 20);
       return C('Is this number of dots <b>odd</b> or <b>even</b>?', n % 2 ? 'odd' : 'even', ['odd', 'even'], { visual: V.pairs(n), hint: 'Pair up the dots. Is one left over?', explain: `${n} is ${n % 2 ? 'odd — one dot has no partner' : 'even — every dot has a partner'}.` });
@@ -3094,6 +3125,8 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     return U.strChoices(tStr(h, m), cands, 4);
   }
   function time(d) {
+    const ck = classKind('time', d, 0.3);
+    if (ck) return ck;
     if (d <= 3) {
       const h = rnd(1, 12);
       const m = d === 1 ? pick([0, 30]) : d === 2 ? pick([0, 15, 30, 45]) : rnd(0, 11) * 5;
@@ -3134,6 +3167,8 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     }
   }
   function money(d) {
+    const ck = classKind('money', d, 0.3);
+    if (ck) return ck;
     if (d <= 2) {
       const list = d === 1 ? randomCoins(['d', 'n', 'p'], 7, 50) : randomCoins(['q', 'd', 'n', 'p'], 7, 99);
       return N('How much money is this?', coinSum(list), { unit: '¢', visual: V.coins(list, true), hint: 'Start with the coins worth the most and count on.', explain: list.map((k) => COINV[k] + '¢').join(' + ') + ` = ${coinSum(list)}¢` });
@@ -3176,6 +3211,8 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
   // ======================================================================
   const SHAPES = [['triangle', 3], ['square', 4], ['rectangle', 4], ['pentagon', 5], ['hexagon', 6], ['circle', 0], ['octagon', 8], ['rhombus', 4], ['trapezoid', 4]];
   function shapes(d) {
+    const ck = classKind('shapes', d, 0.3);
+    if (ck) return ck;
     if (d === 1) {
       const pool = SHAPES.slice(0, 6);
       const [name] = pick(pool);
@@ -3259,6 +3296,8 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     ['the distance a car drives in an hour', 'kilometers', 'm'],
   ];
   function measure(d) {
+    const ck = classKind('measure', d, 0.3);
+    if (ck) return ck;
     if (d === 1) {
       const len = rnd(1, 6);
       return N('How long is the crayon?', len, { unit: 'in', visual: V.ruler({ unit: 'in', max: 7, start: 0, len, color: pick(V.FILLS) }), hint: 'Look at the number on the ruler right under the tip.' });
@@ -3316,6 +3355,8 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     return { title: th.title, data: items.map(([emoji, label], i) => ({ emoji, label, value: vals[i] })) };
   }
   function data(d) {
+    const ck = classKind('data', d, 0.3);
+    if (ck) return ck;
     if (d === 1) {
       const g = graphData(3, 1, 8);
       const x = pick(g.data);
@@ -3872,6 +3913,237 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     return N(text, ans, { visual: V.tape(rows), wordy: true, hint: 'Look at the tape: which bar is longer? Find the part with the ?.', explain: `${expr} = ${ans}` });
   }
 
+  // ---- Length: benchmarks, unit size, rulers as number lines (2.MD.1–6) ----
+  // About how long things are, the "mental benchmarks" a class estimates with.
+  MQ.BENCHMARKS = [
+    ['a door', 2, 'meter'], ['a pencil', 15, 'centimeter'], ['a car', 4, 'meter'], ['a bed', 2, 'meter'], ['a dinner plate', 25, 'centimeter'],
+    ['a paper clip', 3, 'centimeter'], ['a school bus', 12, 'meter'], ['a crayon', 9, 'centimeter'], ['a fingernail', 1, 'centimeter'], ['a classroom', 10, 'meter'],
+    ['a door', 7, 'foot'], ['a pencil', 7, 'inch'], ['a football field', 100, 'yard'], ['a paper clip', 1, 'inch'], ['a book', 10, 'inch'],
+    ['a grown-up', 6, 'foot'], ['a car', 5, 'yard'], ['a cell phone', 6, 'inch'],
+    ['a baby', 50, 'centimeter'], ['a swimming pool', 25, 'meter'], ['a toothbrush', 18, 'centimeter'], ['a giraffe', 5, 'meter'], ['a key', 5, 'centimeter'],
+    ['a school hallway', 30, 'meter'], ['a ladybug', 1, 'centimeter'], ['an eraser', 5, 'centimeter'], ['a soccer field', 100, 'meter'], ['a bike', 2, 'meter'],
+    ['a ruler', 1, 'foot'], ['a stapler', 6, 'inch'], ['a bed', 6, 'foot'], ['a dog', 2, 'foot'], ['a city bus', 40, 'foot'], ['a basketball hoop', 10, 'foot'],
+  ];
+  const unitWord = (n, u) => (n === 1 ? u : u === 'foot' ? 'feet' : u === 'inch' ? 'inches' : u + 's');
+  const METRIC = ['centimeter', 'meter'], CUSTOMARY = ['inch', 'foot', 'yard'];
+  const cap = (s) => s[0].toUpperCase() + s.slice(1);
+  function lenAbout(d) {
+    const [thing, n, u] = pick(d === 2 ? MQ.BENCHMARKS.filter((b) => METRIC.includes(b[2])) : MQ.BENCHMARKS);
+    const sys = METRIC.includes(u) ? METRIC : CUSTOMARY;
+    if (chance(0.5)) return C(`${cap(thing)} is about ${n} ___. Which unit fits?`, unitWord(n, u), sys.map((x) => unitWord(n, x)), { hint: 'Think of your benchmarks: a centimeter is a fingernail, a meter is a big step, an inch is a paper clip, a foot is a ruler, a yard is a big step.', explain: `${cap(thing)} is about ${n} ${unitWord(n, u)}.` });
+    const other = { centimeter: 'meter', meter: 'centimeter', inch: 'foot', foot: 'inch', yard: 'inch' }[u];
+    const ans = `${n} ${unitWord(n, u)}`;
+    return C(`About how long is <b>${thing}</b>?`, ans, shuffle([ans, `${n} ${unitWord(n, other)}`, `${n * 10} ${unitWord(n * 10, u)}`]), { hint: 'Picture it next to something you know.', explain: `${cap(thing)} is about ${ans}.` });
+  }
+  // The smaller the unit, the more of them it takes (2.MD.2): centimeter < inch < foot < yard, centimeter < meter.
+  const UNIT_PAIRS = [['centimeter', 'inch'], ['inch', 'foot'], ['foot', 'yard'], ['inch', 'yard'], ['centimeter', 'meter']];
+  function lenUnits() {
+    let [small, large] = pick(UNIT_PAIRS);
+    const thing = pick(['rug', 'table', 'ribbon', 'hallway', 'rope', 'garden']);
+    if (chance(0.5)) {
+      const [p, q] = two(), swap = chance(0.5), [up, uq] = swap ? [large, small] : [small, large];
+      return C(`${p} measures a ${thing} in ${unitWord(2, up)}. ${q} measures the same ${thing} in ${unitWord(2, uq)}. Who gets the bigger number?`, swap ? q : p, [p, q, 'The same number'], { hint: 'Smaller units fit more times.', explain: `${cap(unitWord(2, small))} are smaller than ${unitWord(2, large)}, so it takes more of them.` });
+    }
+    const n = rnd(3, 9), [have, other] = chance(0.5) ? [small, large] : [large, small];
+    const ans = other === large ? `less than ${n}` : `more than ${n}`;
+    return C(`A ${thing} is ${n} ${unitWord(n, have)} long. Measured in ${unitWord(2, other)}, the number is…`, ans, [`more than ${n}`, `less than ${n}`, `exactly ${n}`], { hint: 'Is the new unit bigger or smaller? Bigger units fit fewer times.', explain: `${cap(unitWord(2, other))} are ${other === large ? 'bigger' : 'smaller'} than ${unitWord(2, have)}, so the number is ${ans}.` });
+  }
+  // Rulers and meter sticks are number lines (2.MD.5, 2.MD.6).
+  function lenLine(d) {
+    if (d === 3) {
+      const k = rnd(1, 3);
+      if (k === 1 || k === 2) {
+        const step = pick([5, 10]), n = rnd(4, 7), min = rnd(1, step === 5 ? 14 : 9) * step, max = min + n * step, v = min + rnd(1, n - 1) * step;
+        if (k === 1) return N(`Each mark is ${step} more. What number is at the arrow?`, v, { visual: V.numberLine({ min, max, step, labels: [min, max], marker: v }), hint: `Count by ${step}s from ${min}.`, explain: `${U.range(0, (v - min) / step).map((i) => min + i * step).join(', ')}` });
+        return Ln(`Each mark is ${step} more. Tap <b>${v}</b>.`, v, { min, max, step, labels: [min, max] }, { say: `Each mark is ${step} more. Tap ${v}.`, hint: `Count by ${step}s from ${min}.` });
+      }
+      const [whole, len, unit] = pick([['1 m', 100, 'cm'], ['1 foot', 12, 'inches'], ['1 yard', 36, 'inches']]), n = len === 100 ? rnd(51, 95) : rnd(2, len - 2);
+      return N(E(`${n} ${unit} + ? ${unit} = ${whole}`), len - n, { hint: `${whole} is ${len} ${unit}. Count up from ${n}.`, explain: `${n} + ${len - n} = ${len}` });
+    }
+    if (chance(0.5)) {
+      const s = rnd(12, 40), f = rnd(3, 9), b = rnd(3, 12), critter = pick(['cricket', 'grasshopper', 'frog', 'ladybug']);
+      return N(`A ${critter} sits at ${s} on a centimeter ruler. It hops ${f} cm forward, then ${b} cm back. Where does it stop?`, s + f - b, { visual: V.arrows(s, chain(s, [f, -b])), hint: 'Forward is plus, back is minus.', explain: `${s} + ${f} = ${s + f}, ${s + f} − ${b} = ${s + f - b}` });
+    }
+    const [p] = two();
+    if (chance(0.5)) { const n = rnd(21, 89); return N(`In the 100-yard race, ${p} has run ${n} yards. How many more yards to the finish?`, 100 - n, { unit: 'yards', hint: `Count up from ${n} to 100.`, explain: `${n} + ${100 - n} = 100` }); }
+    const n = rnd(11, 31);
+    return N(`${p} knits a scarf that should be 1 yard long. 1 yard is 36 inches. ${p} has knitted ${n} inches. How many more inches?`, 36 - n, { unit: 'in', hint: `Count up from ${n} to 36.`, explain: `${n} + ${36 - n} = 36` });
+  }
+
+  // ---- Check subtraction with addition (Eureka Grade 2 Module 5) ----
+  function bigCheck(d) {
+    let a, b;
+    do { a = rnd(300, 999); b = rnd(101, a - 101); } while (a % 10 >= b % 10 && chance(0.7)); // mostly with unbundling
+    const c = a - b;
+    if (d === 3) {
+      if (chance(0.5)) return N(E(`If ${a} − ${b} = ${c}, then ${c} + ${b} = ?`), a, { hint: 'Adding back the part you took away gives the whole.', explain: `${c} + ${b} = ${a}` });
+      const ans = `${c} + ${b} = ${a}`;
+      return C(`Which addition checks <b>${a} − ${b} = ${c}</b>?`, ans, U.strChoices(ans, [`${a} + ${b} = ${U.comma(a + b)}`, `${a} + ${c} = ${U.comma(a + c)}`, `${b} + ${a} = ${U.comma(a + b)}`], 3), { hint: 'Add the answer and the number you took away. You should get the start.', explain: ans });
+    }
+    const w = chance(0.5) ? c : c + pick([-100, -10, 10, 100]), ok = w === c, [p] = two();
+    return C(`${p} says <b>${a} − ${b} = ${w}</b>. Is that right? Check with addition.`, ok ? 'Yes' : 'No', ['Yes', 'No'], { hint: `Add ${w} + ${b}. Do you get ${a}?`, explain: `${w} + ${b} = ${w + b}${ok ? ', so it is right.' : `, not ${a}. The answer is ${c}.`}` });
+  }
+
+  // ---- Arrays: rows and columns, equal groups on a tape (2.OA.4) ----
+  function arrRowsCols(d) {
+    const r = rnd(2, 5), c = rnd(2, 6), vis = V.array(r, c), n = r * c;
+    const k = d === 2 ? rnd(1, 3) : rnd(4, 6);
+    if (k === 1) return N('How many <b>rows</b>?', r, { visual: vis, hint: 'Rows go across, like a line of chairs.', explain: `${r} rows of ${c}` });
+    if (k === 2) return N('How many <b>columns</b>?', c, { visual: vis, hint: 'Columns go up and down, like a tower.', explain: `${c} columns of ${r}` });
+    if (k === 3) return N(E(`${r} rows of ? = ${n}`), c, { visual: vis, hint: 'Count the dots in one row.', explain: `${Array(r).fill(c).join(' + ')} = ${n}` });
+    if (k === 4) return N(E(`? columns of ${r} = ${n}`), c, { visual: vis, hint: 'Count the columns: they go up and down.', explain: `${Array(c).fill(r).join(' + ')} = ${n}` });
+    if (k === 5) return N('Add 1 more row. How many dots now?', (r + 1) * c, { visual: vis, hint: `A new row has ${c} dots.`, explain: `${n} + ${c} = ${(r + 1) * c}` });
+    return N('Take away 1 column. How many dots now?', r * (c - 1), { visual: vis, hint: `A column has ${r} dots.`, explain: `${n} − ${r} = ${r * (c - 1)}` });
+  }
+  function arrTape(d) {
+    const g = d === 2 ? rnd(2, 5) : rnd(3, 6), k = d === 2 ? rnd(2, 6) : rnd(3, 6);
+    const tape = (total) => V.tape([{ label: '', parts: Array.from({ length: g }, () => ({ v: k, text: k })) }], { total });
+    if (chance(0.4)) return N(`The tape shows ${g} groups of ${k}. Add 1 more group of ${k}. What is the total now?`, (g + 1) * k, { visual: tape(null), hint: `Add one more ${k}.`, explain: `${Array(g + 1).fill(k).join(' + ')} = ${(g + 1) * k}` });
+    return N(`The tape shows ${g} groups of ${k}. What is the total?`, g * k, { visual: tape('?'), hint: `Add ${k} again for every part: skip-count by ${k}s.`, explain: `${Array(g).fill(k).join(' + ')} = ${g * k}` });
+  }
+
+  // ---- Money: bills, ways to make the same amount, making $1 (2.MD.8) ----
+  const BILL = { w: [20, 'twenty'], t: [10, 'ten'], f: [5, 'five'], b: [1, 'one'] };
+  const billWords = (list) => {
+    const parts = ['w', 't', 'f', 'b'].map((k) => [k, list.filter((x) => x === k).length]).filter(([, n]) => n).map(([k, n]) => `${n} ${BILL[k][1]}-dollar bill${n > 1 ? 's' : ''}`);
+    return parts.length > 1 ? parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1] : parts[0];
+  };
+  const billSum = (list) => U.sum(list.map((k) => BILL[k][0]));
+  const randomBills = (k, maxSum) => { for (;;) { const l = Array.from({ length: k }, () => pick(['w', 't', 'f', 'b'])).sort((x, y) => BILL[y][0] - BILL[x][0]); if (billSum(l) <= maxSum) return l; } };
+  function moneyBills(d) {
+    const [p, q] = two();
+    if (d === 3) { const list = randomBills(rnd(3, 6), 99); return N('How many dollars is this?', billSum(list), { unit: 'dollars', visual: V.coins(list, true), hint: 'Start with the bills worth the most, then count on.', explain: list.map((k) => '$' + BILL[k][0]).join(' + ') + ` = $${billSum(list)}` }); }
+    if (chance(0.5)) {
+      const give = randomBills(rnd(2, 4), 60), have = Math.ceil((billSum(give) + rnd(5, 40)) / 5) * 5;
+      return N(`${p} has $${have}. ${p} gives ${billWords(give)} to ${q}. How many dollars are left?`, have - billSum(give), { unit: 'dollars', hint: 'First find how much was given away. Then subtract.', explain: `${billSum(give)} given, ${have} − ${billSum(give)} = ${have - billSum(give)}` });
+    }
+    const a = randomBills(rnd(2, 3), 50), b = randomBills(rnd(1, 3), 45);
+    return N(`${p} has ${billWords(a)} in a wallet and ${billWords(b)} in a pocket. How many dollars in all?`, billSum(a) + billSum(b), { unit: 'dollars', hint: 'Find each total, then add them.', explain: `${billSum(a)} + ${billSum(b)} = ${billSum(a) + billSum(b)}` });
+  }
+  const COIN_NAMES = { q: ['quarter', 'quarters'], d: ['dime', 'dimes'], n: ['nickel', 'nickels'], p: ['penny', 'pennies'] };
+  const coinWords = (list) => ['q', 'd', 'n', 'p'].map((k) => [k, list.filter((x) => x === k).length]).filter(([, n]) => n).map(([k, n]) => `${n} ${COIN_NAMES[k][n > 1 ? 1 : 0]}`).join(', ');
+  const someCoins = (total) => { // a random handful of coins worth exactly total (at most 9 coins), or null
+    const list = [];
+    let left = total;
+    while (left > 0 && list.length < 9) { const k = pick(['q', 'd', 'n', 'p'].filter((x) => COINV[x] <= left && (x !== 'p' || left % 5))); if (!k) return null; list.push(k); left -= COINV[k]; }
+    return left ? null : sortCoins(list);
+  };
+  function moneyWays(d) {
+    const T = (d === 3 ? rnd(4, 12) : rnd(6, 19)) * 5;
+    const good = new Set(), bad = new Set();
+    for (let i = 0; i < 300 && good.size < 3; i++) { const l = someCoins(T); if (l) good.add(coinWords(l)); }
+    for (let i = 0; i < 300 && bad.size < 3; i++) { const l = someCoins(T + pick([-10, -5, 5, 10, 1])); if (l) bad.add(coinWords(l)); }
+    if (good.size < 2 || bad.size < 2) return moneyWays(d);
+    const right = [...good].slice(0, rnd(2, 3)), wrong = [...bad].slice(0, 5 - right.length);
+    return M(`Select <b>all</b> the ways to make <b>${T}¢</b>.`, right, shuffle([...right, ...wrong]), { hint: 'Count each set: quarters 25¢, dimes 10¢, nickels 5¢, pennies 1¢.' });
+  }
+  function moneyTo100(d) {
+    const [p] = two();
+    if (d === 3) {
+      const c = rnd(11, 89), up = Math.ceil(c / 10) * 10, js = [up - c, 100 - up].filter(Boolean);
+      return N(`Count up to make $1: <b>${c}¢ + ? = 100¢</b>`, 100 - c, { unit: '¢', visual: V.arrows(c, chain(c, js, false)), hint: 'Add up the jumps.', explain: `${js.join(' + ')} = ${100 - c}` });
+    }
+    if (chance(0.5)) {
+      let list;
+      do list = randomCoins(['q', 'd', 'n'], 6, 95); while (coinSum(list) >= 100);
+      return N(`${p} has ${coinWords(list)}. A notepad costs $1. How much more money does ${p} need?`, 100 - coinSum(list), { unit: '¢', hint: 'Count the coins first. Then count up to 100¢.', explain: `${coinSum(list)}¢ + ${100 - coinSum(list)}¢ = 100¢` });
+    }
+    const x = rnd(11, 45), y = rnd(11, 89 - x);
+    return N(`${p} saved ${x}¢ on Friday and ${y}¢ on Monday. How much more does ${p} need to save to have $1?`, 100 - x - y, { unit: '¢', hint: 'Two steps: add the savings, then count up to 100¢.', explain: `${x} + ${y} = ${x + y}, ${x + y} + ${100 - x - y} = 100` });
+  }
+
+  // ---- Data: tables with tally marks, line plots (2.MD.9, 2.MD.10) ----
+  function dataTally(d) {
+    const th = pick(THEMES.filter((t) => t.title !== 'Weather this month')), items = U.sample(th.items, rnd(3, Math.min(4, th.items.length))), ns = U.sample(U.range(2, 14), items.length);
+    const rows = items.map(([e, label], i) => ({ label: `${e} ${label}`, name: label, n: ns[i] }));
+    const vis = V.tally(rows, th.title), [a, b, c] = rows, total = U.sum(ns);
+    const k = d === 2 ? rnd(1, 2) : rnd(3, 5);
+    if (k === 1) return N(`How many <b>${a.name}</b>?`, a.n, { visual: vis, hint: 'Each bundle of tally marks is 5. Count by 5s, then count on.', explain: `${a.n} ${a.name}` });
+    const [hi, lo] = a.n > b.n ? [a, b] : [b, a];
+    if (k === 2) return N(`How many more <b>${hi.name}</b> than <b>${lo.name}</b>?`, hi.n - lo.n, { visual: vis, hint: 'Find both numbers. Then subtract.', explain: `${hi.n} − ${lo.n} = ${hi.n - lo.n}` });
+    if (k === 3) return N(`How many <b>${a.name}</b> and <b>${b.name}</b> in all?`, a.n + b.n, { visual: vis, hint: 'Find both numbers. Then add.', explain: `${a.n} + ${b.n} = ${a.n + b.n}` });
+    if (k === 4) { const T = total + rnd(3, 15); return N(`How many more would be needed to have <b>${T}</b> in all?`, T - total, { visual: vis, hint: 'Add all the rows. Then count up to the new total.', explain: `${ns.join(' + ')} = ${total}, ${T} − ${total} = ${T - total}` }); }
+    if (a.n + b.n <= c.n) return dataTally(d);
+    return N(`How many fewer <b>${c.name}</b> than <b>${a.name}</b> and <b>${b.name}</b> together?`, a.n + b.n - c.n, { visual: vis, hint: `Two steps: add ${a.name} and ${b.name}, then subtract.`, explain: `${a.n} + ${b.n} = ${a.n + b.n}, ${a.n + b.n} − ${c.n} = ${a.n + b.n - c.n}` });
+  }
+  const PLOTS = [
+    { what: 'pencils', one: 'pencil', adj: 'long', most: 'longest', unit: 'inches', u: 'in', min: 3, max: 9, title: 'Length of pencils in the class bin' },
+    { what: 'ribbons', one: 'ribbon', adj: 'long', most: 'longest', unit: 'centimeters', u: 'cm', min: 12, max: 18, title: 'Ribbon scraps in the craft bin' },
+    { what: 'students', one: 'student', adj: 'tall', most: 'tallest', unit: 'inches', u: 'in', min: 42, max: 48, title: 'Height of second graders' },
+    { what: 'leaves', one: 'leaf', adj: 'long', most: 'longest', unit: 'centimeters', u: 'cm', min: 4, max: 10, title: 'Length of leaves we found' },
+  ];
+  function dataLinePlot(d) {
+    const P = pick(PLOTS), counts = {};
+    let vals;
+    do {
+      U.range(P.min, P.max).forEach((v) => (counts[v] = chance(0.2) ? 0 : rnd(1, 5)));
+      vals = U.range(P.min, P.max).map((v) => counts[v]);
+    } while (vals.filter((c) => c === Math.max(...vals)).length > 1 || vals.filter(Boolean).length < 4); // one tallest stack, at least 4 lengths
+    const vis = V.linePlot({ min: P.min, max: P.max, counts, unit: P.unit, title: P.title }), total = U.sum(vals);
+    const used = U.range(P.min, P.max).filter((v) => counts[v]), mode = U.range(P.min, P.max).find((v) => counts[v] === Math.max(...vals));
+    const v = pick(U.range(P.min + 1, P.max - 1));
+    switch (d === 3 ? rnd(1, 3) : rnd(3, 5)) {
+      case 1: return N(`How many ${P.what} are <b>${v} ${P.unit}</b> ${P.adj}?`, counts[v], { visual: vis, hint: `Find ${v} on the line and count the ×s above it.`, explain: `${counts[v]} × above ${v}` });
+      case 2: { const more = U.sum(U.range(v + 1, P.max).map((x) => counts[x])); return N(`How many ${P.what} are ${P.adj === 'tall' ? 'taller' : 'longer'} than <b>${v} ${P.unit}</b>?`, more, { visual: vis, hint: `Count the ×s to the right of ${v}.`, explain: U.range(v + 1, P.max).map((x) => counts[x]).join(' + ') + ` = ${more}` }); }
+      case 3: return C(`Which ${P.adj === 'tall' ? 'height' : 'length'} is the most common?`, `${mode} ${P.unit}`, U.strChoices(`${mode} ${P.unit}`, used.map((x) => `${x} ${P.unit}`), 4), { visual: vis, hint: 'Find the tallest stack of ×s.', explain: `${counts[mode]} ${P.what} are ${mode} ${P.unit} ${P.adj}.` });
+      case 4: return N(`How many ${P.what} were measured?`, total, { visual: vis, hint: 'Count every ×.', explain: `${vals.join(' + ')} = ${total}` });
+      default: return N(`What is the difference between the ${P.most} and the shortest ${P.one}?`, used[used.length - 1] - used[0], { unit: P.u, visual: vis, hint: 'Find the ×s farthest right and farthest left.', explain: `${used[used.length - 1]} − ${used[0]} = ${used[used.length - 1] - used[0]}` });
+    }
+  }
+
+  // ---- Time: quarter past, half past, quarter to; hours between a.m. and p.m. (2.MD.7) ----
+  const nextH = (h) => (h % 12) + 1, prevH = (h) => ((h + 10) % 12) + 1;
+  const timeWords = (h, m) => (m === 15 ? `quarter past ${h}` : m === 30 ? `half past ${h}` : `quarter to ${nextH(h)}`);
+  function timeQuarter() {
+    const h = rnd(1, 12), m = pick([15, 30, 45]), ans = tStr(h, m);
+    if (chance(0.5)) return C(`What time is <b>${timeWords(h, m)}</b>?`, ans, U.strChoices(ans, [tStr(h, 15), tStr(h, 30), tStr(h, 45), tStr(prevH(h), 45), tStr(nextH(h), m)], 4), { hint: 'Quarter past = 15 minutes after. Half past = 30 minutes after. Quarter to = 15 minutes before the next hour.', explain: `${timeWords(h, m)} is ${ans}` });
+    const w = timeWords(h, m);
+    return C('Which words tell this time?', w, U.strChoices(w, [`quarter past ${h}`, `half past ${h}`, `quarter to ${nextH(h)}`, `quarter to ${h}`, `quarter past ${nextH(h)}`], 4), { visual: V.clock(h, m), hint: 'Look at the long hand: on the 3 is quarter past, on the 6 is half past, on the 9 is quarter to.', explain: `${ans} is ${w}` });
+  }
+  const clockOf = (t) => { t = ((t % 1440) + 1440) % 1440; const h = Math.floor(t / 60), m = t % 60; return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'a.m.' : 'p.m.'}`; };
+  const hoursText = (min) => `${Math.floor(min / 60)} hour${Math.floor(min / 60) === 1 ? '' : 's'}${min % 60 ? ' 30 minutes' : ''}`;
+  function timeElapsed(d) {
+    const [p] = two(), act = pick(['School', 'A road trip', 'A field trip', 'Soccer camp', 'A birthday party', 'A museum visit']);
+    const start = d === 4 ? rnd(12, 34) * 30 : rnd(36, 46) * 30, dur = d === 4 ? rnd(1, Math.min(8, Math.floor((1410 - start) / 60))) * 60 : rnd(2, 8) * 60 + pick([0, 30]), end = start + dur; // a.m. to p.m.; at 5: past midnight
+    if (d === 4 && chance(0.5)) {
+      const ans = clockOf(start);
+      return C(`${act} lasted <b>${dur / 60} hours</b>. It ended at <b>${clockOf(end)}</b>. When did it start?`, ans, U.strChoices(ans, [clockOf(end + dur), clockOf(start - 60), clockOf(start + 60), clockOf(start + 720)], 4), { hint: `Count back ${dur / 60} hours from the end.`, explain: `${clockOf(start)} + ${dur / 60} hours = ${clockOf(end)}` });
+    }
+    if (d === 4) return N(`${act} starts at <b>${clockOf(start)}</b> and ends at <b>${clockOf(end)}</b>. How many hours is that?`, dur / 60, { unit: 'hours', hint: 'Count the hours. Noon comes after 11 a.m.', explain: `${clockOf(start)} to ${clockOf(end)} is ${dur / 60} hours` });
+    const ans = hoursText(dur);
+    return C(`${p} left at <b>${clockOf(start)}</b> and came back at <b>${clockOf(end)}</b>. How long was that?`, ans, U.strChoices(ans, [hoursText(dur + 60), hoursText(dur - 60), hoursText(dur + 30), hoursText(dur - 30)].filter((s) => !s.startsWith('0')), 4), { hint: 'Count whole hours first. Midnight comes after 11 p.m. Then add the half hour.', explain: `${clockOf(start)} to ${clockOf(end)} is ${ans}` });
+  }
+
+  // ---- Shapes: quadrilaterals, angles; fractions of a whole (2.G.1, 2.G.3) ----
+  const ANGLES = { triangle: 3, quadrilateral: 4, pentagon: 5, hexagon: 6 };
+  const QUADS = [
+    ['4 equal sides and 4 square corners', 'square', ['trapezoid', 'triangle', 'hexagon']],
+    ['4 square corners, but its sides are not all equal', 'rectangle', ['square', 'trapezoid', 'rhombus']],
+    ['4 equal sides, but no square corners', 'rhombus', ['square', 'rectangle', 'trapezoid']],
+    ['4 sides and exactly 1 pair of parallel sides', 'trapezoid', ['rectangle', 'square', 'rhombus']],
+  ];
+  function shapeQuads() {
+    const k = rnd(1, 3);
+    if (k === 1) { const [clue, ans, other] = pick(QUADS); return C(`A shape has <b>${clue}</b>. What is it?`, ans, shuffle([ans, ...other]), { hint: 'Square corners are like the corner of a page. Parallel sides never meet, like train tracks.', explain: `A ${ans} has ${clue}.` }); }
+    if (k === 2) {
+      const [name, n] = pick([['triangle', 3], ['square', 4], ['rectangle', 4], ['trapezoid', 4], ['rhombus', 4], ['pentagon', 5], ['hexagon', 6]]);
+      return N('How many <b>angles</b> does this shape have?', n, { visual: V.shape(name, { irregular: ['triangle', 'pentagon', 'hexagon'].includes(name) && chance(0.6), rotate: true }), hint: 'An angle is where two sides meet. A shape has as many angles as sides.', explain: `A ${name} has ${n} sides and ${n} angles.` });
+    }
+    const [a, b] = U.sample(Object.keys(ANGLES), 2).sort((x, y) => ANGLES[x] - ANGLES[y]);
+    return C(`Which shape has <b>${ANGLES[b] - ANGLES[a]} more angle${ANGLES[b] - ANGLES[a] > 1 ? 's' : ''}</b> than a ${a}?`, b, Object.keys(ANGLES).filter((x) => x !== a), { hint: `A ${a} has ${ANGLES[a]} angles. Add ${ANGLES[b] - ANGLES[a]}.`, explain: `${ANGLES[a]} + ${ANGLES[b] - ANGLES[a]} = ${ANGLES[b]}: a ${b}` });
+  }
+  const PART = { 1: ['whole', 'wholes'], 2: ['half', 'halves'], 3: ['third', 'thirds'], 4: ['fourth', 'fourths'] };
+  const share = (k, n) => `${k} ${PART[n][k === 1 ? 0 : 1]}`;
+  function fracWhole(d) {
+    const n = rnd(2, 4), k = rnd(1, n - 1);
+    switch (d === 3 ? rnd(1, 3) : rnd(1, 4)) {
+      case 1: { const ans = share(n - k, n); return C('How much more do you need to shade to make <b>1 whole</b>?', ans, U.strChoices(ans, [share(k, n), share(n, n), share(n - k, n === 4 ? 3 : n + 1), share(1, n)].filter((x) => x !== ans), 4), { visual: V.fraction(n, k, chance(0.5) ? 'bar' : 'circle'), hint: `The whole has ${n} equal parts. How many are not shaded?`, explain: `${share(k, n)} + ${ans} = ${n} ${PART[n][1]} = 1 whole` }); }
+      case 2: return N(`How many <b>${PART[n][1]}</b> make 1 whole?`, n, { visual: V.fraction(n, n, 'circle'), hint: `${PART[n][1]} means ${n} equal parts.`, explain: `${n} ${PART[n][1]} = 1 whole` });
+      case 3: { const [x, ans] = pick([['2 fourths', '1 half'], ['2 halves', '1 whole'], ['3 thirds', '1 whole'], ['4 fourths', '1 whole']]); return C(`<b>${x}</b> is the same as…`, ans, ['1 half', '1 third', '1 fourth', '1 whole'], { visual: V.fraction(+x[0] === 2 && x.includes('fourths') ? 4 : +x[0], +x[0], 'bar'), hint: 'Look at how much of the whole is shaded.', explain: `${x} = ${ans}` }); }
+      default: { const ans = share(1, n); return C(`${n} friends share a pizza equally. How much does each friend get?`, ans, ['1 half', '1 third', '1 fourth', '1 whole'], { hint: `Cut the pizza into ${n} equal parts.`, explain: `${n} equal parts: each is ${ans}` }); }
+    }
+  }
+
   MQ.KINDS = {
     pv_words: { topic: 'place', ds: [2, 3, 4], name: 'Number names', gen: pvWords },
     pv_units: { topic: 'place', ds: [3, 4], name: 'Tens and ones in big numbers', gen: pvUnits },
@@ -3892,6 +4164,21 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     big_simpler: { topic: 'big', ds: [3, 4], name: 'Make an easier problem to 1,000', gen: () => (chance(0.5) ? simplerAdd(1000) : simplerSub(1000)) },
     big_bond: { topic: 'big', ds: [3, 4], name: 'Make a hundred', gen: () => bondAdd(5) },
     words_tape: { topic: 'words', ds: [3, 4], name: 'Word problems with a tape diagram', gen: tapeWords },
+    big_check: { topic: 'big', ds: [3, 4], name: 'Check subtraction with addition', gen: bigCheck },
+    len_about: { topic: 'measure', ds: [2, 3], name: 'About how long?', gen: lenAbout },
+    len_units: { topic: 'measure', ds: [3], name: 'Small units, big numbers', gen: lenUnits },
+    len_line: { topic: 'measure', ds: [3, 4], name: 'Rulers as number lines', gen: lenLine },
+    arr_rowscols: { topic: 'arrays', ds: [2, 3], name: 'Rows and columns', gen: arrRowsCols },
+    arr_tape: { topic: 'arrays', ds: [2, 3], name: 'Equal groups on a tape', gen: arrTape },
+    money_bills: { topic: 'money', ds: [3, 4], name: '$1, $5, $10 and $20 bills', gen: moneyBills },
+    money_ways: { topic: 'money', ds: [3, 4], name: 'Different coins, same amount', gen: moneyWays },
+    money_to100: { topic: 'money', ds: [3, 4], name: 'Count up to $1', gen: moneyTo100 },
+    data_tally: { topic: 'data', ds: [2, 3], name: 'Tables with tally marks', gen: dataTally },
+    data_lineplot: { topic: 'data', ds: [3, 4], name: 'Line plots', gen: dataLinePlot },
+    time_quarter: { topic: 'time', ds: [2, 3], name: 'Quarter past, half past, quarter to', gen: timeQuarter },
+    time_elapsed: { topic: 'time', ds: [4, 5], name: 'Hours from a.m. to p.m.', gen: timeElapsed },
+    shape_quads: { topic: 'shapes', ds: [2, 3], name: 'Angles and quadrilaterals', gen: shapeQuads },
+    frac_whole: { topic: 'shapes', ds: [3, 4], name: 'Halves, thirds, fourths of a whole', gen: fracWhole },
   };
   const kindIds = (topic, d) => Object.keys(MQ.KINDS).filter((k) => MQ.KINDS[k].topic === topic && MQ.KINDS[k].ds.includes(d));
   // About a third of a topic's questions are class strategies (when the topic has kinds at that level).
@@ -6650,9 +6937,9 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
           ] },
           { n: 2, title: 'Measuring length', parts: [
             { from: 1, to: 3, title: 'Centimeters and rulers', skills: ['measure/2'] },
-            { from: 4, to: 5, title: 'Centimeters, meters, estimating', skills: ['measure/2', 'measure/3'] },
-            { from: 6, to: 7, title: 'Comparing lengths', skills: ['measure/3', 'words/2'] },
-            { from: 8, to: 10, title: 'Length word problems', skills: ['measure/3', 'words/3', 'words_tape/3'] },
+            { from: 4, to: 5, title: 'Centimeters, meters, estimating', skills: ['measure/2', 'measure/3', 'len_about/2'] },
+            { from: 6, to: 7, title: 'Comparing lengths', skills: ['measure/3', 'words/2', 'len_units/3', 'len_line/3'] },
+            { from: 8, to: 10, title: 'Length word problems', skills: ['measure/3', 'len_line/4', 'words/3', 'words_tape/3'] },
           ] },
           { n: 3, title: 'Place value to 1,000', parts: [
             { from: 1, to: 4, title: 'Ones, tens and hundreds', skills: ['place/2', 'pv_units/3', 'place/3'] },
@@ -6673,26 +6960,26 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
           { n: 5, title: 'Adding and subtracting to 1,000', parts: [
             { from: 1, to: 7, title: 'Hundreds and tens: arrows, easier problems', skills: ['pv_more/3', 'big/1', 'big_arrow/2', 'big_arrow/3', 'big_simpler/3', 'big_bond/3'] },
             { from: 8, to: 12, title: 'Adding: new tens and hundreds', skills: ['big/2', 'big/3', 'big/4', 'big_bond/4'] },
-            { from: 13, to: 20, title: 'Subtracting: unbundle tens and hundreds', skills: ['big/2', 'big/3', 'big/4', 'big_simpler/4', 'big_arrow/4'] },
+            { from: 13, to: 20, title: 'Subtracting: unbundle tens and hundreds', skills: ['big/2', 'big/3', 'big/4', 'big_simpler/4', 'big_arrow/4', 'big_check/3', 'big_check/4'] },
           ] },
           { n: 6, title: 'Equal groups, arrays, odd and even', parts: [
-            { from: 1, to: 4, title: 'Equal groups', skills: ['mult/1', 'arrays/3'], learn: 'groups' },
-            { from: 5, to: 9, title: 'Arrays: rows and columns', skills: ['arrays/2', 'arrays/3', 'mult/1'], learn: 'arrays' },
-            { from: 10, to: 16, title: 'Rectangles made of squares', skills: ['arrays/3', 'arrays/4', 'shapes/4'] },
+            { from: 1, to: 4, title: 'Equal groups', skills: ['mult/1', 'arr_tape/2', 'arr_tape/3', 'arrays/3'], learn: 'groups' },
+            { from: 5, to: 9, title: 'Arrays: rows and columns', skills: ['arr_rowscols/2', 'arr_rowscols/3', 'arrays/2', 'arrays/3'], learn: 'arrays' },
+            { from: 10, to: 16, title: 'Rectangles made of squares', skills: ['arr_rowscols/3', 'arrays/4', 'shapes/4'] },
             { from: 17, to: 20, title: 'Odd and even', skills: ['arrays/1', 'arrays/2', 'arrays/4'] },
           ] },
           { n: 7, title: 'Graphs, money and measuring', parts: [
-            { from: 1, to: 5, title: 'Picture graphs and bar graphs', skills: ['data/2', 'data/3', 'data/4'] },
-            { from: 6, to: 13, title: 'Coins and bills', skills: ['money/2', 'money/3', 'money/4', 'money/5'] },
+            { from: 1, to: 5, title: 'Tables, picture graphs and bar graphs', skills: ['data_tally/2', 'data_tally/3', 'data/2', 'data/3', 'data/4'] },
+            { from: 6, to: 13, title: 'Coins and bills', skills: ['money/2', 'money/3', 'money_bills/3', 'money_bills/4', 'money_ways/3', 'money_ways/4', 'money_to100/3', 'money_to100/4', 'money/5'] },
             { from: 14, to: 15, title: 'Inch rulers', skills: ['measure/1'] },
-            { from: 16, to: 19, title: 'Inches, feet and yards', skills: ['measure/3', 'measure/4'] },
-            { from: 20, to: 22, title: 'Length word problems', skills: ['measure/3', 'words/3', 'words_tape/3'] },
-            { from: 23, to: 26, title: 'Measurement data', skills: ['data/3', 'data/4'] },
+            { from: 16, to: 19, title: 'Inches, feet and yards', skills: ['measure/3', 'measure/4', 'len_about/3', 'len_units/3'] },
+            { from: 20, to: 22, title: 'Length word problems', skills: ['len_line/3', 'len_line/4', 'words_tape/3', 'words/3'] },
+            { from: 23, to: 26, title: 'Line plots', skills: ['data_lineplot/3', 'data_lineplot/4'] },
           ] },
           { n: 8, title: 'Shapes, fractions and time', parts: [
-            { from: 1, to: 5, title: 'Shapes and cubes', skills: ['shapes/1', 'shapes/2', 'shapes/4'] },
-            { from: 6, to: 12, title: 'Halves, thirds and fourths', skills: ['shapes/3'] },
-            { from: 13, to: 16, title: 'Telling time, a.m. and p.m.', skills: ['time/2', 'time/3', 'time/4'] },
+            { from: 1, to: 5, title: 'Shapes, angles and cubes', skills: ['shape_quads/2', 'shape_quads/3', 'shapes/1', 'shapes/2', 'shapes/4'] },
+            { from: 6, to: 12, title: 'Halves, thirds and fourths', skills: ['shapes/3', 'frac_whole/3', 'frac_whole/4'] },
+            { from: 13, to: 16, title: 'Telling time, a.m. and p.m.', skills: ['time_quarter/2', 'time_quarter/3', 'time/3', 'time/4', 'time_elapsed/4', 'time_elapsed/5'] },
           ] },
         ],
       },
