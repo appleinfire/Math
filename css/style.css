@@ -564,6 +564,17 @@ body[data-track="k"] { --paper: #eef2fb; }
 .tengroups .tg.loose { box-shadow: inset 0 0 0 2px var(--line); background: transparent; }
 .strip { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; font-size: 2.2rem; }
 .strip span.pq { min-width: 1.3em; text-align: center; border: 3px dashed var(--coral); border-radius: 12px; color: var(--coral); font-family: var(--display); }
+/* class strategies: arrows, place value chart, tape diagram, number bond */
+.arrows { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center; gap: 2px 4px; font-family: var(--display); }
+.arrows .anum { font-size: 1.7rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: #f1f6fb; font-variant-numeric: tabular-nums; }
+.arrows .anum.q { color: var(--coral); border: 3px dashed var(--coral); background: #fff6f4; min-width: 1.6em; text-align: center; }
+.arrows .ajump { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; padding: 0 2px; }
+.arrows .ajump small { font-size: 1rem; font-weight: 800; color: var(--coral); }
+.arrows .ajump b { font-size: 1.7rem; color: var(--ink-soft); }
+.eqline.long { font-size: clamp(1.05rem, 5vw, 1.45rem); line-height: 1.5; }
+svg.vis.pvchart { max-width: 100%; }
+svg.vis.tape { max-width: 100%; }
+svg.vis.bond { width: 150px; }
 .comparerows { display: flex; flex-direction: column; gap: 8px; }
 .comparerows div { display: grid; grid-template-columns: repeat(10, 1.25em); font-size: 1.9rem; padding: 4px 8px; border-radius: 12px; background: #f1f6fb; }
 .shaperow { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 340px; }
@@ -766,6 +777,7 @@ svg.vis.abacus { max-height: 160px; }
 
 /* Review questions and strategy tips */
 .dchip.rv { background: #dcf3e3; color: #23703f; margin-right: 6px; }
+.dchip.cls { background: #e3edfc; color: #2a5fb0; margin-right: 6px; }
 .tipcard { background: var(--sun-soft); color: #6b4706; border-radius: 14px; padding: 9px 12px; margin-bottom: 10px; font-weight: 700; font-size: 0.95rem; line-height: 1.35; text-align: left; box-shadow: inset 0 0 0 2px var(--sun); animation: pop 0.4s; }
 .tipcard b { margin-right: 4px; }
 
@@ -774,6 +786,9 @@ svg.vis.abacus { max-height: 160px; }
 
 /* Home: Fix-it Lab, progress, daily goal */
 .t-fixit.hot { box-shadow: inset 0 0 0 3px #3c9d5d, 0 4px 0 #2b7b46; background: #e6f6ec; }
+.t-class { box-shadow: inset 0 0 0 3px #3f7fd8, 0 4px 0 #2a5fb0; background: #e3edfc; }
+.classset .chips .chip { text-align: left; }
+.classnote { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--sun-soft); font-weight: 700; }
 .t-progress { box-shadow: inset 0 0 0 2px var(--line), 0 3px 0 var(--line); }
 .goal { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 18px; padding: 10px 14px; box-shadow: inset 0 0 0 2px var(--line); margin: 10px 0 4px; }
 .goal .ring { --p: 0; flex: none; width: 62px; height: 62px; border-radius: 50%; display: grid; place-content: center; text-align: center; line-height: 1;

@@ -412,6 +412,7 @@
       ${gateCard()}
       ${cont}
       <div class="tiles">
+        ${classTile()}
         <button class="tile t-map" data-act="go" data-arg="map"><span class="ti">🗺️</span><b>Expedition Map</b><small>${WORLDS().length} worlds · ${WORLDS().length * 6} levels</small></button>
         <button class="tile t-endless" data-act="go" data-arg="trainer"><span class="ti">♾️</span><b>Endless Training</b><small>Pick topics & difficulty</small></button>
         ${st.grade === 'g2' ? `<button class="tile t-learn" data-act="go" data-arg="lessons"><span class="ti">📖</span><b>Learn</b><small>Multiply &amp; Divide · ${MQ.lessons.completed(st)} / 6 modules</small></button>` : ''}
@@ -430,6 +431,12 @@
     </main>`);
     cur = 'home';
     later(growCheck, 900);
+  }
+
+  // In class now (js/school.js): practice that follows what the class is learning; a grown-up sets it on the grown-ups page.
+  function classTile() {
+    const f = MQ.school.focus(st);
+    return f ? `<button class="tile t-class" data-act="classPractice"><span class="ti">🏫</span><b>In class now</b><small>${esc(f.title)}</small></button>` : '';
   }
 
   // Sunny Farm: level, money and what's waiting (ripe crops, things to collect, a full basket).
@@ -592,8 +599,11 @@
     }
     const rv = reviewProblem();
     if (rv) return rv;
-    const topic = U.pick(sess.topics);
-    const d = sess.auto ? sess.autoD : U.rnd(sess.d[0], sess.d[1]);
+    // In class now: every question of a class practice, and 2 of the Daily Quest
+    let sk = sess.skills ? MQ.school.pick(sess.skills) : null;
+    if (!sk && sess.classSkills && sess.classLeft > 0 && sess.asked % 2 === 0) { sk = MQ.school.pick(sess.classSkills); sess.classLeft--; }
+    const topic = sk ? sk.topic : U.pick(sess.topics);
+    const d = sk ? sk.d : sess.auto ? sess.autoD : U.rnd(sess.d[0], sess.d[1]);
     if (MQ.TOPICS[topic].track === 'prep') { // test-prep practice: prefer questions not seen in earlier attempts
       const p = MQ.prep.fresh(topic, d, new Set(sess.recent));
       sess.recent.push(U.qkey(p));
@@ -602,10 +612,11 @@
     }
     let p;
     for (let i = 0; i < 25; i++) {
-      p = MQ.makeProblem(topic, d);
+      p = sk ? MQ.school.make(sk) : MQ.makeProblem(topic, d);
       const key = p.text + (p.visual || '');
       if (!sess.recent.includes(key)) { sess.recent.push(key); if (sess.recent.length > 25) sess.recent.shift(); break; }
     }
+    if (sk && !sess.skills) p.cls = true; // a Daily Quest question from what the class is learning
     return p;
   }
   // Mistakes come back: a fresh question of a skill the child got wrong before (same topic and level).
@@ -661,14 +672,14 @@
     remember('play');
     sess = Object.assign({ correct: 0, firstTry: 0, mistakes: 0, streak: 0, best: 0, answered: 0, earned: 0, recent: [], tries: 0, p: null, input: '', autoD: 2, maxD: 5, up: 0, down: 0, left: cfg.timer || 0, locked: false,
       asked: 0, revUsed: [], missBy: {}, tipNext: [], fixedNow: 0 }, cfg);
-    const color = sess.world ? sess.world.color : sess.mode === 'daily' ? '#e09a2b' : sess.mode === 'check' ? '#5b63c9' : sess.mode === 'fixit' ? '#3c9d5d' : '#ff6b5b';
+    const color = sess.world ? sess.world.color : sess.classSet ? '#3f7fd8' : sess.mode === 'daily' ? '#e09a2b' : sess.mode === 'check' ? '#5b63c9' : sess.mode === 'fixit' ? '#3c9d5d' : '#ff6b5b';
     render(`<div class="play" style="--wc:${color}">
       <header class="playbar"><button class="iconbtn" data-act="quit" aria-label="Stop">✕</button><div class="pstatus" id="pstatus"></div>${gemPill()}</header>
       <div class="buddy small"><span class="buddy-e">${face()}</span><div class="bubble" id="bubble"></div></div>
       <section class="pcard" id="pcard"></section>
       <div id="answer" class="answer"></div>
     </div>`, 'is-play');
-    say(sess.mode === 'level' ? `${bname()}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${bname()}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${bname()}: Lightning round! Go go go! ⚡` : sess.mode === 'daily' ? `${bname()}: Today’s quest — ${sess.warm && sess.warm.length ? '5 math puzzles and 2 GATE warm-ups 🔷' : '5 mixed puzzles'}!` : `${bname()}: Let’s train! Every 5 in a row opens a chest. 🎁`);
+    say(sess.mode === 'level' ? `${bname()}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${bname()}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${bname()}: Lightning round! Go go go! ⚡` : sess.classSet ? `${bname()}: Let’s practice what your class is learning! 🏫` : sess.mode === 'daily' ? `${bname()}: Today’s quest — ${sess.warm && sess.warm.length ? '5 math puzzles and 2 GATE warm-ups 🔷' : '5 mixed puzzles'}!` : `${bname()}: Let’s train! Every 5 in a row opens a chest. 🎁`);
     nextProblem();
     if (sess.timer) sess.interval = setInterval(tick, 1000);
   }
@@ -682,7 +693,9 @@
   function status() {
     const el = $('#pstatus');
     if (!el) return;
-    if (sess.mode === 'trainer') {
+    if (sess.classSet) {
+      el.innerHTML = `<span class="ptitle">🏫 In class now</span><span class="slots">${U.range(1, sess.goal).map((i) => `<i class="${i <= sess.correct ? 'on' : ''}"></i>`).join('')}</span>`;
+    } else if (sess.mode === 'trainer') {
       const m = Math.floor(sess.left / 60), s = String(sess.left % 60).padStart(2, '0');
       el.innerHTML = `<span class="stat">🔥 <b>${sess.streak}</b></span><span class="stat">✓ <b>${sess.correct}</b></span>` +
         (sess.timer ? `<span class="stat timer ${sess.left <= 10 ? 'low' : ''}">⏱ <b>${m}:${s}</b></span>` : '') +
@@ -713,7 +726,7 @@
     const p = sess.p, T = MQ.TOPICS[p.topic];
     const card = $('#pcard');
     // In a Placement Check the difficulty is not shown (it would give the level away).
-    const chip = sess.mode === 'check' ? '' : `${p.review ? '<span class="dchip rv" title="A question like one you missed before">🔁 Review</span>' : ''}<span class="dchip d${p.d}">${D_ICONS[p.d]} ${D_NAMES[p.d]}</span>`;
+    const chip = sess.mode === 'check' ? '' : `${p.review ? '<span class="dchip rv" title="A question like one you missed before">🔁 Review</span>' : ''}${p.cls ? '<span class="dchip cls" title="What your class is learning now">🏫 Class</span>' : ''}<span class="dchip d${p.d}">${D_ICONS[p.d]} ${D_NAMES[p.d]}</span>`;
     const tip = tipFor(p);
     card.innerHTML = `${tip ? `<div class="tipcard"><b>💡 Tip</b> ${esc(tip)}</div>` : ''}<div class="pmeta"><span>${T.icon} ${T.name}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="speak" aria-label="Read the question aloud">🔊</button>' : ''}${chip}</span></div>
       <div class="ptext ${p.big ? 'eq' : ''} ${p.wordy ? 'wordy' : ''}">${p.text}</div>
@@ -1032,12 +1045,13 @@
     let record = '';
     if (sess.timer === 60 && sess.correct > (st.stats.lightning60 || 0)) { st.stats.lightning60 = sess.correct; record = 'New 60-second record!'; }
     if (sess.timer === 120 && sess.correct > (st.stats.lightning120 || 0)) { st.stats.lightning120 = sess.correct; record = 'New 2-minute record!'; }
-    if (!sess.timer && sess.best > (st.stats.endlessBest || 0)) { st.stats.endlessBest = sess.best; if (sess.best >= 5) record = 'New best streak!'; }
+    if (!sess.timer && !sess.classSet && sess.best > (st.stats.endlessBest || 0)) { st.stats.endlessBest = sess.best; if (sess.best >= 5) record = 'New best streak!'; }
     S.save();
-    const acc = pct(sess.firstTry, sess.answered);
-    render(`<main class="result" style="--wc:#ff6b5b;--wt:#ffe3dd">
-      <div class="bigemoji">${sess.timer ? '⚡' : '♾️'}</div>
-      <h1 class="title">${sess.timer ? 'Time!' : 'Training done!'}</h1>
+    const acc = pct(sess.firstTry, sess.answered), cls = sess.classSet;
+    render(`<main class="result" style="${cls ? '--wc:#3f7fd8;--wt:#e3edfc' : '--wc:#ff6b5b;--wt:#ffe3dd'}">
+      <div class="bigemoji">${cls ? '🏫' : sess.timer ? '⚡' : '♾️'}</div>
+      <h1 class="title">${cls ? 'Class practice done!' : sess.timer ? 'Time!' : 'Training done!'}</h1>
+      ${cls ? `<p class="lead">${esc(cls.title)}</p>` : ''}
       ${record ? `<div class="unlock">🏆 ${record}</div>` : ''}
       <div class="sumgrid">
         <div><b>${sess.correct}</b><small>correct</small></div>
@@ -1047,11 +1061,13 @@
       </div>
       ${sess.fixedNow ? `<div class="unlock">🛠️ ${sess.fixedNow} old ${sess.fixedNow === 1 ? 'mistake' : 'mistakes'} fixed for good!</div>` : ''}
       ${sess.earned + sess.fixedNow ? eggNudge() : ''}
-      <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button>${sess.kgTopic
+      <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button>${cls
+        ? `${cls.learn && st.grade === 'g2' ? '<button class="btn ghost" data-act="go" data-arg="lessons">📖 Learn</button>' : ''}<button class="btn" data-act="classPractice">Practice again</button>`
+        : sess.kgTopic
         ? `<button class="btn ghost" data-act="go" data-arg="${MQ.TOPICS[sess.kgTopic].cogat ? 'cgtypes' : MQ.TOPICS[sess.kgTopic].logic ? 'lgtypes' : 'kgtypes'}">Other types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
         : '<button class="btn ghost" data-act="go" data-arg="trainer">Change settings</button><button class="btn" data-act="startTrainer">Play again</button>'}</div></main>`);
     if (sess.correct) { MQ.sfx('reward'); if (record) MQ.confetti(); }
-    if (st.settings.voice !== false && sess.correct) MQ.speak(`You got ${sess.correct} right! ${record ? 'A new record!' : 'Great training!'}`);
+    if (st.settings.voice !== false && sess.correct) MQ.speak(`You got ${sess.correct} right! ${record ? 'A new record!' : cls ? 'Great class practice!' : 'Great training!'}`);
     later(checkBadges, 1200);
   }
 
@@ -1110,7 +1126,7 @@
       return finishFixit();
     }
     if (sess.mode === 'trainer') {
-      if (sess.answered === 0) return go('trainer');
+      if (sess.answered === 0) return go(sess.classSet ? 'home' : 'trainer');
       clearTimers();
       sess.locked = true;
       return finishTrainer();
@@ -1612,6 +1628,13 @@
     startSession({ mode: 'trainer', topics: t.topics.slice(), auto: t.diff === 'auto', d: t.diff === 'auto' ? [2, 2] : [+t.diff, +t.diff], goal: 0, timer: t.mode === 'l60' ? 60 : t.mode === 'l120' ? 120 : 0,
       revFit: (r) => familyOf(r.topic) === st.grade });
   }
+  const CLASS_GOAL = 10;
+  function startClass() {
+    const f = MQ.school.focus(st);
+    if (!f) return home();
+    const topics = new Set(f.skills.map((k) => k.topic));
+    startSession({ mode: 'trainer', classSet: f, skills: f.skills, topics: [...topics], d: [2, 2], goal: CLASS_GOAL, timer: 0, revFit: (r) => topics.has(r.topic) });
+  }
   function startDaily() {
     // Mix of topics from worlds that are open, at a level that stretches a little.
     const topics = new Set();
@@ -1620,7 +1643,8 @@
     if (topics.size < 3) core.slice(0, 5).forEach((t) => topics.add(t));
     // 2nd grade: two NNAT-3 warm-ups (the two kinds practiced least well), as the 1st and 3rd questions
     const warm = gatePlanOn() ? MQ.NNAT_TOPICS.slice().sort((a, b) => (mastery(a).a ? mastery(a).acc : -1) - (mastery(b).a ? mastery(b).acc : -1)).slice(0, 2) : [];
-    startSession({ mode: 'daily', topics: [...topics], d: track().daily, goal: 5 + warm.length, warm, revFit: (r) => familyOf(r.topic) === st.grade });
+    const f = MQ.school.focus(st); // In class now: 2 questions from what the class is learning
+    startSession({ mode: 'daily', topics: [...topics], d: track().daily, goal: 5 + warm.length, warm, classSkills: f ? f.skills : null, classLeft: 2, revFit: (r) => familyOf(r.topic) === st.grade });
   }
 
   // ---------------------------------------------------------------- journal, hatchery, badges
@@ -2054,6 +2078,7 @@
         <div class="label">Days per week</div>
         <div class="chips">${[3, 4, 5, 6, 7].map((n) => `<button class="chip ${(st.goal.days || 5) === n ? 'sel' : ''}" data-act="setGoal" data-arg="days:${n}" aria-pressed="${(st.goal.days || 5) === n}">${n}</button>`).join('')}</div>
       </section>
+      ${classSection()}
       <section class="settings"><h2>Settings</h2>
         <label class="toggle"><input type="checkbox" id="set-sound" data-act="setting" data-arg="sound" ${st.settings.sound ? 'checked' : ''}> Sound effects</label>
         <label class="toggle"><input type="checkbox" id="set-unlock" data-act="setting" data-arg="unlockAll" ${st.settings.unlockAll ? 'checked' : ''}> Unlock all worlds (skip ahead to match what is taught in class)</label>
@@ -2080,6 +2105,35 @@
         <div class="row left"><button class="btn ghost" data-act="go" data-arg="new">Add an explorer</button></div></section>
       <section><h2>Start over</h2><button class="btn danger" data-act="reset">${ui.resetArmed ? `Tap again to erase ${esc(st.name)}’s progress` : `Erase ${esc(st.name)}’s progress`}</button></section>
     </main>`);
+  }
+
+  // In class now: the school's math program and this week's lessons (or, for any program, the topics in class).
+  function classSection() {
+    const SC = MQ.school, c = SC.settings(st), f = SC.focus(st), P = SC.PROGRAMS[c.program], units = SC.units(c.program, st.grade);
+    const chip = (act, arg, label, on) => `<button class="chip ${on ? 'sel' : ''}" data-act="${act}" data-arg="${arg}" aria-pressed="${on}">${label}</button>`;
+    let body = '';
+    if (P && units.length) {
+      const unit = units.find((u) => u.n === c.unit) || units[0];
+      body = `<div class="label">${P.unitName}</div><div class="chips">${units.map((u) => chip('setSchoolUnit', u.n, `${u.n} · ${esc(u.title)}`, u.n === unit.n)).join('')}</div>
+        <div class="label">Lessons this week</div><div class="chips">${unit.parts.map((p, i) => chip('setSchoolPart', i, `${p.from}–${p.to} · ${esc(p.title)}`, unit.n === c.unit && i === c.part)).join('')}</div>
+        <p class="muted">${esc(P.how)}</p>`;
+    } else if (c.program === 'topics') {
+      body = `<div class="label">Topics the class is on now (up to ${SC.TOPIC_MAX})</div><div class="chips">${track().core.map((id) => chip('toggleSchoolTopic', id, `${MQ.TOPICS[id].icon} ${MQ.TOPICS[id].name}`, c.topics.includes(id))).join('')}</div>`;
+    }
+    const nx = SC.next(st);
+    const stale = SC.stale(st) ? `<p class="classnote">Set on ${fmtDate(c.at)}. Has the class moved on?${nx ? ' <button class="linkbtn" data-act="schoolNext">Go to the next lessons</button>' : ''}</p>` : '';
+    const mix = f ? [...new Set(f.skills.filter((k) => k.w > 1 || f.program === 'topics').map(SC.skillName))].join(', ') : '';
+    const what = f ? `<p class="muted">Home screen: <b>🏫 In class now · ${esc(f.title)}</b>${f.program === 'topics' ? '' : ` (${esc(f.sub)})`}, 10 problems. ${f.program === 'topics' ? '' : 'These lessons come up most; earlier lessons of the module come back as review. '}2 questions of every Daily Quest come from it too. Practice now: ${esc(mix)}.</p>` : '';
+    return `<section class="settings classset"><h2>🏫 In class now</h2>
+      <p class="muted">Tell the app what ${esc(st.name)}’s class is learning this week, and practice follows it: a tile on the home screen and part of the Daily Quest. Levels and worlds stay as they are.</p>
+      <div class="label">Math program at school</div>
+      <div class="chips">${SC.programsFor(st.grade).map((id) => chip('setSchool', id, esc(SC.PROGRAMS[id].short), c.program === id)).join('')}${chip('setSchool', 'topics', 'Another program: pick topics', c.program === 'topics')}${chip('setSchool', 'off', 'Off', !c.program || (c.program !== 'topics' && !units.length))}</div>
+      ${body}${stale}${what}</section>`;
+  }
+  function setSchool(change) {
+    st.settings.school = Object.assign(MQ.school.settings(st), change, { at: U.dateKey() });
+    S.save();
+    keepScroll(parent);
   }
 
   function famSection() {
@@ -2275,6 +2329,12 @@
     },
     progRange: (a) => { prog().range = a; keepScroll(cur === 'progress' ? progress : parent); },
     progTopic: (a) => { prog().topic = a; keepScroll(cur === 'progress' ? progress : parent); },
+    classPractice: () => startClass(),
+    setSchool: (a) => setSchool({ program: a === 'off' ? '' : a }),
+    setSchoolUnit: (a) => setSchool({ unit: +a, part: 0 }),
+    setSchoolPart: (a) => setSchool({ part: +a }),
+    toggleSchoolTopic: (a) => { const t = MQ.school.settings(st).topics; setSchool({ topics: t.includes(a) ? t.filter((x) => x !== a) : [...t, a].slice(-MQ.school.TOPIC_MAX) }); },
+    schoolNext: () => { const nx = MQ.school.next(st); if (nx) setSchool(nx); },
     setGoal: (a, el) => {
       const [k, v] = a.split(':');
       st.goal = Object.assign({ perDay: 0, days: 5 }, st.goal, { [k]: +v });

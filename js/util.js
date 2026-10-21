@@ -56,6 +56,15 @@
   U.cents = (c) => (c >= 100 ? '$' + (c / 100).toFixed(2) : c + '¢');
   U.dollars = (c) => '$' + (c / 100).toFixed(2);
   U.comma = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  // Number names 0..1,000 as a 2nd grader writes them: 'four hundred seven', 'ninety-two'.
+  const ONES = 'zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen'.split(' ');
+  const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+  U.words = (n) => {
+    if (n >= 1000) return 'one thousand';
+    const h = Math.floor(n / 100), r = n % 100;
+    const low = r < 20 ? ONES[r] : TENS[Math.floor(r / 10)] + (r % 10 ? '-' + ONES[r % 10] : '');
+    return h ? ONES[h] + ' hundred' + (r ? ' ' + low : '') : low;
+  };
 
   U.dateKey = (d = new Date()) =>
     d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');

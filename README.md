@@ -26,8 +26,9 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 |---|---|
 | **Expedition Map** | 8 worlds × 6 levels. A level asks for 5 correct answers (7 for the Guardian). Finishing a level discovers a creature for the Field Journal. Stars depend on mistakes: 0 → ★★★, 1–2 → ★★, more → ★. Beating a world's Guardian opens the next world. |
 | **Endless Training** | Pick any topics, a difficulty (or **Auto**, which goes up after 4 first-try answers in a row and down after 2 misses), and a mode: Endless, Lightning 60 s or Lightning 2 min. Problems never run out. +1 💎 per first-try answer, a 🎁 chest every 5 in a row. |
+| **🏫 In class now** | Practice that follows what the child's class is learning this week. A grown-up picks the school's math program and the lessons (Eureka Math: module and lesson numbers from the homework), or, for any other program, the topics. The home screen gets a tile with 10 problems of those lessons, and 2 Daily Quest questions come from them (see below). |
 | **📖 Learn** | A six-module Multiply & Divide course for 2nd grade: see a worked example, build a model, solve with guided steps, practice, then show what you know. A miss brings a specific hint and, when needed, a different visual model—never a penalty. |
-| **Daily Quest** | 5 mixed problems from the worlds she has opened (2 of them are review questions when there are mistakes to practice). Gives crystals plus a bonus for each day in a row. |
+| **Daily Quest** | 5 mixed problems from the worlds she has opened (2 of them are review questions when there are mistakes to practice, and 2 come from 🏫 In class now when it is set, marked 🏫 Class). Gives crystals plus a bonus for each day in a row. |
 | **Mistakes come back** | Every first-try mistake, in games and in tests, is saved as a skill to practice (topic + difficulty). A fresh question of that skill comes back as every 4th question in levels (only topics of that world and earlier), Endless Training and Practice by type, in 2 of the 5 Daily Quest questions, and in the next Math Kangaroo or Logic challenge (up to 3 puzzles, in the matching point section). They are marked 🔁 Review. Never in the Placement Check (it would change the level) or in Lightning rounds. A skill is **fixed** after a right first answer on 3 different days (today, then 1 day later, then 3 days later); a new mistake starts it over. |
 | **🛠️ Fix-it Lab** | Lists the skills in repair with their progress (●●○) and plays up to 10 that are due today, with a strategy tip. Fixing a skill gives +3 💎. Badges for 10 and 50 fixes. |
 | **📈 My Progress** | Accuracy (right on the first try) with a dot for every day practiced (by week when the practice spans over 2 months, by month over 200 days; a single topic too), over 1, 3 or 6 months or all time, with a trend line and a plain verdict ("Getting better: +8 points over 3 months"). Problems per week, right / not yet counts, days practiced. A **skill map** shows every topic as 🌱 started → 🌿 practicing → ⭐ solid → 🏆 mastered (80% right on 5+ tries at that difficulty); tap a skill to practice it. Charts of every practice test over time. Daily totals are kept for two years, per-topic daily totals for 200 practice days and per-topic monthly totals for three years. |
@@ -40,7 +41,7 @@ A math trainer for kids in California, built for a kindergartner and a 2nd grade
 | **Hints** | A wrong answer gets a strategy hint and one more try ("make a ten", "count up", "break a ten"). A second miss shows the answer with an explanation. |
 | **Voice** | After each answer a voice says "Great job!" or a gentle "Oops! Try again." The next problem waits until the voice has finished; the **Next →** button skips the wait. Questions can be read aloud with 🔊 (automatic for kindergarten). Both can be turned off per child in *For grown-ups*. |
 | **Navigation** | Every screen has a back button; result screens have Home. **👥 Switch** on the home screen (or the small avatar in the top bar) changes the child without reloading. The browser's back gesture moves between screens and asks before leaving a game. |
-| **For grown-ups** | Protected by a multiplication question. Shows progress over time (the same charts as My Progress), accuracy per topic with the standard code, activity for the last 14 days, recent mistakes and how many are in repair, test history, the daily goal, settings (sound, *unlock all worlds*), save codes and reset. **👀 Look at every level** starts a grown-up preview: every world and level is open, Practice by type can start at any level 1–5, Sunny Farm opens as a level-60 farm, and nothing is saved (no stars, crystals, statistics, mistakes or test results, nothing unlocked for the child, nothing synced). A purple bar shows it is on; **Exit**, opening For grown-ups again, switching explorer or reloading ends it. |
+| **For grown-ups** | Protected by a multiplication question. Shows progress over time (the same charts as My Progress), accuracy per topic with the standard code, activity for the last 14 days, recent mistakes and how many are in repair, test history, the daily goal, 🏫 In class now, settings (sound, *unlock all worlds*), save codes and reset. **👀 Look at every level** starts a grown-up preview: every world and level is open, Practice by type can start at any level 1–5, Sunny Farm opens as a level-60 farm, and nothing is saved (no stars, crystals, statistics, mistakes or test results, nothing unlocked for the child, nothing synced). A purple bar shows it is on; **Exit**, opening For grown-ups again, switching explorer or reloading ends it. |
 
 ## 📖 Learn: Multiply & Divide
 
@@ -58,6 +59,31 @@ The six modules open in order and take about 5–8 minutes each:
 Every module follows **See it → Build it → Solve together → Try it → Show what you know**. Build it uses large tap targets to make groups, fill/turn/split an array, draw jumps on a number line, double rows of dots, and model both sharing and making groups; dragging is never required. Every step has 🔊, and the profile's read-aloud setting reads it automatically. Try it has four questions and Show has two. Two first-try answers in Show earn the module ⭐; otherwise *Let's look at it another way* shows a different model and gives two fresh questions. A first miss in Try it gives a hint for that misconception. Show keeps the first retry unprompted. A second miss shows the answer and explanation, and nothing is taken away.
 
 Try/Show answers count toward the daily goal, My Progress and the `mult` skill. A first-try answer gives +1 💎; the first completion gives +5 💎. A Show miss goes to the Fix-it Lab at the module's difficulty. After a module, **Practice** starts normal Endless Training: modules 1–2 at Sprout, 3–4 at Explorer, and 5–6 at Expert. Progress syncs between devices. Grown-up preview opens all six modules and saves nothing. Badges: **Lesson Learner** (first module) and **Times Table Explorer** (all six).
+
+## 🏫 In class now
+
+Practice at home follows the class. On the grown-ups page, **🏫 In class now** has three choices for the math program at school:
+
+- **Eureka Math** (A Story of Units, 2nd grade). Pick the **module** and the **lessons this week**. The top of every homework page says where the class is: *“Lesson 12 Homework 2•3”* is Module 3, Lesson 12. Each module is split into the lesson groups below, and each group practices its own skills.
+- **Another program: pick topics.** For a class that uses a different program (and for kindergarten): pick up to 3 game topics the class is on now; they are practiced at the grade's Daily Quest levels.
+- **Off** (the default). Nothing changes anywhere.
+
+When it is set, the home screen shows a **🏫 In class now** tile with the lesson name: 10 problems, +1 💎 for every first-try answer and a 🎁 chest every 5 in a row, like Endless Training. With Eureka, this week's lessons come up 3 times as often as the earlier lessons of the same module, which come back as review. **2 questions of every Daily Quest** also come from it, marked 🏫 Class. Levels, worlds and everything else stay as they are, and mistakes go to the Fix-it Lab as usual. Three weeks after the last change the grown-ups page asks whether the class has moved on, with a **Go to the next lessons** button. The setting belongs to each child and syncs between devices. In Module 6 the result screen also links to 📖 Learn.
+
+| Module | Lesson groups |
+|---|---|
+| 1 · Adding and subtracting to 100 | 1–2 make ten and the next ten · 3–8 make a ten, take from a ten |
+| 2 · Measuring length | 1–3 centimeters and rulers · 4–5 centimeters, meters, estimating · 6–7 comparing lengths · 8–10 length word problems |
+| 3 · Place value to 1,000 | 1–4 ones, tens and hundreds · 5–7 expanded form and number names · 8–10 $1, $10 and $100 bills · 11–15 more than 9 tens or ones · 16–18 comparing and ordering · 19–21 1, 10 and 100 more or less |
+| 4 · Adding and subtracting to 200 | 1–5 mental math with tens and arrows · 6–10 adding: bundle a new ten · 11–16 subtracting: unbundle a ten · 17–22 adding to 200 · 23–28 subtracting from 200 · 29–31 two-step word problems |
+| 5 · Adding and subtracting to 1,000 | 1–7 hundreds and tens: arrows, easier problems · 8–12 adding: new tens and hundreds · 13–20 subtracting: unbundle tens and hundreds |
+| 6 · Equal groups, arrays, odd and even | 1–4 equal groups · 5–9 arrays · 10–16 rectangles made of squares · 17–20 odd and even |
+| 7 · Graphs, money and measuring | 1–5 picture and bar graphs · 6–13 coins and bills · 14–15 inch rulers · 16–19 inches, feet and yards · 20–22 length word problems · 23–26 measurement data |
+| 8 · Shapes, fractions and time | 1–5 shapes and cubes · 6–12 halves, thirds and fourths · 13–16 telling time, a.m. and p.m. |
+
+**Class strategies.** The questions use the models a 2nd-grade class works with, drawn in code: **number bonds** (make a ten, take from a ten or a hundred), **arrows** for mental math (38 →+20→ 58 →+1→ 59, counting up to subtract), **making an easier problem** (29 + 46 = 30 + 45, 32 − 19 = 33 − 20, 400 − 247 = 399 − 246), the **place value chart** with disks (what to bundle or unbundle, more than 9 tens or ones), **tape diagrams** for *more than / fewer than* and two-step word problems, **number names** (four hundred seven), **$1, $10 and $100 bills**, numbers compared in any form (42 tens ○ 390) and 1, 10, 100 more or less with the unknown anywhere. These 19 kinds of questions are not only for In class now: at the levels where they fit (mostly 🧭 Explorer to 🏔️ Expert), about a third of the Place Value, Add to 100, Subtract to 100, Add & Subtract to 1000 and Word Problems questions are of these kinds, in levels, training and the Daily Quest too. Any right answer counts; the model shows the way in the picture, the hint and the explanation.
+
+**Another curriculum later.** Programs are data in `js/school.js`: each one lists its units, their lesson groups and the skills each group practices (a topic and level, or one of the class strategy kinds). Supporting another curriculum means adding one more entry there; until then *Another program: pick topics* works for any class, and *Off* turns it all off.
 
 ## 🥚 Hatchery
 
@@ -273,12 +299,12 @@ Difficulty for kindergarten: 🌱 Sprout and 🧭 Explorer = core K, 🏕️ Ran
 | World | Topics | Standards |
 |---|---|---|
 | 🏖️ Tide Pools | Facts to 20, missing numbers, the equal sign | 2.OA.1–2 |
-| 🌿 Rainforest | Place value, expanded form, compare, skip counting, rounding (challenge) | 2.NBT.1–4, 2.NBT.8 |
-| 🌾 Savanna | Add and subtract within 100, with and without regrouping | 2.NBT.5–6, 2.NBT.9 |
+| 🌿 Rainforest | Place value, expanded form, number names, $1/$10/$100 bills, more than 9 tens, compare in any form, 1/10/100 more or less, skip counting, rounding (challenge) | 2.NBT.1–4, 2.NBT.8 |
+| 🌾 Savanna | Add and subtract within 100 (and to 200 at the top levels), with and without regrouping; number bonds, arrows, easier problems, the place value chart | 2.NBT.5–7, 2.NBT.9 |
 | 🌙 Night Forest | Time to 5 minutes, a.m./p.m., elapsed time (challenge); coins, dollars, change | 2.MD.7–8 |
 | 🏜️ Fossil Desert | Odd and even, arrays, shapes, halves/thirds/fourths, cubes | 2.OA.3–4, 2.G.1–3 |
 | ❄️ Arctic | Rulers (in/cm), units, conversions; picture and bar graphs; perimeter and area (challenge) | 2.MD.1–6, 2.MD.9–10 |
-| 🌊 Deep Ocean | Add and subtract within 1000; one- and two-step word problems | 2.NBT.7, 2.OA.1 |
+| 🌊 Deep Ocean | Add and subtract within 1000 (arrows, make a hundred, easier problems); one- and two-step word problems with tape diagrams | 2.NBT.7, 2.OA.1 |
 | ☁️ Sky Kingdom | Challenge zone: multiplication, division, number puzzles, pyramids, magic squares | 3.OA, logic |
 
 Difficulty: 🌱 Sprout (warm-up) · 🧭 Explorer and 🏕️ Ranger (core 2nd grade) · 🏔️ Expert (end of 2nd / start of 3rd) · 🐉 Legend (ahead of grade level).
@@ -289,10 +315,11 @@ Difficulty: 🌱 Sprout (warm-up) · 🧭 Explorer and 🏕️ Ranger (core 2nd 
 index.html            app shell
 css/style.css         all styles
 js/util.js            helpers
-js/visuals.js         SVG pictures: clocks, coins, base-ten blocks, rulers, graphs, shapes
-js/generators.js      2nd-grade problem generators, 14 topics × 5 difficulties
+js/visuals.js         SVG pictures: clocks, coins and bills, base-ten blocks, rulers, graphs, shapes, arrows, place value chart, tape diagrams, number bonds
+js/generators.js      2nd-grade problem generators, 14 topics × 5 difficulties, and 19 class strategy kinds (MQ.KINDS)
 js/generators-k.js    kindergarten problem generators, 10 topics × 5 difficulties
 js/lessons.js         Learn course content, question generators, hints and progression rules (no DOM)
+js/school.js          In class now: school programs as data (Eureka Math grade 2 modules and lessons), what to practice this week
 js/content.js         2nd-grade worlds and creatures, grade tracks, badges, buddy phrases
 js/content-k.js       kindergarten worlds and baby animals
 js/creature-art.js    Hatchery pictures: magical creatures, dragons at each growth stage, eggs (SVG drawn in code)
@@ -327,7 +354,7 @@ templates/app-shell/   the same shell (profiles, family sync, grown-ups page, pr
 No build step or dependencies are needed to run it. After changing code, run:
 
 ```
-node tests/generators.test.js      # 312,000 generated problems checked
+node tests/generators.test.js      # 312,000 generated problems checked, plus 67,500 class strategy questions with every answer recomputed
 node tests/store.test.js           # merging progress from two devices, mistakes to practice, family keys
 node tests/hatchery.test.js        # eggs, creature pictures (valid SVG), dragon growth and treasure, the buddy, the farm merchant's pictures
 node tests/duel.test.js            # creature stats by rarity, Card Duel rules and questions, league balance in simulated duels
@@ -336,11 +363,13 @@ node tests/farm.test.js            # Sunny Farm economy, days, shop, the barnyar
 node tests/shapes.test.js          # Puzzle Time: the jigsaw cut covers every shape, every picture draws, packs and seasons, stars, the puzzle of the day, 40,000 problems, merging
 node tests/nnat.test.js            # NNAT-3 style puzzles: 4 kinds × 6 levels, the 48-question practice test and its scoring
 node tests/lessons.test.js         # Learn: six modules, generated questions and hints, paths, unlocking and progression
+node tests/school.test.js          # In class now: every module and lesson group, the skills they name, what gets practiced, settings and sync
 node tests/smoke.mjs               # two children, both grades, played in Chromium (needs Playwright)
 node tests/farm-smoke.mjs          # Sunny Farm played by a 2nd grader and a kindergartner in Chromium
 node tests/shapes-smoke.mjs        # Puzzle Time: all six puzzles, the puzzle of the day, buying collections, a Legendary and a golden puzzle, stars, the gallery, for both grades
 node tests/nnat-smoke.mjs          # GATE plan card, NNAT warm-ups, practice by type and the timed practice test in Chromium
 node tests/lessons-smoke.mjs       # Learn on iPad and phone: completion, remediation, reload and grown-up preview
+node tests/school-smoke.mjs        # In class now on iPad and phone: the grown-ups setting, the tile, class practice, the Daily Quest mix, every new picture
 node tests/cloud-e2e.mjs           # two devices syncing through the real Firebase project
 python3 tools/build.py             # refresh the single-file version in dist/
 ```
