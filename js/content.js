@@ -328,6 +328,7 @@
     { id: 'puzzleday7', icon: '🌞', name: 'Puzzle Week', desc: 'Make the puzzle of the day 7 days in a row', test: (s) => !!s.puzzles && !!s.puzzles.daily && s.puzzles.daily.best >= 7 },
     { id: 'lesson1', icon: '📖', name: 'Lesson Learner', desc: 'Finish your first Learn module', test: (s) => Object.values(s.lessons || {}).some((x) => x.done) },
     { id: 'lessonall', icon: '✖️', name: 'Times Table Explorer', desc: 'Finish all 6 Multiply & Divide modules', test: (s) => ['groups', 'arrays', 'facts2', 'facts34', 'division', 'families'].every((id) => !!(s.lessons || {})[id] && s.lessons[id].done) },
+    { id: 'lessonadd', icon: '➕', name: 'Bundle Builder', desc: 'Finish all 6 Add & Subtract modules', test: (s) => ['maketen', 'addtens', 'bundle', 'unbundle', 'hundreds', 'zeros'].every((id) => !!(s.lessons && s.lessons[id] && s.lessons[id].done)) },
     { id: 'logic', icon: '🧩', name: 'Logician', desc: 'Finish a Logic Lab challenge', test: (s) => ((s.tests || {}).contests || []).some((c) => c.kind === 'logic' || c.kind === 'logick') },
   ];
 
