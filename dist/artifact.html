@@ -584,6 +584,10 @@ body[data-track="k"] { --paper: #eef2fb; }
 svg.vis.pvchart { max-width: 100%; }
 svg.vis.tape { max-width: 100%; }
 svg.vis.bond { width: 150px; }
+.tally table { border-collapse: collapse; margin: 0 auto; }
+.tally th { text-align: left; padding: 6px 12px 6px 4px; font-weight: 800; white-space: nowrap; }
+.tally td { padding: 6px 4px; border-left: 2px solid var(--line); }
+.tally tr + tr th, .tally tr + tr td { border-top: 2px solid var(--line); }
 .comparerows { display: flex; flex-direction: column; gap: 8px; }
 .comparerows div { display: grid; grid-template-columns: repeat(10, 1.25em); font-size: 1.9rem; padding: 4px 8px; border-radius: 12px; background: #f1f6fb; }
 .shaperow { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 340px; }
@@ -796,6 +800,27 @@ svg.vis.abacus { max-height: 160px; }
 /* Home: Fix-it Lab, progress, daily goal */
 .t-fixit.hot { box-shadow: inset 0 0 0 3px #3c9d5d, 0 4px 0 #2b7b46; background: #e6f6ec; }
 .t-class { box-shadow: inset 0 0 0 3px #3f7fd8, 0 4px 0 #2a5fb0; background: #e3edfc; }
+.school { width: min(760px, 100%); margin: 0 auto; box-sizing: border-box; }
+.sc-week { width: 100%; border: 0; border-radius: 18px; padding: 12px 14px; margin: 6px 0 10px; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; text-align: left; color: var(--ink); background: #e3edfc; box-shadow: inset 0 0 0 3px #3f7fd8, 0 4px 0 #2a5fb0; }
+.sc-week b { display: block; font: 600 1.15rem/1.2 var(--display); }
+.sc-week small { display: block; color: var(--ink-soft); font-weight: 700; margin-top: 2px; }
+.sc-week .sc-wi { font-size: 1.9rem; }
+.sc-week .btn { background: #3f7fd8; box-shadow: 0 4px 0 #2a5fb0; white-space: nowrap; }
+.sc-units { display: grid; gap: 10px; margin-top: 10px; }
+.sc-unit { border-radius: 18px; background: var(--card); box-shadow: inset 0 0 0 2px var(--line), 0 4px 0 var(--line); overflow: hidden; }
+.sc-unit.here { box-shadow: inset 0 0 0 3px #3f7fd8, 0 4px 0 #2a5fb0; }
+.sc-head { width: 100%; border: 0; background: none; padding: 11px 14px; display: grid; grid-template-columns: 36px minmax(0, 1fr) 22px; gap: 10px; align-items: center; text-align: left; color: var(--ink); min-height: 64px; }
+.sc-head b { display: block; font: 600 1.08rem/1.2 var(--display); }
+.sc-head small { display: block; margin-top: 2px; color: var(--ink-soft); font-weight: 700; }
+.sc-num { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #e3edfc; color: #2a5fb0; font-weight: 900; }
+.sc-go { font-size: 1.6rem; color: #3f7fd8; text-align: center; }
+.sc-unit.locked .sc-head { opacity: 0.6; }
+.sc-parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; padding: 0 12px 12px; }
+.sc-part { border: 0; border-radius: 14px; padding: 10px 12px; text-align: left; background: #f4f7fb; box-shadow: inset 0 0 0 2px var(--line); color: var(--ink); min-height: 58px; }
+.sc-part b { display: block; font-weight: 800; }
+.sc-part small { display: block; color: var(--ink-soft); font-weight: 700; }
+.sc-part.now { background: #e3edfc; box-shadow: inset 0 0 0 3px #3f7fd8; }
+.sc-tag { display: inline-block; margin-top: 4px; font-size: 0.78rem; font-weight: 800; color: #2a5fb0; }
 .classset .chips .chip { text-align: left; }
 .classnote { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--sun-soft); font-weight: 700; }
 .t-progress { box-shadow: inset 0 0 0 2px var(--line), 0 3px 0 var(--line); }
@@ -2429,6 +2454,31 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
       c(92, 34, whole, '#ffe7a8') + c(45, 114, a, '#d9f2ee') + c(139, 114, b, '#d9f2ee'), 'bond', `number bond: ${whole} is ${a} and ${b}`);
   };
 
+  // ---------- Line plot: an X for every item above its value on a number line (2.MD.9) ----------
+  // counts: { value: how many }; data-plot keeps the numbers the picture shows (for tests).
+  V.linePlot = ({ min, max, counts, unit = '', title = '' }) => {
+    const n = max - min, L = 26, W = 340, px = (W - 2 * L) / n, top = Math.max(1, ...Object.values(counts));
+    const y = 18 + top * 17, X = (v) => L + (v - min) * px;
+    let s = `<line x1="${L - 14}" y1="${y}" x2="${W - L + 14}" y2="${y}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
+    for (let v = min; v <= max; v++) {
+      s += `<line x1="${r1(X(v))}" y1="${y - 7}" x2="${r1(X(v))}" y2="${y + 7}" stroke="${INK}" stroke-width="2"/>` + text(X(v), y + 26, v, 14);
+      for (let k = 0; k < (counts[v] || 0); k++) s += text(X(v), y - 12 - k * 17, '×', 20, 'fill="#c2412d"');
+    }
+    if (unit) s += text(W / 2, y + 46, unit, 12, 'font-weight="700"');
+    const data = Object.entries(counts).map(([v, c]) => v + ':' + c).join(',');
+    return (title ? `<div class="vis-title">${title}</div>` : '') + svg(W, y + (unit ? 54 : 36), s, 'lineplot', 'line plot').replace('<svg ', `<svg data-plot="${data}" `);
+  };
+
+  // ---------- Table with tally marks: |||| with a line across makes 5 ----------
+  const tallies = (n) => {
+    let s = '', x = 3;
+    for (let g = 0; g < Math.floor(n / 5); g++, x += 34) s += [0, 1, 2, 3].map((i) => `<line x1="${x + i * 6}" y1="3" x2="${x + i * 6}" y2="25" stroke="${INK}" stroke-width="2.5" stroke-linecap="round"/>`).join('') + `<line x1="${x - 3}" y1="21" x2="${x + 22}" y2="7" stroke="${INK}" stroke-width="2.5" stroke-linecap="round"/>`;
+    for (let i = 0; i < n % 5; i++) s += `<line x1="${x + i * 6}" y1="3" x2="${x + i * 6}" y2="25" stroke="${INK}" stroke-width="2.5" stroke-linecap="round"/>`;
+    return `<svg viewBox="0 0 ${x + (n % 5) * 6 + 6} 28" width="${x + (n % 5) * 6 + 6}" height="28" role="img" aria-label="tally marks" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
+  };
+  V.tally = (rows, title = '') =>
+    `<div class="vis tally">${title ? `<div class="vis-title">${title}</div>` : ''}<table>${rows.map((r) => `<tr data-n="${r.n}"><th>${r.label}</th><td>${tallies(r.n)}</td></tr>`).join('')}</table></div>`;
+
   // ---------- Number pyramid ----------
   V.pyramid = (rows) => {
     // rows: array from top to bottom, entries number or null (= ?)
@@ -3015,6 +3065,8 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
   // 5. Odd, even & arrays  (2.OA.3, 2.OA.4; 3.OA.1 as challenge)
   // ======================================================================
   function arrays(d) {
+    const ck = classKind('arrays', d, 0.3);
+    if (ck) return ck;
     if (d === 1) {
       const n = rnd(3, 20);
       return C('Is this number of dots <b>odd</b> or <b>even</b>?', n % 2 ? 'odd' : 'even', ['odd', 'even'], { visual: V.pairs(n), hint: 'Pair up the dots. Is one left over?', explain: `${n} is ${n % 2 ? 'odd — one dot has no partner' : 'even — every dot has a partner'}.` });
@@ -3087,6 +3139,8 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     return U.strChoices(tStr(h, m), cands, 4);
   }
   function time(d) {
+    const ck = classKind('time', d, 0.3);
+    if (ck) return ck;
     if (d <= 3) {
       const h = rnd(1, 12);
       const m = d === 1 ? pick([0, 30]) : d === 2 ? pick([0, 15, 30, 45]) : rnd(0, 11) * 5;
@@ -3127,6 +3181,8 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     }
   }
   function money(d) {
+    const ck = classKind('money', d, 0.3);
+    if (ck) return ck;
     if (d <= 2) {
       const list = d === 1 ? randomCoins(['d', 'n', 'p'], 7, 50) : randomCoins(['q', 'd', 'n', 'p'], 7, 99);
       return N('How much money is this?', coinSum(list), { unit: '¢', visual: V.coins(list, true), hint: 'Start with the coins worth the most and count on.', explain: list.map((k) => COINV[k] + '¢').join(' + ') + ` = ${coinSum(list)}¢` });
@@ -3169,6 +3225,8 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
   // ======================================================================
   const SHAPES = [['triangle', 3], ['square', 4], ['rectangle', 4], ['pentagon', 5], ['hexagon', 6], ['circle', 0], ['octagon', 8], ['rhombus', 4], ['trapezoid', 4]];
   function shapes(d) {
+    const ck = classKind('shapes', d, 0.3);
+    if (ck) return ck;
     if (d === 1) {
       const pool = SHAPES.slice(0, 6);
       const [name] = pick(pool);
@@ -3252,6 +3310,8 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     ['the distance a car drives in an hour', 'kilometers', 'm'],
   ];
   function measure(d) {
+    const ck = classKind('measure', d, 0.3);
+    if (ck) return ck;
     if (d === 1) {
       const len = rnd(1, 6);
       return N('How long is the crayon?', len, { unit: 'in', visual: V.ruler({ unit: 'in', max: 7, start: 0, len, color: pick(V.FILLS) }), hint: 'Look at the number on the ruler right under the tip.' });
@@ -3309,6 +3369,8 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     return { title: th.title, data: items.map(([emoji, label], i) => ({ emoji, label, value: vals[i] })) };
   }
   function data(d) {
+    const ck = classKind('data', d, 0.3);
+    if (ck) return ck;
     if (d === 1) {
       const g = graphData(3, 1, 8);
       const x = pick(g.data);
@@ -3865,6 +3927,237 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     return N(text, ans, { visual: V.tape(rows), wordy: true, hint: 'Look at the tape: which bar is longer? Find the part with the ?.', explain: `${expr} = ${ans}` });
   }
 
+  // ---- Length: benchmarks, unit size, rulers as number lines (2.MD.1–6) ----
+  // About how long things are, the "mental benchmarks" a class estimates with.
+  MQ.BENCHMARKS = [
+    ['a door', 2, 'meter'], ['a pencil', 15, 'centimeter'], ['a car', 4, 'meter'], ['a bed', 2, 'meter'], ['a dinner plate', 25, 'centimeter'],
+    ['a paper clip', 3, 'centimeter'], ['a school bus', 12, 'meter'], ['a crayon', 9, 'centimeter'], ['a fingernail', 1, 'centimeter'], ['a classroom', 10, 'meter'],
+    ['a door', 7, 'foot'], ['a pencil', 7, 'inch'], ['a football field', 100, 'yard'], ['a paper clip', 1, 'inch'], ['a book', 10, 'inch'],
+    ['a grown-up', 6, 'foot'], ['a car', 5, 'yard'], ['a cell phone', 6, 'inch'],
+    ['a baby', 50, 'centimeter'], ['a swimming pool', 25, 'meter'], ['a toothbrush', 18, 'centimeter'], ['a giraffe', 5, 'meter'], ['a key', 5, 'centimeter'],
+    ['a school hallway', 30, 'meter'], ['a ladybug', 1, 'centimeter'], ['an eraser', 5, 'centimeter'], ['a soccer field', 100, 'meter'], ['a bike', 2, 'meter'],
+    ['a ruler', 1, 'foot'], ['a stapler', 6, 'inch'], ['a bed', 6, 'foot'], ['a dog', 2, 'foot'], ['a city bus', 40, 'foot'], ['a basketball hoop', 10, 'foot'],
+  ];
+  const unitWord = (n, u) => (n === 1 ? u : u === 'foot' ? 'feet' : u === 'inch' ? 'inches' : u + 's');
+  const METRIC = ['centimeter', 'meter'], CUSTOMARY = ['inch', 'foot', 'yard'];
+  const cap = (s) => s[0].toUpperCase() + s.slice(1);
+  function lenAbout(d) {
+    const [thing, n, u] = pick(d === 2 ? MQ.BENCHMARKS.filter((b) => METRIC.includes(b[2])) : MQ.BENCHMARKS);
+    const sys = METRIC.includes(u) ? METRIC : CUSTOMARY;
+    if (chance(0.5)) return C(`${cap(thing)} is about ${n} ___. Which unit fits?`, unitWord(n, u), sys.map((x) => unitWord(n, x)), { hint: 'Think of your benchmarks: a centimeter is a fingernail, a meter is a big step, an inch is a paper clip, a foot is a ruler, a yard is a big step.', explain: `${cap(thing)} is about ${n} ${unitWord(n, u)}.` });
+    const other = { centimeter: 'meter', meter: 'centimeter', inch: 'foot', foot: 'inch', yard: 'inch' }[u];
+    const ans = `${n} ${unitWord(n, u)}`;
+    return C(`About how long is <b>${thing}</b>?`, ans, shuffle([ans, `${n} ${unitWord(n, other)}`, `${n * 10} ${unitWord(n * 10, u)}`]), { hint: 'Picture it next to something you know.', explain: `${cap(thing)} is about ${ans}.` });
+  }
+  // The smaller the unit, the more of them it takes (2.MD.2): centimeter < inch < foot < yard, centimeter < meter.
+  const UNIT_PAIRS = [['centimeter', 'inch'], ['inch', 'foot'], ['foot', 'yard'], ['inch', 'yard'], ['centimeter', 'meter']];
+  function lenUnits() {
+    let [small, large] = pick(UNIT_PAIRS);
+    const thing = pick(['rug', 'table', 'ribbon', 'hallway', 'rope', 'garden']);
+    if (chance(0.5)) {
+      const [p, q] = two(), swap = chance(0.5), [up, uq] = swap ? [large, small] : [small, large];
+      return C(`${p} measures a ${thing} in ${unitWord(2, up)}. ${q} measures the same ${thing} in ${unitWord(2, uq)}. Who gets the bigger number?`, swap ? q : p, [p, q, 'The same number'], { hint: 'Smaller units fit more times.', explain: `${cap(unitWord(2, small))} are smaller than ${unitWord(2, large)}, so it takes more of them.` });
+    }
+    const n = rnd(3, 9), [have, other] = chance(0.5) ? [small, large] : [large, small];
+    const ans = other === large ? `less than ${n}` : `more than ${n}`;
+    return C(`A ${thing} is ${n} ${unitWord(n, have)} long. Measured in ${unitWord(2, other)}, the number is…`, ans, [`more than ${n}`, `less than ${n}`, `exactly ${n}`], { hint: 'Is the new unit bigger or smaller? Bigger units fit fewer times.', explain: `${cap(unitWord(2, other))} are ${other === large ? 'bigger' : 'smaller'} than ${unitWord(2, have)}, so the number is ${ans}.` });
+  }
+  // Rulers and meter sticks are number lines (2.MD.5, 2.MD.6).
+  function lenLine(d) {
+    if (d === 3) {
+      const k = rnd(1, 3);
+      if (k === 1 || k === 2) {
+        const step = pick([5, 10]), n = rnd(4, 7), min = rnd(1, step === 5 ? 14 : 9) * step, max = min + n * step, v = min + rnd(1, n - 1) * step;
+        if (k === 1) return N(`Each mark is ${step} more. What number is at the arrow?`, v, { visual: V.numberLine({ min, max, step, labels: [min, max], marker: v }), hint: `Count by ${step}s from ${min}.`, explain: `${U.range(0, (v - min) / step).map((i) => min + i * step).join(', ')}` });
+        return Ln(`Each mark is ${step} more. Tap <b>${v}</b>.`, v, { min, max, step, labels: [min, max] }, { say: `Each mark is ${step} more. Tap ${v}.`, hint: `Count by ${step}s from ${min}.` });
+      }
+      const [whole, len, unit] = pick([['1 m', 100, 'cm'], ['1 foot', 12, 'inches'], ['1 yard', 36, 'inches']]), n = len === 100 ? rnd(51, 95) : rnd(2, len - 2);
+      return N(E(`${n} ${unit} + ? ${unit} = ${whole}`), len - n, { hint: `${whole} is ${len} ${unit}. Count up from ${n}.`, explain: `${n} + ${len - n} = ${len}` });
+    }
+    if (chance(0.5)) {
+      const s = rnd(12, 40), f = rnd(3, 9), b = rnd(3, 12), critter = pick(['cricket', 'grasshopper', 'frog', 'ladybug']);
+      return N(`A ${critter} sits at ${s} on a centimeter ruler. It hops ${f} cm forward, then ${b} cm back. Where does it stop?`, s + f - b, { visual: V.arrows(s, chain(s, [f, -b])), hint: 'Forward is plus, back is minus.', explain: `${s} + ${f} = ${s + f}, ${s + f} − ${b} = ${s + f - b}` });
+    }
+    const [p] = two();
+    if (chance(0.5)) { const n = rnd(21, 89); return N(`In the 100-yard race, ${p} has run ${n} yards. How many more yards to the finish?`, 100 - n, { unit: 'yards', hint: `Count up from ${n} to 100.`, explain: `${n} + ${100 - n} = 100` }); }
+    const n = rnd(11, 31);
+    return N(`${p} knits a scarf that should be 1 yard long. 1 yard is 36 inches. ${p} has knitted ${n} inches. How many more inches?`, 36 - n, { unit: 'in', hint: `Count up from ${n} to 36.`, explain: `${n} + ${36 - n} = 36` });
+  }
+
+  // ---- Check subtraction with addition (Eureka Grade 2 Module 5) ----
+  function bigCheck(d) {
+    let a, b;
+    do { a = rnd(300, 999); b = rnd(101, a - 101); } while (a % 10 >= b % 10 && chance(0.7)); // mostly with unbundling
+    const c = a - b;
+    if (d === 3) {
+      if (chance(0.5)) return N(E(`If ${a} − ${b} = ${c}, then ${c} + ${b} = ?`), a, { hint: 'Adding back the part you took away gives the whole.', explain: `${c} + ${b} = ${a}` });
+      const ans = `${c} + ${b} = ${a}`;
+      return C(`Which addition checks <b>${a} − ${b} = ${c}</b>?`, ans, U.strChoices(ans, [`${a} + ${b} = ${U.comma(a + b)}`, `${a} + ${c} = ${U.comma(a + c)}`, `${b} + ${a} = ${U.comma(a + b)}`], 3), { hint: 'Add the answer and the number you took away. You should get the start.', explain: ans });
+    }
+    const w = chance(0.5) ? c : c + pick([-100, -10, 10, 100]), ok = w === c, [p] = two();
+    return C(`${p} says <b>${a} − ${b} = ${w}</b>. Is that right? Check with addition.`, ok ? 'Yes' : 'No', ['Yes', 'No'], { hint: `Add ${w} + ${b}. Do you get ${a}?`, explain: `${w} + ${b} = ${w + b}${ok ? ', so it is right.' : `, not ${a}. The answer is ${c}.`}` });
+  }
+
+  // ---- Arrays: rows and columns, equal groups on a tape (2.OA.4) ----
+  function arrRowsCols(d) {
+    const r = rnd(2, 5), c = rnd(2, 6), vis = V.array(r, c), n = r * c;
+    const k = d === 2 ? rnd(1, 3) : rnd(4, 6);
+    if (k === 1) return N('How many <b>rows</b>?', r, { visual: vis, hint: 'Rows go across, like a line of chairs.', explain: `${r} rows of ${c}` });
+    if (k === 2) return N('How many <b>columns</b>?', c, { visual: vis, hint: 'Columns go up and down, like a tower.', explain: `${c} columns of ${r}` });
+    if (k === 3) return N(E(`${r} rows of ? = ${n}`), c, { visual: vis, hint: 'Count the dots in one row.', explain: `${Array(r).fill(c).join(' + ')} = ${n}` });
+    if (k === 4) return N(E(`? columns of ${r} = ${n}`), c, { visual: vis, hint: 'Count the columns: they go up and down.', explain: `${Array(c).fill(r).join(' + ')} = ${n}` });
+    if (k === 5) return N('Add 1 more row. How many dots now?', (r + 1) * c, { visual: vis, hint: `A new row has ${c} dots.`, explain: `${n} + ${c} = ${(r + 1) * c}` });
+    return N('Take away 1 column. How many dots now?', r * (c - 1), { visual: vis, hint: `A column has ${r} dots.`, explain: `${n} − ${r} = ${r * (c - 1)}` });
+  }
+  function arrTape(d) {
+    const g = d === 2 ? rnd(2, 5) : rnd(3, 6), k = d === 2 ? rnd(2, 6) : rnd(3, 6);
+    const tape = (total) => V.tape([{ label: '', parts: Array.from({ length: g }, () => ({ v: k, text: k })) }], { total });
+    if (chance(0.4)) return N(`The tape shows ${g} groups of ${k}. Add 1 more group of ${k}. What is the total now?`, (g + 1) * k, { visual: tape(null), hint: `Add one more ${k}.`, explain: `${Array(g + 1).fill(k).join(' + ')} = ${(g + 1) * k}` });
+    return N(`The tape shows ${g} groups of ${k}. What is the total?`, g * k, { visual: tape('?'), hint: `Add ${k} again for every part: skip-count by ${k}s.`, explain: `${Array(g).fill(k).join(' + ')} = ${g * k}` });
+  }
+
+  // ---- Money: bills, ways to make the same amount, making $1 (2.MD.8) ----
+  const BILL = { w: [20, 'twenty'], t: [10, 'ten'], f: [5, 'five'], b: [1, 'one'] };
+  const billWords = (list) => {
+    const parts = ['w', 't', 'f', 'b'].map((k) => [k, list.filter((x) => x === k).length]).filter(([, n]) => n).map(([k, n]) => `${n} ${BILL[k][1]}-dollar bill${n > 1 ? 's' : ''}`);
+    return parts.length > 1 ? parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1] : parts[0];
+  };
+  const billSum = (list) => U.sum(list.map((k) => BILL[k][0]));
+  const randomBills = (k, maxSum) => { for (;;) { const l = Array.from({ length: k }, () => pick(['w', 't', 'f', 'b'])).sort((x, y) => BILL[y][0] - BILL[x][0]); if (billSum(l) <= maxSum) return l; } };
+  function moneyBills(d) {
+    const [p, q] = two();
+    if (d === 3) { const list = randomBills(rnd(3, 6), 99); return N('How many dollars is this?', billSum(list), { unit: 'dollars', visual: V.coins(list, true), hint: 'Start with the bills worth the most, then count on.', explain: list.map((k) => '$' + BILL[k][0]).join(' + ') + ` = $${billSum(list)}` }); }
+    if (chance(0.5)) {
+      const give = randomBills(rnd(2, 4), 60), have = Math.ceil((billSum(give) + rnd(5, 40)) / 5) * 5;
+      return N(`${p} has $${have}. ${p} gives ${billWords(give)} to ${q}. How many dollars are left?`, have - billSum(give), { unit: 'dollars', hint: 'First find how much was given away. Then subtract.', explain: `${billSum(give)} given, ${have} − ${billSum(give)} = ${have - billSum(give)}` });
+    }
+    const a = randomBills(rnd(2, 3), 50), b = randomBills(rnd(1, 3), 45);
+    return N(`${p} has ${billWords(a)} in a wallet and ${billWords(b)} in a pocket. How many dollars in all?`, billSum(a) + billSum(b), { unit: 'dollars', hint: 'Find each total, then add them.', explain: `${billSum(a)} + ${billSum(b)} = ${billSum(a) + billSum(b)}` });
+  }
+  const COIN_NAMES = { q: ['quarter', 'quarters'], d: ['dime', 'dimes'], n: ['nickel', 'nickels'], p: ['penny', 'pennies'] };
+  const coinWords = (list) => ['q', 'd', 'n', 'p'].map((k) => [k, list.filter((x) => x === k).length]).filter(([, n]) => n).map(([k, n]) => `${n} ${COIN_NAMES[k][n > 1 ? 1 : 0]}`).join(', ');
+  const someCoins = (total) => { // a random handful of coins worth exactly total (at most 9 coins), or null
+    const list = [];
+    let left = total;
+    while (left > 0 && list.length < 9) { const k = pick(['q', 'd', 'n', 'p'].filter((x) => COINV[x] <= left && (x !== 'p' || left % 5))); if (!k) return null; list.push(k); left -= COINV[k]; }
+    return left ? null : sortCoins(list);
+  };
+  function moneyWays(d) {
+    const T = (d === 3 ? rnd(4, 12) : rnd(6, 19)) * 5;
+    const good = new Set(), bad = new Set();
+    for (let i = 0; i < 300 && good.size < 3; i++) { const l = someCoins(T); if (l) good.add(coinWords(l)); }
+    for (let i = 0; i < 300 && bad.size < 3; i++) { const l = someCoins(T + pick([-10, -5, 5, 10, 1])); if (l) bad.add(coinWords(l)); }
+    if (good.size < 2 || bad.size < 2) return moneyWays(d);
+    const right = [...good].slice(0, rnd(2, 3)), wrong = [...bad].slice(0, 5 - right.length);
+    return M(`Select <b>all</b> the ways to make <b>${T}¢</b>.`, right, shuffle([...right, ...wrong]), { hint: 'Count each set: quarters 25¢, dimes 10¢, nickels 5¢, pennies 1¢.' });
+  }
+  function moneyTo100(d) {
+    const [p] = two();
+    if (d === 3) {
+      const c = rnd(11, 89), up = Math.ceil(c / 10) * 10, js = [up - c, 100 - up].filter(Boolean);
+      return N(`Count up to make $1: <b>${c}¢ + ? = 100¢</b>`, 100 - c, { unit: '¢', visual: V.arrows(c, chain(c, js, false)), hint: 'Add up the jumps.', explain: `${js.join(' + ')} = ${100 - c}` });
+    }
+    if (chance(0.5)) {
+      let list;
+      do list = randomCoins(['q', 'd', 'n'], 6, 95); while (coinSum(list) >= 100);
+      return N(`${p} has ${coinWords(list)}. A notepad costs $1. How much more money does ${p} need?`, 100 - coinSum(list), { unit: '¢', hint: 'Count the coins first. Then count up to 100¢.', explain: `${coinSum(list)}¢ + ${100 - coinSum(list)}¢ = 100¢` });
+    }
+    const x = rnd(11, 45), y = rnd(11, 89 - x);
+    return N(`${p} saved ${x}¢ on Friday and ${y}¢ on Monday. How much more does ${p} need to save to have $1?`, 100 - x - y, { unit: '¢', hint: 'Two steps: add the savings, then count up to 100¢.', explain: `${x} + ${y} = ${x + y}, ${x + y} + ${100 - x - y} = 100` });
+  }
+
+  // ---- Data: tables with tally marks, line plots (2.MD.9, 2.MD.10) ----
+  function dataTally(d) {
+    const th = pick(THEMES.filter((t) => t.title !== 'Weather this month')), items = U.sample(th.items, rnd(3, Math.min(4, th.items.length))), ns = U.sample(U.range(2, 14), items.length);
+    const rows = items.map(([e, label], i) => ({ label: `${e} ${label}`, name: label, n: ns[i] }));
+    const vis = V.tally(rows, th.title), [a, b, c] = rows, total = U.sum(ns);
+    const k = d === 2 ? rnd(1, 2) : rnd(3, 5);
+    if (k === 1) return N(`How many <b>${a.name}</b>?`, a.n, { visual: vis, hint: 'Each bundle of tally marks is 5. Count by 5s, then count on.', explain: `${a.n} ${a.name}` });
+    const [hi, lo] = a.n > b.n ? [a, b] : [b, a];
+    if (k === 2) return N(`How many more <b>${hi.name}</b> than <b>${lo.name}</b>?`, hi.n - lo.n, { visual: vis, hint: 'Find both numbers. Then subtract.', explain: `${hi.n} − ${lo.n} = ${hi.n - lo.n}` });
+    if (k === 3) return N(`How many <b>${a.name}</b> and <b>${b.name}</b> in all?`, a.n + b.n, { visual: vis, hint: 'Find both numbers. Then add.', explain: `${a.n} + ${b.n} = ${a.n + b.n}` });
+    if (k === 4) { const T = total + rnd(3, 15); return N(`How many more would be needed to have <b>${T}</b> in all?`, T - total, { visual: vis, hint: 'Add all the rows. Then count up to the new total.', explain: `${ns.join(' + ')} = ${total}, ${T} − ${total} = ${T - total}` }); }
+    if (a.n + b.n <= c.n) return dataTally(d);
+    return N(`How many fewer <b>${c.name}</b> than <b>${a.name}</b> and <b>${b.name}</b> together?`, a.n + b.n - c.n, { visual: vis, hint: `Two steps: add ${a.name} and ${b.name}, then subtract.`, explain: `${a.n} + ${b.n} = ${a.n + b.n}, ${a.n + b.n} − ${c.n} = ${a.n + b.n - c.n}` });
+  }
+  const PLOTS = [
+    { what: 'pencils', one: 'pencil', adj: 'long', most: 'longest', unit: 'inches', u: 'in', min: 3, max: 9, title: 'Length of pencils in the class bin' },
+    { what: 'ribbons', one: 'ribbon', adj: 'long', most: 'longest', unit: 'centimeters', u: 'cm', min: 12, max: 18, title: 'Ribbon scraps in the craft bin' },
+    { what: 'students', one: 'student', adj: 'tall', most: 'tallest', unit: 'inches', u: 'in', min: 42, max: 48, title: 'Height of second graders' },
+    { what: 'leaves', one: 'leaf', adj: 'long', most: 'longest', unit: 'centimeters', u: 'cm', min: 4, max: 10, title: 'Length of leaves we found' },
+  ];
+  function dataLinePlot(d) {
+    const P = pick(PLOTS), counts = {};
+    let vals;
+    do {
+      U.range(P.min, P.max).forEach((v) => (counts[v] = chance(0.2) ? 0 : rnd(1, 5)));
+      vals = U.range(P.min, P.max).map((v) => counts[v]);
+    } while (vals.filter((c) => c === Math.max(...vals)).length > 1 || vals.filter(Boolean).length < 4); // one tallest stack, at least 4 lengths
+    const vis = V.linePlot({ min: P.min, max: P.max, counts, unit: P.unit, title: P.title }), total = U.sum(vals);
+    const used = U.range(P.min, P.max).filter((v) => counts[v]), mode = U.range(P.min, P.max).find((v) => counts[v] === Math.max(...vals));
+    const v = pick(U.range(P.min + 1, P.max - 1));
+    switch (d === 3 ? rnd(1, 3) : rnd(3, 5)) {
+      case 1: return N(`How many ${P.what} are <b>${v} ${P.unit}</b> ${P.adj}?`, counts[v], { visual: vis, hint: `Find ${v} on the line and count the ×s above it.`, explain: `${counts[v]} × above ${v}` });
+      case 2: { const more = U.sum(U.range(v + 1, P.max).map((x) => counts[x])); return N(`How many ${P.what} are ${P.adj === 'tall' ? 'taller' : 'longer'} than <b>${v} ${P.unit}</b>?`, more, { visual: vis, hint: `Count the ×s to the right of ${v}.`, explain: U.range(v + 1, P.max).map((x) => counts[x]).join(' + ') + ` = ${more}` }); }
+      case 3: return C(`Which ${P.adj === 'tall' ? 'height' : 'length'} is the most common?`, `${mode} ${P.unit}`, U.strChoices(`${mode} ${P.unit}`, used.map((x) => `${x} ${P.unit}`), 4), { visual: vis, hint: 'Find the tallest stack of ×s.', explain: `${counts[mode]} ${P.what} are ${mode} ${P.unit} ${P.adj}.` });
+      case 4: return N(`How many ${P.what} were measured?`, total, { visual: vis, hint: 'Count every ×.', explain: `${vals.join(' + ')} = ${total}` });
+      default: return N(`What is the difference between the ${P.most} and the shortest ${P.one}?`, used[used.length - 1] - used[0], { unit: P.u, visual: vis, hint: 'Find the ×s farthest right and farthest left.', explain: `${used[used.length - 1]} − ${used[0]} = ${used[used.length - 1] - used[0]}` });
+    }
+  }
+
+  // ---- Time: quarter past, half past, quarter to; hours between a.m. and p.m. (2.MD.7) ----
+  const nextH = (h) => (h % 12) + 1, prevH = (h) => ((h + 10) % 12) + 1;
+  const timeWords = (h, m) => (m === 15 ? `quarter past ${h}` : m === 30 ? `half past ${h}` : `quarter to ${nextH(h)}`);
+  function timeQuarter() {
+    const h = rnd(1, 12), m = pick([15, 30, 45]), ans = tStr(h, m);
+    if (chance(0.5)) return C(`What time is <b>${timeWords(h, m)}</b>?`, ans, U.strChoices(ans, [tStr(h, 15), tStr(h, 30), tStr(h, 45), tStr(prevH(h), 45), tStr(nextH(h), m)], 4), { hint: 'Quarter past = 15 minutes after. Half past = 30 minutes after. Quarter to = 15 minutes before the next hour.', explain: `${timeWords(h, m)} is ${ans}` });
+    const w = timeWords(h, m);
+    return C('Which words tell this time?', w, U.strChoices(w, [`quarter past ${h}`, `half past ${h}`, `quarter to ${nextH(h)}`, `quarter to ${h}`, `quarter past ${nextH(h)}`], 4), { visual: V.clock(h, m), hint: 'Look at the long hand: on the 3 is quarter past, on the 6 is half past, on the 9 is quarter to.', explain: `${ans} is ${w}` });
+  }
+  const clockOf = (t) => { t = ((t % 1440) + 1440) % 1440; const h = Math.floor(t / 60), m = t % 60; return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'a.m.' : 'p.m.'}`; };
+  const hoursText = (min) => `${Math.floor(min / 60)} hour${Math.floor(min / 60) === 1 ? '' : 's'}${min % 60 ? ' 30 minutes' : ''}`;
+  function timeElapsed(d) {
+    const [p] = two(), act = pick(['School', 'A road trip', 'A field trip', 'Soccer camp', 'A birthday party', 'A museum visit']);
+    const start = d === 4 ? rnd(12, 34) * 30 : rnd(36, 46) * 30, dur = d === 4 ? rnd(1, Math.min(8, Math.floor((1410 - start) / 60))) * 60 : rnd(2, 8) * 60 + pick([0, 30]), end = start + dur; // a.m. to p.m.; at 5: past midnight
+    if (d === 4 && chance(0.5)) {
+      const ans = clockOf(start);
+      return C(`${act} lasted <b>${dur / 60} hours</b>. It ended at <b>${clockOf(end)}</b>. When did it start?`, ans, U.strChoices(ans, [clockOf(end + dur), clockOf(start - 60), clockOf(start + 60), clockOf(start + 720)], 4), { hint: `Count back ${dur / 60} hours from the end.`, explain: `${clockOf(start)} + ${dur / 60} hours = ${clockOf(end)}` });
+    }
+    if (d === 4) return N(`${act} starts at <b>${clockOf(start)}</b> and ends at <b>${clockOf(end)}</b>. How many hours is that?`, dur / 60, { unit: 'hours', hint: 'Count the hours. Noon comes after 11 a.m.', explain: `${clockOf(start)} to ${clockOf(end)} is ${dur / 60} hours` });
+    const ans = hoursText(dur);
+    return C(`${p} left at <b>${clockOf(start)}</b> and came back at <b>${clockOf(end)}</b>. How long was that?`, ans, U.strChoices(ans, [hoursText(dur + 60), hoursText(dur - 60), hoursText(dur + 30), hoursText(dur - 30)].filter((s) => !s.startsWith('0')), 4), { hint: 'Count whole hours first. Midnight comes after 11 p.m. Then add the half hour.', explain: `${clockOf(start)} to ${clockOf(end)} is ${ans}` });
+  }
+
+  // ---- Shapes: quadrilaterals, angles; fractions of a whole (2.G.1, 2.G.3) ----
+  const ANGLES = { triangle: 3, quadrilateral: 4, pentagon: 5, hexagon: 6 };
+  const QUADS = [
+    ['4 equal sides and 4 square corners', 'square', ['trapezoid', 'triangle', 'hexagon']],
+    ['4 square corners, but its sides are not all equal', 'rectangle', ['square', 'trapezoid', 'rhombus']],
+    ['4 equal sides, but no square corners', 'rhombus', ['square', 'rectangle', 'trapezoid']],
+    ['4 sides and exactly 1 pair of parallel sides', 'trapezoid', ['rectangle', 'square', 'rhombus']],
+  ];
+  function shapeQuads() {
+    const k = rnd(1, 3);
+    if (k === 1) { const [clue, ans, other] = pick(QUADS); return C(`A shape has <b>${clue}</b>. What is it?`, ans, shuffle([ans, ...other]), { hint: 'Square corners are like the corner of a page. Parallel sides never meet, like train tracks.', explain: `A ${ans} has ${clue}.` }); }
+    if (k === 2) {
+      const [name, n] = pick([['triangle', 3], ['square', 4], ['rectangle', 4], ['trapezoid', 4], ['rhombus', 4], ['pentagon', 5], ['hexagon', 6]]);
+      return N('How many <b>angles</b> does this shape have?', n, { visual: V.shape(name, { irregular: ['triangle', 'pentagon', 'hexagon'].includes(name) && chance(0.6), rotate: true }), hint: 'An angle is where two sides meet. A shape has as many angles as sides.', explain: `A ${name} has ${n} sides and ${n} angles.` });
+    }
+    const [a, b] = U.sample(Object.keys(ANGLES), 2).sort((x, y) => ANGLES[x] - ANGLES[y]);
+    return C(`Which shape has <b>${ANGLES[b] - ANGLES[a]} more angle${ANGLES[b] - ANGLES[a] > 1 ? 's' : ''}</b> than a ${a}?`, b, Object.keys(ANGLES).filter((x) => x !== a), { hint: `A ${a} has ${ANGLES[a]} angles. Add ${ANGLES[b] - ANGLES[a]}.`, explain: `${ANGLES[a]} + ${ANGLES[b] - ANGLES[a]} = ${ANGLES[b]}: a ${b}` });
+  }
+  const PART = { 1: ['whole', 'wholes'], 2: ['half', 'halves'], 3: ['third', 'thirds'], 4: ['fourth', 'fourths'] };
+  const share = (k, n) => `${k} ${PART[n][k === 1 ? 0 : 1]}`;
+  function fracWhole(d) {
+    const n = rnd(2, 4), k = rnd(1, n - 1);
+    switch (d === 3 ? rnd(1, 3) : rnd(1, 4)) {
+      case 1: { const ans = share(n - k, n); return C('How much more do you need to shade to make <b>1 whole</b>?', ans, U.strChoices(ans, [share(k, n), share(n, n), share(n - k, n === 4 ? 3 : n + 1), share(1, n)].filter((x) => x !== ans), 4), { visual: V.fraction(n, k, chance(0.5) ? 'bar' : 'circle'), hint: `The whole has ${n} equal parts. How many are not shaded?`, explain: `${share(k, n)} + ${ans} = ${n} ${PART[n][1]} = 1 whole` }); }
+      case 2: return N(`How many <b>${PART[n][1]}</b> make 1 whole?`, n, { visual: V.fraction(n, n, 'circle'), hint: `${PART[n][1]} means ${n} equal parts.`, explain: `${n} ${PART[n][1]} = 1 whole` });
+      case 3: { const [x, ans] = pick([['2 fourths', '1 half'], ['2 halves', '1 whole'], ['3 thirds', '1 whole'], ['4 fourths', '1 whole']]); return C(`<b>${x}</b> is the same as…`, ans, ['1 half', '1 third', '1 fourth', '1 whole'], { visual: V.fraction(+x[0] === 2 && x.includes('fourths') ? 4 : +x[0], +x[0], 'bar'), hint: 'Look at how much of the whole is shaded.', explain: `${x} = ${ans}` }); }
+      default: { const ans = share(1, n); return C(`${n} friends share a pizza equally. How much does each friend get?`, ans, ['1 half', '1 third', '1 fourth', '1 whole'], { hint: `Cut the pizza into ${n} equal parts.`, explain: `${n} equal parts: each is ${ans}` }); }
+    }
+  }
+
   MQ.KINDS = {
     pv_words: { topic: 'place', ds: [2, 3, 4], name: 'Number names', gen: pvWords },
     pv_units: { topic: 'place', ds: [3, 4], name: 'Tens and ones in big numbers', gen: pvUnits },
@@ -3885,6 +4178,21 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     big_simpler: { topic: 'big', ds: [3, 4], name: 'Make an easier problem to 1,000', gen: () => (chance(0.5) ? simplerAdd(1000) : simplerSub(1000)) },
     big_bond: { topic: 'big', ds: [3, 4], name: 'Make a hundred', gen: () => bondAdd(5) },
     words_tape: { topic: 'words', ds: [3, 4], name: 'Word problems with a tape diagram', gen: tapeWords },
+    big_check: { topic: 'big', ds: [3, 4], name: 'Check subtraction with addition', gen: bigCheck },
+    len_about: { topic: 'measure', ds: [2, 3], name: 'About how long?', gen: lenAbout },
+    len_units: { topic: 'measure', ds: [3], name: 'Small units, big numbers', gen: lenUnits },
+    len_line: { topic: 'measure', ds: [3, 4], name: 'Rulers as number lines', gen: lenLine },
+    arr_rowscols: { topic: 'arrays', ds: [2, 3], name: 'Rows and columns', gen: arrRowsCols },
+    arr_tape: { topic: 'arrays', ds: [2, 3], name: 'Equal groups on a tape', gen: arrTape },
+    money_bills: { topic: 'money', ds: [3, 4], name: '$1, $5, $10 and $20 bills', gen: moneyBills },
+    money_ways: { topic: 'money', ds: [3, 4], name: 'Different coins, same amount', gen: moneyWays },
+    money_to100: { topic: 'money', ds: [3, 4], name: 'Count up to $1', gen: moneyTo100 },
+    data_tally: { topic: 'data', ds: [2, 3], name: 'Tables with tally marks', gen: dataTally },
+    data_lineplot: { topic: 'data', ds: [3, 4], name: 'Line plots', gen: dataLinePlot },
+    time_quarter: { topic: 'time', ds: [2, 3], name: 'Quarter past, half past, quarter to', gen: timeQuarter },
+    time_elapsed: { topic: 'time', ds: [4, 5], name: 'Hours from a.m. to p.m.', gen: timeElapsed },
+    shape_quads: { topic: 'shapes', ds: [2, 3], name: 'Angles and quadrilaterals', gen: shapeQuads },
+    frac_whole: { topic: 'shapes', ds: [3, 4], name: 'Halves, thirds, fourths of a whole', gen: fracWhole },
   };
   const kindIds = (topic, d) => Object.keys(MQ.KINDS).filter((k) => MQ.KINDS[k].topic === topic && MQ.KINDS[k].ds.includes(d));
   // About a third of a topic's questions are class strategies (when the topic has kinds at that level).
@@ -6621,12 +6929,12 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
 })();
 </script>
   <script>
-// In class now: practice that follows what the child's class is learning this week (rules and data, no DOM).
+// School lessons: practice by the lessons of the class's math program, and what the class is on this week (rules and data, no DOM).
 // A program is a school's math curriculum, written as data: units (modules) made of parts (lesson ranges), and each
 // part lists the skills to practice. A skill is 'topic/level' (a topic of js/generators.js) or 'kind/level' (a class
 // strategy, MQ.KINDS). A class that follows another curriculum needs only another entry in PROGRAMS;
 // the 'topics' program works for any class: the grown-up picks the topics being taught.
-// The choice lives in st.settings.school = { program, unit, part, topics, at } ('' program = off).
+// The choice lives in st.settings.school (see DEFAULT below). The child can open any unit unless a grown-up limits them.
 (function () {
   const MQ = (globalThis.MQ = globalThis.MQ || {});
   const SC = {};
@@ -6643,9 +6951,9 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
           ] },
           { n: 2, title: 'Measuring length', parts: [
             { from: 1, to: 3, title: 'Centimeters and rulers', skills: ['measure/2'] },
-            { from: 4, to: 5, title: 'Centimeters, meters, estimating', skills: ['measure/2', 'measure/3'] },
-            { from: 6, to: 7, title: 'Comparing lengths', skills: ['measure/3', 'words/2'] },
-            { from: 8, to: 10, title: 'Length word problems', skills: ['measure/3', 'words/3', 'words_tape/3'] },
+            { from: 4, to: 5, title: 'Centimeters, meters, estimating', skills: ['measure/2', 'measure/3', 'len_about/2'] },
+            { from: 6, to: 7, title: 'Comparing lengths', skills: ['measure/3', 'words/2', 'len_units/3', 'len_line/3'] },
+            { from: 8, to: 10, title: 'Length word problems', skills: ['measure/3', 'len_line/4', 'words/3', 'words_tape/3'] },
           ] },
           { n: 3, title: 'Place value to 1,000', parts: [
             { from: 1, to: 4, title: 'Ones, tens and hundreds', skills: ['place/2', 'pv_units/3', 'place/3'] },
@@ -6666,26 +6974,26 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
           { n: 5, title: 'Adding and subtracting to 1,000', parts: [
             { from: 1, to: 7, title: 'Hundreds and tens: arrows, easier problems', skills: ['pv_more/3', 'big/1', 'big_arrow/2', 'big_arrow/3', 'big_simpler/3', 'big_bond/3'] },
             { from: 8, to: 12, title: 'Adding: new tens and hundreds', skills: ['big/2', 'big/3', 'big/4', 'big_bond/4'] },
-            { from: 13, to: 20, title: 'Subtracting: unbundle tens and hundreds', skills: ['big/2', 'big/3', 'big/4', 'big_simpler/4', 'big_arrow/4'] },
+            { from: 13, to: 20, title: 'Subtracting: unbundle tens and hundreds', skills: ['big/2', 'big/3', 'big/4', 'big_simpler/4', 'big_arrow/4', 'big_check/3', 'big_check/4'] },
           ] },
           { n: 6, title: 'Equal groups, arrays, odd and even', parts: [
-            { from: 1, to: 4, title: 'Equal groups', skills: ['mult/1', 'arrays/3'], learn: 'groups' },
-            { from: 5, to: 9, title: 'Arrays: rows and columns', skills: ['arrays/2', 'arrays/3', 'mult/1'], learn: 'arrays' },
-            { from: 10, to: 16, title: 'Rectangles made of squares', skills: ['arrays/3', 'arrays/4', 'shapes/4'] },
+            { from: 1, to: 4, title: 'Equal groups', skills: ['mult/1', 'arr_tape/2', 'arr_tape/3', 'arrays/3'], learn: 'groups' },
+            { from: 5, to: 9, title: 'Arrays: rows and columns', skills: ['arr_rowscols/2', 'arr_rowscols/3', 'arrays/2', 'arrays/3'], learn: 'arrays' },
+            { from: 10, to: 16, title: 'Rectangles made of squares', skills: ['arr_rowscols/3', 'arrays/4', 'shapes/4'] },
             { from: 17, to: 20, title: 'Odd and even', skills: ['arrays/1', 'arrays/2', 'arrays/4'] },
           ] },
           { n: 7, title: 'Graphs, money and measuring', parts: [
-            { from: 1, to: 5, title: 'Picture graphs and bar graphs', skills: ['data/2', 'data/3', 'data/4'] },
-            { from: 6, to: 13, title: 'Coins and bills', skills: ['money/2', 'money/3', 'money/4', 'money/5'] },
+            { from: 1, to: 5, title: 'Tables, picture graphs and bar graphs', skills: ['data_tally/2', 'data_tally/3', 'data/2', 'data/3', 'data/4'] },
+            { from: 6, to: 13, title: 'Coins and bills', skills: ['money/2', 'money/3', 'money_bills/3', 'money_bills/4', 'money_ways/3', 'money_ways/4', 'money_to100/3', 'money_to100/4', 'money/5'] },
             { from: 14, to: 15, title: 'Inch rulers', skills: ['measure/1'] },
-            { from: 16, to: 19, title: 'Inches, feet and yards', skills: ['measure/3', 'measure/4'] },
-            { from: 20, to: 22, title: 'Length word problems', skills: ['measure/3', 'words/3', 'words_tape/3'] },
-            { from: 23, to: 26, title: 'Measurement data', skills: ['data/3', 'data/4'] },
+            { from: 16, to: 19, title: 'Inches, feet and yards', skills: ['measure/3', 'measure/4', 'len_about/3', 'len_units/3'] },
+            { from: 20, to: 22, title: 'Length word problems', skills: ['len_line/3', 'len_line/4', 'words_tape/3', 'words/3'] },
+            { from: 23, to: 26, title: 'Line plots', skills: ['data_lineplot/3', 'data_lineplot/4'] },
           ] },
           { n: 8, title: 'Shapes, fractions and time', parts: [
-            { from: 1, to: 5, title: 'Shapes and cubes', skills: ['shapes/1', 'shapes/2', 'shapes/4'] },
-            { from: 6, to: 12, title: 'Halves, thirds and fourths', skills: ['shapes/3'] },
-            { from: 13, to: 16, title: 'Telling time, a.m. and p.m.', skills: ['time/2', 'time/3', 'time/4'] },
+            { from: 1, to: 5, title: 'Shapes, angles and cubes', skills: ['shape_quads/2', 'shape_quads/3', 'shapes/1', 'shapes/2', 'shapes/4'] },
+            { from: 6, to: 12, title: 'Halves, thirds and fourths', skills: ['shapes/3', 'frac_whole/3', 'frac_whole/4'] },
+            { from: 13, to: 16, title: 'Telling time, a.m. and p.m.', skills: ['time_quarter/2', 'time_quarter/3', 'time/3', 'time/4', 'time_elapsed/4', 'time_elapsed/5'] },
           ] },
         ],
       },
@@ -6694,10 +7002,21 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
   // Any other program: the grown-up picks the topics the class is on (up to 3).
   SC.TOPIC_MAX = 3;
 
-  const DEFAULT = { program: '', unit: 1, part: 0, topics: [], at: '' };
+  // program: '' (never set: the grade's program, if there is one), a program id, 'topics' or 'off';
+  // unit/part: the lessons in class this week (unit 0 = not set); open: 'all' or 'chosen' (only the units in allowed);
+  // at: when a grown-up last changed anything; weekAt: when this week's lessons were last set.
+  const DEFAULT = { program: '', unit: 0, part: 0, topics: [], at: '', weekAt: '', open: 'all', allowed: [] };
   SC.settings = (st) => Object.assign({}, DEFAULT, (st.settings || {}).school);
   SC.units = (program, grade) => (SC.PROGRAMS[program] && SC.PROGRAMS[program].grades[grade]) || [];
   SC.programsFor = (grade) => Object.keys(SC.PROGRAMS).filter((id) => SC.units(id, grade).length);
+  // The program in use: the grown-up's choice, or, until a grown-up chooses, the grade's program (Eureka for 2nd grade).
+  SC.program = (st) => {
+    const c = SC.settings(st);
+    if (c.program === 'off') return '';
+    if (c.program === 'topics') return 'topics';
+    if (SC.units(c.program, st.grade).length) return c.program;
+    return c.at ? '' : SC.programsFor(st.grade)[0] || '';
+  };
 
   // 'place/3' → { topic, d } ; 'pv_words/2' → { kind, topic, d }
   SC.skill = (s) => {
@@ -6707,25 +7026,40 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
   };
   SC.skillName = (sk) => (sk.kind ? MQ.KINDS[sk.kind].name : MQ.TOPICS[sk.topic] ? MQ.TOPICS[sk.topic].name : sk.topic);
 
-  // What to practice now: the chosen part (weight 3) and, as review, the earlier parts of the same unit (weight 1).
-  // null when the feature is off or the choice does not fit the child's grade.
+  // This week's lessons in class, when a grown-up set them: { unit, part } or null.
+  SC.week = (st) => {
+    const c = SC.settings(st), pid = SC.program(st);
+    if (!pid || pid === 'topics' || !c.at || c.program !== pid || !(c.unit >= 1)) return null;
+    const unit = SC.units(pid, st.grade).find((u) => u.n === c.unit);
+    return unit ? { unit: unit.n, part: MQ.U.clamp(c.part || 0, 0, unit.parts.length - 1) } : null;
+  };
+  // Practice for one lesson group: its skills (weight 3) and, as review, the earlier groups of the same unit (weight 1).
+  SC.focusFor = (st, n, pi) => {
+    const pid = SC.program(st), unit = SC.units(pid, st.grade).find((u) => u.n === n);
+    if (!unit || pid === 'topics') return null;
+    pi = MQ.U.clamp(pi || 0, 0, unit.parts.length - 1);
+    const part = unit.parts[pi], skills = [];
+    unit.parts.slice(0, pi + 1).forEach((p, i) => p.skills.forEach((s) => skills.push(Object.assign(SC.skill(s), { w: i === pi ? 3 : 1 }))));
+    const wk = SC.week(st);
+    return { program: pid, unit, part, pi, title: part.title, sub: `${SC.PROGRAMS[pid].unitName} ${unit.n} · Lessons ${part.from}–${part.to}`, skills, learn: part.learn || '', now: !!(wk && wk.unit === n && wk.part === pi) };
+  };
+  // What the class is on now (this week's lessons, or the topics a grown-up picked); null when nothing is set.
   SC.focus = (st) => {
     const c = SC.settings(st);
-    if (c.program === 'topics') {
+    if (SC.program(st) === 'topics') {
       const tr = MQ.track(st.grade), ids = (c.topics || []).filter((t) => tr.core.includes(t) || tr.ahead.includes(t));
       if (!ids.length) return null;
       const [lo, hi] = tr.daily;
       const skills = ids.flatMap((t) => MQ.U.range(lo, hi).map((d) => ({ topic: t, d, w: 1 })));
-      return { program: 'topics', title: ids.map((t) => MQ.TOPICS[t].name).join(' · '), sub: 'Topics from class', skills, learn: '' };
+      return { program: 'topics', title: ids.map((t) => MQ.TOPICS[t].name).join(' · '), sub: 'Topics from class', skills, learn: '', now: true };
     }
-    const units = SC.units(c.program, st.grade);
-    const unit = units.find((u) => u.n === c.unit);
-    if (!unit) return null;
-    const pi = MQ.U.clamp(c.part || 0, 0, unit.parts.length - 1), part = unit.parts[pi];
-    const skills = [];
-    unit.parts.slice(0, pi + 1).forEach((p, i) => p.skills.forEach((s) => skills.push(Object.assign(SC.skill(s), { w: i === pi ? 3 : 1 }))));
-    const P = SC.PROGRAMS[c.program];
-    return { program: c.program, unit, part, title: part.title, sub: `${P.unitName} ${unit.n} · Lessons ${part.from}–${part.to}`, skills, learn: part.learn || '' };
+    const wk = SC.week(st);
+    return wk ? SC.focusFor(st, wk.unit, wk.part) : null;
+  };
+  // Can the child open this unit? Every unit, unless a grown-up chose which ones (this week's unit is always open).
+  SC.isOpen = (st, n, preview = false) => {
+    const c = SC.settings(st), wk = SC.week(st);
+    return preview || c.open !== 'chosen' || (c.allowed || []).includes(n) || !!(wk && wk.unit === n);
   };
   SC.pick = (skills) => {
     let r = Math.random() * skills.reduce((s, k) => s + (k.w || 1), 0);
@@ -6733,13 +7067,14 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     return skills[skills.length - 1];
   };
   SC.make = (sk) => (sk.kind ? MQ.makeKind(sk.kind, sk.d) : MQ.makeProblem(sk.topic, sk.d));
-  // The grown-up chose this a while ago: ask whether the class has moved on.
-  SC.stale = (st, today = MQ.U.dateKey()) => { const c = SC.settings(st); return !!(c.program && c.at && MQ.U.daysBetween(c.at, today) >= 21); };
-  // The next lessons after the chosen ones (the next part, or the first part of the next unit).
+  // This week's lessons were set a while ago: ask whether the class has moved on.
+  SC.stale = (st, today = MQ.U.dateKey()) => { const c = SC.settings(st), at = c.weekAt || c.at; return !!(SC.week(st) && at && MQ.U.daysBetween(at, today) >= 21); };
+  // The next lessons after this week's (the next part, or the first part of the next unit).
   SC.next = (st) => {
-    const c = SC.settings(st), units = SC.units(c.program, st.grade), ui = units.findIndex((u) => u.n === c.unit);
-    if (ui < 0) return null;
-    if (c.part + 1 < units[ui].parts.length) return { unit: units[ui].n, part: c.part + 1 };
+    const wk = SC.week(st);
+    if (!wk) return null;
+    const units = SC.units(SC.program(st), st.grade), ui = units.findIndex((u) => u.n === wk.unit);
+    if (wk.part + 1 < units[ui].parts.length) return { unit: wk.unit, part: wk.part + 1 };
     return units[ui + 1] ? { unit: units[ui + 1].n, part: 0 } : null;
   };
 
@@ -9778,7 +10113,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     puzzles: { n: 6, done: {}, stars: {}, packs: {}, gold: {}, daily: { last: '', streak: 0, best: 0 } }, // Puzzle Time (js/shapes.js): pieces in a jigsaw, puzzles finished, best stars, packs bought, golden ones, the puzzle of the day
     lessons: {}, // Learn courses: module id -> { step, done, stars, at }
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
-    settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true, school: { program: '', unit: 1, part: 0, topics: [], at: '' } }, // school: In class now (js/school.js)
+    settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true, school: { program: '', unit: 0, part: 0, topics: [], at: '', weekAt: '', open: 'all', allowed: [] } }, // school: School lessons (js/school.js)
   });
 
   function merge(base, saved) {
@@ -14766,7 +15101,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
-    const redraw = { home, map, journal, badges, prep, fixit, progress, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg), duel: () => MQ.duelUI.show(), shapes: () => MQ.shapesUI.show(), lessons: () => MQ.lessonsUI.show() }[scr];
+    const redraw = { home, map, journal, badges, prep, fixit, progress, school, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg), duel: () => MQ.duelUI.show(), shapes: () => MQ.shapesUI.show(), lessons: () => MQ.lessonsUI.show() }[scr];
     if (redraw) redraw();
   }
   function newExplorer() {
@@ -14873,10 +15208,27 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     later(growCheck, 900);
   }
 
-  // In class now (js/school.js): practice that follows what the class is learning; a grown-up sets it on the grown-ups page.
+  // School lessons (js/school.js): every lesson group of the class's math program, this week's first.
+  // The child opens any module unless a grown-up limits them; with another program, the topics a grown-up picked.
   function classTile() {
-    const f = MQ.school.focus(st);
-    return f ? `<button class="tile t-class" data-act="classPractice"><span class="ti">🏫</span><b>In class now</b><small>${esc(f.title)}</small></button>` : '';
+    const SC = MQ.school, pid = SC.program(st), f = SC.focus(st);
+    if (pid === 'topics') return f ? `<button class="tile t-class" data-act="classPractice"><span class="ti">🏫</span><b>In class now</b><small>${esc(f.title)}</small></button>` : '';
+    if (!pid) return '';
+    return `<button class="tile t-class" data-act="go" data-arg="school"><span class="ti">🏫</span><b>School lessons</b><small>${f ? 'In class: ' + esc(f.title) : `${SC.units(pid, st.grade).length} modules`}</small></button>`;
+  }
+  function school() {
+    const SC = MQ.school, pid = SC.program(st);
+    if (!pid || pid === 'topics') return home();
+    const units = SC.units(pid, st.grade), wk = SC.week(st), f = SC.focus(st), P = SC.PROGRAMS[pid];
+    const wkKey = wk ? wk.unit + ':' + wk.part : '', shownN = ui.sc && ui.sc.wk === wkKey ? ui.sc.n : wk ? wk.unit : 0; // the child's last open module, until the week changes
+    const now = f ? `<button class="sc-week" data-act="classPractice" data-arg="${wk.unit}:${wk.part}"><span class="sc-wi">🏫</span><span><b>In class now</b><small>${esc(f.title)} · ${esc(f.sub)}</small></span><span class="btn">Practice ▶</span></button>` : '';
+    const list = units.map((u) => {
+      const open = SC.isOpen(st, u.n, S.preview), here = !!wk && wk.unit === u.n, shown = open && shownN === u.n;
+      const parts = shown ? `<div class="sc-parts">${u.parts.map((p, i) => { const isNow = here && wk.part === i; return `<button class="sc-part ${isNow ? 'now' : ''}" data-act="classPractice" data-arg="${u.n}:${i}"><b>Lessons ${p.from}–${p.to}</b><small>${esc(p.title)}</small>${isNow ? '<span class="sc-tag">🏫 In class now</span>' : ''}</button>`; }).join('')}</div>` : '';
+      return `<section class="sc-unit ${open ? '' : 'locked'} ${shown ? 'open' : ''} ${here ? 'here' : ''}"><button class="sc-head" data-act="schoolUnit" data-arg="${u.n}" aria-expanded="${shown}"><span class="sc-num">${open ? u.n : '🔒'}</span><span><b>${esc(u.title)}</b><small>${open ? `${P.unitName} ${u.n} · ${u.parts.length} lesson groups${here ? ' · 🏫 in class now' : ''}` : 'A grown-up can open it'}</small></span><span class="sc-go">${shown ? '▾' : '›'}</span></button>${parts}</section>`;
+    }).join('');
+    render(header('School lessons') + `<main class="school"><p class="lead">${esc(P.short)} · ${MQ.track(st.grade).label}</p>${now}<p class="muted">Pick any lessons to practice: 10 problems each.</p><div class="sc-units">${list}</div></main>`);
+    cur = 'school';
   }
 
   // Sunny Farm: level, money and what's waiting (ripe crops, things to collect, a full basket).
@@ -15119,7 +15471,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
       <section class="pcard" id="pcard"></section>
       <div id="answer" class="answer"></div>
     </div>`, 'is-play');
-    say(sess.mode === 'level' ? `${bname()}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${bname()}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${bname()}: Lightning round! Go go go! ⚡` : sess.classSet ? `${bname()}: Let’s practice what your class is learning! 🏫` : sess.mode === 'daily' ? `${bname()}: Today’s quest — ${sess.warm && sess.warm.length ? '5 math puzzles and 2 GATE warm-ups 🔷' : '5 mixed puzzles'}!` : `${bname()}: Let’s train! Every 5 in a row opens a chest. 🎁`);
+    say(sess.mode === 'level' ? `${bname()}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${bname()}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${bname()}: Lightning round! Go go go! ⚡` : sess.classSet ? `${bname()}: ${sess.classSet.now ? 'Let’s practice what your class is learning!' : `Let’s practice: ${sess.classSet.title}!`} 🏫` : sess.mode === 'daily' ? `${bname()}: Today’s quest — ${sess.warm && sess.warm.length ? '5 math puzzles and 2 GATE warm-ups 🔷' : '5 mixed puzzles'}!` : `${bname()}: Let’s train! Every 5 in a row opens a chest. 🎁`);
     nextProblem();
     if (sess.timer) sess.interval = setInterval(tick, 1000);
   }
@@ -15134,7 +15486,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     const el = $('#pstatus');
     if (!el) return;
     if (sess.classSet) {
-      el.innerHTML = `<span class="ptitle">🏫 In class now</span><span class="slots">${U.range(1, sess.goal).map((i) => `<i class="${i <= sess.correct ? 'on' : ''}"></i>`).join('')}</span>`;
+      el.innerHTML = `<span class="ptitle">🏫 ${sess.classSet.now ? 'In class now' : 'School lessons'}</span><span class="slots">${U.range(1, sess.goal).map((i) => `<i class="${i <= sess.correct ? 'on' : ''}"></i>`).join('')}</span>`;
     } else if (sess.mode === 'trainer') {
       const m = Math.floor(sess.left / 60), s = String(sess.left % 60).padStart(2, '0');
       el.innerHTML = `<span class="stat">🔥 <b>${sess.streak}</b></span><span class="stat">✓ <b>${sess.correct}</b></span>` +
@@ -15490,8 +15842,8 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     const acc = pct(sess.firstTry, sess.answered), cls = sess.classSet;
     render(`<main class="result" style="${cls ? '--wc:#3f7fd8;--wt:#e3edfc' : '--wc:#ff6b5b;--wt:#ffe3dd'}">
       <div class="bigemoji">${cls ? '🏫' : sess.timer ? '⚡' : '♾️'}</div>
-      <h1 class="title">${cls ? 'Class practice done!' : sess.timer ? 'Time!' : 'Training done!'}</h1>
-      ${cls ? `<p class="lead">${esc(cls.title)}</p>` : ''}
+      <h1 class="title">${cls ? 'Lesson practice done!' : sess.timer ? 'Time!' : 'Training done!'}</h1>
+      ${cls ? `<p class="lead">${esc(cls.title)}${cls.program === 'topics' ? '' : ` · ${esc(cls.sub)}`}</p>` : ''}
       ${record ? `<div class="unlock">🏆 ${record}</div>` : ''}
       <div class="sumgrid">
         <div><b>${sess.correct}</b><small>correct</small></div>
@@ -15502,7 +15854,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
       ${sess.fixedNow ? `<div class="unlock">🛠️ ${sess.fixedNow} old ${sess.fixedNow === 1 ? 'mistake' : 'mistakes'} fixed for good!</div>` : ''}
       ${sess.earned + sess.fixedNow ? eggNudge() : ''}
       <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button>${cls
-        ? `${cls.learn && st.grade === 'g2' ? '<button class="btn ghost" data-act="go" data-arg="lessons">📖 Learn</button>' : ''}<button class="btn" data-act="classPractice">Practice again</button>`
+        ? `${cls.learn && st.grade === 'g2' ? '<button class="btn ghost" data-act="go" data-arg="lessons">📖 Learn</button>' : ''}${cls.program === 'topics' ? '' : '<button class="btn ghost" data-act="go" data-arg="school">Other lessons</button>'}<button class="btn" data-act="classPractice" data-arg="${sess.classArg}">Practice again</button>`
         : sess.kgTopic
         ? `<button class="btn ghost" data-act="go" data-arg="${MQ.TOPICS[sess.kgTopic].cogat ? 'cgtypes' : MQ.TOPICS[sess.kgTopic].logic ? 'lgtypes' : 'kgtypes'}">Other types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
         : '<button class="btn ghost" data-act="go" data-arg="trainer">Change settings</button><button class="btn" data-act="startTrainer">Play again</button>'}</div></main>`);
@@ -15566,7 +15918,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
       return finishFixit();
     }
     if (sess.mode === 'trainer') {
-      if (sess.answered === 0) return go(sess.classSet ? 'home' : 'trainer');
+      if (sess.answered === 0) return go(sess.classSet ? (sess.classArg ? 'school' : 'home') : 'trainer');
       clearTimers();
       sess.locked = true;
       return finishTrainer();
@@ -16069,11 +16421,14 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
       revFit: (r) => familyOf(r.topic) === st.grade });
   }
   const CLASS_GOAL = 10;
-  function startClass() {
-    const f = MQ.school.focus(st);
+  function startClass(arg) { // arg 'unit:part' = a lesson group from School lessons; none = what the class is on now
+    const SC = MQ.school;
+    let f;
+    if (arg) { const [n, pi] = arg.split(':').map(Number); if (!SC.isOpen(st, n, S.preview)) return go('school'); f = SC.focusFor(st, n, pi); }
+    else f = SC.focus(st);
     if (!f) return home();
     const topics = new Set(f.skills.map((k) => k.topic));
-    startSession({ mode: 'trainer', classSet: f, skills: f.skills, topics: [...topics], d: [2, 2], goal: CLASS_GOAL, timer: 0, revFit: (r) => topics.has(r.topic) });
+    startSession({ mode: 'trainer', classSet: f, classArg: arg || '', skills: f.skills, topics: [...topics], d: [2, 2], goal: CLASS_GOAL, timer: 0, revFit: (r) => topics.has(r.topic) });
   }
   function startDaily() {
     // Mix of topics from worlds that are open, at a level that stretches a little.
@@ -16547,31 +16902,36 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     </main>`);
   }
 
-  // In class now: the school's math program and this week's lessons (or, for any program, the topics in class).
+  // School lessons: the school's math program, this week's lessons (optional) and which modules the child can open
+  // (or, for any program, the topics in class).
   function classSection() {
-    const SC = MQ.school, c = SC.settings(st), f = SC.focus(st), P = SC.PROGRAMS[c.program], units = SC.units(c.program, st.grade);
-    const chip = (act, arg, label, on) => `<button class="chip ${on ? 'sel' : ''}" data-act="${act}" data-arg="${arg}" aria-pressed="${on}">${label}</button>`;
-    let body = '';
+    const SC = MQ.school, c = SC.settings(st), pid = SC.program(st), f = SC.focus(st), P = SC.PROGRAMS[pid], units = SC.units(pid, st.grade), wk = SC.week(st);
+    const chip = (act, arg, label, on, off = false) => `<button class="chip ${on ? 'sel' : ''}" data-act="${act}" data-arg="${arg}" aria-pressed="${on}" ${off ? 'disabled' : ''}>${label}</button>`;
+    let body = '', what = '';
     if (P && units.length) {
-      const unit = units.find((u) => u.n === c.unit) || units[0];
-      body = `<div class="label">${P.unitName}</div><div class="chips">${units.map((u) => chip('setSchoolUnit', u.n, `${u.n} · ${esc(u.title)}`, u.n === unit.n)).join('')}</div>
-        <div class="label">Lessons this week</div><div class="chips">${unit.parts.map((p, i) => chip('setSchoolPart', i, `${p.from}–${p.to} · ${esc(p.title)}`, unit.n === c.unit && i === c.part)).join('')}</div>
-        <p class="muted">${esc(P.how)}</p>`;
-    } else if (c.program === 'topics') {
+      const unit = wk && units.find((u) => u.n === wk.unit), mix = f ? [...new Set(f.skills.filter((k) => k.w > 1).map(SC.skillName))].join(', ') : '';
+      body = `<div class="label">This week in class (optional)</div><div class="chips">${chip('setSchoolUnit', 0, 'Not set', !wk)}${units.map((u) => chip('setSchoolUnit', u.n, `${u.n} · ${esc(u.title)}`, !!wk && wk.unit === u.n)).join('')}</div>
+        ${unit ? `<div class="label">Lessons this week</div><div class="chips">${unit.parts.map((p, i) => chip('setSchoolPart', i, `${p.from}–${p.to} · ${esc(p.title)}`, wk.part === i)).join('')}</div>` : ''}
+        <p class="muted">${esc(P.how)}</p>
+        <div class="label">What ${esc(st.name)} can open</div><div class="chips">${chip('setSchoolOpen', 'all', 'Every module', c.open !== 'chosen')}${chip('setSchoolOpen', 'chosen', 'Only modules I choose', c.open === 'chosen')}</div>
+        ${c.open === 'chosen' ? `<div class="chips">${units.map((u) => { const week = !!wk && wk.unit === u.n; return chip('toggleSchoolAllowed', u.n, `${u.n} · ${esc(u.title)}`, week || (c.allowed || []).includes(u.n), week); }).join('')}</div><p class="muted">This week’s module is always open.</p>` : ''}`;
+      what = `<p class="muted">Home screen: <b>🏫 School lessons</b>. ${esc(st.name)} picks any lessons of ${c.open === 'chosen' ? 'the open modules' : 'every module, also ones the class has not reached yet'}: 10 problems each.${f ? ` <b>${esc(f.title)}</b> (${esc(f.sub)}) is marked 🏫 In class now, and 2 questions of every Daily Quest come from it. Practice now: ${esc(mix)}.` : ' Mark this week’s lessons to put them first and into the Daily Quest.'}</p>`;
+    } else if (pid === 'topics') {
       body = `<div class="label">Topics the class is on now (up to ${SC.TOPIC_MAX})</div><div class="chips">${track().core.map((id) => chip('toggleSchoolTopic', id, `${MQ.TOPICS[id].icon} ${MQ.TOPICS[id].name}`, c.topics.includes(id))).join('')}</div>`;
+      if (f) what = `<p class="muted">Home screen: <b>🏫 In class now · ${esc(f.title)}</b>, 10 problems. 2 questions of every Daily Quest come from it too.</p>`;
     }
     const nx = SC.next(st);
-    const stale = SC.stale(st) ? `<p class="classnote">Set on ${fmtDate(c.at)}. Has the class moved on?${nx ? ' <button class="linkbtn" data-act="schoolNext">Go to the next lessons</button>' : ''}</p>` : '';
-    const mix = f ? [...new Set(f.skills.filter((k) => k.w > 1 || f.program === 'topics').map(SC.skillName))].join(', ') : '';
-    const what = f ? `<p class="muted">Home screen: <b>🏫 In class now · ${esc(f.title)}</b>${f.program === 'topics' ? '' : ` (${esc(f.sub)})`}, 10 problems. ${f.program === 'topics' ? '' : 'These lessons come up most; earlier lessons of the module come back as review. '}2 questions of every Daily Quest come from it too. Practice now: ${esc(mix)}.</p>` : '';
-    return `<section class="settings classset"><h2>🏫 In class now</h2>
-      <p class="muted">Tell the app what ${esc(st.name)}’s class is learning this week, and practice follows it: a tile on the home screen and part of the Daily Quest. Levels and worlds stay as they are.</p>
+    const stale = SC.stale(st) ? `<p class="classnote">This week’s lessons were set on ${fmtDate(c.weekAt || c.at)}. Has the class moved on?${nx ? ' <button class="linkbtn" data-act="schoolNext">Go to the next lessons</button>' : ''}</p>` : '';
+    return `<section class="settings classset"><h2>🏫 School lessons</h2>
+      <p class="muted">Practice by the lessons of ${esc(st.name)}’s math program at school. Levels and worlds stay as they are.</p>
       <div class="label">Math program at school</div>
-      <div class="chips">${SC.programsFor(st.grade).map((id) => chip('setSchool', id, esc(SC.PROGRAMS[id].short), c.program === id)).join('')}${chip('setSchool', 'topics', 'Another program: pick topics', c.program === 'topics')}${chip('setSchool', 'off', 'Off', !c.program || (c.program !== 'topics' && !units.length))}</div>
+      <div class="chips">${SC.programsFor(st.grade).map((id) => chip('setSchool', id, esc(SC.PROGRAMS[id].short), pid === id)).join('')}${chip('setSchool', 'topics', 'Another program: pick topics', pid === 'topics')}${chip('setSchool', 'off', 'Off', !pid)}</div>
       ${body}${stale}${what}</section>`;
   }
+  // Any change marks the setting as chosen by a grown-up (until then 2nd grade follows its program by default).
   function setSchool(change) {
-    st.settings.school = Object.assign(MQ.school.settings(st), change, { at: U.dateKey() });
+    const SC = MQ.school, c = SC.settings(st);
+    st.settings.school = Object.assign(c, { program: c.program || SC.program(st) || 'off' }, change, { at: U.dateKey() });
     S.save();
     keepScroll(parent);
   }
@@ -16628,7 +16988,7 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     if (scr === 'duel') return MQ.duelUI.show(arg);
     if (scr === 'shapes') return MQ.shapesUI.show(arg);
     if (scr === 'lessons') return MQ.lessonsUI.show(arg);
-    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, nntypes, fixit, progress, parent: parentGate }[scr] || home)();
+    ({ home, map, world: () => world(arg), trainer, school, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, nntypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
 
   const ACTIONS = {
@@ -16769,12 +17129,20 @@ html:has(#app.wx-market.wx-sun) body { --paper: #fdf0ea; }
     },
     progRange: (a) => { prog().range = a; keepScroll(cur === 'progress' ? progress : parent); },
     progTopic: (a) => { prog().topic = a; keepScroll(cur === 'progress' ? progress : parent); },
-    classPractice: () => startClass(),
-    setSchool: (a) => setSchool({ program: a === 'off' ? '' : a }),
-    setSchoolUnit: (a) => setSchool({ unit: +a, part: 0 }),
-    setSchoolPart: (a) => setSchool({ part: +a }),
+    classPractice: (a) => startClass(a),
+    schoolUnit: (a) => {
+      if (!MQ.school.isOpen(st, +a, S.preview)) return toast('🔒 A grown-up can open this module in <b>For grown-ups</b>.');
+      const wk = MQ.school.week(st), wkKey = wk ? wk.unit + ':' + wk.part : '', shown = ui.sc && ui.sc.wk === wkKey ? ui.sc.n : wk ? wk.unit : 0;
+      ui.sc = { n: shown === +a ? 0 : +a, wk: wkKey };
+      keepScroll(school);
+    },
+    setSchool: (a) => setSchool({ program: a }),
+    setSchoolUnit: (a) => setSchool({ unit: +a, part: 0, weekAt: U.dateKey() }),
+    setSchoolPart: (a) => setSchool({ part: +a, weekAt: U.dateKey() }),
+    setSchoolOpen: (a) => setSchool({ open: a }),
+    toggleSchoolAllowed: (a) => { const al = MQ.school.settings(st).allowed || []; setSchool({ allowed: al.includes(+a) ? al.filter((x) => x !== +a) : [...al, +a].sort((x, y) => x - y) }); },
     toggleSchoolTopic: (a) => { const t = MQ.school.settings(st).topics; setSchool({ topics: t.includes(a) ? t.filter((x) => x !== a) : [...t, a].slice(-MQ.school.TOPIC_MAX) }); },
-    schoolNext: () => { const nx = MQ.school.next(st); if (nx) setSchool(nx); },
+    schoolNext: () => { const nx = MQ.school.next(st); if (nx) setSchool(Object.assign(nx, { weekAt: U.dateKey() })); },
     setGoal: (a, el) => {
       const [k, v] = a.split(':');
       st.goal = Object.assign({ perDay: 0, days: 5 }, st.goal, { [k]: +v });

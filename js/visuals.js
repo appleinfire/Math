@@ -367,6 +367,31 @@
       c(92, 34, whole, '#ffe7a8') + c(45, 114, a, '#d9f2ee') + c(139, 114, b, '#d9f2ee'), 'bond', `number bond: ${whole} is ${a} and ${b}`);
   };
 
+  // ---------- Line plot: an X for every item above its value on a number line (2.MD.9) ----------
+  // counts: { value: how many }; data-plot keeps the numbers the picture shows (for tests).
+  V.linePlot = ({ min, max, counts, unit = '', title = '' }) => {
+    const n = max - min, L = 26, W = 340, px = (W - 2 * L) / n, top = Math.max(1, ...Object.values(counts));
+    const y = 18 + top * 17, X = (v) => L + (v - min) * px;
+    let s = `<line x1="${L - 14}" y1="${y}" x2="${W - L + 14}" y2="${y}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
+    for (let v = min; v <= max; v++) {
+      s += `<line x1="${r1(X(v))}" y1="${y - 7}" x2="${r1(X(v))}" y2="${y + 7}" stroke="${INK}" stroke-width="2"/>` + text(X(v), y + 26, v, 14);
+      for (let k = 0; k < (counts[v] || 0); k++) s += text(X(v), y - 12 - k * 17, '×', 20, 'fill="#c2412d"');
+    }
+    if (unit) s += text(W / 2, y + 46, unit, 12, 'font-weight="700"');
+    const data = Object.entries(counts).map(([v, c]) => v + ':' + c).join(',');
+    return (title ? `<div class="vis-title">${title}</div>` : '') + svg(W, y + (unit ? 54 : 36), s, 'lineplot', 'line plot').replace('<svg ', `<svg data-plot="${data}" `);
+  };
+
+  // ---------- Table with tally marks: |||| with a line across makes 5 ----------
+  const tallies = (n) => {
+    let s = '', x = 3;
+    for (let g = 0; g < Math.floor(n / 5); g++, x += 34) s += [0, 1, 2, 3].map((i) => `<line x1="${x + i * 6}" y1="3" x2="${x + i * 6}" y2="25" stroke="${INK}" stroke-width="2.5" stroke-linecap="round"/>`).join('') + `<line x1="${x - 3}" y1="21" x2="${x + 22}" y2="7" stroke="${INK}" stroke-width="2.5" stroke-linecap="round"/>`;
+    for (let i = 0; i < n % 5; i++) s += `<line x1="${x + i * 6}" y1="3" x2="${x + i * 6}" y2="25" stroke="${INK}" stroke-width="2.5" stroke-linecap="round"/>`;
+    return `<svg viewBox="0 0 ${x + (n % 5) * 6 + 6} 28" width="${x + (n % 5) * 6 + 6}" height="28" role="img" aria-label="tally marks" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
+  };
+  V.tally = (rows, title = '') =>
+    `<div class="vis tally">${title ? `<div class="vis-title">${title}</div>` : ''}<table>${rows.map((r) => `<tr data-n="${r.n}"><th>${r.label}</th><td>${tallies(r.n)}</td></tr>`).join('')}</table></div>`;
+
   // ---------- Number pyramid ----------
   V.pyramid = (rows) => {
     // rows: array from top to bottom, entries number or null (= ?)

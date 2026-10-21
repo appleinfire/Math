@@ -48,7 +48,7 @@ python3 tools/build.py
 - Economy changes are checked by tests against `F.goodDay(level, grade)` (what a good farm makes a day); keep them so.
 - Progress syncs between devices: new state needs a default in `F.ensure` (old saves must keep working) and must be
   safe to merge (see `js/store.js`).
-- The school's program (🏫 In class now) is data in `js/school.js`; a new curriculum is a new entry there, and every
+- The school's program (🏫 School lessons) is data in `js/school.js`; a new curriculum is a new entry there, and every
   skill it names must exist (checked by `tests/school.test.js`). New question kinds go into `MQ.KINDS` with a check of
   their answers in `tests/generators.test.js`.
 

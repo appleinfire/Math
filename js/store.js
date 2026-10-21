@@ -44,7 +44,7 @@
     puzzles: { n: 6, done: {}, stars: {}, packs: {}, gold: {}, daily: { last: '', streak: 0, best: 0 } }, // Puzzle Time (js/shapes.js): pieces in a jigsaw, puzzles finished, best stars, packs bought, golden ones, the puzzle of the day
     lessons: {}, // Learn courses: module id -> { step, done, stars, at }
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
-    settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true, school: { program: '', unit: 1, part: 0, topics: [], at: '' } }, // school: In class now (js/school.js)
+    settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true, school: { program: '', unit: 0, part: 0, topics: [], at: '', weekAt: '', open: 'all', allowed: [] } }, // school: School lessons (js/school.js)
   });
 
   function merge(base, saved) {

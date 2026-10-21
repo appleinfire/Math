@@ -94,8 +94,155 @@ const arrowsOf = (html) => { // [start, [op, to|null]…] from V.arrows
   const nums = [...html.matchAll(/class="anum[^"]*">([^<]*)</g)].map((m) => m[1]), ops = [...html.matchAll(/<small>([^<]*)</g)].map((m) => m[1].replace('−', '-'));
   return { start: +nums[0], steps: ops.map((op, i) => ({ op, to: nums[i + 1] === '?' ? null : +nums[i + 1] })) };
 };
+// Read a picture the way a child does: the clock's hands, the arrow on a number line.
+const clockTime = (html) => {
+  const hands = [...html.matchAll(/<line x1="100" y1="100" x2="([\d.]+)" y2="([\d.]+)" stroke="[^"]+" stroke-width="([\d.]+)"/g)].map((x) => ({ deg: ((Math.atan2(+x[1] - 100, 100 - +x[2]) * 180) / Math.PI + 360) % 360, w: +x[3] }));
+  const min = Math.round(hands.find((h) => h.w < 6).deg / 6) % 60;
+  return [Math.round((hands.find((h) => h.w >= 6).deg - min / 2) / 30) % 12 || 12, min];
+};
+const arrowAt = (html) => {
+  const [, lo, hi] = html.match(/number line from (\d+) to (\d+)/).map(Number);
+  const ticks = [...html.matchAll(/<line x1="([\d.]+)" y1="[\d.]+" x2="([\d.]+)" y2="[\d.]+" stroke="#22304f"/g)].filter((x) => x[1] === x[2]).map((x) => +x[1]);
+  const x0 = Math.min(...ticks), x1 = Math.max(...ticks), mk = +html.match(/<line x1="([\d.]+)" y1="[\d.]+" x2="[\d.]+" y2="[\d.]+" stroke="#ff6b5b"/)[1];
+  return { value: lo + Math.round(((mk - x0) / (x1 - x0)) * (hi - lo)), step: (hi - lo) / (ticks.length - 1) };
+};
+const CENTS = { quarter: 25, dime: 10, nickel: 5, penny: 1 }, DOLLARS = { twenty: 20, ten: 10, five: 5, one: 1 };
+const coinsIn = (s) => [...s.matchAll(/(\d+) (quarter|dime|nickel|penn)(?:s|ies|y)?\b/g)].reduce((a, x) => a + +x[1] * CENTS[x[2] === 'penn' ? 'penny' : x[2]], 0);
+const billsIn = (s) => [...s.matchAll(/(\d+) (twenty|ten|five|one)-dollar bills?/g)].reduce((a, x) => a + +x[1] * DOLLARS[x[2]], 0);
+const SIZE = { centimeter: 1, inch: 2.54, foot: 30.48, yard: 91.44, meter: 100 };
+const one = (u) => ({ feet: 'foot', inches: 'inch' }[u] || u.replace(/s$/, ''));
+const many = (n, u) => (n === 1 ? u : { foot: 'feet', inch: 'inches' }[u] || u + 's');
+const minutesOf = (s) => [...s.matchAll(/(\d+):(\d\d) (a|p)\.m\./g)].map((x) => ((+x[1] % 12) + (x[3] === 'p' ? 12 : 0)) * 60 + +x[2]);
+const PARTS = { 1: ['whole', 'wholes'], 2: ['half', 'halves'], 3: ['third', 'thirds'], 4: ['fourth', 'fourths'] };
+const QUAD = { '4 equal sides and 4 square corners': 'square', '4 square corners, but its sides are not all equal': 'rectangle', '4 equal sides, but no square corners': 'rhombus', '4 sides and exactly 1 pair of parallel sides': 'trapezoid' };
+const ANG = { triangle: 3, square: 4, rectangle: 4, rhombus: 4, trapezoid: 4, quadrilateral: 4, pentagon: 5, hexagon: 6 };
+// Kinds from Modules 2 and 5–8: each check returns false when it does not recognize the question.
+const CHECKS = {
+  big_check: (t, p, ok) => {
+    let m;
+    if ((m = t.match(/^If (\d+) − (\d+) = (\d+), then (\d+) \+ (\d+) = \?$/))) return ok(+m[1] - +m[2] === +m[3] && +m[4] + +m[5] === p.answer && p.answer === +m[1], 'add back');
+    if ((m = t.match(/^Which addition checks (\d+) − (\d+) = (\d+)\?$/))) { const [x, y, z] = p.answer.replace(/,/g, '').match(/\d+/g).map(Number); return ok(x + y === z && z === +m[1] && x === +m[3] && y === +m[2], 'which addition'); }
+    if ((m = t.match(/says (\d+) − (\d+) = (\d+)\. Is that right/))) return ok((+m[1] - +m[2] === +m[3] ? 'Yes' : 'No') === p.answer, 'is it right');
+    return false;
+  },
+  len_about: (t, p, ok) => {
+    let m;
+    const B = MQ.BENCHMARKS;
+    if ((m = t.match(/^(.+) is about (\d+) ___\. Which unit fits\?$/))) { const e = B.find(([th, n]) => th.toLowerCase() === m[1].toLowerCase() && n === +m[2]); return ok(e && p.answer === many(e[1], e[2]), 'unit that fits'); }
+    if ((m = t.match(/^About how long is (.+)\?$/))) { const right = B.filter(([th]) => th === m[1]).map(([, n, u]) => `${n} ${many(n, u)}`); return ok(right.includes(p.answer) && p.choices.filter((c) => right.includes(c)).length === 1, 'about how long'); }
+    return false;
+  },
+  len_units: (t, p, ok) => {
+    let m;
+    if ((m = t.match(/^(\w+) measures a \w+ in (\w+)\. (\w+) measures the same \w+ in (\w+)\. Who gets the bigger number\?$/))) return ok(p.answer === (SIZE[one(m[2])] < SIZE[one(m[4])] ? m[1] : m[3]), 'who gets more');
+    if ((m = t.match(/^A \w+ is (\d+) (\w+) long\. Measured in (\w+), the number is…$/))) return ok(p.answer === `${SIZE[one(m[3])] > SIZE[one(m[2])] ? 'less' : 'more'} than ${m[1]}`, 'more or less');
+    return false;
+  },
+  len_line: (t, p, ok) => {
+    let m;
+    if ((m = t.match(/^Each mark is (\d+) more\. What number is at the arrow\?$/))) { const a = arrowAt(p.visual); return ok(a.value === p.answer && a.step === +m[1], 'arrow on the line'); }
+    if ((m = t.match(/^Each mark is (\d+) more\. Tap (\d+)\.$/))) return ok(p.answer === +m[2] && p.line.step === +m[1], 'tap the line');
+    if ((m = t.match(/^(\d+) (cm|inches) \+ \? (?:cm|inches) = 1 (m|foot|yard)$/))) return ok(+m[1] + p.answer === { m: 100, foot: 12, yard: 36 }[m[3]], 'to a whole unit');
+    if ((m = t.match(/sits at (\d+) on a centimeter ruler\. It hops (\d+) cm forward, then (\d+) cm back\./))) return ok(+m[1] + +m[2] - +m[3] === p.answer, 'hops');
+    if ((m = t.match(/has run (\d+) yards/))) return ok(100 - +m[1] === p.answer, 'race');
+    if ((m = t.match(/has knitted (\d+) inches/))) return ok(36 - +m[1] === p.answer, 'scarf');
+    return false;
+  },
+  arr_rowscols: (t, p, ok) => {
+    const [, r, c] = p.visual.match(/aria-label="(\d+) rows of (\d+)"/).map(Number);
+    let m;
+    if (t === 'How many rows?') return ok(p.answer === r, 'rows');
+    if (t === 'How many columns?') return ok(p.answer === c, 'columns');
+    if ((m = t.match(/^(\d+) rows of \? = (\d+)$/))) return ok(+m[1] === r && p.answer === c && +m[2] === r * c, 'rows of');
+    if ((m = t.match(/^\? columns of (\d+) = (\d+)$/))) return ok(+m[1] === r && p.answer === c && +m[2] === r * c, 'columns of');
+    if (t === 'Add 1 more row. How many dots now?') return ok(p.answer === (r + 1) * c, 'one more row');
+    if (t === 'Take away 1 column. How many dots now?') return ok(p.answer === r * (c - 1), 'one less column');
+    return false;
+  },
+  arr_tape: (t, p, ok) => {
+    const m = t.match(/^The tape shows (\d+) groups of (\d+)\. (Add 1 more group of \d+\. )?What is the total( now)?\?$/);
+    if (!m) return false;
+    const parts = (p.visual.match(/fill-opacity="0.55"/g) || []).length;
+    return ok(parts === +m[1] && p.answer === (+m[1] + (m[3] ? 1 : 0)) * +m[2], 'tape total');
+  },
+  money_bills: (t, p, ok) => {
+    let m;
+    if (t === 'How many dollars is this?') return ok([20, 10, 5, 1].reduce((a, v) => a + v * (p.visual.match(new RegExp('>\\$' + v + '<', 'g')) || []).length, 0) === p.answer, 'counting bills');
+    if ((m = t.match(/has \$(\d+)\. \w+ gives (.+) to \w+\. How many dollars are left\?$/))) return ok(+m[1] - billsIn(m[2]) === p.answer && billsIn(m[2]) > 0, 'bills given away');
+    if (/in a wallet and .+ in a pocket\. How many dollars in all\?$/.test(t)) return ok(billsIn(t) === p.answer, 'bills in all');
+    return false;
+  },
+  money_ways: (t, p, ok) => {
+    const m = t.match(/^Select all the ways to make (\d+)¢\.$/);
+    return m ? ok(p.choices.filter((c) => coinsIn(c) === +m[1]).sort().join('|') === p.answer.join('|'), 'ways to make') : false;
+  },
+  money_to100: (t, p, ok) => {
+    let m;
+    if ((m = t.match(/^Count up to make \$1: (\d+)¢ \+ \? = 100¢$/))) { const { start, steps } = arrowsOf(p.visual); return ok(100 - +m[1] === p.answer && start === +m[1] && steps[steps.length - 1].to === 100 && steps.reduce((a, s) => a + +s.op, 0) === p.answer, 'count up to $1'); }
+    if ((m = t.match(/has (.+)\. A notepad costs \$1\./))) return ok(100 - coinsIn(m[1]) === p.answer, 'notepad');
+    if ((m = t.match(/saved (\d+)¢ on Friday and (\d+)¢ on Monday/))) return ok(100 - +m[1] - +m[2] === p.answer, 'saving up');
+    return false;
+  },
+  data_tally: (t, p, ok) => {
+    const n = Object.fromEntries([...p.visual.matchAll(/<tr data-n="(\d+)"><th>\S+ ([^<]+)<\/th>/g)].map((x) => [x[2], +x[1]])), total = Object.values(n).reduce((a, b) => a + b, 0);
+    // every mark is one line; each bundle of 5 is 4 lines and 1 across
+    const tallies = [...p.visual.matchAll(/<tr data-n="(\d+)">.*?<\/tr>/g)].every((x) => (x[0].match(/<line /g) || []).length === +x[1] && (x[0].match(/y1="21" x2="[\d.]+" y2="7"/g) || []).length === Math.floor(+x[1] / 5));
+    let m;
+    if (!tallies) return ok(false, 'tally marks do not match the numbers');
+    if ((m = t.match(/^How many more would be needed to have (\d+) in all\?$/))) return ok(+m[1] - total === p.answer, 'to have in all');
+    if ((m = t.match(/^How many fewer (.+) than (.+) and (.+) together\?$/))) return ok(n[m[2]] + n[m[3]] - n[m[1]] === p.answer, 'fewer than together');
+    if ((m = t.match(/^How many more (.+) than (.+)\?$/))) return ok(n[m[1]] - n[m[2]] === p.answer, 'how many more');
+    if ((m = t.match(/^How many (.+) and (.+) in all\?$/))) return ok(n[m[1]] + n[m[2]] === p.answer, 'in all');
+    if ((m = t.match(/^How many (.+)\?$/))) return ok(n[m[1]] === p.answer, 'read a row');
+    return false;
+  },
+  data_lineplot: (t, p, ok) => {
+    const c = Object.fromEntries(p.visual.match(/data-plot="([^"]+)"/)[1].split(',').map((x) => x.split(':').map(Number)));
+    const marks = (p.visual.match(/>×</g) || []).length, vals = Object.keys(c).map(Number), used = vals.filter((v) => c[v]);
+    let m;
+    if (marks !== Object.values(c).reduce((a, b) => a + b, 0)) return ok(false, 'marks do not match the data');
+    if ((m = t.match(/^How many \w+ are (\d+) \w+ (?:long|tall)\?$/))) return ok(c[m[1]] === p.answer, 'read a column');
+    if ((m = t.match(/are (?:longer|taller) than (\d+) /))) return ok(vals.filter((v) => v > +m[1]).reduce((a, v) => a + c[v], 0) === p.answer, 'more than');
+    if (/is the most common\?$/.test(t)) { const top = Math.max(...Object.values(c)); return ok(vals.filter((v) => c[v] === top).length === 1 && +p.answer.split(' ')[0] === vals.find((v) => c[v] === top), 'most common'); }
+    if (/were measured\?$/.test(t)) return ok(marks === p.answer, 'how many measured');
+    if (/difference between the (?:longest|tallest) and the shortest/.test(t)) return ok(Math.max(...used) - Math.min(...used) === p.answer, 'longest − shortest');
+    return false;
+  },
+  time_quarter: (t, p, ok) => {
+    let m;
+    const words = (h, mm) => (mm === 15 ? `quarter past ${h}` : mm === 30 ? `half past ${h}` : mm === 45 ? `quarter to ${(h % 12) + 1}` : '');
+    if ((m = t.match(/^What time is (quarter past|half past|quarter to) (\d+)\?$/))) { const h = +m[2], [hh, mm] = m[1] === 'quarter to' ? [h === 1 ? 12 : h - 1, 45] : [h, m[1] === 'half past' ? 30 : 15]; return ok(p.answer === `${hh}:${mm}`, 'words to time'); }
+    if (t === 'Which words tell this time?') { const [h, mm] = clockTime(p.visual); return ok(p.answer === words(h, mm), 'clock to words'); }
+    return false;
+  },
+  time_elapsed: (t, p, ok) => {
+    let m;
+    const [a, b] = minutesOf(t), between = (b - a + 1440) % 1440;
+    if (/starts at .+ and ends at .+\. How many hours is that\?$/.test(t)) return ok(between / 60 === p.answer, 'hours between');
+    if ((m = t.match(/lasted (\d+) hours\. It ended at .+\. When did it start\?$/))) return ok((a - minutesOf(p.answer)[0] + 1440) % 1440 === +m[1] * 60, 'start time');
+    if (/left at .+ and came back at .+\. How long was that\?$/.test(t)) { const [h, mm] = [Math.floor(between / 60), between % 60]; return ok(p.answer === `${h} hour${h === 1 ? '' : 's'}${mm ? ' 30 minutes' : ''}` && (mm === 0 || mm === 30), 'how long'); }
+    return false;
+  },
+  shape_quads: (t, p, ok) => {
+    let m;
+    if ((m = t.match(/^A shape has (.+)\. What is it\?$/))) return ok(QUAD[m[1]] === p.answer && p.choices.filter((c) => QUAD[m[1]] === c).length === 1, 'quadrilateral');
+    if (t === 'How many angles does this shape have?') return ok(ANG[p.visual.match(/aria-label="(\w+)"/)[1]] === p.answer, 'angles');
+    if ((m = t.match(/^Which shape has (\d+) more angles? than a (\w+)\?$/))) return ok(ANG[p.answer] === ANG[m[2]] + +m[1] && p.choices.filter((c) => ANG[c] === ANG[m[2]] + +m[1]).length === 1, 'more angles');
+    return false;
+  },
+  frac_whole: (t, p, ok) => {
+    let m;
+    const word = (k, n) => `${k} ${PARTS[n][k === 1 ? 0 : 1]}`;
+    if (t === 'How much more do you need to shade to make 1 whole?') { const [, k, n] = p.visual.match(/(\d+) of (\d+) parts shaded/).map(Number); return ok(p.answer === word(n - k, n), 'shade the rest'); }
+    if ((m = t.match(/^How many (halves|thirds|fourths) make 1 whole\?$/))) return ok(p.answer === { halves: 2, thirds: 3, fourths: 4 }[m[1]], 'parts in a whole');
+    if ((m = t.match(/^(\d) (halves|thirds|fourths) is the same as…$/))) { const n = { halves: 2, thirds: 3, fourths: 4 }[m[2]], k = +m[1]; return ok(p.answer === (k === n ? '1 whole' : k * 2 === n ? '1 half' : '?'), 'the same as'); }
+    if ((m = t.match(/^(\d) friends share a pizza equally/))) return ok(p.answer === word(1, +m[1]), 'share a pizza');
+    return false;
+  },
+};
 const checkKind = (id, d, p) => {
   const t = strip(p.text);
+  if (CHECKS[id]) return CHECKS[id](t, p, (good, what) => { if (!good) fail(id, d, what, p); return true; });
   let m;
   if (id === 'pv_words') {
     if ((m = t.match(/^Which number is (.+)\?$/))) { if (W[m[1]] !== +p.answer) fail(id, d, 'words → number', p); }
@@ -186,7 +333,7 @@ for (const [id, K] of Object.entries(MQ.KINDS)) {
       if (p.kind === 'choice' && (!p.choices.includes(p.answer) || new Set(p.choices).size !== p.choices.length || p.choices.length < 2)) fail(id, d, 'bad choices', p);
       if (p.kind === 'num' && (!Number.isInteger(p.answer) || p.answer < 0)) fail(id, d, 'answer not a whole number', p);
       if (checkKind(id, d, p)) checked++;
-      seen.add(p.text + (p.visual || ''));
+      seen.add(p.text + (p.visual || '') + (p.choices || []).join('|'));
     }
     if (seen.size < 30) fail(id, d, `only ${seen.size} different questions`);
     if (checked < 1500) fail(id, d, `${1500 - checked} of 1500 questions have no independent check: add one here`);
