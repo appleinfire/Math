@@ -48,6 +48,7 @@
     f: { v: 500, name: 'five dollars', bill: '$5' },
     t: { v: 1000, name: 'ten dollars', bill: '$10' },
     w: { v: 2000, name: 'twenty dollars', bill: '$20' },
+    c: { v: 10000, name: 'hundred dollars', bill: '$100' }, // place value with money (2.NBT.1)
   };
   V.COIN = COIN;
   V.coins = (list, showValues = true) => {
@@ -60,7 +61,7 @@
       if (c.bill) {
         const n = c.bill.slice(1);
         items += `<rect x="${x}" y="${y + 4}" width="94" height="46" rx="5" fill="#cfe7c6" stroke="#4d7d48" stroke-width="2.5"/>` +
-          `<ellipse cx="${x + 47}" cy="${y + 27}" rx="${n.length > 1 ? 18 : 14}" ry="16" fill="#e6f3df" stroke="#4d7d48" stroke-width="1.5"/>` +
+          `<ellipse cx="${x + 47}" cy="${y + 27}" rx="${n.length > 2 ? 23 : n.length > 1 ? 18 : 14}" ry="16" fill="#e6f3df" stroke="#4d7d48" stroke-width="1.5"/>` +
           text(x + 47, y + 33, c.bill, 16, 'fill="#2f5a2b"') + text(x + 12, y + 18, n, 10, 'fill="#2f5a2b"') + text(x + 82, y + 46, n, 10, 'fill="#2f5a2b"');
       } else {
         const cx = x + c.r + 5, cy = y + 27;
@@ -307,6 +308,63 @@
     });
     s += `<span class="rule"></span><span class="op"></span><span class="num ans">${'?'.padStart(w, ' ')}</span></div>`;
     return s;
+  };
+
+  // ---------- Mental math with arrows ("the arrow way"): 38 →+20→ 58 →+1→ ? ----------
+  // steps: [{ op: '+20', to: 58 }, …]; to: null is the box to find.
+  V.arrows = (start, steps) =>
+    `<div class="vis arrows" role="img" aria-label="arrows from ${start}"><span class="anum">${start}</span>${steps.map((s) =>
+      `<span class="ajump"><small>${s.op.replace('-', '−')}</small><b>→</b></span><span class="anum ${s.to === null ? 'q' : ''}">${s.to === null ? '?' : s.to}</span>`).join('')}</div>`;
+
+  // ---------- Place value chart with disks (more than 9 in a column is allowed: bundle or unbundle) ----------
+  V.pvChart = (h, t, o) => {
+    const CW = 112, HEAD = 26, R = 10.5, SP = 21, cols = [['hundreds', h, '100', '#ff8c78'], ['tens', t, '10', '#ffc94d'], ['ones', o, '1', '#79c6ea']];
+    const rows = Math.max(1, ...cols.map((c) => Math.ceil(c[1] / 5)));
+    const H = HEAD + rows * SP + 10;
+    let s = '';
+    cols.forEach(([name, n, label, fill], i) => {
+      const x0 = i * CW;
+      s += `<rect x="${x0 + 2}" y="2" width="${CW - 4}" height="${H - 4}" rx="8" fill="#ffffff" stroke="#c7d0e0" stroke-width="2"/>` + text(x0 + CW / 2, 19, name, 12, 'font-weight="700"');
+      for (let k = 0; k < n; k++) {
+        const cx = x0 + 14 + (k % 5) * SP, cy = HEAD + 8 + Math.floor(k / 5) * SP;
+        s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="${fill}" stroke="${INK}" stroke-width="1.6"/>` + text(cx, cy + (label.length > 2 ? 3 : 3.5), label, label.length > 2 ? 7.5 : 9);
+      }
+    });
+    return svg(cols.length * CW, H, s, 'pvchart', `place value chart: ${h} hundreds, ${t} tens, ${o} ones`);
+  };
+
+  // ---------- Tape diagram: bars drawn to scale, a brace for the total, a dashed piece for "how many more" ----------
+  // rows: [{ label, parts: [{ v, text }], diff: { v, text } }]; total: text over the first row (or null)
+  V.tape = (rows, { total = null } = {}) => {
+    const LW = 64, W = 250, BH = 32, GAP = 14, top = total !== null ? 44 : 6;
+    const len = (r) => r.parts.reduce((s, p) => s + p.v, 0) + (r.diff ? r.diff.v : 0);
+    const k = W / Math.max(...rows.map(len));
+    const pw = (v) => Math.max(30, v * k); // a tiny part still has room for its number
+    const barW = (r) => r.parts.reduce((s, p) => s + pw(p.v), 0);
+    let s = '';
+    rows.forEach((r, i) => {
+      const y = top + i * (BH + GAP);
+      let x = LW;
+      s += text(LW - 8, y + BH / 2 + 5, r.label, 12, 'text-anchor="end" font-weight="700"');
+      r.parts.forEach((p, j) => {
+        s += `<rect x="${r1(x)}" y="${y}" width="${r1(pw(p.v))}" height="${BH}" fill="${FILLS[(i * 2 + j) % FILLS.length]}" fill-opacity="0.55" stroke="${INK}" stroke-width="2"/>` + text(x + pw(p.v) / 2, y + BH / 2 + 5, p.text, 14);
+        x += pw(p.v);
+      });
+      if (r.diff) s += `<rect x="${r1(x)}" y="${y}" width="${r1(pw(r.diff.v))}" height="${BH}" fill="none" stroke="${INK}" stroke-width="1.6" stroke-dasharray="5 4"/>` + text(x + pw(r.diff.v) / 2, y + BH / 2 + 5, r.diff.text, 13, 'fill="#c2412d"');
+    });
+    if (total !== null) {
+      const w = barW(rows[0]), m = LW + w / 2;
+      s += `<path d="M${LW} 38 Q${LW} 28 ${LW + 10} 28 L${r1(m - 8)} 28 Q${r1(m)} 28 ${r1(m)} 20 Q${r1(m)} 28 ${r1(m + 8)} 28 L${r1(LW + w - 10)} 28 Q${r1(LW + w)} 28 ${r1(LW + w)} 38" fill="none" stroke="${INK}" stroke-width="2"/>` + text(m, 15, total, 14, 'fill="#c2412d"');
+    }
+    const width = LW + Math.max(...rows.map((r) => barW(r) + (r.diff ? pw(r.diff.v) : 0))) + 8;
+    return svg(r1(width), top + rows.length * (BH + GAP) - GAP + 6, s, 'tape', 'tape diagram');
+  };
+
+  // ---------- Number bond: the whole on top, two parts below; '?' marks the one to find ----------
+  V.bond = (whole, a, b) => {
+    const c = (x, y, v, fill) => `<circle cx="${x}" cy="${y}" r="27" fill="${v === '?' ? '#fff6f4' : fill}" stroke="${v === '?' ? '#ff6b5b' : INK}" stroke-width="2.5" ${v === '?' ? 'stroke-dasharray="5 4"' : ''}/>` + text(x, y + 6, v, String(v).length > 3 ? 14 : 17, v === '?' ? 'fill="#ff6b5b"' : '');
+    return svg(184, 150, `<line x1="92" y1="40" x2="45" y2="110" stroke="${INK}" stroke-width="2.5"/><line x1="92" y1="40" x2="139" y2="110" stroke="${INK}" stroke-width="2.5"/>` +
+      c(92, 34, whole, '#ffe7a8') + c(45, 114, a, '#d9f2ee') + c(139, 114, b, '#d9f2ee'), 'bond', `number bond: ${whole} is ${a} and ${b}`);
   };
 
   // ---------- Number pyramid ----------

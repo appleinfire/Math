@@ -21,14 +21,14 @@ California (Common Core standards). It is a static web app (GitHub Pages) with o
 ```sh
 node tests/generators.test.js && node tests/store.test.js && node tests/hatchery.test.js && node tests/duel.test.js \
   && node tests/testprep.test.js && node tests/farm.test.js && node tests/nnat.test.js && node tests/shapes.test.js \
-  && node tests/lessons.test.js
+  && node tests/lessons.test.js && node tests/school.test.js
 python3 tools/build.py
 ```
 
 - The deploy (`.github/workflows/pages.yml`, on every push to `main`) runs exactly those unit tests; a failing test
   means the site is not updated.
 - Browser tests (need Playwright and Chromium): `node tests/smoke.mjs`, `node tests/farm-smoke.mjs`,
-  `node tests/shapes-smoke.mjs`, `node tests/nnat-smoke.mjs`, `node tests/lessons-smoke.mjs`. Run the ones for the part you changed.
+  `node tests/shapes-smoke.mjs`, `node tests/nnat-smoke.mjs`, `node tests/lessons-smoke.mjs`, `node tests/school-smoke.mjs`. Run the ones for the part you changed.
 - When files the app loads change, bump the cache name in `sw.js` (`math-expedition-vNN`), so tablets get the update.
 - New features come with tests: rules and balance in `tests/*.test.js`, the screens in the matching `*-smoke.mjs`.
 - Update README.md when the game changes (it is written for the parents and describes every rule).
@@ -48,6 +48,9 @@ python3 tools/build.py
 - Economy changes are checked by tests against `F.goodDay(level, grade)` (what a good farm makes a day); keep them so.
 - Progress syncs between devices: new state needs a default in `F.ensure` (old saves must keep working) and must be
   safe to merge (see `js/store.js`).
+- The school's program (🏫 In class now) is data in `js/school.js`; a new curriculum is a new entry there, and every
+  skill it names must exist (checked by `tests/school.test.js`). New question kinds go into `MQ.KINDS` with a check of
+  their answers in `tests/generators.test.js`.
 
 ## Git
 

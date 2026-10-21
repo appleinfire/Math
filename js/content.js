@@ -348,9 +348,9 @@
   // and in the Fix-it Lab. Short, concrete, in a child's words.
   MQ.TIPS = {
     add20: ['Make a ten: 8 + 5 → 8 + 2 = 10, then 10 + 3 = 13.', 'Use doubles: 6 + 7 is 6 + 6 and one more = 13.', 'For take-away, count up: 13 − 9 → from 9 to 10 is 1, from 10 to 13 is 3, so 4.'],
-    place: ['Read the digits by their places: 352 = 3 hundreds, 5 tens, 2 ones.', 'To compare numbers, look at the hundreds first, then the tens, then the ones.'],
-    add100: ['Add the tens first, then the ones: 34 + 25 → 30 + 20 = 50, 4 + 5 = 9, so 59.', 'If the ones make more than 10, trade 10 ones for 1 ten.'],
-    sub100: ['Jump back by tens, then by ones: 72 − 25 → 72 − 20 = 52, 52 − 5 = 47.', 'Check by adding: your answer + the number you took away should give the start.'],
+    place: ['Read the digits by their places: 352 = 3 hundreds, 5 tens, 2 ones.', 'To compare numbers, look at the hundreds first, then the tens, then the ones.', '10 ones make a ten, 10 tens make a hundred. So 23 tens is 230.', 'Zero holds a place: four hundred seven is 407, four hundred seventy is 470.'],
+    add100: ['Add the tens first, then the ones: 34 + 25 → 30 + 20 = 50, 4 + 5 = 9, so 59.', 'If the ones make more than 10, trade 10 ones for 1 ten.', 'Use arrows: 38 + 21 → 38 +20 → 58 +1 → 59.', 'Make an easier problem: 29 + 46 is the same as 30 + 45.'],
+    sub100: ['Jump back by tens, then by ones: 72 − 25 → 72 − 20 = 52, 52 − 5 = 47.', 'Check by adding: your answer + the number you took away should give the start.', 'Take from the ten: 13 − 8 → 10 − 8 = 2, then 2 + 3 = 5.', 'Add the same to both numbers: 32 − 19 is the same as 33 − 20.'],
     arrays: ['Even numbers split into pairs with none left over. Look at the ones digit: 0, 2, 4, 6, 8 are even.', 'An array is rows × columns: count one row, then skip-count the rows.'],
     time: ['The short hand shows the hour, the long hand shows the minutes.', 'Each number on the clock is 5 minutes for the long hand: count by 5s.'],
     money: ['Start with the coins worth the most, then count on: quarters, dimes, nickels, pennies.', 'Quarter 25¢, dime 10¢, nickel 5¢, penny 1¢. A dime is small but worth more than a nickel!'],

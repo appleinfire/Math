@@ -119,6 +119,8 @@
   // ======================================================================
   const digits = (n) => ({ h: Math.floor(n / 100) % 10, t: Math.floor(n / 10) % 10, o: n % 10 });
   function place(d) {
+    const ck = classKind('place', d, 0.35);
+    if (ck) return ck;
     if (d === 1) {
       const n = rnd(12, 99), { t, o } = digits(n);
       if (chance(0.25) && o > 0) return Ln(`Tap where <b>${n}</b> goes on the number line.`, n, { min: t * 10, max: t * 10 + 10, step: 1 }, { say: `Tap where ${n} goes on the number line.`, hint: `Start at ${t * 10} and count ${o} small jumps.` });
@@ -240,6 +242,8 @@
   // 3. Add within 100  (2.NBT.5, 2.NBT.6)
   // ======================================================================
   function add100(d) {
+    const ck = classKind('add100', d, 0.35);
+    if (ck) return ck;
     if (d === 1) {
       const a = rnd(11, 79);
       if (chance(0.5)) {
@@ -282,6 +286,8 @@
   // 4. Subtract within 100  (2.NBT.5, 2.NBT.9)
   // ======================================================================
   function sub100(d) {
+    const ck = classKind('sub100', d, 0.35);
+    if (ck) return ck;
     if (d === 1) {
       const a = rnd(21, 99);
       if (chance(0.5)) {
@@ -666,6 +672,8 @@
   // 11. Add & subtract within 1000  (2.NBT.7)
   // ======================================================================
   function big(d) {
+    const ck = classKind('big', d, 0.3);
+    if (ck) return ck;
     const add = chance(0.5);
     if (d === 1) {
       if (chance(0.5)) {
@@ -716,6 +724,8 @@
   const THINGS = ['shells', 'stickers', 'marbles', 'acorns', 'crayons', 'stamps', 'beads', 'cards', 'rocks', 'leaves'];
   const CRITTERS = ['frogs', 'ducks', 'turtles', 'birds', 'penguins', 'otters', 'ladybugs', 'fish'];
   function words(d) {
+    const ck = classKind('words', d, 0.3);
+    if (ck) return ck;
     const [p, q] = two();
     const th = pick(THINGS), cr = pick(CRITTERS);
     const T = {
@@ -898,6 +908,314 @@
       }
     }
   }
+
+  // ======================================================================
+  // 15. Class strategies: the models a 2nd-grade class works with (number bonds, arrows, the place value chart,
+  //     tape diagrams, number names, $1/$10/$100 bills). Each kind belongs to one topic and works at some
+  //     difficulties; the topics above mix them in, and "In class now" (js/school.js) asks them on their own.
+  // ======================================================================
+  const jump = (n) => (n < 0 ? '−' + -n : '+' + n);
+  const chain = (start, ns, hideLast = true) => { // arrows for start +n1 +n2…; the last result is the box to find
+    let v = start;
+    return ns.map((n, i) => { v += n; return { op: jump(n), to: hideLast && i === ns.length - 1 ? null : v }; });
+  };
+  const steps = (start, ns) => { let v = start; return [start, ...ns.map((n) => (v += n))].join(' → '); };
+
+  // Number names, both ways (2.NBT.3). Zeros are where children slip: 407 vs 470.
+  function pvWords(d) {
+    const h = rnd(1, 9);
+    const n = d === 2 ? h * 100 + rnd(11, 99) : h * 100 + (chance(0.5) ? rnd(1, 9) : rnd(1, 9) * 10);
+    const { t, o } = digits(n);
+    const near = [h * 100 + o * 10 + t, h * 100 + (t ? t : o), h * 100 + t * 10, h * 10 + o, n + 10, n - 10].filter((x) => x !== n && x >= 0);
+    const k = d === 4 ? 3 : rnd(1, 3);
+    if (k === 1) return C(`Which number is <b>${U.words(n)}</b>?`, n, U.numChoices(n, near), { hint: `First the hundreds: ${U.words(h * 100)}. Then the rest.`, explain: `${U.words(n)} = ${n}` });
+    if (k === 2) return C(`Which words name <b>${n}</b>?`, U.words(n), U.strChoices(U.words(n), near.filter((x) => x >= 100 && x <= 999).map(U.words), 4), { hint: 'Read the hundreds, then the tens and ones together.', explain: `${n} is ${U.words(n)}.` });
+    return N(`Write the number: <b>${U.words(n)}</b>`, n, { hint: `${U.words(h * 100)} is ${h * 100}. ${t || o ? `Then ${U.words(n % 100)} is ${n % 100}.` : ''}`, explain: `${U.words(n)} = ${n}` });
+  }
+  // Unit form with more than 9 tens or ones: 12 tens 3 ones, 41 tens 9 ones (2.NBT.1).
+  function pvUnits(d) {
+    if (d === 3) {
+      switch (rnd(1, 3)) {
+        case 1: { const t = rnd(10, 19), o = rnd(1, 9); return N(E(`${t} tens ${o} one${o > 1 ? 's' : ''} = ?`), t * 10 + o, { hint: `10 tens make 1 hundred. ${t} tens is ${t * 10}.`, explain: `${t} tens = ${t * 10}, and ${o} ones make ${t * 10 + o}.` }); }
+        case 2: { const h = rnd(1, 7), o = rnd(10, 39); return N(E(`${h} hundred${h > 1 ? 's' : ''} ${o} ones = ?`), h * 100 + o, { hint: `${o} ones is ${Math.floor(o / 10)} tens and ${o % 10} ones.`, explain: `${h * 100} + ${o} = ${h * 100 + o}` }); }
+        default: { const n = rnd(11, 99) * 10; return N(E(`${n} = ? tens`), n / 10, { hint: `1 hundred is 10 tens. So ${Math.floor(n / 100)} hundreds is ${Math.floor(n / 100) * 10} tens.`, explain: `${n} = ${n / 10} tens` }); }
+      }
+    }
+    switch (rnd(1, 4)) {
+      case 1: { const n = rnd(101, 999), o = n % 10; const ones = o ? ` ${o} one${o === 1 ? '' : 's'}` : ''; return N(E(`${n} = ? tens${ones}`), Math.floor(n / 10), { hint: 'Count the hundreds as tens too: 1 hundred = 10 tens.', explain: `${n} = ${Math.floor(n / 10)} tens${ones}` }); }
+      case 2: { const n = rnd(101, 999), h = Math.floor(n / 100); return N(E(`${n} = ${h} hundreds ? ones`), n - h * 100, { hint: 'Change the tens into ones: 1 ten = 10 ones.', explain: `${n} = ${h} hundreds ${n - h * 100} ones` }); }
+      case 3: { const h = rnd(0, 2), t = rnd(10, 13), o = rnd(10, 14); return N('What number does the place value chart show?', h * 100 + t * 10 + o, { visual: V.pvChart(h, t, o), hint: 'Bundle 10 ones into a ten and 10 tens into a hundred.', explain: `${h * 100} + ${t * 10} + ${o} = ${h * 100 + t * 10 + o}` }); }
+      default: {
+        if (chance(0.5)) { const h = rnd(2, 9); return N(`How many <b>hundreds</b> are the same as <b>${h * 10} tens</b>?`, h, { hint: '10 tens make 1 hundred.', explain: `${h * 10} tens = ${h * 100} = ${h} hundreds` }); }
+        const h = rnd(2, 9); return N(`How many <b>tens</b> are in <b>${h} hundreds</b>?`, h * 10, { hint: '1 hundred is 10 tens.', explain: `${h} hundreds = ${h * 100} = ${h * 10} tens` });
+      }
+    }
+  }
+  // Compare numbers written in different ways: 42 tens ○ 390 (2.NBT.4).
+  const forms = (n, kind) => {
+    const { h, t, o } = digits(n), pl = (k, u) => `${k} ${u}${k === 1 ? '' : 's'}`;
+    if (kind === 'unit') return [h && pl(h, 'hundred'), t && pl(t, 'ten'), o && pl(o, 'one')].filter(Boolean).join(' ');
+    if (kind === 'tens') return `${Math.floor(n / 10)} tens` + (o ? ` ${pl(o, 'one')}` : '');
+    if (kind === 'exp') return shuffle([h * 100, t * 10, o].filter(Boolean)).join(' + ');
+    if (kind === 'word') return U.words(n);
+    return String(n);
+  };
+  function pvCompare(d) {
+    const a = rnd(110, 989);
+    const { h, t, o } = digits(a);
+    let b = pick([a, a, a + pick([-100, 100]), a + pick([-10, 10]), a + pick([-1, 1]), h * 100 + o * 10 + t]);
+    if (b < 101 || b > 999) b = a;
+    const fa = d === 3 ? 'std' : pick(['tens', 'unit', 'exp']);
+    let fb = pick(d === 3 ? ['unit', 'exp', 'tens', 'word'] : ['std', 'word', 'unit', 'exp']);
+    if (fb === fa) fb = 'std';
+    const swap = chance(0.5), [left, right] = swap ? [forms(b, fb), forms(a, fa)] : [forms(a, fa), forms(b, fb)], [va, vb] = swap ? [b, a] : [a, b];
+    const ans = va < vb ? '<' : va > vb ? '>' : '=';
+    return C(`Which sign makes it true?<div class="eqline long">${left} ${BLANK} ${right}</div>`, ans, ['<', '>', '='], { hint: 'Write both sides as plain numbers first. Then compare hundreds, tens and ones.', explain: `${left} is ${va}. ${right} is ${vb}. So ${va} ${ans} ${vb}.` });
+  }
+  // $1, $10 and $100 bills are ones, tens and hundreds (2.NBT.1 with money).
+  function pvBills(d) {
+    if (d === 2) {
+      let h, t, o;
+      do { h = rnd(1, 3); t = rnd(0, 4); o = rnd(0, 4); } while (h + t + o > 9);
+      const list = [...Array(h).fill('c'), ...Array(t).fill('t'), ...Array(o).fill('b')];
+      return N('How many dollars is this?', h * 100 + t * 10 + o, { unit: 'dollars', visual: V.coins(list, true), hint: 'Count the $100 bills, then count on by tens, then by ones.', explain: `${h * 100} + ${t * 10} + ${o} = ${h * 100 + t * 10 + o} dollars` });
+    }
+    if (d === 3) {
+      if (chance(0.5)) {
+        const [bill, v, total] = pick([['$10', 10, 100], ['$1', 1, 10], ['$100', 100, 1000], ['$10', 10, rnd(2, 9) * 100], ['$1', 1, rnd(2, 9) * 10]]);
+        return N(`How many <b>${bill} bills</b> make <b>$${U.comma(total)}</b>?`, total / v, { hint: `Count by ${v}s until you reach ${total}.`, explain: `${total / v} bills of ${bill} make $${U.comma(total)}` });
+      }
+      const h = rnd(1, 9), t = rnd(0, 9), o = rnd(0, 9);
+      return N(`${who()} has <b>${h}</b> hundred-dollar bills, <b>${t}</b> ten-dollar bills and <b>${o}</b> one-dollar bills. How many dollars is that?`, h * 100 + t * 10 + o, { unit: 'dollars', hint: 'Hundreds, then tens, then ones.', explain: `${h * 100} + ${t * 10} + ${o} = ${h * 100 + t * 10 + o}` });
+    }
+    switch (rnd(1, 3)) {
+      case 1: { const n = rnd(101, 999), { h, t, o } = digits(n); return N(`Make <b>$${n}</b> with the fewest $100, $10 and $1 bills. How many <b>$10 bills</b> do you need?`, t, { hint: 'Use as many $100 bills as you can, then $10 bills, then $1 bills.', explain: `$${n} = ${h} × $100, ${t} × $10, ${o} × $1` }); }
+      case 2: { const total = chance(0.4) ? 1000 : rnd(11, 99) * 10; return N(`How many <b>$10 bills</b> make <b>$${U.comma(total)}</b>?`, total / 10, { hint: `$100 is 10 ten-dollar bills.${total === 1000 ? ' $1,000 is 10 hundreds.' : ''}`, explain: `$${U.comma(total)} = ${total / 10} tens` }); }
+      default: { const t = rnd(10, 19), o = rnd(10, 19); return N(`<b>${t}</b> ten-dollar bills and <b>${o}</b> one-dollar bills. How many dollars?`, t * 10 + o, { unit: 'dollars', hint: `${t} tens is ${t * 10}. ${o} ones is 1 ten and ${o - 10} ones.`, explain: `${t * 10} + ${o} = ${t * 10 + o}` }); }
+    }
+  }
+  // 1, 10 and 100 more or less, with the unknown anywhere, across a hundred (2.NBT.2, 2.NBT.8).
+  function pvMore(d) {
+    const big = d > 2, steps1 = big ? [1, 10, 100] : [1, 10];
+    const k = pick(steps1);
+    let n = big ? rnd(102, 897) : rnd(12, 87);
+    if (big && chance(0.4)) n = pick([rnd(1, 8) * 100 + pick([90, 95, 99, 98]), rnd(2, 8) * 100 + pick([0, 1, 3, 5])]); // crossing a hundred
+    const more = n + k > 999 ? false : n - k < 10 ? true : chance(0.5), word = more ? 'more' : 'less';
+    const m = more ? n + k : n - k;
+    switch (d === 4 ? rnd(3, 5) : rnd(1, 4)) {
+      case 1: return N(`What is <b>${k} ${word}</b> than <b>${n}</b>?`, m, { hint: `${k === 1 ? 'Ones' : k === 10 ? 'Tens' : 'Hundreds'} change. Watch for a new ${k === 1 ? 'ten' : 'hundred'}!`, explain: `${k} ${word} than ${n} is ${m}` });
+      case 2: return N(E(`${k} ${word} than ? is ${m}`), n, { hint: `Go the other way: ${k} ${more ? 'less' : 'more'} than ${m}.`, explain: `${k} ${word} than ${n} is ${m}` });
+      case 3: return N(E(`? ${word} than ${n} is ${m}`), k, { hint: 'Which place changed: ones, tens or hundreds?', explain: `${k} ${word} than ${n} is ${m}` });
+      case 4: return C(`<b>${m}</b> is ___ than <b>${n}</b>.`, `${k} ${word}`, U.strChoices(`${k} ${word}`, steps1.flatMap((x) => [`${x} more`, `${x} less`]), 4), { hint: 'Which place is different? Is the first number bigger or smaller?', explain: `${m} is ${k} ${word} than ${n}` });
+      default: {
+        const s = pick([10, 100, -10, -100]), start = U.clamp(n, 100 + Math.max(0, -s * 4), 999 - Math.max(0, s * 4)), seq = [0, 1, 2, 3].map((i) => start + i * s);
+        const rule = jump(s);
+        return C(`What is the rule?<div class="seq">${seq.join(', ')}</div>`, rule, U.strChoices(rule, ['+1', '−1', '+10', '−10', '+100', '−100'], 4), { hint: 'Which digit changes each time? Does it go up or down?', explain: `Each number is ${Math.abs(s)} ${s > 0 ? 'more' : 'less'}: ${rule}` });
+      }
+    }
+  }
+
+  // The arrow way: break the second number into easy jumps (2.NBT.5, 2.NBT.7, 2.NBT.9).
+  // R = 100 (sums to 100), 200 or 1000.
+  function arrowAdd(R, d) {
+    let a, b, js, how;
+    for (;;) {
+      const k = rnd(1, 3);
+      if (R === 1000) { a = rnd(11, 79) * 10; b = rnd(11, 49) * 10; } else if (R === 200) { a = rnd(60, 140); b = rnd(21, 89); } else { a = rnd(12, 69); b = rnd(11, 39); }
+      if (k === 1) { const big2 = R === 1000 ? Math.floor(b / 100) * 100 : Math.floor(b / 10) * 10; js = [big2, b - big2]; how = `Add the ${R === 1000 ? 'hundreds' : 'tens'} first, then the rest.`; }
+      else if (k === 2) { const unit = R === 1000 ? 100 : 10; b = Math.ceil(b / unit) * unit - pick(R === 1000 ? [10, 20] : [1, 2]); const up = Math.ceil(b / unit) * unit; js = [up, b - up]; how = `${up} is easy to add. Then take back the ${up - b} extra.`; }
+      else { const unit = R === 1000 ? 100 : 10, need = unit - (a % unit); if (need === unit || need >= b) continue; js = [need, b - need]; how = `First jump to the next ${unit === 10 ? 'ten' : 'hundred'}: ${a + need}. Then add the rest.`; }
+      if (a + b <= (R === 100 ? 99 : R === 200 ? 199 : 999) && b > 0 && js.every((x) => x !== 0)) break;
+    }
+    if (d >= 3 && chance(0.3)) { // the missing jump
+      const mid = a + js[0];
+      return N('Find the missing jump.', Math.abs(js[1]), { visual: V.arrows(a, [{ op: jump(js[0]), to: mid }, { op: (js[1] < 0 ? '−' : '+') + '?', to: a + b }]), hint: `How far is it from ${mid} to ${a + b}?`, explain: `${mid} ${js[1] < 0 ? '−' : '+'} ${Math.abs(js[1])} = ${a + b}` });
+    }
+    return N(`Use the arrows to solve <b>${a} + ${b}</b>.`, a + b, { visual: V.arrows(a, chain(a, js)), hint: how, explain: steps(a, js) });
+  }
+  function arrowSub(R, d) {
+    let a, b, js, how;
+    if (chance(0.3)) { // count up to subtract
+      const top = R === 1000 ? rnd(3, 9) * 100 : R === 200 ? pick([100, 110, 120, 150, 200]) : rnd(3, 10) * 10;
+      const unit = R === 1000 ? 100 : 10;
+      b = R === 1000 ? rnd(top / 100 - 2, top / 100 - 1) * 100 + rnd(11, 89) : rnd(Math.max(11, top - 39), top - 11);
+      if (b % 10 === 0) b += 3;
+      const toTen = 10 - (b % 10), mid = b + toTen;
+      js = [toTen];
+      if (R === 1000 && mid % unit) js.push(Math.ceil(mid / unit) * unit - mid);
+      const at = b + U.sum(js);
+      if (top > at) js.push(top - at);
+      return N(`Count up to solve <b>${top} − ${b}</b>.`, top - b, { visual: V.arrows(b, chain(b, js, false)), hint: 'Add up all the jumps.', explain: `${js.join(' + ')} = ${top - b}, so ${top} − ${b} = ${top - b}` });
+    }
+    for (;;) {
+      const k = rnd(1, 3);
+      if (R === 1000) { a = rnd(30, 95) * 10; b = rnd(11, 49) * 10; } else if (R === 200) { a = rnd(105, 189); b = rnd(21, 79); } else { a = rnd(35, 99); b = rnd(11, 39); }
+      const unit = R === 1000 ? 100 : 10;
+      if (k === 1) { const big2 = Math.floor(b / unit) * unit; js = [-big2, -(b - big2)]; how = `Take away the ${unit === 10 ? 'tens' : 'hundreds'} first, then the rest.`; }
+      else if (k === 2) { b = Math.ceil(b / unit) * unit - pick(R === 1000 ? [10, 20] : [1, 2]); const up = Math.ceil(b / unit) * unit; js = [-up, up - b]; how = `Take away ${up}. That is ${up - b} too many, so add ${up - b} back.`; }
+      else { const down = a % unit; if (!down || down >= b) continue; js = [-down, -(b - down)]; how = `First jump back to ${a - down}. Then take away the rest.`; }
+      if (a - b >= 1 && a + js[0] >= 0 && js.every((x) => x !== 0)) break;
+    }
+    return N(`Use the arrows to solve <b>${a} − ${b}</b>.`, a - b, { visual: V.arrows(a, chain(a, js)), hint: how, explain: steps(a, js) });
+  }
+  // Make an easier problem: 29 + 46 = 30 + 45, 32 − 19 = 33 − 20 (compensation).
+  function simplerAdd(R) {
+    const unit = R === 1000 ? 100 : 10;
+    let a, b;
+    do {
+      a = (R === 1000 ? rnd(1, 6) : R === 200 ? rnd(5, 14) : rnd(1, 7)) * unit - pick(unit === 100 ? [1, 2, 3] : [1, 2]);
+      b = R === 1000 ? rnd(25, 450) : R === 200 ? rnd(25, 99) : rnd(13, 59);
+    } while (a + b > (R === 100 ? 99 : R === 200 ? 199 : 999) || a < 8);
+    const k = Math.ceil(a / unit) * unit - a, a2 = a + k, b2 = b - k;
+    const tail = { hint: `Move ${k} from ${b} to ${a}. ${a} + ${k} = ${a2}.`, explain: `${a} + ${b} = ${a2} + ${b2} = ${a + b}` };
+    if (chance(0.5)) return N(E(`${a} + ${b} = ${a2} + ?`), b2, tail);
+    return N(`Make it easier: ${a} + ${b} = ${a2} + ${b2}.<div class="eqline">${a} + ${b} = ${BLANK}</div>`, a + b, tail);
+  }
+  function simplerSub(R) {
+    const unit = R === 1000 ? 100 : 10;
+    let a, b, k;
+    do {
+      b = (R === 1000 ? rnd(1, 5) : R === 200 ? rnd(2, 9) : rnd(1, 5)) * unit - pick(unit === 100 ? [1, 2, 3] : [1, 2]);
+      a = R === 1000 ? rnd(b + 50, 899) : R === 200 ? rnd(Math.max(b + 11, 101), 189) : rnd(b + 5, 95);
+      k = Math.ceil(b / unit) * unit - b;
+    } while (a - b < 2 || a + k > 999);
+    if (R === 1000 && chance(0.4)) { // from a hundred: 400 − 247 = 399 − 246, no regrouping needed
+      const top = rnd(3, 9) * 100, bb = rnd(111, top - 111);
+      return N(E(`${top} − ${bb} = ${top - 1} − ?`), bb - 1, { hint: `Take 1 away from both numbers. The difference stays the same, and ${top - 1} has no zeros to unbundle!`, explain: `${top} − ${bb} = ${top - 1} − ${bb - 1} = ${top - bb}` });
+    }
+    const tail = { hint: `Add ${k} to both numbers. The difference stays the same.`, explain: `${a} − ${b} = ${a + k} − ${b + k} = ${a - b}` };
+    if (chance(0.5)) return N(E(`${a} − ${b} = ? − ${b + k}`), a + k, tail);
+    return N(`Make it easier: ${a} − ${b} = ${a + k} − ${b + k}.<div class="eqline">${a} − ${b} = ${BLANK}</div>`, a - b, tail);
+  }
+  // Number bonds: make a ten (or a hundred) to add, take from a ten (or a hundred) to subtract.
+  function bondAdd(d) {
+    let a, b, unit;
+    do {
+      unit = d === 5 ? 100 : 10;
+      a = d === 2 ? rnd(12, 88) : d === 3 ? rnd(12, 78) : rnd(1, 7) * 100 + pick([70, 80, 90, 95, 98, 99]); // to 1,000: just under a hundred
+      b = d === 2 ? rnd(2, 9) : d === 3 ? rnd(12, 39) : chance(0.5) ? rnd(11, 45) * 10 : rnd(31, 299);
+    } while (a % unit === 0 || b % unit === 0 || b <= unit - (a % unit) || a + b > (d === 5 ? 999 : 99)); // whole tens (or hundreds) need no new ten (or hundred)
+    const need = unit - (a % unit);
+    return N(`Make a ${unit === 10 ? 'ten' : 'hundred'}: break apart ${b} to solve <b>${a} + ${b}</b>.`, a + b, { visual: V.bond(b, need, b - need), hint: `${a} + ${need} = ${a + need}. Then add the ${b - need} that is left.`, explain: `${a} + ${need} = ${a + need}, ${a + need} + ${b - need} = ${a + b}` });
+  }
+  function bondSub(d) {
+    let a, b, whole, part, rest;
+    if (d === 2) { a = rnd(11, 18); b = rnd(a - 9, 9); whole = 10; rest = a - 10; }
+    else if (d === 3) { a = chance(0.3) ? rnd(2, 9) * 10 : rnd(21, 98); if (a % 10 >= 7) a -= 4; b = rnd(a % 10 + 1, 9); whole = 10; rest = a - 10; }
+    else { a = rnd(101, 189); b = rnd(Math.floor((a - 100) / 10) + 1, 9) * 10; whole = 100; rest = a - 100; }
+    if (b > whole || a - b < 0) return bondSub(d);
+    part = whole - b;
+    return N(`Take from the ${whole === 10 ? 'ten' : 'hundred'} to solve <b>${a} − ${b}</b>.`, a - b, { visual: V.bond(a, rest, whole), hint: `${whole} − ${b} = ${part}. Then add the ${rest} you kept.`, explain: `${whole} − ${b} = ${part}, ${part} + ${rest} = ${a - b}` });
+  }
+  // The place value chart: when do we bundle 10 ones into a ten (or 10 tens into a hundred), when do we unbundle?
+  const BUNDLE = { both: 'a new ten and a new hundred', t: 'a new ten', h: 'a new hundred', none: 'no new ten or hundred' };
+  function bundleAdd(d) {
+    let a, b;
+    do { a = d === 3 ? rnd(12, 79) : rnd(21, 159); b = rnd(11, 89); } while (a + b > (d === 3 ? 99 : 199) || (d === 4 && a + b < 100 && chance(0.6)));
+    const A = digits(a), B = digits(b), c1 = A.o + B.o >= 10, c2 = A.t + B.t + (c1 ? 1 : 0) >= 10;
+    if (chance(0.5)) return N(`The chart shows <b>${a} + ${b}</b> put together. What is the total?`, a + b, { visual: V.pvChart(A.h + B.h, A.t + B.t, A.o + B.o), hint: c1 || c2 ? 'Bundle 10 ones as 1 ten, and 10 tens as 1 hundred.' : 'Count the hundreds, tens and ones.', explain: `${a} + ${b} = ${a + b}` });
+    const ans = BUNDLE[c1 && c2 ? 'both' : c1 ? 't' : c2 ? 'h' : 'none'];
+    return C(`To add <b>${a} + ${b}</b> on the place value chart, what do you make?`, ans, Object.values(BUNDLE), { visual: V.pvChart(A.h + B.h, A.t + B.t, A.o + B.o), hint: '10 or more ones make a new ten. 10 or more tens make a new hundred.', explain: `Ones: ${A.o} + ${B.o} = ${A.o + B.o}. Tens: ${A.t} + ${B.t}${c1 ? ' + 1' : ''} = ${A.t + B.t + (c1 ? 1 : 0)}.` });
+  }
+  const UNBUNDLE = { both: 'a ten and a hundred', t: 'a ten', h: 'a hundred', none: 'nothing' };
+  function unbundleSub(d) {
+    let a, b;
+    do { a = d === 3 ? rnd(30, 99) : rnd(101, 199); b = rnd(11, d === 3 ? a - 11 : 89); } while (a - b < 1);
+    const A = digits(a), B = digits(b), c1 = A.o < B.o, c2 = A.t - (c1 ? 1 : 0) < B.t;
+    const ans = UNBUNDLE[c1 && c2 ? 'both' : c1 ? 't' : c2 ? 'h' : 'none'];
+    return C(`To solve <b>${a} − ${b}</b>, what do you need to unbundle?`, ans, Object.values(UNBUNDLE), { visual: V.pvChart(A.h, A.t, A.o), hint: 'Look at the ones: are there enough to take away? Then look at the tens.', explain: `Ones: ${A.o} ${c1 ? '<' : '≥'} ${B.o}. Tens: ${A.t}${c1 ? ' − 1' : ''} ${c2 ? '<' : '≥'} ${B.t}. Unbundle ${ans}.` });
+  }
+  // Within 200: sums past 100 and differences from three-digit numbers (Eureka Grade 2 Module 4).
+  function add200(d) {
+    let nums;
+    if (d === 5 && chance(0.4)) { do nums = [rnd(11, 79), rnd(11, 79), rnd(11, 59)]; while (U.sum(nums) > 199 || U.sum(nums) < 100); }
+    else for (;;) {
+      nums = chance(0.6) ? [rnd(51, 99), rnd(21, 99)] : [rnd(101, 179), rnd(11, 89)];
+      const s = U.sum(nums), [A, B] = nums.map(digits), two2 = A.o + B.o >= 10 && A.t + B.t + 1 >= 10;
+      if (s >= 100 && s <= 199 && (d === 5 ? two2 : !two2 || chance(0.3))) break;
+    }
+    const s = U.sum(nums), col = chance(0.5);
+    return N(col ? 'Add.' : E(`${nums.join(' + ')} = ?`), s, { big: !col, visual: col ? V.column(nums, '+') : '', hint: 'Ones first. 10 ones make a new ten; 10 tens make a new hundred.', explain: `${nums.join(' + ')} = ${s}` });
+  }
+  function sub200(d) {
+    let a, b;
+    for (;;) {
+      const k = rnd(1, 4);
+      if (k === 1) { a = 200; b = d === 5 ? rnd(101, 189) : rnd(11, 99); }
+      else if (k === 2) { a = rnd(1, 1) * 100 + rnd(0, 9); b = rnd(11, 99); } // zero in the tens: 103 − 34
+      else { a = rnd(110, 199); b = d === 5 ? rnd(51, a - 10) : rnd(11, 99); }
+      if (a - b < 1) continue;
+      const A = digits(a), B = digits(b), un = A.o < B.o, uh = A.t - (un ? 1 : 0) < B.t;
+      if (d === 4 ? un || uh : un && uh) break;
+    }
+    const col = chance(0.5);
+    return N(col ? 'Subtract.' : E(`${a} − ${b} = ?`), a - b, { big: !col, visual: col ? V.column([a, b], '−') : '', hint: 'Get ready first: unbundle a ten or a hundred if you need to. Then subtract the ones, tens and hundreds.', explain: `${b} + ${a - b} = ${a}, so ${a} − ${b} = ${a - b}` });
+  }
+  // Word problems with a tape diagram: compare (more / fewer) and two steps (2.OA.1).
+  function tapeWords(d) {
+    const [p, q] = two(), th = pick(THINGS);
+    const big = rnd(35, 95), diff = rnd(11, big - 12), small = big - diff;
+    if (d === 4 && chance(0.3)) { // take away twice: the whole on top, the parts below
+      const all = rnd(40, 95), x = rnd(11, all - 25), y = rnd(5, all - x - 8), left = all - x - y;
+      return N(`There were ${all} ${th} in a box. ${p} took ${x}. ${q} took ${y}. How many ${th} are left?`, left, { visual: V.tape([{ label: th, parts: [{ v: x, text: x }, { v: y, text: y }, { v: left, text: '?' }] }], { total: all }), wordy: true, hint: `Two steps: take away ${x}, then take away ${y}. Or add ${x} + ${y} first.`, explain: `${all} − ${x} − ${y} = ${left}` });
+    }
+    const k = rnd(1, 3);
+    let text, ans, rows, expr;
+    if (k === 1) { // bigger known, "more than": find the smaller
+      text = `${p} has ${big} ${th}. That is ${diff} more than ${q}. How many ${th} does ${q} have?`;
+      ans = small; expr = `${big} − ${diff}`;
+      rows = [{ label: p, parts: [{ v: big, text: big }] }, { label: q, parts: [{ v: small, text: '?' }], diff: { v: diff, text: diff } }];
+    } else if (k === 2) { // smaller known, "fewer than": find the bigger
+      text = `${p} has ${small} ${th}. That is ${diff} fewer than ${q}. How many ${th} does ${q} have?`;
+      ans = big; expr = `${small} + ${diff}`;
+      rows = [{ label: p, parts: [{ v: small, text: small }], diff: { v: diff, text: diff } }, { label: q, parts: [{ v: big, text: '?' }] }];
+    } else { // how many more
+      text = `${p} has ${big} ${th}. ${q} has ${small}. How many more ${th} does ${p} have?`;
+      ans = diff; expr = `${big} − ${small}`;
+      rows = [{ label: p, parts: [{ v: big, text: big }] }, { label: q, parts: [{ v: small, text: small }], diff: { v: diff, text: '?' } }];
+    }
+    if (d === 4 && k !== 3) { // second step: how many together
+      text = text.replace(/How many [^?]+\?$/, `How many ${th} do they have together?`);
+      return N(text, big + small, { visual: V.tape(rows), wordy: true, hint: `Two steps! First find how many ${q} has. Then add both.`, explain: `${expr} = ${ans}, then ${big} + ${small} = ${big + small}` });
+    }
+    return N(text, ans, { visual: V.tape(rows), wordy: true, hint: 'Look at the tape: which bar is longer? Find the part with the ?.', explain: `${expr} = ${ans}` });
+  }
+
+  MQ.KINDS = {
+    pv_words: { topic: 'place', ds: [2, 3, 4], name: 'Number names', gen: pvWords },
+    pv_units: { topic: 'place', ds: [3, 4], name: 'Tens and ones in big numbers', gen: pvUnits },
+    pv_compare: { topic: 'place', ds: [3, 4], name: 'Compare numbers in any form', gen: pvCompare },
+    pv_bills: { topic: 'place', ds: [2, 3, 4], name: '$1, $10 and $100 bills', gen: pvBills },
+    pv_more: { topic: 'place', ds: [2, 3, 4], name: '1, 10, 100 more or less', gen: pvMore },
+    add_bond: { topic: 'add100', ds: [2, 3], name: 'Make a ten', gen: bondAdd },
+    sub_bond: { topic: 'sub100', ds: [2, 3, 4], name: 'Take from a ten or a hundred', gen: bondSub },
+    add_arrow: { topic: 'add100', ds: [2, 3, 4], name: 'Add with arrows', gen: (d) => arrowAdd(d === 4 ? 200 : 100, d) },
+    sub_arrow: { topic: 'sub100', ds: [2, 3, 4], name: 'Subtract with arrows', gen: (d) => arrowSub(d === 4 ? 200 : 100, d) },
+    add_simpler: { topic: 'add100', ds: [3, 4], name: 'Make an easier sum', gen: (d) => simplerAdd(d === 4 ? 200 : 100) },
+    sub_simpler: { topic: 'sub100', ds: [3, 4], name: 'Make an easier difference', gen: (d) => simplerSub(d === 4 ? 200 : 100) },
+    add_bundle: { topic: 'add100', ds: [3, 4], name: 'Bundle on the place value chart', gen: bundleAdd },
+    sub_unbundle: { topic: 'sub100', ds: [3, 4], name: 'Unbundle on the place value chart', gen: unbundleSub },
+    add_200: { topic: 'add100', ds: [4, 5], name: 'Add within 200', gen: add200 },
+    sub_200: { topic: 'sub100', ds: [4, 5], name: 'Subtract within 200', gen: sub200 },
+    big_arrow: { topic: 'big', ds: [2, 3, 4], name: 'Hundreds and tens with arrows', gen: (d) => (chance(0.5) ? arrowAdd(1000, d) : arrowSub(1000, d)) },
+    big_simpler: { topic: 'big', ds: [3, 4], name: 'Make an easier problem to 1,000', gen: () => (chance(0.5) ? simplerAdd(1000) : simplerSub(1000)) },
+    big_bond: { topic: 'big', ds: [3, 4], name: 'Make a hundred', gen: () => bondAdd(5) },
+    words_tape: { topic: 'words', ds: [3, 4], name: 'Word problems with a tape diagram', gen: tapeWords },
+  };
+  const kindIds = (topic, d) => Object.keys(MQ.KINDS).filter((k) => MQ.KINDS[k].topic === topic && MQ.KINDS[k].ds.includes(d));
+  // About a third of a topic's questions are class strategies (when the topic has kinds at that level).
+  function classKind(topic, d, share) {
+    const ks = kindIds(topic, d);
+    return ks.length && chance(share) ? MQ.KINDS[pick(ks)].gen(d) : null;
+  }
+  MQ.makeKind = (id, d) => {
+    const K = MQ.KINDS[id], dd = K.ds.includes(d) ? d : K.ds.reduce((x, y) => (Math.abs(y - d) < Math.abs(x - d) ? y : x));
+    const p = K.gen(dd);
+    p.topic = K.topic;
+    p.d = dd;
+    p.kindId = id;
+    return p;
+  };
 
   MQ.TOPICS = {
     add20: { name: 'Facts to 20', icon: '🧮', std: '2.OA.2', gen: add20 },
