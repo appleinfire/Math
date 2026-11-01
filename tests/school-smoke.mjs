@@ -1,6 +1,7 @@
 // Browser test for School lessons: node tests/school-smoke.mjs [screenshotDir]
-// A grown-up picks the school program and this week's lessons, the home screen shows the tile, a class practice
-// asks only those skills, the Daily Quest mixes in 2 of them, and every new picture renders on a phone and an iPad.
+// A lesson: How it works with big ideas and solved examples, a step that asks only its skill and gives stars, 💡 help
+// during practice, the lesson check. A grown-up picks the program and this week's lessons, limits what opens; the
+// Daily Quest mixes in 2 class questions; topics and kindergarten lessons; every picture renders on a phone and an iPad.
 import { createRequire } from 'module';
 import { createServer } from 'http';
 import { existsSync, readFileSync, statSync } from 'fs';
@@ -54,13 +55,13 @@ async function run(viewport, tag) {
   await page.click('[data-act=pickGrade][data-arg=g2]');
   await page.click('[data-act=createKid]');
   await page.waitForSelector('.home');
-  const practice = async (want, title) => { // play a whole lesson practice; returns the topics and kinds asked
+  const practice = async (want, title, max = 12) => { // play a whole step or lesson check, every answer right; returns the topics and kinds asked
     const kinds = new Set(), topics = new Set();
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < max; i++) {
       await ready(page);
       if (await page.$('.result')) break;
-      const q = await page.evaluate(() => ({ k: MQ.app.session().p.kindId || '', t: MQ.app.session().p.topic, title: document.querySelector('.pstatus .ptitle').textContent }));
-      kinds.add(q.k); topics.add(q.t);
+      const q = await page.evaluate(() => ({ k: MQ.app.session().p.kindId || '', t: MQ.app.session().p.topic, d: MQ.app.session().p.d, rv: !!MQ.app.session().p.review, title: document.querySelector('.pstatus .ptitle').textContent }));
+      if (!q.rv) { kinds.add(q.k); topics.add(q.t + '/' + q.d); }
       if (!title.test(q.title)) errors.push(tag + ': play bar title ' + q.title);
       if (i === 0) await snap('04-play-' + want);
       await answer(page);
@@ -69,6 +70,7 @@ async function run(viewport, tag) {
     await page.waitForSelector('.result');
     return { kinds, topics };
   };
+  const school = (u, p) => page.evaluate((a) => MQ.app.go(a), p === undefined ? 'school' : `school:${u}:${p}`);
 
   // ---- before any grown-up setting: School lessons on the home screen, every module open, no week marked
   const tile0 = await page.textContent('.t-class').catch(() => '');
@@ -76,17 +78,53 @@ async function run(viewport, tag) {
   await page.click('.t-class');
   await page.waitForSelector('.school');
   if ((await page.$$('.sc-unit')).length !== 8 || (await page.$$('.sc-unit.locked')).length || (await page.$('.sc-week'))) errors.push(tag + ': School lessons should show 8 open modules and no week');
-  // the child opens Module 8 (not reached in class yet) and practices telling time
+  // the child opens Module 8 (not reached in class yet): telling time is a lesson of 6 steps and a check
   await page.click('[data-act=schoolUnit][data-arg="8"]');
   await snap('01-modules');
-  await page.click('[data-act=classPractice][data-arg="8:2"]');
+  await page.click('.sc-part[data-arg="school:8:2"]');
+  await page.waitForSelector('.sl-lesson');
+  const les = await page.evaluate(() => ({ rows: document.querySelectorAll('.sl-step').length, next: document.querySelector('.sl-step.next .sl-tx b').textContent, go: document.querySelector('.sl-go').textContent, meter: document.querySelector('.sl-meter').textContent }));
+  if (les.rows !== 8 || les.next !== 'How it works' || !/Start: How it works/.test(les.go) || !/0 \/ 21/.test(les.meter)) errors.push(tag + ': lesson page ' + JSON.stringify(les));
+  await snap('02-lesson');
+  // 💡 How it works: the big ideas and a solved example of each step
+  await page.click('.sl-go');
+  await page.waitForSelector('.sl-how');
+  const how = await page.evaluate(() => ({ ideas: document.querySelectorAll('.sl-ideas li').length, ex: document.querySelector('.sl-card .ptext').innerHTML, ans: !!document.querySelector('.sl-card .sl-ans'), chips: document.querySelectorAll('.sl-chips .chip').length, learn: MQ.state.school['eureka:8:2'] }));
+  if (how.ideas !== 4 || !how.ans || how.chips !== 6 || !how.learn || !how.learn.learn) errors.push(tag + ': How it works ' + JSON.stringify(how));
+  await snap('03-how');
+  await page.click('[data-act=schoolExample][data-arg="4"]');
+  const ex5 = await page.evaluate(() => ({ step: document.querySelector('.sl-ex .muted').textContent, sel: document.querySelector('.sl-chips .chip.sel').textContent }));
+  if (!/Step 5 · Hours from a\.m\. to p\.m\./.test(ex5.step) || ex5.sel !== 'Step 5') errors.push(tag + ': example of step 5 ' + JSON.stringify(ex5));
+  const ex0 = await page.evaluate(() => document.querySelector('.sl-card').innerHTML);
+  await page.click('.sl-ex [data-act=schoolExample]:not(.chip)');
+  if ((await page.evaluate(() => document.querySelector('.sl-card').innerHTML)) === ex0) errors.push(tag + ': Another example showed the same one');
+  // step 1: only its skill, 8 right answers; 💡 shows how without counting anything
+  await page.click('.sl-how .sl-go');
+  await ready(page);
   const gems0 = await page.evaluate(() => MQ.state.crystals);
-  const m8 = await practice('m8', /School lessons/);
-  if (![...m8.topics].every((t) => ['time', 'shapes'].includes(t))) errors.push(tag + ': Module 8 practice asked ' + [...m8.topics].join(', '));
-  const res = await page.evaluate(() => ({ title: document.querySelector('.result .title').textContent, again: document.querySelector('[data-act=classPractice]').dataset.arg, other: !!document.querySelector('[data-act=go][data-arg=school]') }));
-  if (res.title !== 'Lesson practice done!' || res.again !== '8:2' || !res.other) errors.push(tag + ': result screen ' + JSON.stringify(res));
+  await page.click('[data-act=classHow]');
+  await page.waitForSelector('#modal .sl-card .sl-ans');
+  if ((await page.$$('#modal .sl-tips li')).length !== 4) errors.push(tag + ': no big ideas in the help');
+  await snap('04-help');
+  await page.click('#modal [data-act=closeModal]');
+  if (await page.evaluate(() => MQ.app.session().tries || MQ.app.session().answered)) errors.push(tag + ': help counted as an answer');
+  const m8 = await practice('step', /Step 1 of 6/);
+  if ([...m8.topics].join() !== 'time/2' || [...m8.kinds].join() !== 'time_quarter') errors.push(tag + ': step 1 asked ' + [...m8.topics, ...m8.kinds].join(', '));
+  const res = await page.evaluate(() => ({ title: document.querySelector('.result .title').textContent, stars: document.querySelectorAll('.result .sl-stars i.on').length, next: (document.querySelector('.result [data-act=classStep]:not(.ghost)') || {}).dataset, again: document.querySelector('.result .btn.ghost[data-act=classStep]').dataset.arg, saved: MQ.state.school['eureka:8:2'] }));
+  if (res.title !== 'Step done!' || res.stars !== 3 || !res.next || res.next.arg !== '8:2|1' || res.again !== '8:2|0' || res.saved.steps['time_quarter/2'] !== 3) errors.push(tag + ': step result ' + JSON.stringify(res));
   if ((await page.evaluate(() => MQ.state.crystals)) <= gems0) errors.push(tag + ': no crystals for lesson practice');
-  await snap('02-done');
+  await snap('05-step-done');
+  await page.click('.result [data-arg="school:8:2"]');
+  await page.waitForSelector('.sl-lesson');
+  const after = await page.evaluate(() => ({ next: document.querySelector('.sl-step.next .sl-tx b').textContent, meter: document.querySelector('.sl-meter').textContent }));
+  if (after.next !== 'Quarter past, half past, quarter to' || !/3 \/ 21/.test(after.meter)) errors.push(tag + ': lesson after step 1 ' + JSON.stringify(after));
+  await snap('06-lesson-after');
+  // quitting a step part way: no stars, back to the lesson from the result
+  await page.click('[data-act=classStep][data-arg="8:2|1"]');
+  await ready(page); await answer(page); await page.click('.fb.ok [data-act=advance]', { timeout: 3000 }).catch(() => {});
+  await ready(page); await page.click('[data-act=quit]');
+  await page.waitForSelector('.result');
+  if (!/Good practice/.test(await page.textContent('.result .title')) || (await page.evaluate(() => MQ.state.school['eureka:8:2'].steps['time_quarter/3']))) errors.push(tag + ': a step left part way got stars');
   if (await page.evaluate(() => MQ.state.settings.school.at)) errors.push(tag + ': playing changed the grown-up setting');
 
   // ---- a grown-up marks this week: Eureka Math, Module 3, Lessons 8–10
@@ -100,20 +138,24 @@ async function run(viewport, tag) {
   const sec = await page.textContent('.classset');
   if (!/Lessons this week/.test(sec) || !/\$1, \$10 and \$100 bills/.test(sec) || !/Lesson 12 Homework/.test(sec) || !/What Sofia can open/.test(sec)) errors.push(tag + ': grown-ups section text: ' + sec.slice(0, 300));
   if (!(await page.$('.classset [data-act=setSchoolPart][data-arg="2"].sel'))) errors.push(tag + ': chosen lessons not highlighted');
-  await snap('03-week');
+  await snap('07-week');
 
-  // ---- home tile and School lessons show this week first; its practice asks only Module 3 so far
+  // ---- home tile and School lessons show this week first; its lesson check asks only Module 3 so far
   await page.evaluate(() => MQ.app.go('home'));
   const tile = await page.textContent('.t-class');
   if (!/School lessons/.test(tile) || !/In class: \$1, \$10 and \$100 bills/.test(tile)) errors.push(tag + ': home tile: ' + tile);
   await page.click('.t-class');
   await page.waitForSelector('.sc-week');
   if (!(await page.$('.sc-unit.here.open .sc-part.now'))) errors.push(tag + ': this week not open and marked on School lessons');
-  await snap('04-school-week');
+  await snap('08-school-week');
   await page.click('.sc-week');
-  const wk = await practice('week', /In class now/);
-  if (![...wk.topics].every((t) => t === 'place') || !wk.kinds.has('pv_bills')) errors.push(tag + ': this week asked other things: ' + [...wk.topics, ...wk.kinds].join(', '));
-  if ((await page.evaluate(() => document.querySelector('[data-act=classPractice]').dataset.arg)) !== '3:2') errors.push(tag + ': practice again is not this week');
+  await page.waitForSelector('.sl-lesson');
+  if (!/In class now/.test(await page.textContent('.sl-lesson .lead'))) errors.push(tag + ': this week’s lesson not marked');
+  await page.click('[data-act=classPractice][data-arg="3:2"]');
+  const wk = await practice('check', /Lesson check/, 14);
+  if (![...wk.topics].every((t) => t.startsWith('place/')) || !wk.kinds.has('pv_bills')) errors.push(tag + ': this week asked other things: ' + [...wk.topics, ...wk.kinds].join(', '));
+  const chk = await page.evaluate(() => ({ title: document.querySelector('.result .title').textContent, again: document.querySelector('.result [data-act=classPractice]').dataset.arg, check: MQ.state.school['eureka:3:2'].check }));
+  if (chk.title !== 'Lesson check done!' || chk.again !== '3:2' || chk.check !== 3) errors.push(tag + ': lesson check result ' + JSON.stringify(chk));
 
   // ---- a grown-up limits what opens: only Module 1 (and this week's Module 3)
   await grownUps(page);
@@ -122,32 +164,35 @@ async function run(viewport, tag) {
   if (!(await page.$('[data-act=toggleSchoolAllowed][data-arg="3"][disabled].sel'))) errors.push(tag + ': this week’s module should be shown as always open');
   const lim = await page.evaluate(() => MQ.state.settings.school);
   if (lim.open !== 'chosen' || lim.allowed.join() !== '1' || lim.weekAt !== today) errors.push(tag + ': limit not saved ' + JSON.stringify(lim));
-  await snap('05-limit');
-  await page.evaluate(() => MQ.app.go('school'));
+  await snap('09-limit');
+  await school();
   const locked = await page.$$eval('.sc-unit', (els) => els.map((e) => (e.classList.contains('locked') ? 'L' : 'o')).join(''));
   if (locked !== 'oLoLLLLL') errors.push(tag + ': locked modules ' + locked);
   await page.click('[data-act=schoolUnit][data-arg="5"]');
-  if (!/grown-up can open/i.test(await page.textContent('.toast').catch(() => ''))) errors.push(tag + ': no message on a locked module');
+  const msg = await page.evaluate(() => [...document.querySelectorAll('.toast')].map((t) => t.textContent).join(' | '));
+  if (!/grown-up can open/i.test(msg)) errors.push(tag + ': no message on a locked module: ' + msg);
   if (await page.$('.sc-unit.locked.open')) errors.push(tag + ': a locked module opened');
-  await snap('06-locked');
-  // a locked lesson cannot start even when its button is tapped from somewhere else: back to School lessons
-  await page.evaluate(() => document.querySelector('.school').insertAdjacentHTML('beforeend', '<button id="sneak" data-act="classPractice" data-arg="5:0">x</button>'));
-  await page.click('#sneak');
-  await page.waitForSelector('.school');
-  if (await page.evaluate(() => !!MQ.app.session())) errors.push(tag + ': a locked lesson started');
+  await snap('10-locked');
+  // a locked lesson cannot open or start, even when its button is tapped from somewhere else: back to School lessons
+  await school(5, 0);
+  await page.waitForSelector('.sc-units');
+  for (const [act, arg] of [['classPractice', '5:0'], ['classStep', '5:0|1'], ['go', 'school:5:0:how']]) {
+    await page.evaluate(([a, g]) => document.querySelector('.school').insertAdjacentHTML('beforeend', `<button id="sneak" data-act="${a}" data-arg="${g}">x</button>`), [act, arg]);
+    await page.click('#sneak');
+    await page.waitForSelector('.sc-units');
+    if (await page.evaluate(() => !!MQ.app.session() || !!document.querySelector('.sl-lesson, .sl-how'))) errors.push(tag + ': a locked lesson opened by ' + act);
+  }
   await grownUps(page);
   await page.click('[data-act=setSchoolOpen][data-arg=all]');
 
-  // ---- every new class picture in a real problem card: arrows, place value chart, tape diagram, number bond, bills
+  // ---- every class picture in a real problem card (arrows, place value chart, tape, bond, bills…), and back to the lesson
   for (const [unit, part, name] of [[4, 0, 'arrows'], [4, 1, 'bundle'], [4, 4, 'take-from-hundred'], [4, 5, 'tape'], [6, 1, 'rows'], [7, 0, 'tally'], [7, 1, 'money'], [7, 5, 'lineplot'], [8, 2, 'time']]) {
-    await page.evaluate(() => MQ.app.go('school'));
-    await page.click(`[data-act=schoolUnit][data-arg="${unit}"]`).catch(() => {});
-    if (!(await page.$(`[data-act=classPractice][data-arg="${unit}:${part}"]`))) await page.click(`[data-act=schoolUnit][data-arg="${unit}"]`);
-    await page.click(`.sc-part[data-arg="${unit}:${part}"]`);
+    await school(unit, part);
+    await page.click(`.sl-step[data-act=classPractice][data-arg="${unit}:${part}"]`);
     await ready(page);
-    await snap('07-' + name);
+    await snap('11-' + name);
     await page.click('[data-act=quit]');
-    await page.waitForSelector('.school'); // nothing answered yet: straight back to School lessons
+    await page.waitForSelector('.sl-lesson'); // nothing answered yet: straight back to the lesson
   }
   await page.evaluate(() => MQ.app.go('home'));
   const bad = await page.evaluate(() => {
@@ -157,6 +202,9 @@ async function run(viewport, tag) {
       div.className = 'pcard'; div.innerHTML = `<div class="ptext">${p.text}</div><div class="pvis">${p.visual || ''}</div>`;
       document.body.appendChild(div);
       if (div.scrollWidth > div.clientWidth + 2 && window.innerWidth < 500) out.push(id + ' d' + d + ' is too wide');
+      div.innerHTML = MQ.schoolUI.solved(p); // the same question solved, for How it works
+      if (div.scrollWidth > div.clientWidth + 2 && window.innerWidth < 500) out.push(id + ' d' + d + ' solved is too wide');
+      if (p.kind === 'num' && /class="blank">\?<|num ans">\s*\?<|anum q/.test(div.innerHTML)) out.push(id + ' d' + d + ' solved without its answer');
       div.remove();
     }
     return [...new Set(out)];
@@ -196,10 +244,15 @@ async function run(viewport, tag) {
   await page.evaluate(() => MQ.app.go('home'));
   if (!/Money · Graphs · Shapes/.test(await page.textContent('.t-class'))) errors.push(tag + ': topics tile ' + (await page.textContent('.t-class')));
   await page.click('.t-class');
+  await page.waitForSelector('.sl-lesson');
+  const tl = await page.evaluate(() => [...document.querySelectorAll('.sl-step .sl-tx b')].map((b) => b.textContent).join(','));
+  if (tl !== 'How it works,Money,Graphs,Shapes & Fractions,Lesson check') errors.push(tag + ': topics lesson ' + tl);
+  await snap('12-topics-lesson');
+  await page.click('[data-act=classStep][data-arg="now|1"]');
   for (let i = 0; i < 4; i++) {
     await ready(page);
-    const t = await page.evaluate(() => MQ.app.session().p.topic);
-    if (!['money', 'data', 'shapes'].includes(t)) errors.push(tag + ': topics practice asked ' + t);
+    const t = await page.evaluate(() => MQ.app.session().p.review ? 'data' : MQ.app.session().p.topic);
+    if (t !== 'data') errors.push(tag + ': the Graphs step asked ' + t);
     await answer(page);
     await page.click('.fb.ok [data-act=advance]', { timeout: 3000 }).catch(() => {});
   }
@@ -217,9 +270,20 @@ async function run(viewport, tag) {
   await page.click('.classset [data-act=toggleSchoolTopic] >> nth=0');
   await page.evaluate(() => MQ.app.go('home'));
   if (!(await page.$('.t-class'))) errors.push(tag + ': no class tile for kindergarten topics');
-  await snap('10-k-home');
+  await snap('13-k-home');
+  await page.click('.t-class');
+  await page.waitForSelector('.sl-lesson');
+  await page.click('[data-act=go][data-arg="school:now:how"]');
+  await page.waitForSelector('.sl-how .sl-card .sl-ans');
+  if ((await page.$$('.sl-ideas li')).length < 2) errors.push(tag + ': kindergarten How it works has no big ideas');
+  await snap('14-k-how');
+  await page.click('.sl-how .sl-go');
+  await ready(page);
+  if (!(await page.evaluate(() => MQ.TOPICS[MQ.app.session().p.topic].track === 'k'))) errors.push(tag + ': kindergarten lesson asked a 2nd-grade question');
 
-  if (await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)) errors.push(tag + ': horizontal overflow');
+  await page.waitForTimeout(400); // a new problem card slides in from the side
+  const wide = await page.evaluate(() => (document.documentElement.scrollWidth > window.innerWidth + 1 ? [...document.querySelectorAll('#app *')].filter((e) => e.getBoundingClientRect().right > window.innerWidth + 1).slice(0, 3).map((e) => e.tagName + '.' + e.className) : null));
+  if (wide) errors.push(tag + ': horizontal overflow: ' + wide.join(', '));
   await page.close();
 }
 await run({ width: 390, height: 844 }, 'phone');

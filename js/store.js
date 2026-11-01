@@ -43,6 +43,7 @@
     nnatDays: {}, // 'YYYY-MM-DD': NNAT-3 practice puzzles answered that day (the GATE plan counts practice days)
     puzzles: { n: 6, done: {}, stars: {}, packs: {}, gold: {}, daily: { last: '', streak: 0, best: 0 } }, // Puzzle Time (js/shapes.js): pieces in a jigsaw, puzzles finished, best stars, packs bought, golden ones, the puzzle of the day
     lessons: {}, // Learn courses: module id -> { step, done, stars, at }
+    school: {}, // School lessons (js/school.js): lesson key -> { learn, steps: { skill: best stars }, check: best stars }
     trainer: { topics: MQ.track(grade).core.slice(0, 3), diff: 'auto', mode: 'endless' },
     settings: { sound: true, unlockAll: false, readAloud: grade === 'k', voice: true, school: { program: '', unit: 0, part: 0, topics: [], at: '', weekAt: '', open: 'all', allowed: [] } }, // school: School lessons (js/school.js)
   });
@@ -297,6 +298,13 @@
     for (const id of new Set([...Object.keys(old.lessons || {}), ...Object.keys(nw.lessons || {})])) {
       const a = (old.lessons || {})[id] || {}, b = (nw.lessons || {})[id] || {};
       out.lessons[id] = { step: max(a.step, b.step), done: !!(a.done || b.done), stars: max(a.stars, b.stars), at: (a.at || '') > (b.at || '') ? a.at : (b.at || '') };
+    }
+    // School lessons: How it works seen on either device, the best stars of every step and lesson check
+    out.school = {};
+    for (const k of new Set([...Object.keys(old.school || {}), ...Object.keys(nw.school || {})])) {
+      const a = (old.school || {})[k] || {}, b = (nw.school || {})[k] || {}, steps = Object.assign({}, a.steps);
+      for (const [s, n] of Object.entries(b.steps || {})) steps[s] = max(n, steps[s]);
+      out.school[k] = { learn: max(a.learn, b.learn), steps, check: max(a.check, b.check) };
     }
     // Sunny Farm: the copy changed last wins as a whole (money is spent, animals move), by the farm's own clock,
     // so a device that only opened the farm can't replace a farm played on another device.

@@ -541,7 +541,7 @@
         default: {
           const a = pick(SHAPES.filter((s) => s[1] > 0)), b = pick(SHAPES.filter((s) => s[1] > 0 && s[0] !== a[0]));
           const ka = rnd(1, 3), kb = rnd(1, 2);
-          const pl = (s, k) => (k === 1 ? `1 ${s}` : `${k} ${s}s`);
+          const pl = (s, k) => (k === 1 ? `1 ${s}` : `${k} ${s}${s.endsWith('s') ? 'es' : 's'}`); // 2 rhombuses
           return N(`How many sides in all: <b>${pl(a[0], ka)}</b> and <b>${pl(b[0], kb)}</b>?`, ka * a[1] + kb * b[1], { hint: `A ${a[0]} has ${a[1]} sides. A ${b[0]} has ${b[1]} sides.` });
         }
       }
@@ -1387,11 +1387,11 @@
     const start = d === 4 ? rnd(12, 34) * 30 : rnd(36, 46) * 30, dur = d === 4 ? rnd(1, Math.min(8, Math.floor((1410 - start) / 60))) * 60 : rnd(2, 8) * 60 + pick([0, 30]), end = start + dur; // a.m. to p.m.; at 5: past midnight
     if (d === 4 && chance(0.5)) {
       const ans = clockOf(start);
-      return C(`${act} lasted <b>${dur / 60} hours</b>. It ended at <b>${clockOf(end)}</b>. When did it start?`, ans, U.strChoices(ans, [clockOf(end + dur), clockOf(start - 60), clockOf(start + 60), clockOf(start + 720)], 4), { hint: `Count back ${dur / 60} hours from the end.`, explain: `${clockOf(start)} + ${dur / 60} hours = ${clockOf(end)}` });
+      return C(`${act} lasted <b>${dur / 60} hours</b>. It ended at <b>${clockOf(end)}</b> When did it start?`, ans, U.strChoices(ans, [clockOf(end + dur), clockOf(start - 60), clockOf(start + 60), clockOf(start + 720)], 4), { hint: `Count back ${dur / 60} hours from the end.`, explain: `${clockOf(start)} + ${dur / 60} hours = ${clockOf(end)}` });
     }
-    if (d === 4) return N(`${act} starts at <b>${clockOf(start)}</b> and ends at <b>${clockOf(end)}</b>. How many hours is that?`, dur / 60, { unit: 'hours', hint: 'Count the hours. Noon comes after 11 a.m.', explain: `${clockOf(start)} to ${clockOf(end)} is ${dur / 60} hours` });
+    if (d === 4) return N(`${act} starts at <b>${clockOf(start)}</b> and ends at <b>${clockOf(end)}</b> How many hours is that?`, dur / 60, { unit: 'hours', hint: 'Count the hours. Noon comes after 11 a.m.', explain: `${clockOf(start)} to ${clockOf(end)} is ${dur / 60} hours` });
     const ans = hoursText(dur);
-    return C(`${p} left at <b>${clockOf(start)}</b> and came back at <b>${clockOf(end)}</b>. How long was that?`, ans, U.strChoices(ans, [hoursText(dur + 60), hoursText(dur - 60), hoursText(dur + 30), hoursText(dur - 30)].filter((s) => !s.startsWith('0')), 4), { hint: 'Count whole hours first. Midnight comes after 11 p.m. Then add the half hour.', explain: `${clockOf(start)} to ${clockOf(end)} is ${ans}` });
+    return C(`${p} left at <b>${clockOf(start)}</b> and came back at <b>${clockOf(end)}</b> How long was that?`, ans, U.strChoices(ans, [hoursText(dur + 60), hoursText(dur - 60), hoursText(dur + 30), hoursText(dur - 30)].filter((s) => !s.startsWith('0')), 4), { hint: 'Count whole hours first. Midnight comes after 11 p.m. Then add the half hour.', explain: `${clockOf(start)} to ${clockOf(end)} is ${ans}` });
   }
 
   // ---- Shapes: quadrilaterals, angles; fractions of a whole (2.G.1, 2.G.3) ----

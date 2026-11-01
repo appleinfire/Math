@@ -326,7 +326,7 @@
     if (!cur) return;
     if (cur === 'who') return who();
     const [scr, arg] = cur.split(':');
-    const redraw = { home, map, journal, badges, prep, fixit, progress, school, world: () => world(arg), farm: () => MQ.farmUI.redraw(arg), duel: () => MQ.duelUI.show(), shapes: () => MQ.shapesUI.show(), lessons: () => MQ.lessonsUI.show() }[scr];
+    const redraw = { home, map, journal, badges, prep, fixit, progress, school: () => MQ.schoolUI.show(cur.slice(7)), world: () => world(arg), farm: () => MQ.farmUI.redraw(arg), duel: () => MQ.duelUI.show(), shapes: () => MQ.shapesUI.show(), lessons: () => MQ.lessonsUI.show() }[scr];
     if (redraw) redraw();
   }
   function newExplorer() {
@@ -433,27 +433,13 @@
     later(growCheck, 900);
   }
 
-  // School lessons (js/school.js): every lesson group of the class's math program, this week's first.
-  // The child opens any module unless a grown-up limits them; with another program, the topics a grown-up picked.
+  // School lessons (js/school.js, screens in js/school-ui.js): every lesson group of the class's math program, this week's first.
+  // With another program, a lesson made of the topics a grown-up picked.
   function classTile() {
     const SC = MQ.school, pid = SC.program(st), f = SC.focus(st);
-    if (pid === 'topics') return f ? `<button class="tile t-class" data-act="classPractice"><span class="ti">🏫</span><b>In class now</b><small>${esc(f.title)}</small></button>` : '';
+    if (pid === 'topics') return f ? `<button class="tile t-class" data-act="go" data-arg="school:now"><span class="ti">🏫</span><b>In class now</b><small>${esc(f.title)}</small></button>` : '';
     if (!pid) return '';
     return `<button class="tile t-class" data-act="go" data-arg="school"><span class="ti">🏫</span><b>School lessons</b><small>${f ? 'In class: ' + esc(f.title) : `${SC.units(pid, st.grade).length} modules`}</small></button>`;
-  }
-  function school() {
-    const SC = MQ.school, pid = SC.program(st);
-    if (!pid || pid === 'topics') return home();
-    const units = SC.units(pid, st.grade), wk = SC.week(st), f = SC.focus(st), P = SC.PROGRAMS[pid];
-    const wkKey = wk ? wk.unit + ':' + wk.part : '', shownN = ui.sc && ui.sc.wk === wkKey ? ui.sc.n : wk ? wk.unit : 0; // the child's last open module, until the week changes
-    const now = f ? `<button class="sc-week" data-act="classPractice" data-arg="${wk.unit}:${wk.part}"><span class="sc-wi">🏫</span><span><b>In class now</b><small>${esc(f.title)} · ${esc(f.sub)}</small></span><span class="btn">Practice ▶</span></button>` : '';
-    const list = units.map((u) => {
-      const open = SC.isOpen(st, u.n, S.preview), here = !!wk && wk.unit === u.n, shown = open && shownN === u.n;
-      const parts = shown ? `<div class="sc-parts">${u.parts.map((p, i) => { const isNow = here && wk.part === i; return `<button class="sc-part ${isNow ? 'now' : ''}" data-act="classPractice" data-arg="${u.n}:${i}"><b>Lessons ${p.from}–${p.to}</b><small>${esc(p.title)}</small>${isNow ? '<span class="sc-tag">🏫 In class now</span>' : ''}</button>`; }).join('')}</div>` : '';
-      return `<section class="sc-unit ${open ? '' : 'locked'} ${shown ? 'open' : ''} ${here ? 'here' : ''}"><button class="sc-head" data-act="schoolUnit" data-arg="${u.n}" aria-expanded="${shown}"><span class="sc-num">${open ? u.n : '🔒'}</span><span><b>${esc(u.title)}</b><small>${open ? `${P.unitName} ${u.n} · ${u.parts.length} lesson groups${here ? ' · 🏫 in class now' : ''}` : 'A grown-up can open it'}</small></span><span class="sc-go">${shown ? '▾' : '›'}</span></button>${parts}</section>`;
-    }).join('');
-    render(header('School lessons') + `<main class="school"><p class="lead">${esc(P.short)} · ${MQ.track(st.grade).label}</p>${now}<p class="muted">Pick any lessons to practice: 10 problems each.</p><div class="sc-units">${list}</div></main>`);
-    cur = 'school';
   }
 
   // Sunny Farm: level, money and what's waiting (ripe crops, things to collect, a full basket).
@@ -696,7 +682,7 @@
       <section class="pcard" id="pcard"></section>
       <div id="answer" class="answer"></div>
     </div>`, 'is-play');
-    say(sess.mode === 'level' ? `${bname()}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${bname()}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${bname()}: Lightning round! Go go go! ⚡` : sess.classSet ? `${bname()}: ${sess.classSet.now ? 'Let’s practice what your class is learning!' : `Let’s practice: ${sess.classSet.title}!`} 🏫` : sess.mode === 'daily' ? `${bname()}: Today’s quest — ${sess.warm && sess.warm.length ? '5 math puzzles and 2 GATE warm-ups 🔷' : '5 mixed puzzles'}!` : `${bname()}: Let’s train! Every 5 in a row opens a chest. 🎁`);
+    say(sess.mode === 'level' ? `${bname()}: Get ${sess.goal} right to discover a creature!` : sess.mode === 'fixit' ? `${bname()}: Let’s fix some old mistakes. You’ve got this! 🛠️` : sess.timer ? `${bname()}: Lightning round! Go go go! ⚡` : sess.classSet ? `${bname()}: ${sess.classSet.step >= 0 ? `Let’s practice: ${sess.classSet.steps[sess.classSet.step].name}! Tap 💡 if you need help.` : `Lesson check: ${sess.classSet.title}. Show what you know!`} 🏫` : sess.mode === 'daily' ? `${bname()}: Today’s quest — ${sess.warm && sess.warm.length ? '5 math puzzles and 2 GATE warm-ups 🔷' : '5 mixed puzzles'}!` : `${bname()}: Let’s train! Every 5 in a row opens a chest. 🎁`);
     nextProblem();
     if (sess.timer) sess.interval = setInterval(tick, 1000);
   }
@@ -711,7 +697,7 @@
     const el = $('#pstatus');
     if (!el) return;
     if (sess.classSet) {
-      el.innerHTML = `<span class="ptitle">🏫 ${sess.classSet.now ? 'In class now' : 'School lessons'}</span><span class="slots">${U.range(1, sess.goal).map((i) => `<i class="${i <= sess.correct ? 'on' : ''}"></i>`).join('')}</span>`;
+      el.innerHTML = `<span class="ptitle">🏫 ${sess.classSet.bar}</span><span class="slots">${U.range(1, sess.goal).map((i) => `<i class="${i <= sess.correct ? 'on' : ''}"></i>`).join('')}</span>`;
     } else if (sess.mode === 'trainer') {
       const m = Math.floor(sess.left / 60), s = String(sess.left % 60).padStart(2, '0');
       el.innerHTML = `<span class="stat">🔥 <b>${sess.streak}</b></span><span class="stat">✓ <b>${sess.correct}</b></span>` +
@@ -745,7 +731,7 @@
     // In a Placement Check the difficulty is not shown (it would give the level away).
     const chip = sess.mode === 'check' ? '' : `${p.review ? '<span class="dchip rv" title="A question like one you missed before">🔁 Review</span>' : ''}${p.cls ? '<span class="dchip cls" title="What your class is learning now">🏫 Class</span>' : ''}<span class="dchip d${p.d}">${D_ICONS[p.d]} ${D_NAMES[p.d]}</span>`;
     const tip = tipFor(p);
-    card.innerHTML = `${tip ? `<div class="tipcard"><b>💡 Tip</b> ${esc(tip)}</div>` : ''}<div class="pmeta"><span>${T.icon} ${T.name}</span><span class="pmeta-r">${MQ.canSpeak() ? '<button class="speak" data-act="speak" aria-label="Read the question aloud">🔊</button>' : ''}${chip}</span></div>
+    card.innerHTML = `${tip ? `<div class="tipcard"><b>💡 Tip</b> ${esc(tip)}</div>` : ''}<div class="pmeta"><span>${T.icon} ${T.name}</span><span class="pmeta-r">${sess.classSet ? '<button class="speak how" data-act="classHow" aria-label="How it works">💡</button>' : ''}${MQ.canSpeak() ? '<button class="speak" data-act="speak" aria-label="Read the question aloud">🔊</button>' : ''}${chip}</span></div>
       <div class="ptext ${p.big ? 'eq' : ''} ${p.wordy ? 'wordy' : ''}">${p.text}</div>
       ${p.visual ? `<div class="pvis">${p.visual}</div>` : ''}
       ${p.kind === 'num' ? `<div class="display" id="display"><span class="dval" id="dval"></span>${p.unit ? `<span class="unit">${p.unit}</span>` : ''}</div>` : ''}
@@ -1064,11 +1050,12 @@
     if (sess.timer === 120 && sess.correct > (st.stats.lightning120 || 0)) { st.stats.lightning120 = sess.correct; record = 'New 2-minute record!'; }
     if (!sess.timer && !sess.classSet && sess.best > (st.stats.endlessBest || 0)) { st.stats.endlessBest = sess.best; if (sess.best >= 5) record = 'New best streak!'; }
     S.save();
-    const acc = pct(sess.firstTry, sess.answered), cls = sess.classSet;
+    const acc = pct(sess.firstTry, sess.answered), cls = sess.classSet, out = cls ? MQ.schoolUI.finish(sess) : null; // a lesson step or check: stars and what is next
+    if (out) S.save();
     render(`<main class="result" style="${cls ? '--wc:#3f7fd8;--wt:#e3edfc' : '--wc:#ff6b5b;--wt:#ffe3dd'}">
       <div class="bigemoji">${cls ? '🏫' : sess.timer ? '⚡' : '♾️'}</div>
-      <h1 class="title">${cls ? 'Lesson practice done!' : sess.timer ? 'Time!' : 'Training done!'}</h1>
-      ${cls ? `<p class="lead">${esc(cls.title)}${cls.program === 'topics' ? '' : ` · ${esc(cls.sub)}`}</p>` : ''}
+      <h1 class="title">${out ? out.title : sess.timer ? 'Time!' : 'Training done!'}</h1>
+      ${out ? `<p class="lead">${out.lead}</p>${out.extra}` : ''}
       ${record ? `<div class="unlock">🏆 ${record}</div>` : ''}
       <div class="sumgrid">
         <div><b>${sess.correct}</b><small>correct</small></div>
@@ -1078,13 +1065,13 @@
       </div>
       ${sess.fixedNow ? `<div class="unlock">🛠️ ${sess.fixedNow} old ${sess.fixedNow === 1 ? 'mistake' : 'mistakes'} fixed for good!</div>` : ''}
       ${sess.earned + sess.fixedNow ? eggNudge() : ''}
-      <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button>${cls
-        ? `${cls.learn && st.grade === 'g2' ? `<button class="btn ghost" data-act="go" data-arg="lessons:${cls.learn}">📖 Learn: ${esc(MQ.lessons.module(cls.learn).title)}</button>` : ''}${cls.program === 'topics' ? '' : '<button class="btn ghost" data-act="go" data-arg="school">Other lessons</button>'}<button class="btn" data-act="classPractice" data-arg="${sess.classArg}">Practice again</button>`
+      <div class="row"><button class="btn ghost" data-act="go" data-arg="home">Home</button>${out
+        ? out.buttons
         : sess.kgTopic
         ? `<button class="btn ghost" data-act="go" data-arg="${MQ.TOPICS[sess.kgTopic].cogat ? 'cgtypes' : MQ.TOPICS[sess.kgTopic].logic ? 'lgtypes' : 'kgtypes'}">Other types</button><button class="btn" data-act="kgPractice" data-arg="${sess.kgTopic}">Play again</button>`
         : '<button class="btn ghost" data-act="go" data-arg="trainer">Change settings</button><button class="btn" data-act="startTrainer">Play again</button>'}</div></main>`);
-    if (sess.correct) { MQ.sfx('reward'); if (record) MQ.confetti(); }
-    if (st.settings.voice !== false && sess.correct) MQ.speak(`You got ${sess.correct} right! ${record ? 'A new record!' : cls ? 'Great class practice!' : 'Great training!'}`);
+    if (sess.correct) { MQ.sfx('reward'); if (record || (out && out.stars === 3)) MQ.confetti(); }
+    if (st.settings.voice !== false && sess.correct) MQ.speak(`You got ${sess.correct} right! ${record ? 'A new record!' : out ? (out.stars ? `${out.stars} ${out.stars === 1 ? 'star' : 'stars'}!` : 'Great practice!') : 'Great training!'}`);
     later(checkBadges, 1200);
   }
 
@@ -1143,7 +1130,7 @@
       return finishFixit();
     }
     if (sess.mode === 'trainer') {
-      if (sess.answered === 0) return go(sess.classSet ? (sess.classArg ? 'school' : 'home') : 'trainer');
+      if (sess.answered === 0) return go(sess.classSet ? 'school:' + sess.classSet.id : 'trainer');
       clearTimers();
       sess.locked = true;
       return finishTrainer();
@@ -1645,15 +1632,20 @@
     startSession({ mode: 'trainer', topics: t.topics.slice(), auto: t.diff === 'auto', d: t.diff === 'auto' ? [2, 2] : [+t.diff, +t.diff], goal: 0, timer: t.mode === 'l60' ? 60 : t.mode === 'l120' ? 120 : 0,
       revFit: (r) => familyOf(r.topic) === st.grade });
   }
-  const CLASS_GOAL = 10;
-  function startClass(arg) { // arg 'unit:part' = a lesson group from School lessons; none = what the class is on now
-    const SC = MQ.school;
-    let f;
-    if (arg) { const [n, pi] = arg.split(':').map(Number); if (!SC.isOpen(st, n, S.preview)) return go('school'); f = SC.focusFor(st, n, pi); }
-    else f = SC.focus(st);
-    if (!f) return home();
-    const topics = new Set(f.skills.map((k) => k.topic));
-    startSession({ mode: 'trainer', classSet: f, classArg: arg || '', skills: f.skills, topics: [...topics], d: [2, 2], goal: CLASS_GOAL, timer: 0, revFit: (r) => topics.has(r.topic) });
+  // A lesson of School lessons (js/school.js): arg 'lesson|step' practices one step (its skill, 8 right answers),
+  // 'lesson' alone is the lesson check (every step mixed, earlier lessons as review, 10 right answers).
+  // A lesson is 'unit:part' ('3:1') or 'now' (the topics a grown-up picked); no arg = what the class is on now.
+  function startClass(arg) {
+    const SC = MQ.school, wk = SC.week(st);
+    const [id, k] = String(arg || (wk ? wk.unit + ':' + wk.part : 'now')).split('|');
+    const L = SC.lesson(st, id);
+    if (!L) return go(SC.program(st) === 'eureka' ? 'school' : 'home');
+    if (L.unit && !SC.isOpen(st, L.unit.n, S.preview)) return go('school');
+    const step = k === undefined || k === '' ? -1 : U.clamp(+k || 0, 0, L.steps.length - 1);
+    const skills = step >= 0 ? L.steps[step].skills : L.check, topics = new Set(skills.map((x) => x.topic));
+    const fits = step >= 0 ? (r) => skills.some((x) => x.topic === r.topic && x.d === r.d) : (r) => topics.has(r.topic); // mistakes that come back
+    startSession({ mode: 'trainer', classSet: Object.assign(L, { step, bar: step >= 0 ? `Step ${step + 1} of ${L.steps.length}` : 'Lesson check' }),
+      skills, topics: [...topics], d: [2, 2], goal: step >= 0 ? SC.STEP_GOAL : SC.CHECK_GOAL, timer: 0, revFit: fits });
   }
   function startDaily() {
     // Mix of topics from worlds that are open, at a level that stretches a little.
@@ -2140,7 +2132,7 @@
         <p class="muted">${esc(P.how)}</p>
         <div class="label">What ${esc(st.name)} can open</div><div class="chips">${chip('setSchoolOpen', 'all', 'Every module', c.open !== 'chosen')}${chip('setSchoolOpen', 'chosen', 'Only modules I choose', c.open === 'chosen')}</div>
         ${c.open === 'chosen' ? `<div class="chips">${units.map((u) => { const week = !!wk && wk.unit === u.n; return chip('toggleSchoolAllowed', u.n, `${u.n} · ${esc(u.title)}`, week || (c.allowed || []).includes(u.n), week); }).join('')}</div><p class="muted">This week’s module is always open.</p>` : ''}`;
-      what = `<p class="muted">Home screen: <b>🏫 School lessons</b>. ${esc(st.name)} picks any lessons of ${c.open === 'chosen' ? 'the open modules' : 'every module, also ones the class has not reached yet'}: 10 problems each.${f ? ` <b>${esc(f.title)}</b> (${esc(f.sub)}) is marked 🏫 In class now, and 2 questions of every Daily Quest come from it. Practice now: ${esc(mix)}.` : ' Mark this week’s lessons to put them first and into the Daily Quest.'}</p>`;
+      what = `<p class="muted">Home screen: <b>🏫 School lessons</b>. ${esc(st.name)} picks any lessons of ${c.open === 'chosen' ? 'the open modules' : 'every module, also ones the class has not reached yet'}. Each lesson group is a lesson: How it works (big ideas and solved examples), a practice step for every skill (8 right answers, ★★★ with no mistakes) and a lesson check.${f ? ` <b>${esc(f.title)}</b> (${esc(f.sub)}) is marked 🏫 In class now, and 2 questions of every Daily Quest come from it. Practice now: ${esc(mix)}.` : ' Mark this week’s lessons to put them first and into the Daily Quest.'}</p>`;
     } else if (pid === 'topics') {
       body = `<div class="label">Topics the class is on now (up to ${SC.TOPIC_MAX})</div><div class="chips">${track().core.map((id) => chip('toggleSchoolTopic', id, `${MQ.TOPICS[id].icon} ${MQ.TOPICS[id].name}`, c.topics.includes(id))).join('')}</div>`;
       if (f) what = `<p class="muted">Home screen: <b>🏫 In class now · ${esc(f.title)}</b>, 10 problems. 2 questions of every Daily Quest come from it too.</p>`;
@@ -2213,7 +2205,8 @@
     if (scr === 'duel') return MQ.duelUI.show(arg);
     if (scr === 'shapes') return MQ.shapesUI.show(arg);
     if (scr === 'lessons') return MQ.lessonsUI.show(arg);
-    ({ home, map, world: () => world(arg), trainer, school, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, nntypes, fixit, progress, parent: parentGate }[scr] || home)();
+    if (scr === 'school') return MQ.schoolUI.show(arg);
+    ({ home, map, world: () => world(arg), trainer, journal, hatch, badges, prep, kgtypes, cgtypes, lgtypes, nntypes, fixit, progress, parent: parentGate }[scr] || home)();
   }
 
   const ACTIONS = {
@@ -2355,12 +2348,7 @@
     progRange: (a) => { prog().range = a; keepScroll(cur === 'progress' ? progress : parent); },
     progTopic: (a) => { prog().topic = a; keepScroll(cur === 'progress' ? progress : parent); },
     classPractice: (a) => startClass(a),
-    schoolUnit: (a) => {
-      if (!MQ.school.isOpen(st, +a, S.preview)) return toast('🔒 A grown-up can open this module in <b>For grown-ups</b>.');
-      const wk = MQ.school.week(st), wkKey = wk ? wk.unit + ':' + wk.part : '', shown = ui.sc && ui.sc.wk === wkKey ? ui.sc.n : wk ? wk.unit : 0;
-      ui.sc = { n: shown === +a ? 0 : +a, wk: wkKey };
-      keepScroll(school);
-    },
+    classStep: (a) => startClass(a),
     setSchool: (a) => setSchool({ program: a }),
     setSchoolUnit: (a) => setSchool({ unit: +a, part: 0, weekAt: U.dateKey() }),
     setSchoolPart: (a) => setSchool({ part: +a, weekAt: U.dateKey() }),
@@ -2469,6 +2457,7 @@
     if (st && MQ.duelUI && MQ.duelUI.actions[name]) return MQ.duelUI.actions[name](arg, el); // Card Duels (js/duel.js)
     if (st && MQ.shapesUI && MQ.shapesUI.actions[name]) MQ.shapesUI.actions[name](arg, el); // Puzzle Time (js/shapes-ui.js)
     if (st && MQ.lessonsUI && MQ.lessonsUI.actions[name]) return MQ.lessonsUI.actions[name](arg, el); // Learn (js/lessons-ui.js)
+    if (st && MQ.schoolUI && MQ.schoolUI.actions[name]) return MQ.schoolUI.actions[name](arg, el); // School lessons (js/school-ui.js)
   }
 
   function init() {
@@ -2520,8 +2509,8 @@
     startScreen();
   }
 
-  // kit: what the Sunny Farm, Card Duels and Puzzle Time screens (js/farm-ui.js, js/duel.js, js/shapes-ui.js) borrow from the app
-  const kit = { render, toast, modal, closeModal, go, checkBadges, header, addGems, addXp, record, state: () => st, setCur: (c) => { cur = c; },
+  // kit: what the Sunny Farm, Card Duels, Puzzle Time, Learn and School lessons screens (js/farm-ui.js, js/duel.js, js/shapes-ui.js, js/lessons-ui.js, js/school-ui.js) borrow from the app
+  const kit = { render, toast, modal, closeModal, go, checkBadges, header, addGems, addXp, record, starStr, fmtAnswer, state: () => st, setCur: (c) => { cur = c; },
     startPractice: (topic, d) => { st.trainer = { topics: [topic], diff: d, mode: 'endless' }; S.save(); startTrainer(); } };
   MQ.app = { init, go, kit, session: () => sess, contest: () => ct }; // session() and contest() are used by the browser tests
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
