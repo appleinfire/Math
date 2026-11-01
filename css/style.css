@@ -180,7 +180,7 @@ p { margin: 0.4em 0; }
 .pcard.shake { animation: shake 0.4s; }
 @keyframes slidein { from { transform: translateX(24px); opacity: 0; } }
 @keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
-.pmeta { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 800; color: var(--ink-soft); margin-bottom: 8px; }
+.pmeta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 800; color: var(--ink-soft); margin-bottom: 8px; }
 .ptext { font-size: 1.2rem; font-weight: 700; }
 .ptext.wordy { font-size: 1.15rem; line-height: 1.5; }
 .ptext.eq { font-family: var(--display); font-size: clamp(1.9rem, 8vw, 2.7rem); font-weight: 600; text-align: center; padding: 12px 0; font-variant-numeric: tabular-nums; }
@@ -550,7 +550,7 @@ body[data-track="k"] { --paper: #eef2fb; }
 .kgrade { display: flex; gap: 6px; flex-wrap: wrap; }
 
 /* ================= Read-aloud & kindergarten pictures ================= */
-.pmeta-r { display: inline-flex; align-items: center; gap: 8px; }
+.pmeta-r { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; margin-left: auto; }
 .speak { border: 0; width: 40px; height: 40px; border-radius: 50%; background: var(--sun-soft); box-shadow: inset 0 0 0 2px var(--sun); font-size: 1.2rem; padding: 0; }
 .speak:active { transform: scale(0.92); }
 .emojis { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: 6px 10px; font-size: 2.3rem; line-height: 1.15; justify-items: center; }
@@ -812,6 +812,42 @@ svg.vis.abacus { max-height: 160px; }
 .sc-part small { display: block; color: var(--ink-soft); font-weight: 700; }
 .sc-part.now { background: #e3edfc; box-shadow: inset 0 0 0 3px #3f7fd8; }
 .sc-tag { display: inline-block; margin-top: 4px; font-size: 0.78rem; font-weight: 800; color: #2a5fb0; }
+.sc-part.mastered { background: var(--sun-soft); box-shadow: inset 0 0 0 2px var(--sun); }
+.sc-pr { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.8rem; font-weight: 800; color: #2a5fb0; }
+.sc-bar { flex: 1; min-width: 40px; height: 8px; border-radius: 999px; background: #dfe7f1; overflow: hidden; }
+.sc-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #3f7fd8, #ffb547); }
+/* a lesson: How it works, the steps, the lesson check */
+.school { --wc: #3f7fd8; }
+.sl-lesson .lead .sc-tag { margin: 0 0 0 6px; }
+.sl-meter { display: flex; align-items: center; gap: 10px; margin: 8px 0 2px; }
+.sl-meter .sc-bar { height: 12px; }
+.sl-meter b { font-family: var(--display); font-weight: 600; font-size: 1.1rem; color: #2a5fb0; white-space: nowrap; }
+.sl-go { background: #3f7fd8; box-shadow: 0 4px 0 #2a5fb0; }
+.sl-path { list-style: none; margin: 16px 0 8px; padding: 0; display: grid; gap: 8px; }
+.sl-step { width: 100%; border: 0; border-radius: 16px; padding: 10px 12px; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; text-align: left; color: var(--ink); background: var(--card); box-shadow: inset 0 0 0 2px var(--line), 0 3px 0 var(--line); min-height: 60px; }
+.sl-step.next { box-shadow: inset 0 0 0 3px #3f7fd8, 0 3px 0 #2a5fb0; background: #f2f7ff; }
+.sl-step.done { background: #fbfdf9; }
+.sl-ic { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #e3edfc; color: #2a5fb0; font-weight: 900; font-size: 1.05rem; }
+.sl-step.done .sl-ic { background: var(--good-soft); color: var(--good); }
+.sl-tx b { display: block; font-weight: 800; line-height: 1.2; }
+.sl-tx small { display: block; margin-top: 2px; color: var(--ink-soft); font-weight: 700; font-size: 0.82rem; }
+.sl-st { font-weight: 900; color: var(--good); white-space: nowrap; }
+.sl-how section { margin-top: 14px; }
+.sl-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sl-h h2 { margin: 0; font: 600 1.25rem/1.2 var(--display); }
+.sl-ideas { background: var(--sun-soft); border-radius: 18px; padding: 12px 14px; box-shadow: inset 0 0 0 2px var(--sun); }
+.sl-ideas ul, .sl-tips { margin: 8px 0 0; padding-left: 22px; display: grid; gap: 6px; font-weight: 700; font-size: 1.05rem; line-height: 1.4; }
+.sl-tips { text-align: left; font-size: 0.98rem; }
+.sl-chips { margin: 10px 0 2px; }
+.sl-ex .muted { margin: 8px 0; }
+.sl-card { margin-top: 6px; }
+.sl-sol { margin-top: 10px; display: grid; gap: 6px; padding: 10px 12px; border-radius: 14px; background: #eef1ff; color: #333c7a; font-weight: 700; text-align: left; }
+.sl-ans { color: var(--good); font-weight: 800; }
+.sl-sol .explain { color: var(--ink-soft); }
+.sl-mh { margin: 14px 0 0; font: 600 1.1rem/1.2 var(--display); }
+.modal-card .sl-card { text-align: left; padding: 12px; }
+.sl-stars { font-size: 2.2rem; margin: 2px 0 4px; }
+.speak.how { background: #e3edfc; box-shadow: inset 0 0 0 2px #3f7fd8; }
 .classset .chips .chip { text-align: left; }
 .classnote { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--sun-soft); font-weight: 700; }
 .t-progress { box-shadow: inset 0 0 0 2px var(--line), 0 3px 0 var(--line); }
@@ -2023,3 +2059,11 @@ button.ls-disk { cursor: pointer; box-shadow: 0 3px 0 #22304f; }
   .ls-frame i.on::after, .ls-frame button::after { width: 20px; height: 20px; }
   .ls-disk { width: 30px; height: 30px; font-size: 0.64rem; }
 }
+.sl-got { color: var(--good) !important; background: var(--good-soft); border-color: var(--good) !important; font-weight: 900; }
+.sl-picks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.sl-pick { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 12px; font-weight: 800; font-size: 0.92rem; }
+.sl-pick.ok { background: var(--good-soft); color: var(--good); box-shadow: inset 0 0 0 2px var(--good); }
+.sl-pick.no { background: #f3f4f7; color: var(--ink-soft); text-decoration: line-through; }
+.sl-pick svg { max-height: 54px; width: auto; }
+.arrows .anum.sl-got { border: 3px solid var(--good); }
+.arrows small.sl-got { background: none; }
