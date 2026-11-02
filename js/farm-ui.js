@@ -49,7 +49,8 @@
   const nextUnlockLevel = (L) => { for (let x = L + 1; x < L + 60; x++) if (F.unlocksAt(x, grade()).length) return x; return L + 1; };
 
   // ---------------------------------------------------------------- the farm
-  function tipLine() { return `<div class="buddy small"><span class="buddy-e">${MQ.face(st())}</span><div class="bubble">${esc(MQ.buddyName(st()))}: ${tipText()}</div></div>`; }
+  // Pip's one next thing to do, with a button that reads it aloud.
+  function tipLine() { return `<div class="ftip"><span class="ftip-e">${MQ.face(st())}</span><div class="ftip-b"><span>${esc(MQ.buddyName(st()))}: ${tipText()}</span><button class="ftip-say" data-act="fSay" aria-label="Read it to me">🔊</button></div></div>`; }
   function tipText() {
     const f = fm();
     const cheapest = Math.min(...Object.entries(F.CROPS).filter(([, c]) => c.lv <= F.level(f.xp).level).map(([id]) => F.seedPrice(id, grade())));
@@ -112,52 +113,58 @@
     const basket = Object.entries(f.basket).filter(([, c]) => c > 0).map(([id, c]) => `<span class="fchip ${F.ITEMS[id].myth ? 'myth' : ''}">${F.ie(id)} ${c} <small>× ${fmt(F.price(id, g))}</small>${kept[id] ? `<small class="fkept" title="${kept[id]} kept for your orders">📋 ${kept[id]}</small>` : ''}</span>`).join('') || '<span class="muted">Empty. Pick crops and collect from animals.</span>';
     const hungry = F.allPens(f).some((p) => p.a && !p.fed), ready = F.allPens(f).some((p) => F.penReady(p));
     const ripe = f.beds.filter((b) => F.cropStage(b) === 'ready').length, empty = F.emptyBeds(f).length;
-    const bankDay = F.bankDue(f) > 0, nights = F.nightsToBankDay(f.day);
-    K().render(header('🌻 Sunny Farm') + `<main class="farm">
-      <section class="flevel">
-        <div class="flv"><b>Farm level ${lv.level} · ${esc(F.title(lv.level))}</b><span>Farm day ${f.day} · ${F.STANDS[f.stand].e} ${esc(F.STANDS[f.stand].name)}</span></div>
-        <div class="fbar xp" role="progressbar" aria-valuenow="${pctv}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pctv}%"></span></div>
-        <small class="muted">${f.xp - lv.from} / ${lv.to - lv.from} XP to level ${lv.level + 1} · Money problems: ${tier.ahead ? '⭐ ' : ''}${esc(tier.name)}</small>
-      </section>
-      ${MQ.store.preview ? pvTiers() : ''}
-      ${wxBar()}
-      ${goalBar()}
-      ${dreamCard()}
-      ${merchantCard()}
-      ${charmStrip()}
-      ${bankDay ? `<button class="fbankday" data-act="go" data-arg="farm:bank">🏦 <b>Bank day!</b> Your savings earned interest. Tap to collect it.</button>` : ''}
-      ${mgrCard()}
-      ${orderStrip()}
-      ${tipLine()}
-      <button class="btn big fstand" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Open the stand ${n ? `· ${n} to sell` : all ? '· all kept for orders' : '· basket is empty'}</button>
-      <div class="fbtns">
-        <button class="tile" data-act="go" data-arg="farm:shop"><span class="ti">🛒</span><b>Shop</b><small>Animals, feed, more</small></button>
-        ${lv.level >= F.BANK_LV ? `<button class="tile ${bankDay ? 'hot' : ''}" data-act="go" data-arg="farm:bank"><span class="ti">🏦</span><b>Bank</b><small>${bankDay ? '🏦 Bank day today!' : F.depositReady(f) ? '🔓 Deposit unlocked!' : f.bank.bal ? `${fmt(f.bank.bal)} · 🏦 in ${nights} ${nights === 1 ? 'night' : 'nights'}` : 'Save and earn'}</small></button>` : `<button class="tile locked" disabled><span class="ti">🏦</span><b>Bank</b><small>🔒 Level ${F.BANK_LV}</small></button>`}
-        <button class="tile" data-act="fJobs"><span class="ti">🧹</span><b>Odd jobs</b><small>Earn at the big market</small></button>
-        <button class="tile" data-act="fSleep"><span class="ti">🌙</span><b>Sleep</b><small>Start farm day ${f.day + 1}</small></button>
+    const bankDay = F.bankDue(f) > 0, nights = F.nightsToBankDay(f.day), dep = F.depositReady(f);
+    const work = ripe || ready || (hungry && f.feed > 0) || Object.values(f.works).some((w) => w.ready);
+    // what must stay on view (orders, the Big Dream, the saving goal), then what is happening now
+    const keep = orderStrip() + dreamCard() + goalBar();
+    const news = merchantCard() + charmStrip() + (bankDay ? `<button class="fbankday" data-act="go" data-arg="farm:bank">🏦 <b>Bank day!</b> Your savings earned interest. Tap to collect it.</button>` : '') + mgrCard();
+    const bankBtn = lv.level >= F.BANK_LV
+      ? `<button class="fbig fbankb ${bankDay || dep ? 'hot' : ''}" data-act="go" data-arg="farm:bank" aria-label="Bank: ${bankDay ? 'bank day today' : dep ? 'your deposit unlocked' : `bank day in ${nights} ${nights === 1 ? 'night' : 'nights'}`}"><span>🏦</span>Bank${bankDay || dep ? '<i class="fbadge">!</i>' : ''}</button>`
+      : `<button class="fbig fbankb locked" disabled aria-label="Bank: opens at farm level ${F.BANK_LV}"><span>🏦</span>🔒 ${F.BANK_LV}</button>`;
+    // the bar at the bottom comes first, so it is the first Sell and Sleep on the page
+    K().render(`<nav class="fdock" aria-label="Farm actions"><div class="fdock-in">
+      <div class="fdock-acts">
+        ${bankDay ? '<button class="btn ghost" data-act="go" data-arg="farm:bank">🏦 Collect interest</button>' : ''}
+        ${ripe ? `<button class="btn ghost" data-act="fPickAll">🧺 Pick all · ${ripe}</button>` : ''}
+        ${ready ? '<button class="btn ghost" data-act="fCollectAll">🥚 Collect all</button>' : ''}
+        ${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}
+        ${empty >= 2 ? '<button class="btn ghost" data-act="fPlantAll">🌱 Plant all</button>' : ''}
+        <button class="btn ghost" data-act="fJobs">🧹 Odd jobs</button>
       </div>
-      ${SC.farm(f, g)}
+      <div class="fdock-main">
+        <button class="fbig fshop" data-act="go" data-arg="farm:shop" aria-label="Shop: animals, feed and more"><span>🛒</span>Shop</button>
+        ${bankBtn}
+        <button class="fbig fsell fstand ${n && !work ? 'go' : ''}" data-act="fMarket" ${n ? '' : 'disabled'} aria-label="Open the stand"><b>🏪 Sell</b><small>${n ? `${n} to sell` : all ? 'all kept for orders' : 'basket is empty'}</small></button>
+        <button class="fbig fsleep" data-act="fSleep" aria-label="Sleep: start farm day ${f.day + 1}"><span>🌙</span>Sleep</button>
+      </div>
+    </div></nav>
+    <header class="fhud">
+      <button class="iconbtn" data-act="go" data-arg="home" aria-label="Back">←</button>
+      <span class="flvl" style="--p:${pctv}%" role="img" aria-label="Farm level ${lv.level}, ${pctv}% of the way to level ${lv.level + 1}"><b>${lv.level}</b></span>
+      <span class="fname"><b>${esc(st().name)}’s farm</b><small>${esc(cap(F.title(lv.level)))} · ${f.xp - lv.from} / ${lv.to - lv.from} XP</small></span>
+      <span class="fstats">
+        <span class="fstat money" id="fdmoney" title="Money">💰 <b id="fmoney">${fmt(f.money)}</b></span>
+        <span class="fstat" id="fdbasket" title="In the basket">🧺 <b>${all}</b></span>
+        <span class="fstat" id="ffeed" title="Feed">🌾 <b>${f.feed}</b></span>
+      </span>
+    </header>
+    <main class="farm">
+      ${MQ.store.preview ? pvTiers() : ''}
+      <div class="fgrid">
+        <div class="fcol">
+          ${keep ? `<div class="fkeep">${keep}</div>` : ''}
+          ${news.trim() ? `<div class="fnews">${news}</div>` : ''}
+          <div class="fdayrow"><span class="fday" title="Money problems: ${esc(tier.name)}">📅 Farm day ${f.day}</span>${wxBar()}</div>
+          ${tipLine()}
+        </div>
+        ${SC.farm(f, g)}
+      </div>
       ${f.helper.hired ? `<div class="fhelp">🧑‍🌾 <span>Farmhand ${F.HELPER.name} ${f.helper.on ? `feeds the animals at night and collects in the morning · ${fmt(F.HELPER.wage[g === 'k' ? 0 : 1])} a day` : 'is taking a break'}</span><button class="btn ghost" data-act="fHelper">${f.helper.on ? 'Pause' : 'Back to work'}</button></div>` : ''}
       <h2>🧺 Basket</h2>
       <div class="fbasket" id="fbasket">${basket}</div>
       ${Object.keys(kept).length ? '<p class="muted small">📋 = kept for your orders: customers at the stand don’t buy it.</p>' : ''}
-      <p class="muted center">Sold ${f.stats.sold} things · earned ${fmt(f.stats.earned)} in all</p>
-    </main>
-    <nav class="fdock" aria-label="Farm resources and quick actions"><div class="fdock-in">
-      <div class="fdock-row">
-        <span class="fstat" id="fdmoney" title="Money">💰 <b>${fmt(f.money)}</b></span>
-        <span class="fstat" id="fdbasket" title="In the basket">🧺 <b>${all}</b></span>
-        <span class="fstat" id="ffeed" title="Feed">🌾 <b>${f.feed}</b></span>
-        <button class="btn fsell" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Sell</button>
-      </div>
-      ${bankDay || ripe || empty >= 2 || hungry || ready ? `<div class="fdock-acts">
-        ${bankDay ? '<button class="btn ghost" data-act="go" data-arg="farm:bank">🏦 Collect interest</button>' : ''}
-        ${ripe ? '<button class="btn ghost" data-act="fPickAll">🧺 Pick all</button>' : ''}
-        ${ready ? '<button class="btn ghost" data-act="fCollectAll">🥚 Collect all</button>' : ''}
-        ${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}
-        ${empty >= 2 ? '<button class="btn ghost" data-act="fPlantAll">🌱 Plant all</button>' : ''}
-      </div>` : ''}
-    </div></nav>`, 'is-farm' + wxClass(f));
+      <p class="muted center">${F.STANDS[f.stand].e} ${esc(F.STANDS[f.stand].name)} · sold ${f.stats.sold} things · earned ${fmt(f.stats.earned)} in all</p>
+    </main>`, 'is-farm' + wxClass(f));
     K().setCur('farm');
     dockChanges({ money: f.money, basket: all, feed: f.feed });
     if (F.dreamOpen(f) && !f.dream.seen && !MQ.store.preview) setTimeout(() => { if (!$('#modal') && $('.fdream')) dreamIntro(); }, 500);
@@ -1562,6 +1569,7 @@
     fFeedAll: () => feedAll(),
     fCollectAll: () => collectAll(),
     fSleep: () => sleep(),
+    fSay: () => MQ.speak(tipText()),
     fMarket: () => startMarket(),
     fWork: (a, el) => work(a, el),
     fPickAll: () => pickAll(),
