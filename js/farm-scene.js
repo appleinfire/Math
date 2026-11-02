@@ -43,9 +43,11 @@
     const it = F.ITEMS[b.c], left = F.cropDays(b) - b.g, y = F.cropYield(b, fmNow);
     const n = Math.min(y, 4); // the label says how many; four fit on a small bed
     const sprite = s === 'ready' ? it.e : s === 'seed' ? '🌱' : '🌿';
-    const plants = Array.from({ length: s === 'ready' ? n : 3 }, (_, k) => `<i style="--k:${k}">${sprite}</i>`).join('');
-    const label = s === 'ready' ? `Pick ${y}!` : `${left} ${left === 1 ? 'day' : 'days'}`;
-    return `<button class="fbed soil ${s}${glass}" data-act="fBed" data-arg="${i}" aria-label="${esc(it.many)}: ${s === 'ready' ? 'ripe, tap to pick' : `ready in ${label}`}"><span class="plants">${plants}</span>${ups}${rent}${b.again ? '<span class="bagain" title="Second harvest">🔁</span>' : ''}<span class="flabel">${s === 'ready' ? label : it.e + ' ' + label}</span></button>`;
+    const plants = Array.from({ length: s === 'ready' ? n : 2 }, (_, k) => `<i style="--k:${k}">${sprite}</i>`).join('');
+    // a ripe bed says how many to pick (✋ 7); a growing one shows the crop in a ring that fills up, and the nights left
+    const ring = s === 'ready' ? '' : `<span class="bring" style="--p:${Math.round((100 * b.g) / F.cropDays(b))}%" aria-hidden="true"><i>${it.e}</i></span>`;
+    const days = `${left} ${left === 1 ? 'day' : 'days'}`;
+    return `<button class="fbed soil ${s}${glass}" data-act="fBed" data-arg="${i}" aria-label="${esc(it.many)}: ${s === 'ready' ? `ripe, tap to pick ${y}` : `ready in ${days}`}"><span class="plants">${plants}${ring}</span>${ups}${rent}${b.again ? '<span class="bagain" title="Second harvest">🔁</span>' : ''}<span class="flabel">${s === 'ready' ? `✋ ${y}` : `🌙 ${left}`}</span></button>`;
   }
   function penHtml(p, i) {
     if (!p.a) return `<button class="fpen pasture empty" data-act="go" data-arg="farm:shop" aria-label="Empty pen: buy an animal in the shop"><span class="plus">＋</span><span class="flabel">Buy an animal</span></button>`;
@@ -55,7 +57,7 @@
     const state = ready ? 'ready' : p.fed ? 'fed' : 'hungry';
     const age = ['Baby', 'Young', 'Grown-up'][sg];
     const many = F.penCount(p);
-    const chip = ready ? got.map(([id, n]) => `${F.ie(id)}×${n}`).join(' ') : p.fed ? '❤️' : `🌾 ${F.penEat(p)}`;
+    const chip = ready ? '✋ ' + got.map(([id, n]) => `${F.ie(id)}×${n}`).join(' ') : p.fed ? '❤️' : `🌾 ${F.penEat(p)}`;
     const loot = ready ? `<span class="loot">${got.flatMap(([id, n]) => Array(Math.min(n, 5)).fill(F.ie(id))).slice(0, 5).map((e, k) => `<i style="--k:${k}">${e}</i>`).join('')}</span>` : '';
     let who;
     if (p.a === 'bees') {

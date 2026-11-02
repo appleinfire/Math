@@ -2076,6 +2076,181 @@ button.ls-disk { cursor: pointer; box-shadow: 0 3px 0 #22304f; }
 .sl-pick svg { max-height: 54px; width: auto; }
 .arrows .anum.sl-got { border: 3px solid var(--good); }
 .arrows small.sl-got { background: none; }
+
+/* ================= Sunny Farm, the new look: a bright cartoon farm with a game HUD (js/farm-ui.js main) =================
+   On top: the level, money, basket and feed (they stay while the page scrolls). Then what must stay on view (orders,
+   the Big Dream, the saving goal), what is happening now, the day, and Pip's one next thing. The farm itself is big,
+   and the bar at the bottom has the big buttons. Everything that is ready to take sways (a ripe bed, eggs in a pen). */
+html:has(#app.is-farm) body { --fsky1: #5ec2ff; --fsky2: #c9eeff; background-color: var(--paper); background-image: linear-gradient(var(--fsky1), var(--fsky2) 420px, var(--paper) 1000px); background-size: 100% 1000px; background-repeat: no-repeat; }
+html:has(#app.wx-rain) body { --fsky1: #8ea4b9; --fsky2: #d6e0ea; }
+html:has(#app.wx-storm) body { --fsky1: #55607a; --fsky2: #aab4c6; }
+html:has(#app.wx-fog) body { --fsky1: #b9c5cc; --fsky2: #eef1f2; }
+html:has(#app.wx-heat) body { --fsky1: #ffb65c; --fsky2: #ffe6ad; }
+html:has(#app.wx-happy) body { --fsky1: #ffcf6b; --fsky2: #fff3cc; }
+html:has(#app.wx-rainbow) body { --fsky1: #86cdf7; --fsky2: #f1e9ff; }
+#app.is-farm { max-width: 900px; padding: 10px 16px 200px; }
+html:has(#app.is-farm) { scroll-padding-top: 96px; scroll-padding-bottom: 180px; }
+@keyframes fsquash { 0%, 100% { scale: 1 1; } 40% { scale: 1.04 0.95; } 60% { scale: 0.97 1.04; } }
+@keyframes fpop { 0%, 100% { scale: 1; } 50% { scale: 1.05; } }
+
+/* the HUD */
+.fhud { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40; display: flex; align-items: center; gap: 10px; margin: 0 0 14px; padding: 8px 10px; border-radius: 26px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 5px 0 rgba(34, 48, 74, 0.14), 0 10px 24px rgba(20, 60, 120, 0.12); }
+.flvl { flex: none; width: 58px; height: 58px; padding: 5px; border-radius: 50%; display: grid; background: conic-gradient(#ffc93c var(--p, 0%), #e3ecf5 0); }
+.flvl b { display: grid; place-items: center; border-radius: 50%; background: #2e7df6; color: #ffffff; font-family: var(--display); font-weight: 600; font-size: 1.45rem; line-height: 1; box-shadow: inset 0 0 0 3px #ffffff; }
+.fname { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+.fname b { font-family: var(--display); font-weight: 600; font-size: 1.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fname small { color: var(--ink-soft); font-weight: 800; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fstats { margin-left: auto; display: flex; gap: 6px; flex: none; }
+.fhud .fstat { padding: 7px 14px 7px 10px; font-family: var(--display); font-weight: 600; font-size: 1.25rem; background: #f4f8fc; box-shadow: inset 0 0 0 2px #e1e9f2; }
+.fhud .fstat.money { color: #1e8a37; }
+.fhud .fstat .delta { top: auto; bottom: -20px; }
+
+/* what stays on view, and what is happening now */
+.fkeep, .fnews { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.fkeep > *, .fnews > * { margin: 0; flex: 1 1 180px; min-width: 0; width: auto; }
+.fkeep > .forders { flex: 2.2 1 330px; }
+.fnews > .fcharms { flex-basis: 100%; }
+.fkeep .forders { background: #ffffff; border-radius: 22px; padding: 10px 12px 12px; box-shadow: 0 5px 0 rgba(34, 48, 74, 0.16); }
+.fkeep .fo-head { color: var(--ink); }
+.fkeep .fo-head b { font-size: 1.15rem; }
+.fkeep .forder:not(.ready):not(.big) { background: #fffbef; box-shadow: inset 0 0 0 3px #f2e3b3, 0 3px 0 rgba(107, 66, 36, 0.25); }
+.fkeep .forder::before { display: none; }
+.fkeep .forder { transform: none; border-radius: 14px; padding: 8px 8px 7px; }
+.fkeep .fdream, .fkeep .fgoal { border-radius: 22px; align-items: center; padding: 10px 12px; box-shadow: 0 5px 0 rgba(34, 48, 74, 0.16); }
+.fkeep .fgoal { background: #ffffff; box-shadow: inset 0 0 0 3px #ffe08a, 0 5px 0 rgba(34, 48, 74, 0.16); }
+.fkeep .fgoal.rare { box-shadow: inset 0 0 0 3px #9d7bff, 0 5px 0 #5a2fb0; }
+.fkeep .fdream-pic { width: 64px; }
+.fkeep .fgoal .fbar, .fkeep .fdream .fbar { height: 14px; }
+.fkeep .fgoal .fbar span { background: #ffc93c; }
+.fkeep .fdream .fbar span { background: #ff9f1c; }
+.fnews .fbankday, .fnews .fmgr, .fnews .fmerchant { border-radius: 22px; }
+.fnews .fmerchant .fdream-t small:first-of-type { display: none; } /* his wares are in the wagon: the card says he is here and when he leaves */
+.fnews .fmgr.hot { animation: fpop 1.2s ease-in-out infinite; }
+.fdream.hot { animation: dreamglow 1.6s ease-in-out infinite, fpop 1.2s ease-in-out infinite; }
+.fdayrow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin-bottom: 12px; }
+.fday { display: inline-flex; align-items: center; padding: 6px 14px; border-radius: 999px; background: #ffffff; font-weight: 900; box-shadow: 0 3px 0 rgba(34, 48, 74, 0.14); }
+.fdayrow .fwxbar { flex: 1 1 260px; width: auto; margin: 0; border-radius: 999px; box-shadow: 0 3px 0 rgba(34, 48, 74, 0.14); }
+
+/* Pip */
+.ftip { display: flex; align-items: flex-end; gap: 8px; margin: 0 0 14px; }
+.ftip-e { font-size: 2.6rem; line-height: 1; animation: float 4s ease-in-out infinite; }
+.ftip-b { position: relative; flex: 1; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 14px; border-radius: 20px; background: #ffffff; box-shadow: 0 4px 0 rgba(34, 48, 74, 0.14); font-weight: 800; font-size: 1.02rem; line-height: 1.3; }
+.ftip-b::before { content: ''; position: absolute; left: -9px; bottom: 12px; border: 9px solid transparent; border-left: 0; border-right-color: #ffffff; }
+.ftip-go { flex: 1; min-width: 0; border: 0; padding: 0; background: none; text-align: left; font: inherit; color: inherit; }
+.ftip-say { flex: none; width: 42px; height: 42px; border-radius: 50%; border: 0; background: #fff6d6; box-shadow: inset 0 0 0 2px #ffc93c; font-size: 1.15rem; }
+
+/* the farm */
+#app.is-farm .scene { margin-top: 0; border-radius: 30px; box-shadow: 0 0 0 4px #ffffff, 0 9px 0 4px rgba(34, 48, 74, 0.14); }
+#app.is-farm .land { padding: 14px 14px 0; gap: 14px; }
+#app.is-farm .beds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 12px; position: relative; }
+#app.is-farm .scarecrow { position: absolute; top: -40px; right: 6px; font-size: 2.2rem; pointer-events: none; }
+#app.is-farm .fbed.soil { max-width: none; height: 96px; border-radius: 18px; background: repeating-linear-gradient(180deg, #a86e3e 0 12px, #94602f 12px 24px); box-shadow: inset 0 0 0 3px #6b4224, 0 5px 0 #573519; }
+#app.is-farm .fbed.soil.empty { opacity: 1; background: repeating-linear-gradient(180deg, #b98250 0 12px, #a97443 12px 24px); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.75), 0 5px 0 #8a5a31; }
+#app.is-farm .fbed.soil.ready { box-shadow: inset 0 0 0 3px #ffd43b, 0 5px 0 #573519, 0 0 0 4px rgba(255, 212, 59, 0.6); }
+#app.is-farm .fbed.soil.rented { box-shadow: inset 0 0 0 3px #e0a21b, 0 5px 0 #8a5a08; }
+#app.is-farm .plants { align-items: center; gap: 4px; }
+#app.is-farm .fbed.ready .plants i { font-size: 2.1rem; }
+#app.is-farm .fbed .flabel { z-index: 2; }
+#app.is-farm .plants { max-width: calc(100% - 8px); overflow: hidden; }
+#app.is-farm .fbed .flabel { font-family: var(--display); font-weight: 600; font-size: 0.9rem; padding: 0 9px; background: rgba(34, 48, 74, 0.78); color: #ffffff; }
+#app.is-farm .fbed.ready .flabel { left: 50%; bottom: -10px; transform: translateX(-50%); padding: 0 12px; font-size: 1.05rem; background: #ffc93c; color: var(--ink); box-shadow: 0 0 0 3px #ffffff, 0 3px 0 3px rgba(0, 0, 0, 0.12); white-space: nowrap; }
+#app.is-farm .fbed.empty .flabel { left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.9); color: #8a5a31; }
+#app.is-farm .fbed.empty .plus { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 14px; border-radius: 50%; background: rgba(255, 255, 255, 0.9); color: #a97443; font-size: 1.7rem; line-height: 1; }
+.bring { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(#ffc93c var(--p, 0%), rgba(255, 255, 255, 0.55) 0); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2); }
+.bring i { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: #ffffff; font-style: normal; font-size: 1.05rem; line-height: 1; }
+#app.is-farm .pens { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 12px; }
+#app.is-farm .fpen.pasture { height: 112px; border-radius: 18px; background: linear-gradient(#cff5a6, #a9e378); box-shadow: inset 0 0 0 4px #e3b271, 0 5px 0 #a9763c; }
+#app.is-farm .fpen.pasture.ready { box-shadow: inset 0 0 0 4px #ffd43b, 0 5px 0 #a9763c, 0 0 0 4px rgba(255, 212, 59, 0.6); }
+#app.is-farm .fpen.pasture.empty { background: rgba(255, 255, 255, 0.22); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.85); opacity: 1; }
+#app.is-farm .fpen.pasture.empty .plus { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, 0.9); color: #4fa62f; font-size: 1.7rem; line-height: 1; margin-bottom: 18px; }
+#app.is-farm .fpen.pasture.myth { background: radial-gradient(circle at 50% 20%, #fdf3ff, #c9ecb0 70%, #a6dc80); box-shadow: inset 0 0 0 4px #b48cf2, inset 0 0 0 6px #ffd23f, 0 5px 0 #7a3fd1, 0 0 14px 2px rgba(255, 143, 224, 0.7); }
+#app.is-farm .fpen.a-fishpond { background: radial-gradient(ellipse at 50% 60%, #8fd8f6, #4aa8d8 75%); }
+#app.is-farm .pchip { font-family: var(--display); font-weight: 600; font-size: 0.95rem; padding: 1px 10px; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12); }
+#app.is-farm .hungry .pchip { background: #ffffff; color: #8a5a08; animation: wiggle 1.2s ease-in-out infinite; }
+#app.is-farm .ready .pchip { background: #ffc93c; }
+#app.is-farm .flabel { font-size: 0.75rem; }
+#app.is-farm .fhouse, #app.is-farm .fwork { border-radius: 14px; }
+@media (min-width: 600px) { #app.is-farm .byard { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+/* everything that is ready to take sways, so a child sees at once what is left to do */
+.fbed.ready, .fpen.pasture.ready, .fhouse.ready, .fwork.ready { animation: fsquash 1.3s ease-in-out infinite; }
+.fpen.pasture.myth.ready { animation: penmyth 2.4s ease-in-out infinite, fsquash 1.3s ease-in-out infinite; }
+.forder.ready { animation: orderready 1.8s ease-in-out infinite, fpop 1.2s ease-in-out infinite; }
+.fbasket .fchip { background: #ffffff; box-shadow: 0 3px 0 rgba(34, 48, 74, 0.14); }
+
+/* the bar at the bottom: quick actions, then the big buttons */
+.fdock { padding: 10px 14px calc(12px + env(safe-area-inset-bottom)); border-radius: 26px 26px 0 0; background: rgba(255, 255, 255, 0.96); }
+.fdock-in { max-width: 868px; gap: 10px; }
+.fdock-acts > :first-child { margin-left: auto; }
+.fdock-acts > :last-child { margin-right: auto; }
+.fdock-acts .btn { height: 42px; padding: 0 14px; border-radius: 999px; background: #fff6d6; color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 1rem; box-shadow: inset 0 0 0 2px #ffe08a, 0 3px 0 #e8c45a; }
+.fdock-main { display: flex; gap: 10px; height: 74px; }
+.fbig { position: relative; flex: none; width: 88px; border: 0; border-radius: 22px; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; background: #ffffff; color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 1rem; box-shadow: inset 0 0 0 2px #e1e9f2, 0 5px 0 #b9c9e0; }
+.fbig > span { font-size: 1.9rem; line-height: 1; }
+.fbig:active { transform: translateY(3px); }
+.fbig.fsell { flex: 1; min-width: 0; width: auto; margin: 0; padding: 0 8px; background: #2db84c; color: #ffffff; box-shadow: 0 5px 0 #1f8a37; }
+.fbig.fsell b { font-family: var(--display); font-weight: 600; font-size: 1.7rem; line-height: 1.05; text-shadow: 0 2px 0 rgba(0, 0, 0, 0.18); }
+.fbig.fsell small { font-weight: 900; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.fbig.fsell:disabled { background: #c3ccd8; box-shadow: 0 5px 0 #9aa6b6; cursor: default; }
+.fbig.fsell.go { box-shadow: 0 5px 0 #1f8a37, 0 0 0 5px rgba(255, 212, 59, 0.85); animation: fpop 1s ease-in-out infinite; }
+.fbig.fsleep { background: #3b4a8c; color: #ffffff; box-shadow: 0 5px 0 #252f63; }
+.fbig.hot { background: #fff6d6; box-shadow: inset 0 0 0 3px #ffc93c, 0 5px 0 #e39a22; animation: fpop 1.2s ease-in-out infinite; }
+.fbig.locked { opacity: 0.5; font-size: 0.85rem; }
+.fbig .fbadge { position: absolute; top: -6px; right: -4px; min-width: 24px; height: 24px; border-radius: 12px; display: grid; place-items: center; background: var(--coral); color: #ffffff; font-style: normal; font-size: 0.85rem; box-shadow: 0 0 0 3px #ffffff; }
+
+/* iPad on its side: the farm on the left, what to know on the right */
+@media (min-width: 1000px) and (orientation: landscape) {
+  #app.is-farm { max-width: 1240px; }
+  .fgrid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+  .fcol { order: 2; position: sticky; top: 100px; }
+  .fcol .fkeep > *, .fcol .fnews > * { flex-basis: 100%; }
+  .fcol { display: flex; flex-direction: column; }
+  .fcol .ftip { order: -1; } /* on the side, Pip comes first so the bar at the bottom never hides him */
+}
+@media (max-width: 480px) {
+  .fname { display: none; }
+  .fhud { gap: 8px; padding: 6px 8px; margin-bottom: 12px; }
+  .flvl { width: 48px; height: 48px; padding: 4px; }
+  .flvl b { font-size: 1.2rem; }
+  .fhud .fstat { padding: 5px 9px 5px 7px; font-size: 1rem; }
+  .fstats { gap: 4px; }
+  #app.is-farm .pens { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #app.is-farm .fbed.soil { height: 84px; }
+  #app.is-farm .fbed.ready .plants i { font-size: 1.35rem; }
+  #app.is-farm .plants { gap: 2px; }
+  .bring { width: 34px; height: 34px; }
+  .bring i { width: 25px; height: 25px; font-size: 0.9rem; }
+  .fdock-main { height: 64px; gap: 8px; }
+  .fbig { width: 64px; font-size: 0.85rem; border-radius: 18px; }
+  .fbig > span { font-size: 1.5rem; }
+  .fbig.fsell b { font-size: 1.3rem; }
+  .fbig.fsell small { font-size: 0.78rem; }
+  .ftip-e { font-size: 2.1rem; }
+  .ftip-b { font-size: 0.95rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fkeep *, .fnews *, .fdock *, .ftip-e, .fdream.hot, .forder.ready { animation: none !important; }
+}
+
+/* ---------- Sunny Farm, the new look 2: Pip points at the one next thing; a denser farm ---------- */
+.pippoint { position: absolute; right: 2px; bottom: 0; z-index: 6; font-size: 2.1rem; line-height: 1; pointer-events: none; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.3)); animation: pippoint 1s ease-in-out infinite; }
+@keyframes pippoint { 50% { translate: -4px -9px; } }
+.fdream.pip, .fmgr.pip { position: relative; }
+.fdock-acts .pippoint, .fmgr .btn .pippoint { font-size: 1.25rem; right: 0; bottom: 0; }
+.fbig .pippoint { right: -6px; bottom: -6px; }
+.pip.pipflash { animation: pipflash 0.9s ease-out 2; }
+@keyframes pipflash { 50% { filter: drop-shadow(0 0 14px #ffd23f) brightness(1.08); } }
+/* what happens now sits in one row on an iPad: Uncle Marco and Mila side by side, the charms below */
+.fnews .fmgr { padding: 8px 12px; }
+.fnews .fmgr .fmgr-t small { font-size: 0.82rem; }
+.fnews .fmerchant .fm-gem { display: none; }
+/* a denser farm, so more of it fits on the screen */
+#app.is-farm .fbed.soil { height: 88px; }
+#app.is-farm .fpen.pasture { height: 104px; }
+#app.is-farm .land { gap: 12px; }
+#app.is-farm .beds, #app.is-farm .pens { gap: 12px; }
+#app.is-farm .fhouse { height: 76px; }
+#app.is-farm .dreamland .dl { flex-basis: 104px; }
+@media (prefers-reduced-motion: reduce) { .pippoint, .pip.pipflash { animation: none; } }
 </style>
 <div id="app"><p style="padding:40px;text-align:center">Loading Math Expedition…</p></div>
   <script>
@@ -11400,9 +11575,11 @@ button.ls-disk { cursor: pointer; box-shadow: 0 3px 0 #22304f; }
     const it = F.ITEMS[b.c], left = F.cropDays(b) - b.g, y = F.cropYield(b, fmNow);
     const n = Math.min(y, 4); // the label says how many; four fit on a small bed
     const sprite = s === 'ready' ? it.e : s === 'seed' ? '🌱' : '🌿';
-    const plants = Array.from({ length: s === 'ready' ? n : 3 }, (_, k) => `<i style="--k:${k}">${sprite}</i>`).join('');
-    const label = s === 'ready' ? `Pick ${y}!` : `${left} ${left === 1 ? 'day' : 'days'}`;
-    return `<button class="fbed soil ${s}${glass}" data-act="fBed" data-arg="${i}" aria-label="${esc(it.many)}: ${s === 'ready' ? 'ripe, tap to pick' : `ready in ${label}`}"><span class="plants">${plants}</span>${ups}${rent}${b.again ? '<span class="bagain" title="Second harvest">🔁</span>' : ''}<span class="flabel">${s === 'ready' ? label : it.e + ' ' + label}</span></button>`;
+    const plants = Array.from({ length: s === 'ready' ? n : 2 }, (_, k) => `<i style="--k:${k}">${sprite}</i>`).join('');
+    // a ripe bed says how many to pick (✋ 7); a growing one shows the crop in a ring that fills up, and the nights left
+    const ring = s === 'ready' ? '' : `<span class="bring" style="--p:${Math.round((100 * b.g) / F.cropDays(b))}%" aria-hidden="true"><i>${it.e}</i></span>`;
+    const days = `${left} ${left === 1 ? 'day' : 'days'}`;
+    return `<button class="fbed soil ${s}${glass}" data-act="fBed" data-arg="${i}" aria-label="${esc(it.many)}: ${s === 'ready' ? `ripe, tap to pick ${y}` : `ready in ${days}`}"><span class="plants">${plants}${ring}</span>${ups}${rent}${b.again ? '<span class="bagain" title="Second harvest">🔁</span>' : ''}<span class="flabel">${s === 'ready' ? `✋ ${y}` : `🌙 ${left}`}</span></button>`;
   }
   function penHtml(p, i) {
     if (!p.a) return `<button class="fpen pasture empty" data-act="go" data-arg="farm:shop" aria-label="Empty pen: buy an animal in the shop"><span class="plus">＋</span><span class="flabel">Buy an animal</span></button>`;
@@ -11412,7 +11589,7 @@ button.ls-disk { cursor: pointer; box-shadow: 0 3px 0 #22304f; }
     const state = ready ? 'ready' : p.fed ? 'fed' : 'hungry';
     const age = ['Baby', 'Young', 'Grown-up'][sg];
     const many = F.penCount(p);
-    const chip = ready ? got.map(([id, n]) => `${F.ie(id)}×${n}`).join(' ') : p.fed ? '❤️' : `🌾 ${F.penEat(p)}`;
+    const chip = ready ? '✋ ' + got.map(([id, n]) => `${F.ie(id)}×${n}`).join(' ') : p.fed ? '❤️' : `🌾 ${F.penEat(p)}`;
     const loot = ready ? `<span class="loot">${got.flatMap(([id, n]) => Array(Math.min(n, 5)).fill(F.ie(id))).slice(0, 5).map((e, k) => `<i style="--k:${k}">${e}</i>`).join('')}</span>` : '';
     let who;
     if (p.a === 'bees') {
@@ -11660,36 +11837,45 @@ button.ls-disk { cursor: pointer; box-shadow: 0 3px 0 #22304f; }
   const nextUnlockLevel = (L) => { for (let x = L + 1; x < L + 60; x++) if (F.unlocksAt(x, grade()).length) return x; return L + 1; };
 
   // ---------------------------------------------------------------- the farm
-  function tipLine() { return `<div class="buddy small"><span class="buddy-e">${MQ.face(st())}</span><div class="bubble">${esc(MQ.buddyName(st()))}: ${tipText()}</div></div>`; }
-  function tipText() {
+  // Pip's one next thing to do: tap the words to see it on the farm (a hand points at it there), 🔊 reads it aloud.
+  function tipLine(tp) { return `<div class="ftip"><span class="ftip-e">${MQ.face(st())}</span><div class="ftip-b"><button class="ftip-go" data-act="fPipGo">${esc(MQ.buddyName(st()))}: ${tp.t}</button><button class="ftip-say" data-act="fSay" aria-label="Read it to me">🔊</button></div></div>`; }
+  const tipText = () => tip().t;
+  // What Pip says, and where on the screen that thing is (a CSS selector; the first match gets the 👆).
+  function tip() {
     const f = fm();
     const cheapest = Math.min(...Object.entries(F.CROPS).filter(([, c]) => c.lv <= F.level(f.xp).level).map(([id]) => F.seedPrice(id, grade())));
     const all = F.allPens(f), hungry = all.filter((p) => p.a && !p.fed);
     // a crop an order still needs that isn't growing anywhere: [order, crop]
     const next = F.wxTomorrow(f), spNext = next && next.sp;
     const needCrop = F.orderStatus(f).flatMap(({ o, have }) => Object.keys(o.items).filter((id) => F.CROPS[id] && have[id] < o.items[id] && !f.beds.some((b) => b.c === id)).map((id) => [o, id]))[0];
-    let t;
-    if (f.mgr.pend) t = `${F.MANAGER.name} sold things for you last night! Tap her card to get your money. ${F.MANAGER.e}`;
-    else if (F.bankDue(f) > 0) t = 'It’s bank day! Your savings grew. Go to the bank to collect the interest.';
-    else if (F.depositReady(f)) t = 'Your locked deposit unlocked! Go to the bank to collect it. 🔓';
-    else if (F.canBuild(f, grade())) t = 'You saved enough in the bank for your Big Dream! Pay the builders 🏗️';
-    else if (F.merchantHas(f) && F.merchantNights(f.day) <= 1) t = `${F.MERCHANT.name} the traveling merchant leaves ${F.merchantNights(f.day) ? 'tomorrow night' : 'tonight'}! Tap his wagon.`;
-    else if (F.ordersReady(f).length) t = `${F.ordersReady(f)[0].who[1]}’s order is ready! Tap it in 📋 Orders to deliver it.`;
-    else if (Object.values(f.works).some((w) => w.ready)) t = 'Something is ready in your workshop! Tap it to take it.';
-    else if (f.beds.some((b) => F.cropStage(b) === 'ready')) t = 'Your crops are ripe! Tap them to pick them.';
-    else if (all.some((p) => F.penReady(p))) t = all.some((p) => p.rare) ? 'Your mythic animals made something rare! Tap them to collect it. 🌟' : 'Your animals made something! Tap them to collect it.';
-    else if (hungry.length && f.feed >= F.penEat(hungry[0])) t = 'Feed your animals before bed, so they grow and make things to sell.';
-    else if (hungry.length) t = 'Out of feed! Buy feed 🌾 in the shop.';
-    else if (Object.entries(f.works).some(([id, w]) => w.r === null && F.WORKS[id].recipes.some((r, i) => F.canMake(f, id, i)))) t = 'You have what a workshop needs. Make something worth more!';
-    else if (needCrop && f.beds.some((b) => !b.c) && f.money >= F.seedPrice(needCrop[1], grade())) t = `${needCrop[0].who[1]}’s order needs ${F.ITEMS[needCrop[1]].e} ${F.ITEMS[needCrop[1]].many}. Plant some in an empty bed!`;
-    else if (spNext && F.forSale(f)[spNext] && F.mgrTonight(f)) t = `Tomorrow ${F.ITEMS[spNext].e} ${F.ITEMS[spNext].many} are the ⭐ special: they sell for more. Keep them for tomorrow? Tap “Keep it” on ${F.MANAGER.name}’s card.`;
-    else if (F.mgrCan(f) && !F.mgrTonight(f) && next && next.w === 'storm') t = `A storm comes tomorrow night! Let ${F.MANAGER.name} sell the rest tonight. ⛈️`;
-    else if (F.mgrCan(f) && !F.mgrTonight(f)) t = `Great shift! ${F.MANAGER.name} can sell the rest of your basket tonight. ${F.MANAGER.e}`;
-    else if (F.saleCount(f) && !F.mgrTonight(f)) t = F.mgrHired(f) && !F.shiftDone(f) ? `Your basket is full of good things. Open the stand: after ${F.shiftLen(f)} customers, ${F.MANAGER.name} can sell the rest.` : 'Your basket is full of good things. Open the stand and sell them!';
-    else if (f.beds.some((b) => !b.c) && f.money >= cheapest) t = 'An empty garden bed! Tap it to plant seeds.';
-    else if (f.beds.some((b) => b.c) || all.some((p) => p.a && p.fed)) t = 'All done for today. Tap 🌙 Sleep to start a new day.';
-    else t = 'Need money? Do odd jobs at the big market.';
-    return t;
+    const say = (t, at = '') => ({ t, at });
+    if (f.mgr.pend) return say(`${F.MANAGER.name} sold things for you last night! Tap her card to get your money. ${F.MANAGER.e}`, '.fmgr.hot');
+    if (F.bankDue(f) > 0) return say('It’s bank day! Your savings grew. Go to the bank to collect the interest.', '.fdock .fbankb');
+    if (F.depositReady(f)) return say('Your locked deposit unlocked! Go to the bank to collect it. 🔓', '.fdock .fbankb');
+    if (F.canBuild(f, grade())) return say('You saved enough in the bank for your Big Dream! Pay the builders 🏗️', '.fdream');
+    if (F.merchantHas(f) && F.merchantNights(f.day) <= 1) return say(`${F.MERCHANT.name} the traveling merchant leaves ${F.merchantNights(f.day) ? 'tomorrow night' : 'tonight'}! Tap his wagon.`, '.fmerchant');
+    if (F.ordersReady(f).length) return say(`${F.ordersReady(f)[0].who[1]}’s order is ready! Tap it in 📋 Orders to deliver it.`, '.forder.ready');
+    if (Object.values(f.works).some((w) => w.ready)) return say('Something is ready in your workshop! Tap it to take it.', '.fwork.ready');
+    if (f.beds.some((b) => F.cropStage(b) === 'ready')) return say('Your crops are ripe! Tap them to pick them.', '.fbed.ready');
+    if (all.some((p) => F.penReady(p))) return say(all.some((p) => p.rare) ? 'Your mythic animals made something rare! Tap them to collect it. 🌟' : 'Your animals made something! Tap them to collect it.', '.fpen.ready, .fhouse.ready');
+    if (hungry.length && f.feed >= F.penEat(hungry[0])) return say('Feed your animals before bed, so they grow and make things to sell.', '.fpen.hungry, .fhouse.hungry');
+    if (hungry.length) return say('Out of feed! Buy feed 🌾 in the shop.', '.fdock .fshop');
+    if (Object.entries(f.works).some(([id, w]) => w.r === null && F.WORKS[id].recipes.some((r, i) => F.canMake(f, id, i)))) return say('You have what a workshop needs. Make something worth more!', '.fwork.idle');
+    if (needCrop && f.beds.some((b) => !b.c) && f.money >= F.seedPrice(needCrop[1], grade())) return say(`${needCrop[0].who[1]}’s order needs ${F.ITEMS[needCrop[1]].e} ${F.ITEMS[needCrop[1]].many}. Plant some in an empty bed!`, '.fbed.empty');
+    if (spNext && F.forSale(f)[spNext] && F.mgrTonight(f)) return say(`Tomorrow ${F.ITEMS[spNext].e} ${F.ITEMS[spNext].many} are the ⭐ special: they sell for more. Keep them for tomorrow? Tap “Keep it” on ${F.MANAGER.name}’s card.`, '.fmgr [data-act=fMgrStay]');
+    if (F.mgrCan(f) && !F.mgrTonight(f) && next && next.w === 'storm') return say(`A storm comes tomorrow night! Let ${F.MANAGER.name} sell the rest tonight. ⛈️`, '.fmgr [data-act=fMgrSell]');
+    if (F.mgrCan(f) && !F.mgrTonight(f)) return say(`Great shift! ${F.MANAGER.name} can sell the rest of your basket tonight. ${F.MANAGER.e}`, '.fmgr [data-act=fMgrSell]');
+    if (F.saleCount(f) && !F.mgrTonight(f)) return say(F.mgrHired(f) && !F.shiftDone(f) ? `Your basket is full of good things. Open the stand: after ${F.shiftLen(f)} customers, ${F.MANAGER.name} can sell the rest.` : 'Your basket is full of good things. Open the stand and sell them!', '.fdock .fsell');
+    if (f.beds.some((b) => !b.c) && f.money >= cheapest) return say('An empty garden bed! Tap it to plant seeds.', '.fbed.empty');
+    if (f.beds.some((b) => b.c) || all.some((p) => p.a && p.fed)) return say('All done for today. Tap 🌙 Sleep to start a new day.', '.fdock .fsleep');
+    return say('Need money? Do odd jobs at the big market.', '.fdock [data-act=fJobs]');
+  }
+  // The hand points at what Pip talks about (one place on the screen).
+  function pipPoint(at) {
+    const el = at && document.querySelector(at);
+    if (!el) return;
+    el.classList.add('pip');
+    el.insertAdjacentHTML('beforeend', '<span class="pippoint" aria-hidden="true">👆</span>');
   }
   // Grown-up preview: choose which money problems the customers bring (the level stays where it is set).
   function pvTiers() {
@@ -11723,53 +11909,60 @@ button.ls-disk { cursor: pointer; box-shadow: 0 3px 0 #22304f; }
     const basket = Object.entries(f.basket).filter(([, c]) => c > 0).map(([id, c]) => `<span class="fchip ${F.ITEMS[id].myth ? 'myth' : ''}">${F.ie(id)} ${c} <small>× ${fmt(F.price(id, g))}</small>${kept[id] ? `<small class="fkept" title="${kept[id]} kept for your orders">📋 ${kept[id]}</small>` : ''}</span>`).join('') || '<span class="muted">Empty. Pick crops and collect from animals.</span>';
     const hungry = F.allPens(f).some((p) => p.a && !p.fed), ready = F.allPens(f).some((p) => F.penReady(p));
     const ripe = f.beds.filter((b) => F.cropStage(b) === 'ready').length, empty = F.emptyBeds(f).length;
-    const bankDay = F.bankDue(f) > 0, nights = F.nightsToBankDay(f.day);
-    K().render(header('🌻 Sunny Farm') + `<main class="farm">
-      <section class="flevel">
-        <div class="flv"><b>Farm level ${lv.level} · ${esc(F.title(lv.level))}</b><span>Farm day ${f.day} · ${F.STANDS[f.stand].e} ${esc(F.STANDS[f.stand].name)}</span></div>
-        <div class="fbar xp" role="progressbar" aria-valuenow="${pctv}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pctv}%"></span></div>
-        <small class="muted">${f.xp - lv.from} / ${lv.to - lv.from} XP to level ${lv.level + 1} · Money problems: ${tier.ahead ? '⭐ ' : ''}${esc(tier.name)}</small>
-      </section>
-      ${MQ.store.preview ? pvTiers() : ''}
-      ${wxBar()}
-      ${goalBar()}
-      ${dreamCard()}
-      ${merchantCard()}
-      ${charmStrip()}
-      ${bankDay ? `<button class="fbankday" data-act="go" data-arg="farm:bank">🏦 <b>Bank day!</b> Your savings earned interest. Tap to collect it.</button>` : ''}
-      ${mgrCard()}
-      ${orderStrip()}
-      ${tipLine()}
-      <button class="btn big fstand" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Open the stand ${n ? `· ${n} to sell` : all ? '· all kept for orders' : '· basket is empty'}</button>
-      <div class="fbtns">
-        <button class="tile" data-act="go" data-arg="farm:shop"><span class="ti">🛒</span><b>Shop</b><small>Animals, feed, more</small></button>
-        ${lv.level >= F.BANK_LV ? `<button class="tile ${bankDay ? 'hot' : ''}" data-act="go" data-arg="farm:bank"><span class="ti">🏦</span><b>Bank</b><small>${bankDay ? '🏦 Bank day today!' : F.depositReady(f) ? '🔓 Deposit unlocked!' : f.bank.bal ? `${fmt(f.bank.bal)} · 🏦 in ${nights} ${nights === 1 ? 'night' : 'nights'}` : 'Save and earn'}</small></button>` : `<button class="tile locked" disabled><span class="ti">🏦</span><b>Bank</b><small>🔒 Level ${F.BANK_LV}</small></button>`}
-        <button class="tile" data-act="fJobs"><span class="ti">🧹</span><b>Odd jobs</b><small>Earn at the big market</small></button>
-        <button class="tile" data-act="fSleep"><span class="ti">🌙</span><b>Sleep</b><small>Start farm day ${f.day + 1}</small></button>
+    const bankDay = F.bankDue(f) > 0, nights = F.nightsToBankDay(f.day), dep = F.depositReady(f);
+    const work = ripe || ready || (hungry && f.feed > 0) || Object.values(f.works).some((w) => w.ready);
+    // what must stay on view (orders, the Big Dream, the saving goal), then what is happening now
+    const keep = orderStrip() + dreamCard() + goalBar();
+    const news = merchantCard() + mgrCard() + charmStrip(), tp = tip();
+    const bankBtn = lv.level >= F.BANK_LV
+      ? `<button class="fbig fbankb ${bankDay || dep ? 'hot' : ''}" data-act="go" data-arg="farm:bank" aria-label="Bank: ${bankDay ? 'bank day today' : dep ? 'your deposit unlocked' : `bank day in ${nights} ${nights === 1 ? 'night' : 'nights'}`}"><span>🏦</span>Bank${bankDay || dep ? '<i class="fbadge">!</i>' : ''}</button>`
+      : `<button class="fbig fbankb locked" disabled aria-label="Bank: opens at farm level ${F.BANK_LV}"><span>🏦</span>🔒 ${F.BANK_LV}</button>`;
+    // the bar at the bottom comes first, so it is the first Sell and Sleep on the page
+    K().render(`<nav class="fdock" aria-label="Farm actions"><div class="fdock-in">
+      <div class="fdock-acts">
+        ${bankDay ? '<button class="btn ghost" data-act="go" data-arg="farm:bank">🏦 Collect interest</button>' : ''}
+        ${ripe ? `<button class="btn ghost" data-act="fPickAll">🧺 Pick all · ${ripe}</button>` : ''}
+        ${ready ? '<button class="btn ghost" data-act="fCollectAll">🥚 Collect all</button>' : ''}
+        ${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}
+        ${empty >= 2 ? '<button class="btn ghost" data-act="fPlantAll">🌱 Plant all</button>' : ''}
+        <button class="btn ghost" data-act="fJobs">🧹 Odd jobs</button>
       </div>
-      ${SC.farm(f, g)}
+      <div class="fdock-main">
+        <button class="fbig fshop" data-act="go" data-arg="farm:shop" aria-label="Shop: animals, feed and more"><span>🛒</span>Shop</button>
+        ${bankBtn}
+        <button class="fbig fsell fstand ${n && !work ? 'go' : ''}" data-act="fMarket" ${n ? '' : 'disabled'} aria-label="Open the stand"><b>🏪 Sell</b><small>${n ? `${n} to sell` : all ? 'all kept for orders' : 'basket is empty'}</small></button>
+        <button class="fbig fsleep" data-act="fSleep" aria-label="Sleep: start farm day ${f.day + 1}"><span>🌙</span>Sleep</button>
+      </div>
+    </div></nav>
+    <header class="fhud">
+      <button class="iconbtn" data-act="go" data-arg="home" aria-label="Back">←</button>
+      <span class="flvl" style="--p:${pctv}%" role="img" aria-label="Farm level ${lv.level}, ${pctv}% of the way to level ${lv.level + 1}"><b>${lv.level}</b></span>
+      <span class="fname"><b>${esc(st().name)}’s farm</b><small>${esc(cap(F.title(lv.level)))} · ${f.xp - lv.from} / ${lv.to - lv.from} XP</small></span>
+      <span class="fstats">
+        <span class="fstat money" id="fdmoney" title="Money">💰 <b id="fmoney">${fmt(f.money)}</b></span>
+        <span class="fstat" id="fdbasket" title="In the basket">🧺 <b>${all}</b></span>
+        <span class="fstat" id="ffeed" title="Feed">🌾 <b>${f.feed}</b></span>
+      </span>
+    </header>
+    <main class="farm">
+      ${MQ.store.preview ? pvTiers() : ''}
+      <div class="fgrid">
+        <div class="fcol">
+          ${keep ? `<div class="fkeep">${keep}</div>` : ''}
+          ${news.trim() ? `<div class="fnews">${news}</div>` : ''}
+          <div class="fdayrow"><span class="fday" title="Money problems: ${esc(tier.name)}">📅 Farm day ${f.day}</span>${wxBar()}</div>
+          ${tipLine(tp)}
+        </div>
+        ${SC.farm(f, g)}
+      </div>
       ${f.helper.hired ? `<div class="fhelp">🧑‍🌾 <span>Farmhand ${F.HELPER.name} ${f.helper.on ? `feeds the animals at night and collects in the morning · ${fmt(F.HELPER.wage[g === 'k' ? 0 : 1])} a day` : 'is taking a break'}</span><button class="btn ghost" data-act="fHelper">${f.helper.on ? 'Pause' : 'Back to work'}</button></div>` : ''}
       <h2>🧺 Basket</h2>
       <div class="fbasket" id="fbasket">${basket}</div>
       ${Object.keys(kept).length ? '<p class="muted small">📋 = kept for your orders: customers at the stand don’t buy it.</p>' : ''}
-      <p class="muted center">Sold ${f.stats.sold} things · earned ${fmt(f.stats.earned)} in all</p>
-    </main>
-    <nav class="fdock" aria-label="Farm resources and quick actions"><div class="fdock-in">
-      <div class="fdock-row">
-        <span class="fstat" id="fdmoney" title="Money">💰 <b>${fmt(f.money)}</b></span>
-        <span class="fstat" id="fdbasket" title="In the basket">🧺 <b>${all}</b></span>
-        <span class="fstat" id="ffeed" title="Feed">🌾 <b>${f.feed}</b></span>
-        <button class="btn fsell" data-act="fMarket" ${n ? '' : 'disabled'}>🏪 Sell</button>
-      </div>
-      ${bankDay || ripe || empty >= 2 || hungry || ready ? `<div class="fdock-acts">
-        ${bankDay ? '<button class="btn ghost" data-act="go" data-arg="farm:bank">🏦 Collect interest</button>' : ''}
-        ${ripe ? '<button class="btn ghost" data-act="fPickAll">🧺 Pick all</button>' : ''}
-        ${ready ? '<button class="btn ghost" data-act="fCollectAll">🥚 Collect all</button>' : ''}
-        ${hungry ? '<button class="btn ghost" data-act="fFeedAll">🌾 Feed all</button>' : ''}
-        ${empty >= 2 ? '<button class="btn ghost" data-act="fPlantAll">🌱 Plant all</button>' : ''}
-      </div>` : ''}
-    </div></nav>`, 'is-farm' + wxClass(f));
+      <p class="muted center">${F.STANDS[f.stand].e} ${esc(F.STANDS[f.stand].name)} · sold ${f.stats.sold} things · earned ${fmt(f.stats.earned)} in all</p>
+    </main>`, 'is-farm' + wxClass(f));
     K().setCur('farm');
+    pipPoint(tp.at);
     dockChanges({ money: f.money, basket: all, feed: f.feed });
     if (F.dreamOpen(f) && !f.dream.seen && !MQ.store.preview) setTimeout(() => { if (!$('#modal') && $('.fdream')) dreamIntro(); }, 500);
     else if (F.ordersOpen(f) && !f.orders.seen && !MQ.store.preview) setTimeout(() => { if (!$('#modal') && $('.scene') && !fs) orderIntro(); }, 500);
@@ -13173,6 +13366,8 @@ button.ls-disk { cursor: pointer; box-shadow: 0 3px 0 #22304f; }
     fFeedAll: () => feedAll(),
     fCollectAll: () => collectAll(),
     fSleep: () => sleep(),
+    fSay: () => MQ.speak(tipText()),
+    fPipGo: () => { const el = $('.pip'); if (!el) return; MQ.sfx('tap'); el.scrollIntoView({ block: 'center', behavior: SC.reduced() ? 'auto' : 'smooth' }); el.classList.remove('pipflash'); void el.offsetWidth; el.classList.add('pipflash'); },
     fMarket: () => startMarket(),
     fWork: (a, el) => work(a, el),
     fPickAll: () => pickAll(),

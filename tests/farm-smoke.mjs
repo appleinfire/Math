@@ -36,6 +36,10 @@ async function play(grade, tag, viewport) {
     const synth = { getVoices: () => [], speak(u) { setTimeout(() => u.onend && u.onend(), 50); }, cancel() {} };
     Object.defineProperty(window, 'speechSynthesis', { value: synth, configurable: true });
     window.SpeechSynthesisUtterance = function (t) { this.text = t; };
+    // On the farm, what is ready to take sways all the time; Playwright taps a button only once it stands still.
+    const still = document.createElement('style');
+    still.textContent = '.fbed, .fpen, .fhouse, .fwork, .forder, .fbig, .fmgr, .fdream, .pippoint { animation: none !important; }';
+    document.addEventListener('DOMContentLoaded', () => document.head.appendChild(still));
   });
   page.on('console', (m) => m.type() === 'error' && !/fonts\.g|ERR_|Failed to load resource/.test(m.text()) && errors.push(tag + ': ' + m.text()));
   page.on('pageerror', (e) => errors.push(tag + ': ' + e.message));
@@ -54,6 +58,11 @@ async function play(grade, tag, viewport) {
   const start = await page.evaluate(() => MQ.state.farm.money);
   if (start !== (grade === 'k' ? 5 : 30)) errors.push(`${tag}: start money ${start}`);
   await snap('02-farm');
+  // the farm screen: the bar on top (level ring, money), the big buttons at the bottom, a ripe bed says how many, Pip reads aloud
+  const ui = await page.evaluate(() => ({ hud: !!document.querySelector('.fhud .flvl') && !!document.querySelector('.fhud #fdmoney #fmoney'), big: [...document.querySelectorAll('.fdock-main .fbig')].map((b) => b.dataset.act + ':' + (b.dataset.arg || '')), ripe: (document.querySelector('.fbed.ready .flabel') || {}).textContent, say: !!document.querySelector('.ftip [data-act=fSay]'), bank: !!document.querySelector('.fbig.fbankb.locked'), pip: document.querySelectorAll('.pippoint').length === 1 && !!document.querySelector('.fbed.ready.pip .pippoint') }));
+  if (!ui.hud || !ui.big.includes('fMarket:') || !ui.big.includes('fSleep:') || !ui.big.includes('go:farm:shop') || ui.ripe !== '✋ 3' || !ui.say || !ui.bank || !ui.pip) errors.push(`${tag}: the farm screen ${JSON.stringify(ui)}`);
+  await page.click('[data-act=fPipGo]'); // tapping Pip's words shows the thing on the farm
+  if (!(await page.$('.fbed.ready.pip.pipflash'))) errors.push(`${tag}: tapping Pip did not show the ripe bed`);
 
   // pick the ripe carrots, feed the chick
   await page.click('.fbed.ready', { force: true });
@@ -226,7 +235,8 @@ async function play(grade, tag, viewport) {
   if (trucks < 1) errors.push(`${tag}: the market truck never came for 40 eggs`);
   // the bank: two bank days waiting (interest questions), then save money and take some out
   await page.click('[data-act=go][data-arg=farm]');
-  await page.click('.fbankday');
+  if (!(await page.$('.fdock .fbig.fbankb.hot.pip .fbadge'))) errors.push(`${tag}: the Bank button does not say it is bank day (with Pip's hand)`);
+  await page.click('.fdock .fbankb');
   await page.waitForSelector('.fbank');
   await snap('16-bank');
   await page.click('[data-act=fInterest]');
@@ -740,7 +750,7 @@ async function play(grade, tag, viewport) {
   const kept = await page.evaluate(() => MQ.state.farm.stats.jobs);
   if (kept !== 4) errors.push(`${tag}: farm not saved`);
   await page.click('.t-farm');
-  if (!(await page.$('.bar [data-act=go][aria-label=Back]'))) errors.push(tag + ': no back button on the farm');
+  if (!(await page.$('.fhud [data-act=go][aria-label=Back]'))) errors.push(tag + ': no back button on the farm');
   // grown-up preview: through the grown-ups lock, the farm opens as a level-60 farm; nothing is saved
   const real = await page.evaluate(() => JSON.stringify(MQ.state.farm));
   await page.click('[data-act=go][data-arg=home]');
