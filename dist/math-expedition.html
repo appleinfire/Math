@@ -2256,6 +2256,61 @@ html:has(#app.is-farm) { scroll-padding-top: 96px; scroll-padding-bottom: 180px;
 #app.is-farm .fhouse { height: 76px; }
 #app.is-farm .dreamland .dl { flex-basis: 104px; }
 @media (prefers-reduced-motion: reduce) { .pippoint, .pip.pipflash { animation: none; } }
+
+/* ---------- Sunny Farm, the new look 3: the buildings drawn in SVG, bigger animals, a deeper scene (js/farm-scene.js) ---------- */
+.hpic, .wpic, .spic { position: absolute; inset: 0; pointer-events: none; }
+.hpic svg, .wpic svg, .spic svg { display: block; width: 100%; height: 100%; }
+/* the barnyard houses */
+#app.is-farm .fhouse { background: none; box-shadow: none; overflow: visible; border-radius: 0; }
+#app.is-farm .fhouse .hroof { display: none; }
+#app.is-farm .fhouse .hwho { z-index: 1; bottom: 2px; font-size: 1.9rem; }
+#app.is-farm .fhouse.s0 .hwho { font-size: 1.35rem; }
+#app.is-farm .fhouse.s1 .hwho { font-size: 1.6rem; }
+#app.is-farm .fhouse .hbadge { z-index: 2; top: 2px; right: 0; font-family: var(--display); font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12); }
+#app.is-farm .fhouse.ready .hbadge { background: #ffc93c; }
+#app.is-farm .fhouse.hungry .hbadge { background: #ffffff; }
+#app.is-farm .fhouse.ready .hpic { filter: drop-shadow(0 0 3px #ffd43b) drop-shadow(0 0 7px rgba(255, 212, 59, 0.9)); }
+#app.is-farm .fhouse.myth .hpic { filter: drop-shadow(0 0 6px rgba(180, 140, 242, 0.95)); }
+#app.is-farm .fhouse.buy .hpic, #app.is-farm .fhouse.later .hpic { opacity: 0.55; filter: grayscale(0.75); }
+#app.is-farm .fhouse.buy .hbadge { top: 24px; right: auto; left: 50%; transform: translateX(-50%); background: #2db84c; color: #ffffff; font-size: 1rem; padding: 0 10px; }
+#app.is-farm .fhouse.later .hbadge { top: 24px; right: auto; left: 50%; transform: translateX(-50%); }
+#app.is-farm .fhouse.buy, #app.is-farm .fhouse.later { opacity: 1; }
+/* the workshops */
+#app.is-farm .works { grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); }
+#app.is-farm .fwork { background: none; box-shadow: none; overflow: visible; border-radius: 0; height: 74px; }
+#app.is-farm .fwork .wroof { display: none; }
+#app.is-farm .fwork .wbig { z-index: 1; top: auto; bottom: 21px; font-size: 1.45rem; }
+#app.is-farm .fwork .wbadge { z-index: 2; top: -4px; right: -2px; font-family: var(--display); font-weight: 600; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12); }
+#app.is-farm .fwork.ready .wbadge { background: #ffc93c; }
+#app.is-farm .fwork.busy .wbadge { background: #2e7df6; color: #ffffff; font-size: 0.8rem; }
+#app.is-farm .fwork.ready .wpic { filter: drop-shadow(0 0 3px #ffd43b) drop-shadow(0 0 7px rgba(255, 212, 59, 0.9)); }
+#app.is-farm .fwork .smoke { z-index: 1; left: auto; right: 10px; top: 0; }
+/* the stand, with what is for sale on its counter */
+#app.is-farm .yard { height: 104px; }
+#app.is-farm .ystand { bottom: 4px; width: 100px; height: 90px; padding: 0; display: block; background: none; box-shadow: none; border-radius: 0; }
+#app.is-farm .ystand .awn { display: none; }
+#app.is-farm .ystand .ye { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); z-index: 1; font-size: 1.5rem; }
+.ygoods { position: absolute; left: 14px; right: 14px; bottom: 33px; z-index: 1; display: flex; justify-content: center; gap: 1px; font-size: 1.3rem; line-height: 1; }
+#app.is-farm .ystand .badge { z-index: 2; top: -4px; right: -6px; font-family: var(--display); font-weight: 600; font-size: 0.9rem; box-shadow: 0 0 0 3px #ffffff; }
+#app.is-farm .trs.tr-musician { left: 116px; }
+#app.is-farm .trs.tr-clover { left: 168px; }
+/* bigger animals, each with a shadow on the grass */
+#app.is-farm .walker { font-size: 2.9rem; }
+#app.is-farm .s0 .walker { font-size: 2rem; }
+#app.is-farm .s1 .walker { font-size: 2.4rem; }
+#app.is-farm .walker::after { content: ''; position: absolute; left: 18%; right: 18%; bottom: -3px; height: 7px; border-radius: 50%; background: rgba(40, 70, 20, 0.2); z-index: -1; }
+#app.is-farm .fpen.a-fishpond .walker::after, #app.is-farm .myw::after { display: none; }
+#app.is-farm .fpen.a-silkworm .walker { font-size: 1.8rem; }
+/* depth: far blue-green hills behind the near ones, little tufts of grass on the land */
+#app.is-farm .sky::before { content: ''; position: absolute; left: 0; right: 0; bottom: 18px; height: 60px; pointer-events: none; background: radial-gradient(ellipse 30% 70% at 12% 100%, #a9dcb0 98%, transparent 100%), radial-gradient(ellipse 34% 80% at 50% 100%, #b6e3bb 98%, transparent 100%), radial-gradient(ellipse 30% 70% at 88% 100%, #a9dcb0 98%, transparent 100%); }
+#app.is-farm .land { position: relative; isolation: isolate; }
+#app.is-farm .land::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0.32;
+  background-image: radial-gradient(ellipse 4px 7px at 20% 40%, #6db64c 98%, transparent 100%), radial-gradient(ellipse 3px 6px at 70% 75%, #b8e891 98%, transparent 100%), radial-gradient(ellipse 4px 6px at 45% 10%, #6db64c 98%, transparent 100%);
+  background-size: 54px 46px, 38px 52px, 66px 58px; }
+@media (max-width: 480px) {
+  #app.is-farm .walker { font-size: 2.4rem; }
+  #app.is-farm .fhouse .hwho { font-size: 1.5rem; }
+}
 </style>
 </head>
 <body>
@@ -11557,6 +11612,33 @@ html:has(#app.is-farm) { scroll-padding-top: 96px; scroll-padding-bottom: 180px;
   // The shop and the scene use these pictures for the windmill and the barn.
   S.icon = (id, e) => (SVG[id] ? `<span class="spi">${SVG[id]}</span>` : e);
 
+  // The barnyard houses, the workshops and the stand are little buildings drawn in SVG (colors below);
+  // the animals, the workshop's sign and the things for sale stand in front of them as emoji.
+  // house colors: wall, wall line, roof, roof line, door
+  const HOUSE_C = {
+    chicken: ['#ffd27a', '#c98a2b', '#e8574a', '#a8352b', '#a86e3e'],
+    bees: ['#ffe08a', '#d19a1f', '#f2a33a', '#b0701a', '#8a5a31'],
+    goat: ['#d9a46b', '#8a5a31', '#7a5532', '#4f351e', '#5b3d22'],
+    sheep: ['#f6f2ea', '#b9ab95', '#4d8fe0', '#2d63ad', '#8a6b46'],
+    duck: ['#bfeaff', '#5aa8d0', '#2bb3a3', '#1d7f74', '#3d7fa8'],
+    turkey: ['#f7b267', '#c0703a', '#9b4d2a', '#6e3219', '#7a4a26'],
+  };
+  const shadow = (cx, cy, rx) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="3.5" fill="#000000" fill-opacity="0.14"/>`;
+  S.houseArt = (a) => {
+    const [w, wl, r, rl, d] = HOUSE_C[a] || HOUSE_C.chicken;
+    const win = a === 'bees' ? `<path d="M50 17l6 3.5v7L50 31l-6-3.5v-7Z" fill="#fff8e6" stroke="${rl}" stroke-width="1.6"/>` : `<circle cx="50" cy="24" r="6" fill="#fff8e6" stroke="${rl}" stroke-width="1.6"/>`;
+    return `<svg viewBox="0 0 100 76" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${shadow(50, 72, 44)}<rect x="14" y="32" width="72" height="41" rx="3" fill="${w}" stroke="${wl}" stroke-width="2"/><path d="M15 47H85M15 60H85" stroke="${wl}" stroke-opacity="0.25" stroke-width="1.5"/><path d="M5 37L50 6L95 37Z" fill="${r}" stroke="${rl}" stroke-width="2.2" stroke-linejoin="round"/><path d="M16 34L50 11L84 34" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="2"/>${win}<path d="M39 73V57a11 11 0 0 1 22 0V73Z" fill="${d}" stroke="${wl}" stroke-width="2"/></svg>`;
+  };
+  // workshop colors: awning, its dark line
+  const WORK_C = { jamkitchen: ['#ff6b8a', '#c23a5a'], bakery: ['#f2a33a', '#b0701a'], dairy: ['#4d8fe0', '#2d63ad'], knitting: ['#9b59d0', '#6a3596'], juicebar: ['#3fae6a', '#257a45'], tailor: ['#e04d7c', '#a52c55'], restaurant: ['#c0533a', '#86331f'], sweets: ['#ff8fd0', '#c4589a'] };
+  const scallops = (x, y, w, n, c, c2 = '#ffffff') => Array.from({ length: n }, (_, k) => { const sw = w / n; return `<path d="M${(x + k * sw).toFixed(1)} ${y}a${(sw / 2).toFixed(2)} ${(sw / 2).toFixed(2)} 0 0 0 ${sw.toFixed(2)} 0Z" fill="${k % 2 ? c2 : c}"/>`; }).join('');
+  S.workArt = (id) => {
+    const [c, cl] = WORK_C[id] || WORK_C.jamkitchen;
+    return `<svg viewBox="0 0 80 70" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${shadow(40, 67, 35)}<rect x="9" y="16" width="62" height="51" rx="4" fill="#fff4df" stroke="#b07a46" stroke-width="2"/><rect x="5" y="5" width="70" height="13" rx="3" fill="${c}" stroke="${cl}" stroke-width="1.6"/>${scallops(5, 18, 70, 6, c)}<circle cx="40" cy="38" r="13" fill="#ffffff" stroke="${c}" stroke-width="3"/><rect x="31" y="53" width="18" height="14" rx="2" fill="${cl}" fill-opacity="0.75"/></svg>`;
+  };
+  // the stand: posts, a striped awning in the stand's color (--aw), a wooden counter
+  S.standArt = () => `<svg viewBox="0 0 96 86" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${shadow(48, 83, 44)}<rect x="11" y="18" width="6" height="62" rx="2" fill="#8a5a31"/><rect x="79" y="18" width="6" height="62" rx="2" fill="#8a5a31"/><rect x="3" y="6" width="90" height="15" rx="5" style="fill:var(--aw, #ff7e6b)" stroke="#000000" stroke-opacity="0.15" stroke-width="1.5"/>${scallops(3, 21, 90, 8, 'var(--aw, #ff7e6b)').replace(/fill="var\(--aw, #ff7e6b\)"/g, 'style="fill:var(--aw, #ff7e6b)"')}<rect x="5" y="54" width="86" height="28" rx="4" fill="#c98b4e" stroke="#8a5a31" stroke-width="2"/><rect x="6" y="55" width="84" height="6" rx="2" fill="#e3b783"/></svg>`;
+
   // Animals that are drawn from the side (they turn around when they walk the other way).
   const SIDE = new Set(['🐔', '🐐', '🐑', '🐄', '🦆', '🐖', '🦙', '🐎', '🐓', '🦃', '🦌', '🐟']);
   const WALK = { pony: '🐎' }; // a whole pony instead of the 🐴 head
@@ -11627,7 +11709,7 @@ html:has(#app.is-farm) { scroll-padding-top: 96px; scroll-padding-bottom: 180px;
     const H = F.HOUSES[a], A = F.ANIMALS[a], p = (fmNow.yard || {})[a], L = F.level(fmNow.xp).level;
     if (!p) {
       const open = H.lv <= L;
-      return `<button class="fhouse ${open ? 'buy' : 'later'}" data-act="${open ? 'fYardShop' : 'fHouseLater'}" data-arg="${a}" aria-label="${esc(H.name)}: ${open ? 'build it in the shop' : 'opens at level ' + H.lv}"><span class="hroof"></span><span class="hwho">${A.e}</span><span class="hbadge">${open ? '＋' : '🔒 ' + H.lv}</span></button>`;
+      return `<button class="fhouse ${open ? 'buy' : 'later'}" data-act="${open ? 'fYardShop' : 'fHouseLater'}" data-arg="${a}" aria-label="${esc(H.name)}: ${open ? 'build it in the shop' : 'opens at level ' + H.lv}"><span class="hpic">${S.houseArt(a)}</span><span class="hwho">${A.e}</span><span class="hbadge">${open ? '＋' : '🔒 ' + H.lv}</span></button>`;
     }
     const sg = F.animalStage(p), ready = F.penReady(p), many = F.penCount(p), got = F.penLoot(p);
     const myth = F.mythOn(fmNow, a) && MQ.mythArt;
@@ -11636,7 +11718,7 @@ html:has(#app.is-farm) { scroll-padding-top: 96px; scroll-padding-bottom: 180px;
     const state = ready ? 'ready' : p.fed ? 'fed' : 'hungry';
     const badge = ready ? got.map(([id, n]) => `${F.ie(id)}${n}`).join(' ') : p.fed ? '❤️' : `🌾${F.penEat(p)}`;
     const label = `${esc(H.name)}: ${many > 1 ? many + ' ' : ''}${esc(F.MYTHS[a].of)}, ${['baby', 'young', 'grown-up'][sg]}: ${ready ? 'things to collect' : p.fed ? 'fed' : 'hungry'}`;
-    return `<button class="fhouse ${state} s${sg}${myth ? ' myth' : ''}" data-act="fHouse" data-arg="${a}" aria-label="${label}"><span class="hroof"></span><span class="hwho">${who}</span><span class="hbadge">${badge}</span></button>`;
+    return `<button class="fhouse ${state} s${sg}${myth ? ' myth' : ''}" data-act="fHouse" data-arg="${a}" aria-label="${label}"><span class="hpic">${S.houseArt(a)}</span><span class="hwho">${who}</span><span class="hbadge">${badge}</span></button>`;
   }
   function workHtml(id) {
     const W = F.WORKS[id], w = fmWorks[id];
@@ -11647,7 +11729,7 @@ html:has(#app.is-farm) { scroll-padding-top: 96px; scroll-padding-bottom: 180px;
       const r = W.recipes[w.r], left = r.days - w.g;
       state = 'busy'; badge = `🌙${left}`; label = `ready in ${left} ${left === 1 ? 'night' : 'nights'}`;
     } else { state = 'idle'; badge = '＋'; label = 'make something'; }
-    return `<button class="fwork ${state}" data-act="fWork" data-arg="${id}" title="${esc(W.name)}" aria-label="${esc(W.name)}: ${label}"><span class="wroof"></span><span class="wbig">${W.e}</span>${state === 'busy' ? '<span class="smoke">💨</span>' : ''}<span class="wbadge">${badge}</span></button>`;
+    return `<button class="fwork ${state}" data-act="fWork" data-arg="${id}" title="${esc(W.name)}" aria-label="${esc(W.name)}: ${label}"><span class="wpic">${S.workArt(id)}</span><span class="wbig">${W.e}</span>${state === 'busy' ? '<span class="smoke">💨</span>' : ''}<span class="wbadge">${badge}</span></button>`;
   }
   // The Big Dreams built so far stand behind the farm (tap one to see Big Dreams).
   function dreamland(fm) {
@@ -11694,7 +11776,7 @@ html:has(#app.is-farm) { scroll-padding-top: 96px; scroll-padding-bottom: 180px;
         ${F.yardOpen(fm) || Object.keys(fm.yard || {}).length ? `<div class="byard" aria-label="Barnyard">${Object.keys(F.HOUSES).map(houseHtml).join('')}</div>` : ''}
         ${works.length ? `<div class="works">${works.map(workHtml).join('')}</div>` : ''}
         <div class="yard">
-          ${wx && wx.market ? '<span class="bunting" aria-hidden="true"></span><span class="crowd" aria-hidden="true">🧑‍🤝‍🧑👨‍👩‍👧</span>' : ''}<button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
+          ${wx && wx.market ? '<span class="bunting" aria-hidden="true"></span><span class="crowd" aria-hidden="true">🧑‍🤝‍🧑👨‍👩‍👧</span>' : ''}<button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="spic">${S.standArt()}</span>${n ? `<span class="ygoods">${Object.keys(F.forSale(fm)).slice(0, 3).map((id) => F.ie(id)).join('')}</span>` : ''}<span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
           ${yard}${fm.helper && fm.helper.hired && fm.helper.on ? `<span class="farmhand" title="Farmhand ${F.HELPER.name}">🧑‍🌾</span>` : ''}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}${treasures(fm)}${F.charmOn(fm, 'clover') && MQ.charmArt ? `<span class="trs tr-clover" title="Lucky Clover">${MQ.charmArt('clover')}</span>` : ''}${F.merchantHas(fm) ? `<button class="trs wagon" data-act="fMerchant" aria-label="${esc(F.MERCHANT.name)}'s wagon">${MQ.wagonArt()}</button>` : ''}
         </div>
         ${park ? `<div class="park">${park}</div>` : ''}

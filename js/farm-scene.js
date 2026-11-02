@@ -18,6 +18,33 @@
   // The shop and the scene use these pictures for the windmill and the barn.
   S.icon = (id, e) => (SVG[id] ? `<span class="spi">${SVG[id]}</span>` : e);
 
+  // The barnyard houses, the workshops and the stand are little buildings drawn in SVG (colors below);
+  // the animals, the workshop's sign and the things for sale stand in front of them as emoji.
+  // house colors: wall, wall line, roof, roof line, door
+  const HOUSE_C = {
+    chicken: ['#ffd27a', '#c98a2b', '#e8574a', '#a8352b', '#a86e3e'],
+    bees: ['#ffe08a', '#d19a1f', '#f2a33a', '#b0701a', '#8a5a31'],
+    goat: ['#d9a46b', '#8a5a31', '#7a5532', '#4f351e', '#5b3d22'],
+    sheep: ['#f6f2ea', '#b9ab95', '#4d8fe0', '#2d63ad', '#8a6b46'],
+    duck: ['#bfeaff', '#5aa8d0', '#2bb3a3', '#1d7f74', '#3d7fa8'],
+    turkey: ['#f7b267', '#c0703a', '#9b4d2a', '#6e3219', '#7a4a26'],
+  };
+  const shadow = (cx, cy, rx) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="3.5" fill="#000000" fill-opacity="0.14"/>`;
+  S.houseArt = (a) => {
+    const [w, wl, r, rl, d] = HOUSE_C[a] || HOUSE_C.chicken;
+    const win = a === 'bees' ? `<path d="M50 17l6 3.5v7L50 31l-6-3.5v-7Z" fill="#fff8e6" stroke="${rl}" stroke-width="1.6"/>` : `<circle cx="50" cy="24" r="6" fill="#fff8e6" stroke="${rl}" stroke-width="1.6"/>`;
+    return `<svg viewBox="0 0 100 76" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${shadow(50, 72, 44)}<rect x="14" y="32" width="72" height="41" rx="3" fill="${w}" stroke="${wl}" stroke-width="2"/><path d="M15 47H85M15 60H85" stroke="${wl}" stroke-opacity="0.25" stroke-width="1.5"/><path d="M5 37L50 6L95 37Z" fill="${r}" stroke="${rl}" stroke-width="2.2" stroke-linejoin="round"/><path d="M16 34L50 11L84 34" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="2"/>${win}<path d="M39 73V57a11 11 0 0 1 22 0V73Z" fill="${d}" stroke="${wl}" stroke-width="2"/></svg>`;
+  };
+  // workshop colors: awning, its dark line
+  const WORK_C = { jamkitchen: ['#ff6b8a', '#c23a5a'], bakery: ['#f2a33a', '#b0701a'], dairy: ['#4d8fe0', '#2d63ad'], knitting: ['#9b59d0', '#6a3596'], juicebar: ['#3fae6a', '#257a45'], tailor: ['#e04d7c', '#a52c55'], restaurant: ['#c0533a', '#86331f'], sweets: ['#ff8fd0', '#c4589a'] };
+  const scallops = (x, y, w, n, c, c2 = '#ffffff') => Array.from({ length: n }, (_, k) => { const sw = w / n; return `<path d="M${(x + k * sw).toFixed(1)} ${y}a${(sw / 2).toFixed(2)} ${(sw / 2).toFixed(2)} 0 0 0 ${sw.toFixed(2)} 0Z" fill="${k % 2 ? c2 : c}"/>`; }).join('');
+  S.workArt = (id) => {
+    const [c, cl] = WORK_C[id] || WORK_C.jamkitchen;
+    return `<svg viewBox="0 0 80 70" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${shadow(40, 67, 35)}<rect x="9" y="16" width="62" height="51" rx="4" fill="#fff4df" stroke="#b07a46" stroke-width="2"/><rect x="5" y="5" width="70" height="13" rx="3" fill="${c}" stroke="${cl}" stroke-width="1.6"/>${scallops(5, 18, 70, 6, c)}<circle cx="40" cy="38" r="13" fill="#ffffff" stroke="${c}" stroke-width="3"/><rect x="31" y="53" width="18" height="14" rx="2" fill="${cl}" fill-opacity="0.75"/></svg>`;
+  };
+  // the stand: posts, a striped awning in the stand's color (--aw), a wooden counter
+  S.standArt = () => `<svg viewBox="0 0 96 86" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${shadow(48, 83, 44)}<rect x="11" y="18" width="6" height="62" rx="2" fill="#8a5a31"/><rect x="79" y="18" width="6" height="62" rx="2" fill="#8a5a31"/><rect x="3" y="6" width="90" height="15" rx="5" style="fill:var(--aw, #ff7e6b)" stroke="#000000" stroke-opacity="0.15" stroke-width="1.5"/>${scallops(3, 21, 90, 8, 'var(--aw, #ff7e6b)').replace(/fill="var\(--aw, #ff7e6b\)"/g, 'style="fill:var(--aw, #ff7e6b)"')}<rect x="5" y="54" width="86" height="28" rx="4" fill="#c98b4e" stroke="#8a5a31" stroke-width="2"/><rect x="6" y="55" width="84" height="6" rx="2" fill="#e3b783"/></svg>`;
+
   // Animals that are drawn from the side (they turn around when they walk the other way).
   const SIDE = new Set(['🐔', '🐐', '🐑', '🐄', '🦆', '🐖', '🦙', '🐎', '🐓', '🦃', '🦌', '🐟']);
   const WALK = { pony: '🐎' }; // a whole pony instead of the 🐴 head
@@ -88,7 +115,7 @@
     const H = F.HOUSES[a], A = F.ANIMALS[a], p = (fmNow.yard || {})[a], L = F.level(fmNow.xp).level;
     if (!p) {
       const open = H.lv <= L;
-      return `<button class="fhouse ${open ? 'buy' : 'later'}" data-act="${open ? 'fYardShop' : 'fHouseLater'}" data-arg="${a}" aria-label="${esc(H.name)}: ${open ? 'build it in the shop' : 'opens at level ' + H.lv}"><span class="hroof"></span><span class="hwho">${A.e}</span><span class="hbadge">${open ? '＋' : '🔒 ' + H.lv}</span></button>`;
+      return `<button class="fhouse ${open ? 'buy' : 'later'}" data-act="${open ? 'fYardShop' : 'fHouseLater'}" data-arg="${a}" aria-label="${esc(H.name)}: ${open ? 'build it in the shop' : 'opens at level ' + H.lv}"><span class="hpic">${S.houseArt(a)}</span><span class="hwho">${A.e}</span><span class="hbadge">${open ? '＋' : '🔒 ' + H.lv}</span></button>`;
     }
     const sg = F.animalStage(p), ready = F.penReady(p), many = F.penCount(p), got = F.penLoot(p);
     const myth = F.mythOn(fmNow, a) && MQ.mythArt;
@@ -97,7 +124,7 @@
     const state = ready ? 'ready' : p.fed ? 'fed' : 'hungry';
     const badge = ready ? got.map(([id, n]) => `${F.ie(id)}${n}`).join(' ') : p.fed ? '❤️' : `🌾${F.penEat(p)}`;
     const label = `${esc(H.name)}: ${many > 1 ? many + ' ' : ''}${esc(F.MYTHS[a].of)}, ${['baby', 'young', 'grown-up'][sg]}: ${ready ? 'things to collect' : p.fed ? 'fed' : 'hungry'}`;
-    return `<button class="fhouse ${state} s${sg}${myth ? ' myth' : ''}" data-act="fHouse" data-arg="${a}" aria-label="${label}"><span class="hroof"></span><span class="hwho">${who}</span><span class="hbadge">${badge}</span></button>`;
+    return `<button class="fhouse ${state} s${sg}${myth ? ' myth' : ''}" data-act="fHouse" data-arg="${a}" aria-label="${label}"><span class="hpic">${S.houseArt(a)}</span><span class="hwho">${who}</span><span class="hbadge">${badge}</span></button>`;
   }
   function workHtml(id) {
     const W = F.WORKS[id], w = fmWorks[id];
@@ -108,7 +135,7 @@
       const r = W.recipes[w.r], left = r.days - w.g;
       state = 'busy'; badge = `🌙${left}`; label = `ready in ${left} ${left === 1 ? 'night' : 'nights'}`;
     } else { state = 'idle'; badge = '＋'; label = 'make something'; }
-    return `<button class="fwork ${state}" data-act="fWork" data-arg="${id}" title="${esc(W.name)}" aria-label="${esc(W.name)}: ${label}"><span class="wroof"></span><span class="wbig">${W.e}</span>${state === 'busy' ? '<span class="smoke">💨</span>' : ''}<span class="wbadge">${badge}</span></button>`;
+    return `<button class="fwork ${state}" data-act="fWork" data-arg="${id}" title="${esc(W.name)}" aria-label="${esc(W.name)}: ${label}"><span class="wpic">${S.workArt(id)}</span><span class="wbig">${W.e}</span>${state === 'busy' ? '<span class="smoke">💨</span>' : ''}<span class="wbadge">${badge}</span></button>`;
   }
   // The Big Dreams built so far stand behind the farm (tap one to see Big Dreams).
   function dreamland(fm) {
@@ -155,7 +182,7 @@
         ${F.yardOpen(fm) || Object.keys(fm.yard || {}).length ? `<div class="byard" aria-label="Barnyard">${Object.keys(F.HOUSES).map(houseHtml).join('')}</div>` : ''}
         ${works.length ? `<div class="works">${works.map(workHtml).join('')}</div>` : ''}
         <div class="yard">
-          ${wx && wx.market ? '<span class="bunting" aria-hidden="true"></span><span class="crowd" aria-hidden="true">🧑‍🤝‍🧑👨‍👩‍👧</span>' : ''}<button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="awn"></span><span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
+          ${wx && wx.market ? '<span class="bunting" aria-hidden="true"></span><span class="crowd" aria-hidden="true">🧑‍🤝‍🧑👨‍👩‍👧</span>' : ''}<button class="ystand st${fm.stand}" data-act="fMarket" aria-label="${esc(stand.name)}: open the stand (${n} to sell)"><span class="spic">${S.standArt()}</span>${n ? `<span class="ygoods">${Object.keys(F.forSale(fm)).slice(0, 3).map((id) => F.ie(id)).join('')}</span>` : ''}<span class="ye">${stand.e}</span>${n ? `<b class="badge">${n}</b>` : ''}</button>
           ${yard}${fm.helper && fm.helper.hired && fm.helper.on ? `<span class="farmhand" title="Farmhand ${F.HELPER.name}">🧑‍🌾</span>` : ''}${has('dog') ? '<span class="dog">🐕</span>' : ''}${has('tractor') ? '<span class="tractor">🚜</span>' : ''}${treasures(fm)}${F.charmOn(fm, 'clover') && MQ.charmArt ? `<span class="trs tr-clover" title="Lucky Clover">${MQ.charmArt('clover')}</span>` : ''}${F.merchantHas(fm) ? `<button class="trs wagon" data-act="fMerchant" aria-label="${esc(F.MERCHANT.name)}'s wagon">${MQ.wagonArt()}</button>` : ''}
         </div>
         ${park ? `<div class="park">${park}</div>` : ''}
