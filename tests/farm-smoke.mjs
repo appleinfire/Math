@@ -64,11 +64,15 @@ async function play(grade, tag, viewport) {
   await page.click('[data-act=fPipGo]'); // tapping Pip's words shows the thing on the farm
   if (!(await page.$('.fbed.ready.pip.pipflash'))) errors.push(`${tag}: tapping Pip did not show the ripe bed`);
 
-  // pick the ripe carrots, feed the chick
+  // pick the ripe carrots, feed the chick (each with its own sound: a pop for picking, a crunch for eating)
+  await page.evaluate(() => { const o = MQ.sfx; window.heard = []; MQ.sfx = (n) => { window.heard.push(n); o(n); }; });
   await page.click('.fbed.ready', { force: true });
   await page.click('.fpen.hungry');
   const basket = await page.evaluate(() => MQ.state.farm.basket.carrot);
   if (basket !== 3) errors.push(`${tag}: basket after harvest ${basket}`);
+  await page.waitForTimeout(900); // the feed flies to the trough, then the chick eats
+  const heard = await page.evaluate(() => ({ heard: window.heard, all: MQ.SFX }));
+  if (!heard.heard.includes('pluck') || !heard.heard.includes('munch') || !['pluck', 'munch', 'plink', 'lullaby', 'morning'].every((n) => heard.all.includes(n))) errors.push(`${tag}: the farm sounds ${JSON.stringify(heard)}`);
 
   // the stand: first customer wrong twice (answer shown, still sold), the rest right
   await page.click('[data-act=fMarket]');

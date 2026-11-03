@@ -2372,3 +2372,9 @@ html:has(#app.is-farmplay) body { --fsky1: #5ec2ff; --fsky2: #c9eeff; background
 .ocard.ready::before { background: #2db84c; box-shadow: 0 2px 0 #1f8a37; }
 @media (max-width: 480px) { .fshopv .fitems { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .fshopv .fitem .fe { width: 64px; height: 64px; font-size: 2.2rem; } }
 @media (prefers-reduced-motion: reduce) { .fnew { animation: none; } }
+
+/* ---------- Sunny Farm, the new look 6: everything gives a little squish when tapped ---------- */
+#app.is-farm .fbed, #app.is-farm .fpen, #app.is-farm .fhouse, #app.is-farm .fwork, #app.is-farm .ystand, .fbig, .fdock-acts .btn, .fshopv .fitem .btn, .ftip-say { transition: scale 0.12s ease-out; }
+#app.is-farm .fbed:active, #app.is-farm .fpen:active, #app.is-farm .fhouse:active, #app.is-farm .fwork:active, #app.is-farm .ystand:active { scale: 0.94; }
+.fbig:active, .fdock-acts .btn:active, .fshopv .fitem .btn:active, .ftip-say:active { scale: 0.92; }
+@media (prefers-reduced-motion: reduce) { #app.is-farm .fbed, #app.is-farm .fpen, #app.is-farm .fhouse, #app.is-farm .fwork, #app.is-farm .ystand, .fbig, .fdock-acts .btn { transition: none; } }

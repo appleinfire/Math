@@ -2381,6 +2381,12 @@ html:has(#app.is-farmplay) body { --fsky1: #5ec2ff; --fsky2: #c9eeff; background
 .ocard.ready::before { background: #2db84c; box-shadow: 0 2px 0 #1f8a37; }
 @media (max-width: 480px) { .fshopv .fitems { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .fshopv .fitem .fe { width: 64px; height: 64px; font-size: 2.2rem; } }
 @media (prefers-reduced-motion: reduce) { .fnew { animation: none; } }
+
+/* ---------- Sunny Farm, the new look 6: everything gives a little squish when tapped ---------- */
+#app.is-farm .fbed, #app.is-farm .fpen, #app.is-farm .fhouse, #app.is-farm .fwork, #app.is-farm .ystand, .fbig, .fdock-acts .btn, .fshopv .fitem .btn, .ftip-say { transition: scale 0.12s ease-out; }
+#app.is-farm .fbed:active, #app.is-farm .fpen:active, #app.is-farm .fhouse:active, #app.is-farm .fwork:active, #app.is-farm .ystand:active { scale: 0.94; }
+.fbig:active, .fdock-acts .btn:active, .fshopv .fitem .btn:active, .ftip-say:active { scale: 0.92; }
+@media (prefers-reduced-motion: reduce) { #app.is-farm .fbed, #app.is-farm .fpen, #app.is-farm .fhouse, #app.is-farm .fwork, #app.is-farm .ystand, .fbig, .fdock-acts .btn { transition: none; } }
 </style>
 <div id="app"><p style="padding:40px;text-align:center">Loading Math Expedition…</p></div>
   <script>
@@ -11149,7 +11155,15 @@ html:has(#app.is-farmplay) body { --fsky1: #5ec2ff; --fsky2: #c9eeff; background
     rumble: () => { sweep(90, 50, 0, 0.35, 'sawtooth', 0.12, 300); tone(140, 0.02, 0.1, 'square', 0.04); },
     roar: () => { sweep(320, 70, 0, 1.1, 'sawtooth', 0.16, 900); sweep(250, 60, 0.05, 1.1, 'square', 0.07, 600); },
     whoosh: () => { sweep(200, 1200, 0, 0.5, 'sawtooth', 0.05, 1500); sweep(1200, 300, 0.5, 0.6, 'sawtooth', 0.05, 1500); },
+    // Sunny Farm: a pop when a crop is picked, a crunch when an animal eats, a ding for eggs and milk,
+    // a lullaby when the farm goes to sleep and a little morning tune when the sun comes up
+    pluck: () => { sweep(380, 900, 0, 0.09, 'triangle', 0.13, 3000); tone(1175, 0.06, 0.1, 'sine', 0.06); },
+    munch: () => [0, 0.09, 0.18].forEach((at, i) => sweep(260 - i * 30, 120, at, 0.06, 'sawtooth', 0.07, 900)),
+    plink: () => { tone(1318, 0, 0.1, 'triangle', 0.08); tone(1760, 0.07, 0.16, 'triangle', 0.07); },
+    lullaby: () => [784, 659, 587, 523, 392].forEach((f, i) => tone(f, i * 0.2, 0.34, 'sine', 0.08)),
+    morning: () => [523, 659, 784, 1046, 784, 1046].forEach((f, i) => tone(f, i * 0.11, 0.24, 'triangle', 0.08)),
   };
+  MQ.SFX = Object.keys(SONGS);
   MQ.sfx = (name) => {
     if (!MQ.state || !MQ.state.settings.sound) return;
     try { SONGS[name] && SONGS[name](); } catch (e) { /* audio unavailable */ }
@@ -12164,7 +12178,8 @@ html:has(#app.is-farmplay) body { --fsky1: #5ec2ff; --fsky2: #c9eeff; background
     const s = F.cropStage(b);
     if (s === 'ready') {
       const crop = b.c, n = F.harvest(f, i), from = el && el.getBoundingClientRect();
-      MQ.sfx('correct');
+      MQ.sfx('pluck');
+      SC.burst(from, '✨', 3);
       xp(1);
       save();
       redraw();
@@ -12225,7 +12240,8 @@ html:has(#app.is-farmplay) body { --fsky1: #5ec2ff; --fsky2: #c9eeff; background
     const f = fm(), got = [];
     f.beds.forEach((b, i) => { if (F.cropStage(b) === 'ready') { const el = document.querySelector(`.fbed[data-arg="${i}"]`), c = b.c; got.push([el && el.getBoundingClientRect(), F.ITEMS[c].e, F.harvest(f, i)]); } });
     if (!got.length) return;
-    MQ.sfx('correct');
+    MQ.sfx('pluck');
+    got.forEach(([r]) => SC.burst(r, '✨', 2));
     xp(got.length);
     save();
     redraw();
@@ -12248,7 +12264,7 @@ html:has(#app.is-farmplay) body { --fsky1: #5ec2ff; --fsky2: #c9eeff; background
     const f = fm(), p = w.p, where = w.a ? `this ${F.HOUSES[w.a].name.toLowerCase()}` : 'this pen';
     if (F.penReady(p)) {
       const loot = F.penLoot(p), ic = F.ie(loot[0][0]), n = F.collectPen(f, p), from = el && el.getBoundingClientRect();
-      MQ.sfx(p.a && loot[0][0] !== F.ANIMALS[p.a].item ? 'shimmer' : 'correct');
+      MQ.sfx(p.a && loot[0][0] !== F.ANIMALS[p.a].item ? 'shimmer' : 'plink');
       xp(1);
       save();
       redraw();
@@ -12263,7 +12279,7 @@ html:has(#app.is-farmplay) body { --fsky1: #5ec2ff; --fsky2: #c9eeff; background
       const from = $('#ffeed') && $('#ffeed').getBoundingClientRect();
       save();
       redraw();
-      SC.fly('🌾', from, w.el(), { land: () => { MQ.sfx('correct'); SC.burst(w.el()); hop(w.el()); SC.floatText(w.el(), `−${eat} 🌾`, { minus: true }); } });
+      SC.fly('🌾', from, w.el(), { land: () => { MQ.sfx('munch'); SC.burst(w.el()); hop(w.el()); SC.floatText(w.el(), `−${eat} 🌾`, { minus: true }); } });
       return;
     }
     const sell = w.a ? '' : `<button class="btn ghost" data-act="fSellAsk" data-arg="${w.i}">💰 Sell</button>`;
@@ -12295,13 +12311,13 @@ html:has(#app.is-farmplay) body { --fsky1: #5ec2ff; --fsky2: #c9eeff; background
     if (short) K().toast(`Not enough feed for ${short} more ${short === 1 ? 'animal' : 'animals'}: buy 🌾 in the shop.`);
     save();
     redraw();
-    fedNow.forEach((w, k) => SC.fly('🌾', from, w.el(), { delay: k * 140, land: () => { SC.burst(w.el(), '❤️', 2); hop(w.el()); SC.floatText(w.el(), `−${F.penEat(w.p)} 🌾`, { minus: true }); } }));
+    fedNow.forEach((w, k) => SC.fly('🌾', from, w.el(), { delay: k * 140, land: () => { if (k === 0) MQ.sfx('munch'); SC.burst(w.el(), '❤️', 2); hop(w.el()); SC.floatText(w.el(), `−${F.penEat(w.p)} 🌾`, { minus: true }); } }));
   }
   function collectAll() {
     const f = fm(), got = [];
     animalPlaces().forEach((w) => { if (F.penReady(w.p)) { const r = w.el().getBoundingClientRect(), e = F.ie(F.penLoot(w.p)[0][0]); got.push([r, e, F.collectPen(f, w.p)]); } });
     const n = U.sum(got.map((x) => x[2]));
-    MQ.sfx('correct');
+    MQ.sfx('plink');
     xp(n);
     save();
     redraw();
@@ -12311,8 +12327,8 @@ html:has(#app.is-farmplay) body { --fsky1: #5ec2ff; --fsky2: #c9eeff; background
     if ($('.nightfx')) return;
     const f = fm(), news = F.nextDay(f, grade());
     save();
-    MQ.sfx('tick');
-    SC.night(() => redraw(), () => morning(f, news));
+    MQ.sfx('lullaby');
+    SC.night(() => redraw(), () => { MQ.sfx('morning'); morning(f, news); });
   }
   function morning(f, news) {
     if (fs || !$('.scene')) return; // left the farm during the night
