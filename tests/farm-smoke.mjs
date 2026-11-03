@@ -74,6 +74,9 @@ async function play(grade, tag, viewport) {
   await page.click('[data-act=fMarket]');
   await page.waitForSelector('.fplay');
   await snap('03-customer');
+  // the customer says what they want in a bubble over their head (3 🥕)
+  const bub = await page.evaluate(() => { const p = MQ.farmUI.playing().p, b = document.querySelector('#shopper .sbubble'); return { b: b && b.textContent.trim(), n: Object.values(p.sale)[0], truck: !!p.truck }; });
+  if (!bub.truck && (!bub.b || !bub.b.startsWith(String(bub.n)))) errors.push(`${tag}: the customer's bubble ${JSON.stringify(bub)}`);
   let guard = 0, first = true;
   while ((await page.$('.fplay')) && guard++ < 20) {
     if (first) {

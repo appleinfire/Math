@@ -2297,3 +2297,39 @@ html:has(#app.is-farm) { scroll-padding-top: 96px; scroll-padding-bottom: 180px;
   #app.is-farm .walker { font-size: 2.4rem; }
   #app.is-farm .fhouse .hwho { font-size: 1.5rem; }
 }
+
+/* ---------- Sunny Farm, the new look 4: the stand is a little theatre (js/farm-ui.js show, js/farm-scene.js stall) ---------- */
+html:has(#app.is-farmplay) body { --fsky1: #5ec2ff; --fsky2: #c9eeff; background-color: var(--paper); background-image: linear-gradient(var(--fsky1), var(--fsky2) 360px, var(--paper) 900px); background-size: 100% 900px; background-repeat: no-repeat; }
+#app.is-farmplay .stall { height: 176px; margin-top: 12px; border-radius: 26px 26px 0 0; background: linear-gradient(#8fd6ff, #e2f6ff 62%, #a6e571 62%, #8edb5c); box-shadow: inset 0 0 0 4px #ffffff; }
+#app.is-farmplay .stall::before { content: ''; position: absolute; left: 0; right: 0; bottom: 38%; height: 46px; pointer-events: none; background: radial-gradient(ellipse 40% 100% at 18% 100%, #b6e3bb 98%, transparent 100%), radial-gradient(ellipse 45% 90% at 80% 100%, #a9dcb0 98%, transparent 100%); }
+#app.is-farmplay .stall .awning { height: 30px; border-radius: 26px 26px 0 0; z-index: 1; }
+#app.is-farmplay .stall .awning::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 12px; background: radial-gradient(circle at 11px 0, var(--aw, #ff7e6b) 10px, transparent 11px) 0 0 / 44px 12px repeat-x, radial-gradient(circle at 33px 0, #ffffff 10px, transparent 11px) 0 0 / 44px 12px repeat-x; }
+#app.is-farmplay .stall-in { inset: 30px 0 0; }
+#app.is-farmplay .seller { left: 16px; bottom: 44px; font-size: 3.6rem; }
+#app.is-farmplay .counter { height: 50px; right: 36%; border-radius: 0 14px 0 0; background: #c98b4e; box-shadow: inset 0 6px 0 #e3b783, inset 0 -4px 0 #a8703c; }
+#app.is-farmplay .goods { margin-top: -32px; font-size: 2.1rem; }
+#app.is-farmplay .cashbox { margin-top: -30px; font-size: 2.1rem; }
+#app.is-farmplay .shopper { right: 7%; bottom: 4px; font-size: 5.2rem; filter: drop-shadow(0 6px 0 rgba(40, 70, 20, 0.18)); }
+#app.is-farmplay .shopper.vip::after { font-size: 1.8rem; top: 4px; right: -14px; }
+.sbubble { position: absolute; right: 78%; top: 2px; padding: 4px 12px; border-radius: 18px; background: #ffffff; color: var(--ink); font-family: var(--display); font-weight: 600; font-style: normal; font-size: 1.35rem; line-height: 1.2; white-space: nowrap; box-shadow: 0 4px 0 rgba(34, 48, 74, 0.14); animation: bubblein 0.5s 0.6s ease-out both; }
+.sbubble::after { content: ''; position: absolute; right: -8px; bottom: 6px; border: 8px solid transparent; border-right: 0; border-left-color: #ffffff; }
+.shopper.happy .sbubble, .shopper.sad .sbubble { opacity: 0; transition: opacity 0.3s; }
+@keyframes bubblein { from { opacity: 0; scale: 0.4; } }
+#app.is-farmplay .stall + .pcard { border-radius: 0 0 26px 26px; border-top: 0; box-shadow: 0 6px 0 rgba(34, 48, 74, 0.14); }
+#app.is-farmplay .pcard { box-shadow: 0 6px 0 rgba(34, 48, 74, 0.14); }
+#app.is-farmplay .fbbar { border-radius: 22px; background: #ffffff; box-shadow: 0 4px 0 rgba(34, 48, 74, 0.14); }
+#app.is-farmplay .fbbar li.want { background: #fff3c4; box-shadow: inset 0 0 0 3px #ffc93c; }
+#app.is-farmplay .fslots i { width: 15px; height: 15px; }
+#app.is-farmplay .fslots i.on { background: #ffc93c; box-shadow: inset 0 0 0 2px #e0a21b; }
+#app.is-farmplay .key { border-radius: 18px; box-shadow: inset 0 0 0 2px #e1e9f2, 0 5px 0 #b9c9e0; }
+#app.is-farmplay .key:active { box-shadow: inset 0 0 0 2px #e1e9f2, 0 2px 0 #b9c9e0; }
+#app.is-farmplay .key.go { background: #2db84c; box-shadow: 0 5px 0 #1f8a37; }
+#app.is-farmplay .playbar .pstatus { font-family: var(--display); font-weight: 600; }
+@media (max-width: 480px) {
+  #app.is-farmplay .stall { height: 138px; }
+  #app.is-farmplay .seller { font-size: 2.8rem; bottom: 40px; }
+  #app.is-farmplay .shopper { font-size: 3.9rem; }
+  #app.is-farmplay .goods { font-size: 1.6rem; margin-top: -26px; }
+  .sbubble { font-size: 1.05rem; padding: 3px 9px; }
+}
+@media (prefers-reduced-motion: reduce) { .sbubble { animation: none; } }

@@ -192,14 +192,16 @@
 
   // ---------------------------------------------------------------- the stall above a customer
   // mode: market (your stand), jobs (the big market), pay (the farm shop, where the child is the buyer).
-  S.stall = ({ mode, stand = 0, seller, shopper, goods = '', vip = false, market = false }) => `<div class="stall st${stand} m-${mode} ${vip ? 'vip' : ''} ${market ? 'market' : ''}" aria-hidden="true">
+  // want: what the customer asks for, in a speech bubble over their head (3 🥚)
+  S.stall = ({ mode, stand = 0, seller, shopper, goods = '', vip = false, market = false, want = '' }) => `<div class="stall st${stand} m-${mode} ${vip ? 'vip' : ''} ${market ? 'market' : ''}" aria-hidden="true">
       <div class="awning"></div>${market ? '<span class="bunting"></span>' : ''}
       <div class="stall-in">
         <span class="seller">${seller}</span>
         <div class="counter"><span class="goods" id="goods">${goods}</span><span class="cashbox" id="cashbox">💰</span></div>
-        <span class="shopper ${vip ? 'vip' : ''}" id="shopper"><span>${shopper}</span></span>
+        <span class="shopper ${vip ? 'vip' : ''}" id="shopper"><span>${shopper}</span>${want ? `<i class="sbubble">${want}</i>` : ''}</span>
       </div>
     </div>`;
+  S.want = (sale) => Object.entries(sale || {}).filter(([, n]) => n > 0).map(([id, n]) => `${n} ${F.ie(id)}`).join(' ');
   S.goods = (sale) => Object.entries(sale || {}).map(([id, n]) => Array.from({ length: Math.min(n, 6) }, () => `<i>${F.ie(id)}</i>`).join('')).join('');
 
   // ---------------------------------------------------------------- animations

@@ -1059,8 +1059,8 @@
       : fs.mode === 'build' ? SC.stall({ mode: 'bank', seller: '👷', shopper: MQ.face(st()), goods: '<i>🏗️</i>' })
       : fs.mode === 'profit' ? SC.stall({ mode: 'pay', seller: F.MERCHANT.e, shopper: MQ.face(st()), goods: '<i>🧮</i>' })
       : fs.mode === 'mgr' ? SC.stall({ mode: 'mgr', stand: f.stand, seller: MQ.face(st()), shopper: F.MANAGER.e, goods: '<i>💰</i>' })
-      : fs.mode === 'order' ? SC.stall({ mode: 'market', stand: f.stand, seller: MQ.face(st()), shopper: p.who[0], goods: SC.goods(fs.order.items), vip: fs.order.big })
-      : SC.stall({ mode: fs.mode, stand: fs.mode === 'jobs' ? 9 : f.stand, seller: MQ.face(st()), shopper: p.who[0] + (p.friend ? p.friend[0] : ''), goods: SC.goods(sale), vip: p.vip, market: fs.mode === 'market' && F.marketOn(f) });
+      : fs.mode === 'order' ? SC.stall({ mode: 'market', stand: f.stand, seller: MQ.face(st()), shopper: p.who[0], goods: SC.goods(fs.order.items), vip: fs.order.big, want: SC.want(fs.order.items) })
+      : SC.stall({ mode: fs.mode, stand: fs.mode === 'jobs' ? 9 : f.stand, seller: MQ.face(st()), shopper: p.who[0] + (p.friend ? p.friend[0] : ''), goods: SC.goods(sale), vip: p.vip, market: fs.mode === 'market' && F.marketOn(f), want: fs.mode === 'market' && !p.truck ? SC.want(sale) : '' });
     K().render(`<div class="play fplay" style="--wc:${p.vip ? '#b0569e' : '#e0a21b'}">
       <header class="playbar"><button class="iconbtn" data-act="fQuit" aria-label="Stop">✕</button><div class="pstatus">${status}</div>${moneyPill()}</header>
       ${basketBar()}
@@ -1219,6 +1219,12 @@
     // the customer takes the things and pays: goods fly to them, coins fly to the money
     const shopper = $('#shopper');
     if (shopper) shopper.classList.add(p.noPay ? 'sad' : 'happy');
+    // a first-try right answer: hearts from the customer, the tip floats up, a challenge customer brings confetti
+    if (shopper && first && solved && !p.noPay) {
+      SC.burst(shopper, '💖', 3);
+      if (r.tip) SC.floatText(shopper, `+${fmt(r.tip)} tip`, { delay: 500 });
+      if (p.vip && !fs.pause) MQ.confetti(60, { colors: ['#ffd23f', '#ff8fd0', '#7ed957'], shape: 'star' });
+    }
     if (!p.jobs && !p.noPay && $('#goods')) { $('#goods').querySelectorAll(':scope > i').forEach((g, k) => SC.fly(g.innerHTML, g, shopper, { delay: k * 90, dur: 500 })); $('#goods').classList.add('gone'); }
     if (r.paid + r.tip) {
       const coins = Math.min(5, 2 + Math.floor((r.paid + r.tip) / (grade() === 'k' ? 3 : 30)));
