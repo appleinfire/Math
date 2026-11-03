@@ -74,6 +74,9 @@ async function play(grade, tag, viewport) {
   await page.click('[data-act=fMarket]');
   await page.waitForSelector('.fplay');
   await snap('03-customer');
+  // the customer says what they want in a bubble over their head (3 🥕)
+  const bub = await page.evaluate(() => { const p = MQ.farmUI.playing().p, b = document.querySelector('#shopper .sbubble'); return { b: b && b.textContent.trim(), n: Object.values(p.sale)[0], truck: !!p.truck }; });
+  if (!bub.truck && (!bub.b || !bub.b.startsWith(String(bub.n)))) errors.push(`${tag}: the customer's bubble ${JSON.stringify(bub)}`);
   let guard = 0, first = true;
   while ((await page.$('.fplay')) && guard++ < 20) {
     if (first) {
@@ -764,6 +767,9 @@ async function play(grade, tag, viewport) {
   await snap('25-preview-farm');
   const pv = await page.evaluate(() => ({ lv: MQ.farm.level(MQ.state.farm.xp).level, decor: Object.keys(MQ.state.farm.owned).length }));
   if (pv.lv !== 60 || pv.decor < 20) errors.push(`${tag}: preview farm ${JSON.stringify(pv)}`);
+  // the barnyard houses, the workshops and the stand are drawn buildings; the stand shows what is for sale on its counter
+  const art = await page.evaluate(() => ({ houses: document.querySelectorAll('.fhouse .hpic svg').length, works: document.querySelectorAll('.fwork .wpic svg').length, stand: !!document.querySelector('.ystand .spic svg'), goods: document.querySelectorAll('.ystand .ygoods > *').length || (document.querySelector('.ystand .ygoods') || {}).textContent }));
+  if (art.houses !== 6 || art.works < 8 || !art.stand || !art.goods) errors.push(`${tag}: the farm buildings ${JSON.stringify(art)}`);
   await page.click('[data-act=fPvTier][data-arg="1"]');
   await page.click('[data-act=fMarket]');
   await page.waitForSelector('.fplay #fanswer');

@@ -2242,3 +2242,94 @@ html:has(#app.is-farm) { scroll-padding-top: 96px; scroll-padding-bottom: 180px;
 #app.is-farm .fhouse { height: 76px; }
 #app.is-farm .dreamland .dl { flex-basis: 104px; }
 @media (prefers-reduced-motion: reduce) { .pippoint, .pip.pipflash { animation: none; } }
+
+/* ---------- Sunny Farm, the new look 3: the buildings drawn in SVG, bigger animals, a deeper scene (js/farm-scene.js) ---------- */
+.hpic, .wpic, .spic { position: absolute; inset: 0; pointer-events: none; }
+.hpic svg, .wpic svg, .spic svg { display: block; width: 100%; height: 100%; }
+/* the barnyard houses */
+#app.is-farm .fhouse { background: none; box-shadow: none; overflow: visible; border-radius: 0; }
+#app.is-farm .fhouse .hroof { display: none; }
+#app.is-farm .fhouse .hwho { z-index: 1; bottom: 2px; font-size: 1.9rem; }
+#app.is-farm .fhouse.s0 .hwho { font-size: 1.35rem; }
+#app.is-farm .fhouse.s1 .hwho { font-size: 1.6rem; }
+#app.is-farm .fhouse .hbadge { z-index: 2; top: 2px; right: 0; font-family: var(--display); font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12); }
+#app.is-farm .fhouse.ready .hbadge { background: #ffc93c; }
+#app.is-farm .fhouse.hungry .hbadge { background: #ffffff; }
+#app.is-farm .fhouse.ready .hpic { filter: drop-shadow(0 0 3px #ffd43b) drop-shadow(0 0 7px rgba(255, 212, 59, 0.9)); }
+#app.is-farm .fhouse.myth .hpic { filter: drop-shadow(0 0 6px rgba(180, 140, 242, 0.95)); }
+#app.is-farm .fhouse.buy .hpic, #app.is-farm .fhouse.later .hpic { opacity: 0.55; filter: grayscale(0.75); }
+#app.is-farm .fhouse.buy .hbadge { top: 24px; right: auto; left: 50%; transform: translateX(-50%); background: #2db84c; color: #ffffff; font-size: 1rem; padding: 0 10px; }
+#app.is-farm .fhouse.later .hbadge { top: 24px; right: auto; left: 50%; transform: translateX(-50%); }
+#app.is-farm .fhouse.buy, #app.is-farm .fhouse.later { opacity: 1; }
+/* the workshops */
+#app.is-farm .works { grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); }
+#app.is-farm .fwork { background: none; box-shadow: none; overflow: visible; border-radius: 0; height: 74px; }
+#app.is-farm .fwork .wroof { display: none; }
+#app.is-farm .fwork .wbig { z-index: 1; top: auto; bottom: 21px; font-size: 1.45rem; }
+#app.is-farm .fwork .wbadge { z-index: 2; top: -4px; right: -2px; font-family: var(--display); font-weight: 600; box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12); }
+#app.is-farm .fwork.ready .wbadge { background: #ffc93c; }
+#app.is-farm .fwork.busy .wbadge { background: #2e7df6; color: #ffffff; font-size: 0.8rem; }
+#app.is-farm .fwork.ready .wpic { filter: drop-shadow(0 0 3px #ffd43b) drop-shadow(0 0 7px rgba(255, 212, 59, 0.9)); }
+#app.is-farm .fwork .smoke { z-index: 1; left: auto; right: 10px; top: 0; }
+/* the stand, with what is for sale on its counter */
+#app.is-farm .yard { height: 104px; }
+#app.is-farm .ystand { bottom: 4px; width: 100px; height: 90px; padding: 0; display: block; background: none; box-shadow: none; border-radius: 0; }
+#app.is-farm .ystand .awn { display: none; }
+#app.is-farm .ystand .ye { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); z-index: 1; font-size: 1.5rem; }
+.ygoods { position: absolute; left: 14px; right: 14px; bottom: 33px; z-index: 1; display: flex; justify-content: center; gap: 1px; font-size: 1.3rem; line-height: 1; }
+#app.is-farm .ystand .badge { z-index: 2; top: -4px; right: -6px; font-family: var(--display); font-weight: 600; font-size: 0.9rem; box-shadow: 0 0 0 3px #ffffff; }
+#app.is-farm .trs.tr-musician { left: 116px; }
+#app.is-farm .trs.tr-clover { left: 168px; }
+/* bigger animals, each with a shadow on the grass */
+#app.is-farm .walker { font-size: 2.9rem; }
+#app.is-farm .s0 .walker { font-size: 2rem; }
+#app.is-farm .s1 .walker { font-size: 2.4rem; }
+#app.is-farm .walker::after { content: ''; position: absolute; left: 18%; right: 18%; bottom: -3px; height: 7px; border-radius: 50%; background: rgba(40, 70, 20, 0.2); z-index: -1; }
+#app.is-farm .fpen.a-fishpond .walker::after, #app.is-farm .myw::after { display: none; }
+#app.is-farm .fpen.a-silkworm .walker { font-size: 1.8rem; }
+/* depth: far blue-green hills behind the near ones, little tufts of grass on the land */
+#app.is-farm .sky::before { content: ''; position: absolute; left: 0; right: 0; bottom: 18px; height: 60px; pointer-events: none; background: radial-gradient(ellipse 30% 70% at 12% 100%, #a9dcb0 98%, transparent 100%), radial-gradient(ellipse 34% 80% at 50% 100%, #b6e3bb 98%, transparent 100%), radial-gradient(ellipse 30% 70% at 88% 100%, #a9dcb0 98%, transparent 100%); }
+#app.is-farm .land { position: relative; isolation: isolate; }
+#app.is-farm .land::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0.32;
+  background-image: radial-gradient(ellipse 4px 7px at 20% 40%, #6db64c 98%, transparent 100%), radial-gradient(ellipse 3px 6px at 70% 75%, #b8e891 98%, transparent 100%), radial-gradient(ellipse 4px 6px at 45% 10%, #6db64c 98%, transparent 100%);
+  background-size: 54px 46px, 38px 52px, 66px 58px; }
+@media (max-width: 480px) {
+  #app.is-farm .walker { font-size: 2.4rem; }
+  #app.is-farm .fhouse .hwho { font-size: 1.5rem; }
+}
+
+/* ---------- Sunny Farm, the new look 4: the stand is a little theatre (js/farm-ui.js show, js/farm-scene.js stall) ---------- */
+html:has(#app.is-farmplay) body { --fsky1: #5ec2ff; --fsky2: #c9eeff; background-color: var(--paper); background-image: linear-gradient(var(--fsky1), var(--fsky2) 360px, var(--paper) 900px); background-size: 100% 900px; background-repeat: no-repeat; }
+#app.is-farmplay .stall { height: 176px; margin-top: 12px; border-radius: 26px 26px 0 0; background: linear-gradient(#8fd6ff, #e2f6ff 62%, #a6e571 62%, #8edb5c); box-shadow: inset 0 0 0 4px #ffffff; }
+#app.is-farmplay .stall::before { content: ''; position: absolute; left: 0; right: 0; bottom: 38%; height: 46px; pointer-events: none; background: radial-gradient(ellipse 40% 100% at 18% 100%, #b6e3bb 98%, transparent 100%), radial-gradient(ellipse 45% 90% at 80% 100%, #a9dcb0 98%, transparent 100%); }
+#app.is-farmplay .stall .awning { height: 30px; border-radius: 26px 26px 0 0; z-index: 1; }
+#app.is-farmplay .stall .awning::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 12px; background: radial-gradient(circle at 11px 0, var(--aw, #ff7e6b) 10px, transparent 11px) 0 0 / 44px 12px repeat-x, radial-gradient(circle at 33px 0, #ffffff 10px, transparent 11px) 0 0 / 44px 12px repeat-x; }
+#app.is-farmplay .stall-in { inset: 30px 0 0; }
+#app.is-farmplay .seller { left: 16px; bottom: 44px; font-size: 3.6rem; }
+#app.is-farmplay .counter { height: 50px; right: 36%; border-radius: 0 14px 0 0; background: #c98b4e; box-shadow: inset 0 6px 0 #e3b783, inset 0 -4px 0 #a8703c; }
+#app.is-farmplay .goods { margin-top: -32px; font-size: 2.1rem; }
+#app.is-farmplay .cashbox { margin-top: -30px; font-size: 2.1rem; }
+#app.is-farmplay .shopper { right: 7%; bottom: 4px; font-size: 5.2rem; filter: drop-shadow(0 6px 0 rgba(40, 70, 20, 0.18)); }
+#app.is-farmplay .shopper.vip::after { font-size: 1.8rem; top: 4px; right: -14px; }
+.sbubble { position: absolute; right: 78%; top: 2px; padding: 4px 12px; border-radius: 18px; background: #ffffff; color: var(--ink); font-family: var(--display); font-weight: 600; font-style: normal; font-size: 1.35rem; line-height: 1.2; white-space: nowrap; box-shadow: 0 4px 0 rgba(34, 48, 74, 0.14); animation: bubblein 0.5s 0.6s ease-out both; }
+.sbubble::after { content: ''; position: absolute; right: -8px; bottom: 6px; border: 8px solid transparent; border-right: 0; border-left-color: #ffffff; }
+.shopper.happy .sbubble, .shopper.sad .sbubble { opacity: 0; transition: opacity 0.3s; }
+@keyframes bubblein { from { opacity: 0; scale: 0.4; } }
+#app.is-farmplay .stall + .pcard { border-radius: 0 0 26px 26px; border-top: 0; box-shadow: 0 6px 0 rgba(34, 48, 74, 0.14); }
+#app.is-farmplay .pcard { box-shadow: 0 6px 0 rgba(34, 48, 74, 0.14); }
+#app.is-farmplay .fbbar { border-radius: 22px; background: #ffffff; box-shadow: 0 4px 0 rgba(34, 48, 74, 0.14); }
+#app.is-farmplay .fbbar li.want { background: #fff3c4; box-shadow: inset 0 0 0 3px #ffc93c; }
+#app.is-farmplay .fslots i { width: 15px; height: 15px; }
+#app.is-farmplay .fslots i.on { background: #ffc93c; box-shadow: inset 0 0 0 2px #e0a21b; }
+#app.is-farmplay .key { border-radius: 18px; box-shadow: inset 0 0 0 2px #e1e9f2, 0 5px 0 #b9c9e0; }
+#app.is-farmplay .key:active { box-shadow: inset 0 0 0 2px #e1e9f2, 0 2px 0 #b9c9e0; }
+#app.is-farmplay .key.go { background: #2db84c; box-shadow: 0 5px 0 #1f8a37; }
+#app.is-farmplay .playbar .pstatus { font-family: var(--display); font-weight: 600; }
+@media (max-width: 480px) {
+  #app.is-farmplay .stall { height: 138px; }
+  #app.is-farmplay .seller { font-size: 2.8rem; bottom: 40px; }
+  #app.is-farmplay .shopper { font-size: 3.9rem; }
+  #app.is-farmplay .goods { font-size: 1.6rem; margin-top: -26px; }
+  .sbubble { font-size: 1.05rem; padding: 3px 9px; }
+}
+@media (prefers-reduced-motion: reduce) { .sbubble { animation: none; } }
