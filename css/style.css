@@ -2333,3 +2333,42 @@ html:has(#app.is-farmplay) body { --fsky1: #5ec2ff; --fsky2: #c9eeff; background
   .sbubble { font-size: 1.05rem; padding: 3px 9px; }
 }
 @media (prefers-reduced-motion: reduce) { .sbubble { animation: none; } }
+
+/* ---------- Sunny Farm, the new look 5: the shop as big cards, the basket as crates, the order board ---------- */
+.fshopv .ftabs { gap: 8px; margin: 2px 0 14px; }
+.fshopv .ftabs .chip { padding: 10px 16px; border: 0; border-radius: 999px; background: #ffffff; color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 1.05rem; box-shadow: 0 4px 0 rgba(34, 48, 74, 0.14); }
+.fshopv .ftabs .chip.sel { background: #2db84c; color: #ffffff; box-shadow: 0 4px 0 #1f8a37; }
+.fshopv .fitems { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 14px; }
+.fshopv .fitem { position: relative; flex-direction: column; align-items: stretch; gap: 6px; padding: 14px 12px 12px; border-radius: 22px; background: #ffffff; text-align: center; box-shadow: 0 5px 0 rgba(34, 48, 74, 0.14); }
+.fshopv .fitem .fe { align-self: center; width: 78px; height: 78px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 40% 35%, #fffbe8, #ffe6a3); font-size: 2.7rem; }
+.fshopv .fitem .fe .spi svg { height: 2.7rem; }
+.fshopv .fitem-t { align-items: center; gap: 2px; }
+.fshopv .fitem-t b { font-family: var(--display); font-weight: 600; font-size: 1.1rem; line-height: 1.15; }
+.fshopv .fside { align-items: stretch; gap: 6px; margin-top: auto; }
+.fshopv .fprice { align-self: center; padding: 2px 14px; border-radius: 999px; background: #eafbea; font-size: 1.3rem; }
+.fshopv .fprice:empty { display: none; }
+.fshopv .fside .btn { width: 100%; }
+.fshopv .fown { align-self: center; font-size: 0.95rem; }
+.fshopv .fitem.locked { opacity: 1; background: #f2f5f9; box-shadow: inset 0 0 0 2px #e1e9f2; }
+.fshopv .fitem.locked .fe { background: #e3e9f1; }
+.fshopv .fitem.locked .fe > * , .fshopv .fitem.locked .fe { color: transparent; text-shadow: 0 0 0 rgba(34, 48, 74, 0.35); }
+.fshopv .fitem.locked .fe .spi svg { filter: grayscale(1) brightness(0.4) opacity(0.4); }
+.fshopv .fitem.locked .flock { position: absolute; top: 10px; right: 10px; padding: 2px 9px; border-radius: 999px; background: #22304a; color: #ffffff; font-size: 0.8rem; }
+.fnew { position: absolute; top: 8px; left: 8px; z-index: 1; padding: 2px 10px; border-radius: 999px; background: #ff6b5b; color: #ffffff; font-family: var(--display); font-weight: 600; font-size: 0.9rem; rotate: -8deg; box-shadow: 0 3px 0 #d94d3e; animation: fpop 1.2s ease-in-out infinite; }
+/* the basket: wooden crates */
+.fbasket.fcrates { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px 14px; padding-top: 12px; }
+.fcrate { position: relative; padding: 24px 10px 12px; border-radius: 16px; background: repeating-linear-gradient(180deg, #e0ae76 0 24px, #c98b4e 24px 27px); box-shadow: inset 0 0 0 4px #a8703c, 0 5px 0 #8a5a31; }
+.fcrate h3 { position: absolute; top: -13px; left: 12px; margin: 0; padding: 3px 12px; border-radius: 999px; background: #ffffff; font-size: 1rem; box-shadow: 0 3px 0 rgba(34, 48, 74, 0.14); }
+.fcrate-in { display: flex; flex-wrap: wrap; gap: 6px; }
+.fcrate .fchip { box-shadow: 0 2px 0 rgba(107, 66, 36, 0.35); }
+.fcrate.c-kitchen { background: repeating-linear-gradient(180deg, #f6c89a 0 24px, #e0a46b 24px 27px); }
+.fcrate.c-rare { background: repeating-linear-gradient(180deg, #d4c2ff 0 24px, #b49cf0 24px 27px); box-shadow: inset 0 0 0 4px #8c6bd9, 0 5px 0 #6a4bb8; }
+/* the order board: notes pinned to a cork board */
+.ocards { padding: 16px 14px 14px; border-radius: 18px; background: radial-gradient(circle, rgba(120, 72, 30, 0.18) 0 1.5px, transparent 2px) 0 0 / 14px 14px, #d8a86a; box-shadow: inset 0 0 0 5px #a8703c; gap: 16px; }
+.ocard { position: relative; padding-top: 16px; border-radius: 6px; rotate: -0.8deg; box-shadow: 0 4px 8px rgba(74, 46, 18, 0.35); }
+.ocard:nth-child(even) { rotate: 0.8deg; }
+.ocard::before { content: ''; position: absolute; top: 5px; left: 50%; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: #e2463a; box-shadow: 0 2px 0 #8e2b23; }
+.ocard.big::before { background: #f0c35a; box-shadow: 0 2px 0 #a8650a; }
+.ocard.ready::before { background: #2db84c; box-shadow: 0 2px 0 #1f8a37; }
+@media (max-width: 480px) { .fshopv .fitems { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .fshopv .fitem .fe { width: 64px; height: 64px; font-size: 2.2rem; } }
+@media (prefers-reduced-motion: reduce) { .fnew { animation: none; } }

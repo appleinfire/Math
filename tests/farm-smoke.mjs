@@ -140,6 +140,9 @@ async function play(grade, tag, viewport) {
   await page.click('[data-act=go][data-arg="farm:shop"]');
   await page.waitForSelector('.fitems');
   await snap('10-shop');
+  // the shop is a grid of big cards; what opens later is a gray shape with its level
+  const cards = await page.evaluate(() => ({ grid: getComputedStyle(document.querySelector('.fshopv .fitems')).display, locked: !!document.querySelector('.fshopv .fitem.locked .flock') }));
+  if (cards.grid !== 'grid' || !cards.locked) errors.push(`${tag}: the shop cards ${JSON.stringify(cards)}`);
   await page.click('[data-act=fBuy][data-arg="feed:5"]');
   await answer(page, true);
   await page.waitForSelector('.fb.ok');
@@ -770,6 +773,9 @@ async function play(grade, tag, viewport) {
   // the barnyard houses, the workshops and the stand are drawn buildings; the stand shows what is for sale on its counter
   const art = await page.evaluate(() => ({ houses: document.querySelectorAll('.fhouse .hpic svg').length, works: document.querySelectorAll('.fwork .wpic svg').length, stand: !!document.querySelector('.ystand .spic svg'), goods: document.querySelectorAll('.ystand .ygoods > *').length || (document.querySelector('.ystand .ygoods') || {}).textContent }));
   if (art.houses !== 6 || art.works < 8 || !art.stand || !art.goods) errors.push(`${tag}: the farm buildings ${JSON.stringify(art)}`);
+  // the basket is crates: from the garden, the animals, the workshops, rare things
+  const crates = await page.evaluate(() => [...document.querySelectorAll('.fcrates .fcrate')].map((c) => c.className.replace('fcrate c-', '')).join(','));
+  if (crates !== 'garden,animals,kitchen,rare') errors.push(`${tag}: the basket crates ${crates}`);
   await page.click('[data-act=fPvTier][data-arg="1"]');
   await page.click('[data-act=fMarket]');
   await page.waitForSelector('.fplay #fanswer');
