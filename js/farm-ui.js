@@ -217,7 +217,8 @@
     const s = F.cropStage(b);
     if (s === 'ready') {
       const crop = b.c, n = F.harvest(f, i), from = el && el.getBoundingClientRect();
-      MQ.sfx('correct');
+      MQ.sfx('pluck');
+      SC.burst(from, '✨', 3);
       xp(1);
       save();
       redraw();
@@ -278,7 +279,8 @@
     const f = fm(), got = [];
     f.beds.forEach((b, i) => { if (F.cropStage(b) === 'ready') { const el = document.querySelector(`.fbed[data-arg="${i}"]`), c = b.c; got.push([el && el.getBoundingClientRect(), F.ITEMS[c].e, F.harvest(f, i)]); } });
     if (!got.length) return;
-    MQ.sfx('correct');
+    MQ.sfx('pluck');
+    got.forEach(([r]) => SC.burst(r, '✨', 2));
     xp(got.length);
     save();
     redraw();
@@ -301,7 +303,7 @@
     const f = fm(), p = w.p, where = w.a ? `this ${F.HOUSES[w.a].name.toLowerCase()}` : 'this pen';
     if (F.penReady(p)) {
       const loot = F.penLoot(p), ic = F.ie(loot[0][0]), n = F.collectPen(f, p), from = el && el.getBoundingClientRect();
-      MQ.sfx(p.a && loot[0][0] !== F.ANIMALS[p.a].item ? 'shimmer' : 'correct');
+      MQ.sfx(p.a && loot[0][0] !== F.ANIMALS[p.a].item ? 'shimmer' : 'plink');
       xp(1);
       save();
       redraw();
@@ -316,7 +318,7 @@
       const from = $('#ffeed') && $('#ffeed').getBoundingClientRect();
       save();
       redraw();
-      SC.fly('🌾', from, w.el(), { land: () => { MQ.sfx('correct'); SC.burst(w.el()); hop(w.el()); SC.floatText(w.el(), `−${eat} 🌾`, { minus: true }); } });
+      SC.fly('🌾', from, w.el(), { land: () => { MQ.sfx('munch'); SC.burst(w.el()); hop(w.el()); SC.floatText(w.el(), `−${eat} 🌾`, { minus: true }); } });
       return;
     }
     const sell = w.a ? '' : `<button class="btn ghost" data-act="fSellAsk" data-arg="${w.i}">💰 Sell</button>`;
@@ -348,13 +350,13 @@
     if (short) K().toast(`Not enough feed for ${short} more ${short === 1 ? 'animal' : 'animals'}: buy 🌾 in the shop.`);
     save();
     redraw();
-    fedNow.forEach((w, k) => SC.fly('🌾', from, w.el(), { delay: k * 140, land: () => { SC.burst(w.el(), '❤️', 2); hop(w.el()); SC.floatText(w.el(), `−${F.penEat(w.p)} 🌾`, { minus: true }); } }));
+    fedNow.forEach((w, k) => SC.fly('🌾', from, w.el(), { delay: k * 140, land: () => { if (k === 0) MQ.sfx('munch'); SC.burst(w.el(), '❤️', 2); hop(w.el()); SC.floatText(w.el(), `−${F.penEat(w.p)} 🌾`, { minus: true }); } }));
   }
   function collectAll() {
     const f = fm(), got = [];
     animalPlaces().forEach((w) => { if (F.penReady(w.p)) { const r = w.el().getBoundingClientRect(), e = F.ie(F.penLoot(w.p)[0][0]); got.push([r, e, F.collectPen(f, w.p)]); } });
     const n = U.sum(got.map((x) => x[2]));
-    MQ.sfx('correct');
+    MQ.sfx('plink');
     xp(n);
     save();
     redraw();
@@ -364,8 +366,8 @@
     if ($('.nightfx')) return;
     const f = fm(), news = F.nextDay(f, grade());
     save();
-    MQ.sfx('tick');
-    SC.night(() => redraw(), () => morning(f, news));
+    MQ.sfx('lullaby');
+    SC.night(() => redraw(), () => { MQ.sfx('morning'); morning(f, news); });
   }
   function morning(f, news) {
     if (fs || !$('.scene')) return; // left the farm during the night

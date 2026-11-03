@@ -64,7 +64,15 @@
     rumble: () => { sweep(90, 50, 0, 0.35, 'sawtooth', 0.12, 300); tone(140, 0.02, 0.1, 'square', 0.04); },
     roar: () => { sweep(320, 70, 0, 1.1, 'sawtooth', 0.16, 900); sweep(250, 60, 0.05, 1.1, 'square', 0.07, 600); },
     whoosh: () => { sweep(200, 1200, 0, 0.5, 'sawtooth', 0.05, 1500); sweep(1200, 300, 0.5, 0.6, 'sawtooth', 0.05, 1500); },
+    // Sunny Farm: a pop when a crop is picked, a crunch when an animal eats, a ding for eggs and milk,
+    // a lullaby when the farm goes to sleep and a little morning tune when the sun comes up
+    pluck: () => { sweep(380, 900, 0, 0.09, 'triangle', 0.13, 3000); tone(1175, 0.06, 0.1, 'sine', 0.06); },
+    munch: () => [0, 0.09, 0.18].forEach((at, i) => sweep(260 - i * 30, 120, at, 0.06, 'sawtooth', 0.07, 900)),
+    plink: () => { tone(1318, 0, 0.1, 'triangle', 0.08); tone(1760, 0.07, 0.16, 'triangle', 0.07); },
+    lullaby: () => [784, 659, 587, 523, 392].forEach((f, i) => tone(f, i * 0.2, 0.34, 'sine', 0.08)),
+    morning: () => [523, 659, 784, 1046, 784, 1046].forEach((f, i) => tone(f, i * 0.11, 0.24, 'triangle', 0.08)),
   };
+  MQ.SFX = Object.keys(SONGS);
   MQ.sfx = (name) => {
     if (!MQ.state || !MQ.state.settings.sound) return;
     try { SONGS[name] && SONGS[name](); } catch (e) { /* audio unavailable */ }
