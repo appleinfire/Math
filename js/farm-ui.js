@@ -113,12 +113,18 @@
       <span class="fbar"><span style="width:${pctv}%"></span></span>
       <small>${left > 0 ? `${fmt(total)} of ${fmt(g.price)}${fm().bank.bal ? ' (with the bank)' : ''} · ${fmt(left)} to go` : g.locked ? `You have enough! It opens at farm level ${g.lv}.` : fm().money >= g.price ? 'You have enough! Buy it in the shop 🎉' : 'You have enough with your bank savings! Take money out of the bank to buy it.'}${left > 0 && g.locked ? ` · opens at level ${g.lv}` : ''}</small></span></button>`;
   }
+  const CRATES = [['garden', '🌱 From the garden'], ['animals', '🐾 From the animals'], ['kitchen', '🫙 From the workshops'], ['rare', '🌟 Rare things']];
+  let workOut = null;
+  const crateOf = (id) => { workOut = workOut || new Set(Object.values(F.WORKS).flatMap((w) => w.recipes.map((r) => r.out))); return F.ITEMS[id].myth ? 'rare' : F.CROPS[id] ? 'garden' : workOut.has(id) ? 'kitchen' : 'animals'; };
   function main() {
     const f = fm(), g = grade();
     const lv = F.level(f.xp), pctv = Math.round(((f.xp - lv.from) / (lv.to - lv.from)) * 100);
     const tier = F.tiers(g)[F.tierNow(f, g) - 1];
     const n = F.saleCount(f), all = F.basketCount(f), kept = F.kept(f);
-    const basket = Object.entries(f.basket).filter(([, c]) => c > 0).map(([id, c]) => `<span class="fchip ${F.ITEMS[id].myth ? 'myth' : ''}">${F.ie(id)} ${c} <small>× ${fmt(F.price(id, g))}</small>${kept[id] ? `<small class="fkept" title="${kept[id]} kept for your orders">📋 ${kept[id]}</small>` : ''}</span>`).join('') || '<span class="muted">Empty. Pick crops and collect from animals.</span>';
+    const chip = ([id, c]) => `<span class="fchip ${F.ITEMS[id].myth ? 'myth' : ''}">${F.ie(id)} ${c} <small>× ${fmt(F.price(id, g))}</small>${kept[id] ? `<small class="fkept" title="${kept[id]} kept for your orders">📋 ${kept[id]}</small>` : ''}</span>`;
+    // the basket is a row of crates: from the garden, from the animals, from the workshops, rare things
+    const inBasket = Object.entries(f.basket).filter(([, c]) => c > 0);
+    const basket = inBasket.length ? CRATES.map(([k, name]) => { const its = inBasket.filter(([id]) => crateOf(id) === k); return its.length ? `<section class="fcrate c-${k}"><h3>${name}</h3><div class="fcrate-in">${its.map(chip).join('')}</div></section>` : ''; }).join('') : '<span class="muted">Empty. Pick crops and collect from animals.</span>';
     const hungry = F.allPens(f).some((p) => p.a && !p.fed), ready = F.allPens(f).some((p) => F.penReady(p));
     const ripe = f.beds.filter((b) => F.cropStage(b) === 'ready').length, empty = F.emptyBeds(f).length;
     const bankDay = F.bankDue(f) > 0, nights = F.nightsToBankDay(f.day), dep = F.depositReady(f);
@@ -169,7 +175,7 @@
       </div>
       ${f.helper.hired ? `<div class="fhelp">🧑‍🌾 <span>Farmhand ${F.HELPER.name} ${f.helper.on ? `feeds the animals at night and collects in the morning · ${fmt(F.HELPER.wage[g === 'k' ? 0 : 1])} a day` : 'is taking a break'}</span><button class="btn ghost" data-act="fHelper">${f.helper.on ? 'Pause' : 'Back to work'}</button></div>` : ''}
       <h2>🧺 Basket</h2>
-      <div class="fbasket" id="fbasket">${basket}</div>
+      <div class="fbasket ${inBasket.length ? 'fcrates' : ''}" id="fbasket">${basket}</div>
       ${Object.keys(kept).length ? '<p class="muted small">📋 = kept for your orders: customers at the stand don’t buy it.</p>' : ''}
       <p class="muted center">${F.STANDS[f.stand].e} ${esc(F.STANDS[f.stand].name)} · sold ${f.stats.sold} things · earned ${fmt(f.stats.earned)} in all</p>
     </main>`, 'is-farm' + wxClass(f));
@@ -898,7 +904,7 @@
       <div class="row"><button class="btn" data-act="closeModal">OK</button></div>`);
   }
   function shop() {
-    const f = fm(), list = tab === 'supply' ? [] : F.shop(f, grade()).filter((x) => x.tab === tab);
+    const f = fm(), list = tab === 'supply' ? [] : F.shop(f, grade()).filter((x) => x.tab === tab), L = F.level(f.xp).level;
     const row = (x) => {
       // things to save up for: too expensive now, or not open yet (a goal for later levels)
       const goal = f.goal === x.id ? '<span class="fown">⭐ Goal</span>' : `<button class="btn ghost" data-act="fGoal" data-arg="${x.id}">⭐ Save up</button>`;
@@ -909,7 +915,7 @@
       else if (x.blocked) btn = `<span class="flock">${esc(x.blocked)}</span>`;
       else if (f.money >= x.price) btn = `<button class="btn" data-act="fBuy" data-arg="${x.id}">Buy</button>`;
       else btn = goal;
-      return `<div class="fitem ${x.locked ? 'locked' : ''}"><span class="fe">${x.id.startsWith('decor:') ? SC.icon(x.id.slice(6), x.e) : x.e}</span>
+      return `<div class="fitem ${x.locked ? 'locked' : ''}">${!x.owned && !x.locked && L > 1 && x.lv === L ? '<span class="fnew">New!</span>' : ''}<span class="fe">${x.id.startsWith('decor:') ? SC.icon(x.id.slice(6), x.e) : x.e}</span>
         <span class="fitem-t"><b>${esc(x.name)}</b>${x.note ? `<small>${esc(x.note)}</small>` : ''}</span>
         <span class="fside"><span class="fprice">${x.owned ? '' : fmt(x.price)}</span>${btn}</span></div>`;
     };
@@ -920,7 +926,7 @@
     const yardHtml = yard.length && (F.level(f.xp).level >= F.YARD_LV - 4 || Object.keys(f.yard || {}).length)
       ? `<h2 class="fyard">🐣 Barnyard</h2><p class="muted">Little houses for small animals. They don’t need a pen, so your ${F.PENS.length} pens stay free for big animals. Up to ${1 + F.YARD_ROOM} animals in each house (⬆️ Upgrades).</p><div class="fitems">${yard.map(row).join('')}</div>` : '';
     const rows = tab === 'supply' ? '' : feed.length ? `${feed.map(row).join('')}</div>${myPens()}${yardHtml}<h2>🐾 Animals</h2><div class="fitems">${list.filter((x) => !feed.includes(x) && !yard.includes(x)).map(row).join('')}` : list.map(row).join('');
-    K().render(header('🛒 Farm Shop', 'farm') + `<main class="farm">
+    K().render(header('🛒 Farm Shop', 'farm') + `<main class="farm fshopv">
       <div class="ftabs" role="tablist">${TABS.map(([id, n]) => `<button class="chip ${tab === id ? 'sel' : ''}" role="tab" aria-selected="${tab === id}" data-act="fTab" data-arg="${id}">${n}</button>`).join('')}</div>
       ${goalBar()}
       ${tab === 'supply' ? `<p class="muted">Small helpers for a few farm days, always here (one of each at a time). Like ${esc(F.MERCHANT.name)}’s charms, but smaller. When one is over, you find out if it paid off.</p>${supplies()}` : ''}
