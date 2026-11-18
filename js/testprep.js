@@ -182,7 +182,7 @@
   // (CogAT, Brain Games and Joey tests already ask every question type at every level they use.)
   P.REVIEW_IN_CONTEST = 3;
   const bandOf = (d) => (d <= 2 ? 3 : d === 3 ? 4 : 5);
-  P.newContest = (kind, review = []) => {
+  P.newContest = (kind, review = [], tier = 0) => { // tier: NNAT only (1, 2 = the challenge tests)
     const avoid = new Set();
     const make = (topic, d) => P.fresh(topic, d, avoid);
     const items = [];
@@ -194,7 +194,7 @@
       for (let i = 0; i < 12; i++) items.push({ p: make('kg_joey', 1), pts: 1 });
     } else if (kind === 'nnat') {
       // NNAT-3 style: 48 questions, the four kinds mixed, getting harder from the first to the last (levels 1–6)
-      for (const x of MQ.nnatPlan()) items.push({ p: make(x.topic, x.d), pts: 1, sec: MQ.TOPICS[x.topic].name });
+      for (const x of MQ.nnatPlan(tier)) items.push({ p: make(x.topic, x.d), pts: 1, sec: MQ.TOPICS[x.topic].name });
     } else if (kind === 'cogat' || kind === 'cogatk') {
       // CogAT style: battery by battery, each question type in a row, getting harder within the type.
       const levels = kind === 'cogat' ? [1, 2, 3, 4, 5] : [1, 1];
@@ -217,7 +217,7 @@
       p.review = true;
       items[at] = Object.assign({}, items[at], { p, rv: true });
     }
-    return { kind, items, answers: items.map(() => null), flags: items.map(() => false), i: 0, seconds: kind === 'kangaroo' ? P.KANGAROO_MINUTES * 60 : kind === 'nnat' ? MQ.NNAT_TEST.minutes * 60 : 0, started: Date.now() };
+    return { kind, tier: kind === 'nnat' ? tier : 0, items, answers: items.map(() => null), flags: items.map(() => false), i: 0, seconds: kind === 'kangaroo' ? P.KANGAROO_MINUTES * 60 : kind === 'nnat' ? MQ.NNAT_TEST.minutes * 60 : 0, started: Date.now() };
   };
   P.scoreContest = (ct) => {
     const graded = ct.items.map((it, i) => ({ it, given: ct.answers[i], ok: ct.answers[i] !== null && ct.answers[i] === it.p.answer }));
@@ -234,7 +234,7 @@
     }
     return {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
-      date: U.dateKey(), kind: ct.kind,
+      date: U.dateKey(), kind: ct.kind, tier: ct.tier || 0,
       score: U.sum(graded.filter((g) => g.ok).map((g) => g.it.pts)), max: U.sum(ct.items.map((it) => it.pts)),
       right: graded.filter((g) => g.ok).length, blank: graded.filter((g) => g.given === null).length, n: graded.length,
       sections, types, levels, minutes: Math.max(1, Math.round((Date.now() - ct.started) / 60000)), timed: !!ct.timed,
@@ -276,7 +276,7 @@
       what: 'Practice for the Naglieri Nonverbal Ability Test, 3rd edition (NNAT-3): picture puzzles with shapes and colors, no words and no numbers. It measures reasoning, not what was taught in class.',
       where: 'Eureka Union School District uses the NNAT-3 as the only test for GATE eligibility: an NAI of 132 or more (98th percentile) qualifies. Testing starts in 2nd grade, every child may test twice (a second try the next year), and the district tests in February. Invitations go out in early December; register by mid-January.',
       checks: 'Four kinds of puzzles: Pattern Completion (the piece that fits a design), Reasoning by Analogy (how shapes change across and down), Serial Reasoning (each row and column uses every shape and color once), and Spatial Visualization (putting pictures together in your mind). The 2nd-grade test (Level C) has about 48 puzzles in 30 minutes.',
-      how: 'The district does not recommend a study guide but says getting to know the format builds confidence. Use “Practice by type” in short sessions (it gets harder as answers are right, up to a Genius level harder than the test), and take the 48-question practice test with the 30-minute clock now and then to practice the pace: about 35 seconds a puzzle. Real NAI scores and percentiles cannot be estimated from practice.',
+      how: 'The district does not recommend a study guide but says getting to know the format builds confidence. Use “Practice by type” in short sessions (it gets harder as answers are right; from the Genius level on it is harder than the test), and take the 48-question practice test with the 30-minute clock now and then to practice the pace: about 35 seconds a puzzle. When the practice test is nearly all right, try the Challenge test (levels Expert to Master) and then the Super challenge (only the hardest levels, Genius to Champion): both are harder than the real test, so a lower score there is normal. Real NAI scores and percentiles cannot be estimated from practice.',
     },
     cogat: {
       title: 'CogAT practice', icon: '🧠',

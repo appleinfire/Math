@@ -1,6 +1,6 @@
 // Browser test for NNAT-3 practice: node tests/nnat-smoke.mjs [screenshotDir]
 // A 2nd grader opens Test Prep, practices each kind of puzzle, takes the 48-question practice test until the
-// 30-minute clock runs out, and sees results by kind and by level. Fails on console errors or horizontal overflow.
+// 30-minute clock runs out, and sees results by kind and by level; then the two challenge tests (harder levels). Fails on console errors or horizontal overflow.
 import { createRequire } from 'module';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -94,6 +94,32 @@ for (const [tag, viewport] of [['phone', { width: 390, height: 844 }], ['ipad', 
   const tiles = await page.$$eval('.sumgrid > div', (els) => els.length);
   if (tiles !== 4) errors.push(`${tag}: ${tiles} result tiles`);
   if (!(await page.$('text=By level'))) errors.push(`${tag}: no results by level`);
+  // the two challenge tests: the same 48 puzzles and 30 minutes, only the upper levels (4–7 and 6–8)
+  for (const [tier, lo, hi] of [[1, 4, 7], [2, 6, 8]]) {
+    await page.evaluate(() => MQ.app.go('prep'));
+    await page.click(`.nncard [data-act=startContest][data-arg="nnat:timed:${tier}"]`);
+    await page.waitForSelector('.contest');
+    const ch = await page.evaluate(() => { const c = MQ.app.contest(); return { tier: c.tier, n: c.items.length, left: c.left, first: c.items[0].p.d, last: c.items[c.items.length - 1].p.d, title: document.querySelector('.ptitle').textContent }; });
+    if (ch.tier !== tier || ch.n !== 48 || ch.left !== 1800 || ch.first !== lo || ch.last !== hi || !/challenge/i.test(ch.title)) errors.push(`${tag}: challenge test ${tier} ${JSON.stringify(ch)}`);
+    // the hardest puzzles fit on the screen: jump to the last one, answer it, and let the clock run out
+    await page.click('.ctnav [data-act=ctGo] >> nth=47');
+    const overflowQ = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    if (overflowQ) errors.push(`${tag}: challenge test ${tier}: horizontal overflow on a question`);
+    await snap(`06-challenge-${tier}`, false);
+    const c = await page.evaluate(() => { const c = MQ.app.contest(); const p = c.items[c.i].p; return p.choices.indexOf(p.answer); });
+    await page.click(`.choices.ct .choice >> nth=${c}`);
+    await page.evaluate(() => { MQ.app.contest().left = 2; });
+    await page.waitForSelector('.presult .pr-tier', { timeout: 10000 });
+    const r = await page.evaluate(() => MQ.state.tests.contests.slice(-1)[0]);
+    if (r.kind !== 'nnat' || r.tier !== tier || r.right !== 1 || Object.keys(r.levels).join() !== Array.from({ length: hi - lo + 1 }, (_, i) => lo + i).join()) errors.push(`${tag}: challenge result ${JSON.stringify({ tier: r.tier, right: r.right, levels: r.levels })}`);
+    await snap(`07-challenge-${tier}-results`);
+  }
+  await page.evaluate(() => MQ.app.go('prep'));
+  const lastLine = await page.textContent('.nncard .tc-last');
+  if (!/super challenge/.test(lastLine)) errors.push(`${tag}: the card does not name the last challenge test: ${lastLine}`);
+  // practice by type goes up to the challenge level 8
+  const top = await page.evaluate(() => MQ.NNAT_TOPICS.map((t) => MQ.TOPICS[t].maxD).join());
+  if (top !== '8,8,8,8') errors.push(`${tag}: top practice levels ${top}`);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   if (overflow) errors.push(tag + ': horizontal overflow');
   await page.close();
