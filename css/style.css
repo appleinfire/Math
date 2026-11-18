@@ -174,6 +174,8 @@ p { margin: 0.4em 0; }
 .dchip.d4 { background: #e3e6ff; color: #4a50a8; }
 .dchip.d5 { background: #f8dcf0; color: #93367f; }
 .dchip.d6 { background: #1f2a44; color: #ffd76a; }
+.dchip.d7 { background: #5b1f6e; color: #ffe08a; }
+.dchip.d8 { background: #8a1c1c; color: #ffe08a; }
 
 .pcard { background: var(--card); border-radius: 22px; padding: 16px 16px 14px; box-shadow: inset 0 0 0 2px var(--line), 0 6px 0 var(--line); border-top: 6px solid var(--wc); }
 .pcard.enter { animation: slidein 0.28s ease-out; }
@@ -1254,6 +1256,12 @@ html:has(#app.is-farm) { scroll-padding-bottom: 140px; } /* scrolling to a bed o
 .nnwrap { display: flex; justify-content: center; margin: 10px 0 4px; }
 .nnwrap svg.nn { max-width: 100%; height: auto; max-height: none; }
 svg.nn.design { width: 156px; }
+svg.nn.design.wide { width: 182px; }
+.nn-more { margin-top: 12px; padding: 10px 12px; border-radius: 14px; background: #fff3e6; box-shadow: inset 0 0 0 2px #f2b77c; }
+.nn-more > small { display: block; margin: 2px 0 8px; color: var(--ink-soft); }
+.nn-more .btn { flex-direction: column; gap: 2px; }
+.nn-more .btn small { display: block; font-size: 0.72rem; font-weight: 700; opacity: 0.8; }
+.pr-tier { font-weight: 800; color: #b3541e; }
 .choices.pics .choice svg.nn, .choices.ct .copt svg.nn { width: 64px; height: 64px; }
 .choices.n5.pics:has(svg.nn):not(.ct) { grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .choices.n5.pics:has(svg.nn) .choice { min-height: 78px; padding: 6px; }

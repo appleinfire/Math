@@ -1,8 +1,8 @@
 // UI: screens, game loop, rewards. Screens render into #app; clicks are routed through data-act attributes.
 (function () {
   const MQ = globalThis.MQ, U = MQ.U, S = MQ.store;
-  const D_NAMES = { 1: 'Sprout', 2: 'Explorer', 3: 'Ranger', 4: 'Expert', 5: 'Legend', 6: 'Genius' }; // 6: NNAT practice only
-  const D_ICONS = { 1: '🌱', 2: '🧭', 3: '🏕️', 4: '🏔️', 5: '🐉', 6: '💎' };
+  const D_NAMES = { 1: 'Sprout', 2: 'Explorer', 3: 'Ranger', 4: 'Expert', 5: 'Legend', 6: 'Genius', 7: 'Master', 8: 'Champion' }; // 6–8: NNAT practice only (7–8: challenge levels)
+  const D_ICONS = { 1: '🌱', 2: '🧭', 3: '🏕️', 4: '🏔️', 5: '🐉', 6: '💎', 7: '🚀', 8: '👑' };
   const TRACK_COLOR = { k: '#e0a21b', g2: '#2bb3a3' };
   const DAILY_REWARD = 15;
   const FARM_FEED_BONUS = 5; // the Daily Quest also brings feed for Sunny Farm
@@ -596,7 +596,7 @@
     }
     if (sess.warm && sess.warm.length && (sess.asked === 0 || sess.asked === 2)) { // Daily Quest: NNAT warm-up
       const t = sess.warm.shift();
-      const p = MQ.prep.fresh(t, U.clamp(mastery(t).passed + 1, 1, 6), new Set(sess.recent));
+      const p = MQ.prep.fresh(t, U.clamp(mastery(t).passed + 1, 1, 8), new Set(sess.recent));
       p.warm = true;
       return p;
     }
@@ -1333,22 +1333,28 @@
   const myContests = (kind) => (st.tests.contests || []).filter((c) => c.kind === kind);
   // NNAT-3: the test Eureka Union uses for GATE eligibility (from 2nd grade).
   function nnatCard() {
-    const last = myContests('nnat').slice(-1)[0];
+    const last = myContests('nnat').slice(-1)[0], TI = MQ.NNAT_TIERS, lv = (i) => TI[i].levels.map((d) => D_ICONS[d] + ' ' + D_NAMES[d]).join(' to ');
     return `<article class="testcard nncard" style="--pc:#2e64b8">
       <div class="tc-head"><span class="tc-ic">🔷</span><div><b>NNAT-3 practice · GATE</b><small>The picture-puzzle test Eureka Union uses for GATE · ${MQ.NNAT_TEST.n} puzzles · ${MQ.NNAT_TEST.minutes} minutes</small></div>${infoBtn('nnat')}</div>
       <p>Shapes and colors only, no words and no numbers: find the piece that fits, see how shapes change, find what is missing, and put pictures together in your mind. To qualify for GATE a child needs the 98th percentile, so aim for nearly all right in 30 minutes.</p>
-      ${last ? `<div class="tc-last">Last practice test, ${fmtDate(last.date)}: <b>${last.right} of ${last.n}</b> right in ${last.minutes} min <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
+      ${last ? `<div class="tc-last">Last ${last.tier ? TI[last.tier].icon + ' ' + TI[last.tier].name.toLowerCase() : 'practice test'}, ${fmtDate(last.date)}: <b>${last.right} of ${last.n}</b> right in ${last.minutes} min <button class="linkbtn" data-act="viewContest" data-arg="${last.id}">See results</button></div>` : ''}
       ${resumeBox('nnat')}
       <div class="row left">
         <button class="btn ${pausedInfo('nnat') ? 'ghost' : ''}" data-act="startContest" data-arg="nnat:timed">${pausedInfo('nnat') ? 'New practice test' : `Practice test (${MQ.NNAT_TEST.minutes} min) ▶`}</button>
         <button class="btn ghost" data-act="go" data-arg="nntypes">Practice by type</button>
       </div>
+      <div class="nn-more"><b>Too easy? Try a challenge test.</b> <small>The same ${MQ.NNAT_TEST.n} puzzles in ${MQ.NNAT_TEST.minutes} minutes, but harder than the real test.</small>
+        <div class="row left">
+          <button class="btn ghost nn-t1" data-act="startContest" data-arg="nnat:timed:1">${TI[1].icon} ${TI[1].name}<small>${lv(1)}</small></button>
+          <button class="btn ghost nn-t2" data-act="startContest" data-arg="nnat:timed:2">${TI[2].icon} ${TI[2].name}<small>${lv(2)}</small></button>
+        </div>
+      </div>
     </article>`;
   }
   function nntypes() {
     render(header('NNAT-3 practice', 'prep') + `<main class="prep">
-      <p class="lead">Pick a kind of puzzle. They get harder as you get them right, up to 💎 Genius, which is harder than the real test. Every answer is explained.</p>
-      ${levelRow(6)}
+      <p class="lead">Pick a kind of puzzle. They get harder as you get them right. From 💎 Genius on they are harder than the real test, and 🚀 Master and 👑 Champion are challenge levels. Every answer is explained.</p>
+      ${levelRow(8)}
       <div class="kgtypes">${MQ.NNAT_TOPICS.map(typeTile).join('')}</div>
       <p class="muted">The real test has no hints and no explanations, and 30 minutes for 48 puzzles: try the practice test now and then to get used to the pace.</p>
     </main>`);
@@ -1443,11 +1449,11 @@
     cur = 'kgtypes';
   }
   function startContest(arg) {
-    const [kind, timed] = arg.split(':');
+    const [kind, timed, tier] = arg.split(':'); // 'nnat:timed:1' = the NNAT challenge test
     if (confirmRestart(kind, 'startContest', arg)) return;
     S.clearPaused(kind);
     remember('contest');
-    ct = P().newContest(kind, S.dueReview());
+    ct = P().newContest(kind, S.dueReview(), +tier || 0);
     ct.timed = !!timed;
     ct.left = ct.timed ? ct.seconds : 0;
     ct.soft = kind === 'cogat'; // CogAT: a clock that only shows the time used, never stops the test (NNAT: a real 30-minute clock)
@@ -1477,7 +1483,7 @@
     r.className = 'is-contest';
     r.innerHTML = previewBar() + `<div class="contest">
       <header class="playbar"><button class="iconbtn" data-act="ctQuit" aria-label="Stop">✕</button>
-        <span class="ptitle">${CT_TITLE[ct.kind]}</span>
+        <span class="ptitle">${ct.tier ? `${MQ.NNAT_TIERS[ct.tier].icon} NNAT-3 ${MQ.NNAT_TIERS[ct.tier].name.toLowerCase()}` : CT_TITLE[ct.kind]}</span>
         ${ct.timed ? `<span class="stat timer ${ct.left <= 300 ? 'low' : ''}" id="ct-timer">⏱ ${clock(ct.left)}</span>` : ct.soft ? `<span class="stat timer soft" id="ct-timer" title="Time used">⏱ ${clock(ct.used)}</span>` : ''}</header>
       <nav class="ctnav" aria-label="Questions">${ct.items.map((x, k) => `<button class="ctdot ${k === i ? 'cur' : ''} ${ct.answers[k] !== null ? 'ans' : ''} ${ct.flags[k] ? 'flag' : ''} p${x.pts}" data-act="ctGo" data-arg="${k}" aria-label="Question ${k + 1}">${k + 1}</button>`).join('')}</nav>
       <section class="pcard">
@@ -1547,6 +1553,7 @@
     render(header(info.title, 'prep') + `<main class="presult">
       <div class="pr-hero" style="box-shadow: inset 0 0 0 3px ${info.color}, 0 5px 0 ${info.color}">
         ${fresh ? `<div class="pr-done">Finished! +${kids ? 15 : 25} 💎</div>` : `<div class="pr-done muted">${fmtDate(res.date)}</div>`}
+        ${res.tier ? `<div class="pr-tier">${MQ.NNAT_TIERS[res.tier].icon} ${MQ.NNAT_TIERS[res.tier].name}: harder than the real test</div>` : ''}
         <div class="pr-level">${kangaroo ? `${res.score} / ${res.max}` : `${res.right} of ${res.n}`}</div>
         <div class="muted">${kangaroo ? `points · ${res.right} of ${res.n} right${res.blank ? ` · ${res.blank} blank` : ''}${res.timed ? ` · ${res.minutes} min` : ''}` : kids ? 'solved ' + '⭐'.repeat(Math.max(1, Math.round((res.right / res.n) * 3))) : `right · ${res.minutes} min${res.blank ? ` · ${res.blank} blank` : ''}`}</div>
       </div>
@@ -1585,7 +1592,7 @@
     const intro = `<h3>GATE: NNAT-3 practice</h3><p class="muted">Eureka Union decides GATE eligibility with one test, the <b>Naglieri Nonverbal Ability Test (NNAT-3)</b>: an NAI of <b>132 or more (98th percentile)</b> qualifies, and nothing else is counted. Testing starts in 2nd grade and each child gets <b>two tries</b> (the second the next year); a third try is possible through CSU Sacramento for a small fee, and private test results are not accepted. Usual timeline: invitations by email in early December, registration and consent by mid-January, testing in mid-February (after school for grades 2–3), results to pick up at school in early April. The district does not recommend a study guide but says getting to know the format builds confidence. The 2nd-grade test (Level C) has about 48 picture puzzles in 30 minutes; practice tests here use original puzzles in the same four kinds, and real NAI scores cannot be estimated from them.</p>`;
     if (!list.length) return intro + '<p>No NNAT practice test yet. Start one from <b>Test Prep</b>.</p>';
     const top = (c) => { const l = Object.entries(c.levels || {}).filter(([, x]) => x.n && x.right / x.n >= 0.75).map(([d]) => +d); return l.length ? D_ICONS[Math.max(...l)] + ' ' + D_NAMES[Math.max(...l)] : '—'; };
-    return intro + `<div class="tablewrap"><table class="topics"><thead><tr><th>Date</th><th>Right</th>${MQ.NNAT_TOPICS.map((t) => `<th title="${MQ.TOPICS[t].name}">${MQ.TOPICS[t].icon}</th>`).join('')}<th>Top level</th><th>Time</th></tr></thead><tbody>${list.slice().reverse().map((c) => `<tr><td>${fmtDate(c.date)}</td><td><b>${c.right} / ${c.n}</b></td>${MQ.NNAT_TOPICS.map((t) => { const x = c.sections[MQ.TOPICS[t].name]; return `<td>${x ? x.right + '/' + x.n : ''}</td>`; }).join('')}<td>${top(c)}</td><td>${c.used ? Math.round(c.used / 60) + ' min' : c.minutes + ' min'}</td></tr>`).join('')}</tbody></table></div><p class="muted small">Top level: the hardest level with at least 3 of 4 right. 💎 Genius is harder than the real test.</p>`;
+    return intro + `<div class="tablewrap"><table class="topics"><thead><tr><th>Date</th><th>Right</th>${MQ.NNAT_TOPICS.map((t) => `<th title="${MQ.TOPICS[t].name}">${MQ.TOPICS[t].icon}</th>`).join('')}<th>Top level</th><th>Time</th></tr></thead><tbody>${list.slice().reverse().map((c) => `<tr><td>${fmtDate(c.date)}${c.tier ? `<small>${MQ.NNAT_TIERS[c.tier].icon} ${MQ.NNAT_TIERS[c.tier].name}</small>` : ''}</td><td><b>${c.right} / ${c.n}</b></td>${MQ.NNAT_TOPICS.map((t) => { const x = c.sections[MQ.TOPICS[t].name]; return `<td>${x ? x.right + '/' + x.n : ''}</td>`; }).join('')}<td>${top(c)}</td><td>${c.used ? Math.round(c.used / 60) + ' min' : c.minutes + ' min'}</td></tr>`).join('')}</tbody></table></div><p class="muted small">Top level: the hardest level with at least 3 of 4 right. 💎 Genius is harder than the real test; 🔥 Challenge tests (levels 4–7) and 🏆 Super challenges (levels 6–8) go up to 🚀 Master and 👑 Champion, well above it, so fewer right answers there are normal.</p>`;
   }
   function cogatHistory() {
     const k = st.grade === 'k', list = myContests(k ? 'cogatk' : 'cogat');
@@ -2292,7 +2299,7 @@
     kgPractice: (a) => {
       const T = MQ.TOPICS[a];
       if (!T) return prep();
-      const top = T.logic && st.grade === 'k' && !S.preview ? 2 : T.maxD || 5; // kindergarten logic stays at levels 1–2; NNAT goes to 6
+      const top = T.logic && st.grade === 'k' && !S.preview ? 2 : T.maxD || 5; // kindergarten logic stays at levels 1–2; NNAT goes to 8
       const fixed = S.preview && ui.pvD && ui.pvD !== 'auto' ? +ui.pvD : 0; // a grown-up picked the level
       startSession({ mode: 'trainer', topics: [a], auto: !fixed, d: fixed ? [fixed, fixed] : [2, 2], autoD: Math.min(2, top - 1) || 1, maxD: top, goal: 0, timer: 0, kgTopic: a,
         revFit: (r) => familyOf(r.topic) === familyOf(a) && r.d <= top });

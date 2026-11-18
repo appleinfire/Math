@@ -2,7 +2,9 @@
 // (NAI 132 / 98th percentile, from 2nd grade). Level C (2nd grade) has four kinds of nonverbal puzzles, all pictures:
 //   Pattern Completion · Reasoning by Analogy · Serial Reasoning · Spatial Visualization
 // Every item has 5 answer pictures, like the real test, and a `say` line for the short spoken directions.
-// Levels 1–5 go from easy to hard; level 6 (Expert) is harder than most real Level C items, for the 98th-percentile goal.
+// Levels 1–5 go from easy to hard; level 6 (Genius) is harder than most real Level C items, for the 98th-percentile goal.
+// Levels 7–8 (Master, Champion) are challenge levels well above the real test: designs with only a symmetry, changes in
+// two directions at once, grids with covered boxes, and drawings whose joining rule has to be worked out.
 // All items are original and generated here; nothing is copied from the real test.
 (function () {
   const MQ = (globalThis.MQ = globalThis.MQ || {});
@@ -56,11 +58,12 @@
     return JSON.stringify([f.bg || 'white', f.shape || '', f.fill || '', n > 1 ? false : f.big !== false, n > 1 ? 'c' : f.pos || 'c', turny ? ((f.rot || 0) % 360 + 360) % 360 : 0, n]);
   };
   const QBOX = (x, y, s) => `<rect x="${x + 2}" y="${y + 2}" width="${s - 4}" height="${s - 4}" rx="5" fill="#ffffff" stroke="${INK}" stroke-width="2.5" stroke-dasharray="6 4"/><text x="${x + s / 2}" y="${y + s / 2 + 9}" font-size="26" font-family="Nunito, sans-serif" font-weight="900" fill="${INK}" text-anchor="middle">?</text>`;
-  // A matrix of figures (rows of cells); null = the missing one.
+  const COVER = (x, y, s) => `<rect x="${x + 1}" y="${y + 1}" width="${s - 2}" height="${s - 2}" rx="4" fill="#8f9bb0" stroke="#5d6a82" stroke-width="2"/><path d="M${x + 8} ${y + s - 8}L${x + s - 8} ${y + 8}M${x + 8} ${y + s / 2}L${x + s / 2} ${y + 8}M${x + s / 2} ${y + s - 8}L${x + s - 8} ${y + s / 2}" stroke="#b9c3d3" stroke-width="4" stroke-linecap="round"/>`;
+  // A matrix of figures (rows of cells); null = the missing one, { cover: true } = a covered box (challenge levels).
   function matrix(cells, s = 64) {
     const R = cells.length, Cn = cells[0].length, g = 6;
     let b = '';
-    cells.forEach((row, r) => row.forEach((f, c) => { const x = c * (s + g), y = r * (s + g); b += f ? figBody(f, x, y, s) : QBOX(x, y, s); }));
+    cells.forEach((row, r) => row.forEach((f, c) => { const x = c * (s + g), y = r * (s + g); b += !f ? QBOX(x, y, s) : f.cover ? COVER(x, y, s) : figBody(f, x, y, s); }));
     return `<div class="vis nnwrap">${svg(Cn * (s + g) - g, R * (s + g) - g, b, 'mx')}</div>`;
   }
   // Five answer pictures: the right one and four that are close. Returns a choice problem.
@@ -110,21 +113,40 @@
     };
     return { N, rule: pick(rules[d]) };
   }
+  // Levels 7–8: nothing repeats. Half of the design is free and the other half is its picture in a mirror (7: left–right
+  // or top–bottom) or turned upside down / folded corner to corner (8), so the piece has to be flipped in the mind.
+  const SYMS = {
+    lr: { img: (r, c, N) => [r, N - 1 - c], say: 'The design is the same on the left and on the right, like in a mirror. The piece is the mirror picture of the tiles on the other side.' },
+    tb: { img: (r, c, N) => [N - 1 - r, c], say: 'The top of the design and the bottom are the same, like in a mirror. The piece is the mirror picture of the tiles on the other side.' },
+    turn: { img: (r, c, N) => [N - 1 - r, N - 1 - c], say: 'The design looks the same when you turn it upside down. The piece is the same as the tiles in the opposite corner, turned around.' },
+    diag: { img: (r, c) => [c, r], say: 'Fold the design along the line from the top left corner to the bottom right corner: both sides match. The piece is the folded-over picture of the tiles on the other side.' },
+  };
+  function mirrorDesign(d) {
+    const N = d === 7 ? 6 : 7, marks = ['', '', ...U.sample(MARKS, d === 7 ? 1 : 2)];
+    const free = U.range(0, N - 1).map(() => U.range(0, N - 1).map(() => ({ bg: pick(BGS), m: pick(marks) })));
+    const sym = pick(d === 7 ? ['lr', 'tb'] : ['turn', 'diag']), img = (r, c) => SYMS[sym].img(r, c, N);
+    const rule = (r, c) => { const [r2, c2] = img(r, c); return r2 < r || (r2 === r && c2 < c) ? free[r2][c2] : free[r][c]; };
+    return { N, rule, sym, img };
+  }
   function nn_pattern(d) {
     for (let t = 0; t < 200; t++) {
-      const { N, rule } = design(d);
-      const k = d <= 3 ? 1 : 2;
+      const { N, rule, sym, img } = d >= 7 ? mirrorDesign(d) : design(d);
+      const k = d <= 3 ? 1 : d === 8 ? 3 : 2;
       const hr = rnd(0, N - k), hc = rnd(0, N - k);
+      const inHole = (r, c) => r >= hr && r < hr + k && c >= hc && c < hc + k;
+      // a symmetric design: every tile of the hole must still show on the other side
+      if (sym && U.range(0, k * k - 1).some((i) => inHole(...img(hr + Math.floor(i / k), hc + (i % k))))) continue;
       const tileAt = (r, c) => rule(((r % N) + N) % N, ((c % N) + N) % N);
       const take = (r0, c0, f = (t2) => t2) => U.range(0, k - 1).map((r) => U.range(0, k - 1).map((c) => f(tileAt(r0 + r, c0 + c), r, c)));
       const right = take(hr, hc);
       const swap = (bgA, bgB) => (t2) => Object.assign({}, t2, { bg: t2.bg === bgA ? bgB : t2.bg === bgB ? bgA : t2.bg });
-      const cands = shuffle([
+      const flips = [right.map((row) => row.slice().reverse()), right.slice().reverse(), right.slice().reverse().map((row) => row.slice().reverse()), right.map((row, r) => row.map((_, c) => right[c][r]))];
+      const cands = (sym ? shuffle(flips) : []).concat(shuffle([ // symmetric designs: the piece flipped the wrong way comes first
         take(hr, hc + 1), take(hr + 1, hc), take(hr, hc - 1), take(hr - 1, hc),
         right.map((row) => row.slice().reverse()), right.slice().reverse(),
         right.map((row) => row.map(swap('blue', 'yellow'))), right.map((row) => row.map(swap('yellow', 'white'))),
         right.map((row, r) => row.map((t2, c) => (r === k - 1 && c === k - 1 ? Object.assign({}, t2, { m: t2.m ? '' : 'circle' }) : t2))),
-      ]);
+      ]));
       // spare wrong pieces: one tile with another color or another mark (always different, a little less tricky)
       const spare = [];
       for (let i = 0; i < 12; i++) {
@@ -136,14 +158,13 @@
       const ts = 26;
       let b = '';
       for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
-        const inHole = r >= hr && r < hr + k && c >= hc && c < hc + k;
-        if (!inHole) b += tileBody(tileAt(r, c), c * ts, r * ts, ts);
+        if (!inHole(r, c)) b += tileBody(tileAt(r, c), c * ts, r * ts, ts);
       }
       b += `<rect x="${hc * ts + 1}" y="${hr * ts + 1}" width="${k * ts - 2}" height="${k * ts - 2}" fill="#ffffff" stroke="${INK}" stroke-width="2.5" stroke-dasharray="5 3"/>`;
       b += `<rect x="1" y="1" width="${N * ts - 2}" height="${N * ts - 2}" fill="none" stroke="${INK}" stroke-width="2.5"/>`;
-      return five('pattern', `Look at the design. Which piece fits in the empty space?<div class="vis nnwrap">${svg(N * ts, N * ts, b, 'design')}</div>`, 'Look at the design. Which piece fits in the empty space?', right, wrongs, (pc) => pieceSvg(pc, k === 1 ? 46 : 30), {
-        hint: 'Follow the colors and marks along the row and down the column into the empty space.',
-        explain: k === 1 ? 'The design repeats: the tile that fits keeps the same pattern of colors and marks as its row and its column.' : 'The design repeats (or is the same on both sides): the piece that fits continues every row and every column through the hole.',
+      return five('pattern', `Look at the design. Which piece fits in the empty space?<div class="vis nnwrap">${svg(N * ts, N * ts, b, 'design' + (N > 6 ? ' wide' : ''))}</div>`, 'Look at the design. Which piece fits in the empty space?', right, wrongs, (pc) => pieceSvg(pc, k === 1 ? 46 : k === 2 ? 30 : 21), {
+        hint: sym ? (d === 7 ? 'This design does not repeat. Look for a mirror: is one side the same as the other side, flipped over?' : 'This design does not repeat. Turn it upside down in your mind, or fold it corner to corner: which tiles land on the empty space?') : 'Follow the colors and marks along the row and down the column into the empty space.',
+        explain: sym ? SYMS[sym].say : k === 1 ? 'The design repeats: the tile that fits keeps the same pattern of colors and marks as its row and its column.' : 'The design repeats (or is the same on both sides): the piece that fits continues every row and every column through the hole.',
       });
     }
     MQ.NNAT_FALLBACKS[d] = (MQ.NNAT_FALLBACKS[d] || 0) + 1; // counted by the tests: this level could not be made
@@ -162,7 +183,7 @@
     move: { ok: (f) => (f.n || 1) === 1 && f.big === false && (f.pos || 'c') !== 'c', do: (f) => Object.assign({}, f, { pos: { tl: 'tr', tr: 'br', br: 'bl', bl: 'tl' }[f.pos] }), say: 'moves to the next corner' },
   };
   COL.sky = '#cfe3f7';
-  const base = (o = {}) => Object.assign({ bg: 'white', shape: pick(SHAPES), fill: pick(['blue', 'yellow']), big: true, pos: 'c', rot: pick([0, 90, 180, 270]), n: 1 }, o);
+  const base = (...o) => Object.assign({ bg: 'white', shape: pick(SHAPES), fill: pick(['blue', 'yellow']), big: true, pos: 'c', rot: pick([0, 90, 180, 270]), n: 1 }, ...o);
   const SAYS = { 1: [['color', 'size', 'more']], 2: [['turn', 'flip', 'color', 'move']], 3: [['turn', 'color', 'size', 'more', 'move']] };
   function nn_analogy(d) {
     for (let t = 0; t < 300; t++) {
@@ -188,6 +209,21 @@
         if (!wrongs) continue;
         return five('analogy', `Look across and down. Which picture goes in the empty box?${matrix([[a, b], [c, null]])}`, 'Look how the pictures change across and down. Which picture goes in the empty box?', right, wrongs, (f) => fig(f), { hint: 'Find what changes across the top row, and what changes down the left column. The empty box gets both changes.', explain: `Across, the figure ${ta.say}; down, it ${td.say}. The empty box has both changes.` });
       }
+      if (d >= 7) { // 3×3 with one figure: a change at every step across and another at every step down (level 8: two at once across)
+        const na = pick(['turn', 'more', 'move']), nb = pick(['turn', 'more', 'move'].filter((k) => k !== na));
+        const nc = d === 8 ? pick(['color', 'bg', 'turn', 'more'].filter((k) => k !== na && k !== nb)) : null;
+        const ok = (f, ...ns) => { for (const k of ns) { if (!k) continue; if (!T[k].ok(f)) return null; f = T[k].do(f); } return f; };
+        const a = base({ shape: pick(TURNY), bg: pick(['white', 'sky']), fill: pick(nc === 'color' ? ['blue', 'yellow'] : ['blue', 'yellow', 'white']) }, [na, nb].includes('move') ? { big: false, pos: pick(['tl', 'tr', 'bl', 'br']) } : {});
+        const grid = [[a]];
+        for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) if (r || c) (grid[r] = grid[r] || [])[c] = c ? grid[r][c - 1] && ok(grid[r][c - 1], na, nc) : grid[r - 1][0] && ok(grid[r - 1][0], nb);
+        if (grid.flat().some((f) => !f) || new Set(grid.flat().map(keyOf)).size !== 9) continue;
+        if ([1, 2].some((c) => [1, 2].some((r) => !ok(grid[r - 1][c], nb) || keyOf(ok(grid[r - 1][c], nb)) !== keyOf(grid[r][c])))) continue; // down works the same in every column
+        const right = grid[2][2], near = grid[2][1];
+        const wrongs = distinct(right, [near, grid[1][2], T[na].do(near), nc ? T[nc].do(near) : grid[1][1], T[nb].do(right), T[na].do(right), grid[1][1], grid[2][0], grid[0][2]], keyOf);
+        if (!wrongs) continue;
+        const cells = grid.map((row, r) => row.map((f, c) => (r === 2 && c === 2 ? null : f)));
+        return five('analogy', `The pictures change across, and they change down. Which picture goes in the empty box?${matrix(cells, 58)}`, 'The pictures change across, and they change down. Which picture goes in the empty box?', right, wrongs, (f) => fig(f, 58), { hint: 'Find what happens at each step across a row. Then find what happens at each step down a column. The empty box needs both, two times each.', explain: `Across, the figure ${T[na].say}${nc ? ' and ' + T[nc].say : ''} at each step. Down, it ${T[nb].say} at each step. The empty box is two steps across and two steps down.` });
+      }
       // 3×3: each row starts with its own figure; columns apply 0, 1 and 2 steps of a change (level 6: two changes at once)
       // the main change keeps going (turning, one more, the next corner), so the last box needs two steps
       const n1 = pick(d === 4 ? ['turn', 'more'] : ['turn', 'more', 'move']);
@@ -210,9 +246,16 @@
 
   // ---------------------------------------------------------------- 3. Serial Reasoning
   // A 3×3 grid where each row and each column has every value once (shape, color, size, …); find the missing one.
+  // Levels 7–8: some boxes are covered, so the row alone and the column alone are not enough. LATIN has every way to
+  // fill a 3×3 grid with each value once in each row and column; the visible boxes must leave one answer only.
+  const LATIN = [];
+  for (let i = 0; i < 19683; i++) {
+    const g = U.range(0, 8).map((k) => Math.floor(i / 3 ** k) % 3);
+    if ([0, 1, 2].every((r) => new Set([g[3 * r], g[3 * r + 1], g[3 * r + 2]]).size === 3 && new Set([g[r], g[r + 3], g[r + 6]]).size === 3)) LATIN.push(g);
+  }
   function nn_serial(d) {
     for (let t = 0; t < 300; t++) {
-      const attrs = { 1: ['shape'], 2: ['fill'], 3: ['shape', 'fill'], 4: ['shape', 'fill', 'n'], 5: ['shape', 'fill', 'rot'], 6: ['shape', 'fill', 'n', 'rot'] }[d];
+      const attrs = { 1: ['shape'], 2: ['fill'], 3: ['shape', 'fill'], 4: ['shape', 'fill', 'n'], 5: ['shape', 'fill', 'rot'], 6: ['shape', 'fill', 'n', 'rot'], 7: ['shape', 'fill', pick(['n', 'rot'])], 8: ['shape', 'fill', 'n', 'rot'] }[d];
       const shapes = U.sample(attrs.includes('rot') ? TURNY : SHAPES, 3);
       const vals = { shape: shapes, fill: ['blue', 'yellow', 'white'], rot: [0, 90, 180], n: [1, 2, 3] };
       // each attribute gets its own Latin-square shift (rows move the values one step left or right)
@@ -242,11 +285,19 @@
       if (!attrs.includes('n')) extra.push(Object.assign({}, right, { n: 2 }), Object.assign({}, right, { big: false }));
       const wrongs = distinct(right, shuffle([...neighbours, ...attrs.map(breakOne), ...attrs.map(breakOne), ...extra]), keyOf);
       if (!wrongs) continue;
-      const cells = grid.map((row, r) => row.map((f, c) => (r === mr && c === mc ? null : f)));
+      // covered boxes: one in the row and one in the column of the question (level 8: one more somewhere else)
+      const cover = d < 7 ? [] : [[mr, pick([1, 2])], [pick([1, 2]), mc], ...(d === 8 ? [[pick([1, 2]), pick([1, 2])]] : [])].map(([dr, dc], i) => (i === 0 ? [mr, (mc + dc) % 3] : i === 1 ? [(mr + dr) % 3, mc] : [(mr + dr) % 3, (mc + dc) % 3]));
+      const covered = (r, c) => cover.some(([r2, c2]) => r2 === r && c2 === c);
+      if (cover.length) {
+        const one = (a) => new Set(LATIN.filter((g) => grid.every((row, r) => row.every((f, c) => (r === mr && c === mc) || covered(r, c) || g[3 * r + c] === vals[a].indexOf(f[a])))).map((g) => g[3 * mr + mc])).size === 1;
+        if (!attrs.every(one)) continue;
+      }
+      const cells = grid.map((row, r) => row.map((f, c) => (r === mr && c === mc ? null : covered(r, c) ? { cover: true } : f)));
       const names = { shape: 'shape', fill: 'color', rot: 'direction', n: 'number of shapes' };
-      return five('serial', `Which picture goes in the empty box?${matrix(cells, 58)}`, 'Look at each row and each column. Which picture goes in the empty box?', right, wrongs, (f) => fig(f, 58), {
-        hint: `Each row and each column uses every ${attrs.map((a) => names[a]).join(' and every ')} once. What is missing in this row and this column?`,
-        explain: `Every row and every column has each ${attrs.map((a) => names[a]).join(', each ')} one time, so the empty box gets the one that is still missing.`,
+      const ask = cover.length ? 'Some boxes are covered. Which picture goes in the box with the question mark?' : 'Which picture goes in the empty box?';
+      return five('serial', `${ask}${matrix(cells, 58)}`, cover.length ? 'Some boxes are covered. Look at each row and each column. Which picture goes in the box with the question mark?' : 'Look at each row and each column. Which picture goes in the empty box?', right, wrongs, (f) => fig(f, 58), {
+        hint: cover.length ? `Each row and each column uses every ${attrs.map((a) => names[a]).join(' and every ')} once. A covered box hides one of them, so use the row and the column together.` : `Each row and each column uses every ${attrs.map((a) => names[a]).join(' and every ')} once. What is missing in this row and this column?`,
+        explain: `Every row and every column has each ${attrs.map((a) => names[a]).join(', each ')} one time, so the ${cover.length ? 'box with the question mark' : 'empty box'} gets the one that is still missing${cover.length ? ' from its row and its column together' : ''}.`,
       });
     }
     MQ.NNAT_FALLBACKS[d] = (MQ.NNAT_FALLBACKS[d] || 0) + 1; // counted by the tests: this level could not be made
@@ -278,9 +329,11 @@
   const linesKey = (ps) => ps.slice().sort().join(',');
   const linesFig = (ps, s = 58) => svg(s, s, linesBody(ps, 0, 0, s), 'lines');
   function nn_spatial(d) {
-    const xor = d >= 4;
-    const size = { 1: [1, 2], 2: [2, 2], 3: [2, 3], 4: [2, 3], 5: [3, 3], 6: [3, 4] }[d];
-    const join = (a, b) => (xor ? [...a.filter((k) => !b.includes(k)), ...b.filter((k) => !a.includes(k))] : [...new Set([...a, ...b])]);
+    // level 7: many lines cancel; level 8: the rule itself has to be found (lines in both cancel, or only lines in both stay)
+    const mode = d <= 3 ? 'all' : d === 8 ? pick(['xor', 'both']) : 'xor', xor = mode !== 'all';
+    const size = { 1: [1, 2], 2: [2, 2], 3: [2, 3], 4: [2, 3], 5: [3, 3], 6: [3, 4], 7: [4, 5], 8: [4, 6] }[d];
+    const JOIN = { all: (a, b) => [...new Set([...a, ...b])], xor: (a, b) => [...a.filter((k) => !b.includes(k)), ...b.filter((k) => !a.includes(k))], both: (a, b) => a.filter((k) => b.includes(k)) };
+    const join = JOIN[mode];
     for (let t = 0; t < 300; t++) {
       const rowPair = () => {
         const a = U.sample(PARTS, rnd(size[0], size[1]));
@@ -293,30 +346,32 @@
       if (xor && !rows.slice(0, 2).some(([a, b]) => a.some((k) => b.includes(k)))) continue; // a full row shows lines cancelling
       if (xor && !rows[2][0].some((k) => rows[2][1].includes(k))) continue; // the question uses it too
       if (!xor && rows.some(([a, b]) => a.some((k) => b.includes(k)))) continue; // levels 1–3: no shared lines, so "put together" is the only reading
+      if (d === 8 && rows.some(([a, b]) => [a, b].some((x) => linesKey(x) === linesKey(join(a, b))) || linesKey(JOIN.xor(a, b)) === linesKey(JOIN.both(a, b)))) continue; // every row tells the two rules apart
       const [a3, b3] = rows[2];
       const right = join(a3, b3);
       const union = [...new Set([...a3, ...b3])];
       const cands = [
-        xor ? union : a3.filter((k) => b3.includes(k)),
+        ...['all', 'xor', 'both'].filter((m) => m !== mode && (d === 8 || m !== 'xor')).map((m) => JOIN[m](a3, b3)),
         right.slice(0, -1), [...right, pick(PARTS.filter((k) => !right.includes(k)))],
         a3, b3, right.map((k) => ({ top: 'bottom', bottom: 'top', left: 'right', right: 'left', d1: 'd2', d2: 'd1' }[k] || k)),
         [...right.slice(1), pick(PARTS.filter((k) => !right.includes(k)))],
       ].filter((ps) => ps.length);
-      const wrongs = distinct(right, shuffle(cands), linesKey);
+      const wrongs = distinct(right, d === 8 ? [...cands.slice(0, 2), ...shuffle(cands.slice(2))] : shuffle(cands), linesKey);
       if (!wrongs || !right.length) continue;
       const S = 58, g = 6;
       let b = '';
       rows.forEach(([a, bb], r) => {
         const yy = r * (S + g);
         b += linesBody(a, 0, yy, S);
-        b += `<text x="${S + 9}" y="${yy + S / 2 + 7}" font-size="20" font-weight="900" fill="${INK}" text-anchor="middle" font-family="Nunito, sans-serif">+</text>`;
+        b += `<text x="${S + 9}" y="${yy + S / 2 + 7}" font-size="20" font-weight="900" fill="${INK}" text-anchor="middle" font-family="Nunito, sans-serif">${d === 8 ? '•' : '+'}</text>`;
         b += linesBody(bb, S + 18, yy, S);
-        b += `<text x="${2 * S + 27}" y="${yy + S / 2 + 7}" font-size="20" font-weight="900" fill="${INK}" text-anchor="middle" font-family="Nunito, sans-serif">=</text>`;
+        b += `<text x="${2 * S + 27}" y="${yy + S / 2 + 7}" font-size="20" font-weight="900" fill="${INK}" text-anchor="middle" font-family="Nunito, sans-serif">${d === 8 ? '→' : '='}</text>`;
         b += r === 2 ? QBOX(2 * S + 36, yy, S) : linesBody(join(a, bb), 2 * S + 36, yy, S);
       });
-      return five('spatial', `Put the first two pictures together. Which picture goes in the empty box?<div class="vis nnwrap">${svg(3 * S + 36, 3 * S + 2 * g, b, 'spatial')}</div>`, 'In each row the first two pictures are put together to make the third. Which picture goes in the empty box?', right, wrongs, (ps) => linesFig(ps), {
-        hint: xor ? 'Look at the first two rows: a line that is in both pictures disappears. Lines in only one picture stay.' : 'Every line from the first picture and every line from the second picture is in the third.',
-        explain: xor ? 'Lines that are in both pictures cancel out; lines that are in only one of them stay.' : 'The third picture has all the lines of the first and second pictures together.',
+      const ask = d === 8 ? 'The first two rows show the rule. Which picture goes in the empty box?' : 'Put the first two pictures together. Which picture goes in the empty box?';
+      return five('spatial', `${ask}<div class="vis nnwrap">${svg(3 * S + 36, 3 * S + 2 * g, b, 'spatial')}</div>`, d === 8 ? 'In each row the first two pictures make the third. Find the rule in the first two rows. Which picture goes in the empty box?' : 'In each row the first two pictures are put together to make the third. Which picture goes in the empty box?', right, wrongs, (ps) => linesFig(ps), {
+        hint: d === 8 ? 'Look at one line at a time in the first two rows. Does a line that is in both pictures stay, or disappear? What about a line in only one picture?' : xor ? 'Look at the first two rows: a line that is in both pictures disappears. Lines in only one picture stay.' : 'Every line from the first picture and every line from the second picture is in the third.',
+        explain: mode === 'both' ? 'Here only the lines that are in both pictures stay; a line in only one picture disappears.' : xor ? 'Lines that are in both pictures cancel out; lines that are in only one of them stay.' : 'The third picture has all the lines of the first and second pictures together.',
       });
     }
     MQ.NNAT_FALLBACKS[d] = (MQ.NNAT_FALLBACKS[d] || 0) + 1; // counted by the tests: this level could not be made
@@ -324,7 +379,7 @@
   }
 
   // ---------------------------------------------------------------- registry
-  const TT = (name, icon, gen, desc) => ({ name, icon, std: 'NNAT-3 style · nonverbal', gen, track: 'prep', nnat: true, maxD: 6, desc });
+  const TT = (name, icon, gen, desc) => ({ name, icon, std: 'NNAT-3 style · nonverbal', gen, track: 'prep', nnat: true, maxD: 8, desc });
   Object.assign(MQ.TOPICS, {
     nn_pattern: TT('Pattern Completion', '🧩', nn_pattern, 'A big design has a hole. Find the piece that fits it.'),
     nn_analogy: TT('Reasoning by Analogy', '🔁', nn_analogy, 'See how a shape changes across a row, then change the last one the same way.'),
@@ -335,8 +390,16 @@
   // The practice test: 48 questions in 30 minutes, about like Level C (more analogy and serial items, fewer spatial ones),
   // getting harder from the first question to the last, with the kinds mixed.
   MQ.NNAT_TEST = { n: 48, minutes: 30, mix: { nn_pattern: 13, nn_analogy: 15, nn_serial: 14, nn_spatial: 6 } };
-  MQ.nnatPlan = () => {
+  // Three practice tests of the same size and time: the regular one (levels 1–6, like the real test and a little above)
+  // and two challenge tests for a child who gets nearly all of it right (levels 4–7, and only the hardest, 6–8).
+  MQ.NNAT_TIERS = [
+    { name: 'Practice test', icon: '🔷', levels: [1, 6] },
+    { name: 'Challenge test', icon: '🔥', levels: [4, 7] },
+    { name: 'Super challenge', icon: '🏆', levels: [6, 8] },
+  ];
+  MQ.nnatPlan = (tier = 0) => {
+    const [lo, hi] = (MQ.NNAT_TIERS[tier] || MQ.NNAT_TIERS[0]).levels;
     const pool = shuffle(Object.entries(MQ.NNAT_TEST.mix).flatMap(([t, k]) => Array(k).fill(t)));
-    return pool.map((t, i) => ({ topic: t, d: 1 + Math.floor((i * 6) / MQ.NNAT_TEST.n) }));
+    return pool.map((t, i) => ({ topic: t, d: lo + Math.floor((i * (hi - lo + 1)) / MQ.NNAT_TEST.n) }));
   };
 })();
